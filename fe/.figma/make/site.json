@@ -1,0 +1,10 @@
+{
+  "description": "This web application allows users to create and customize user-friendly interfaces based on provided documents, enhancing design efficiency and collaboration.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
