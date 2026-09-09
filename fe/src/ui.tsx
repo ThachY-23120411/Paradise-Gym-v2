@@ -4,33 +4,48 @@ import type {
   CareStatus,
   CheckResult,
   MemberStatus,
+  MemberProfileStatus,
   PackageStatus,
   PaymentStatus,
   RegistrationStatus,
   SessionStatus,
+  ThemeMode,
 } from "./data"
 
 export const palette = {
-  bg: "#080A10",
-  shell: "#09101A",
-  panel: "#0E1625",
-  panelSoft: "#0A1020",
-  rail: "#0C0F1A",
-  border: "#1A2540",
-  borderSoft: "#131E30",
-  text: "#E2E8F0",
-  muted: "#7A8FA8",
-  dim: "#4E6080",
-  faint: "#2A3A55",
-  orange: "#F97316",
-  orangeDark: "#EA580C",
-  green: "#10B981",
-  amber: "#F59E0B",
-  red: "#EF4444",
-  blue: "#3B82F6",
-  purple: "#8B5CF6",
-  pink: "#EC4899",
+  company: "var(--color-company)",
+  bg: "var(--color-bg)",
+  shell: "var(--color-shell)",
+  panel: "var(--color-panel)",
+  panelSoft: "var(--color-panel-soft)",
+  rail: "var(--color-rail)",
+  border: "var(--color-border)",
+  borderSoft: "var(--color-border-soft)",
+  text: "var(--color-text)",
+  muted: "var(--color-muted)",
+  dim: "var(--color-dim)",
+  faint: "var(--color-faint)",
+  orange: "var(--color-accent)",
+  orangeDark: "var(--color-accent-dark)",
+  green: "var(--color-green)",
+  amber: "var(--color-yellow)",
+  red: "var(--color-red)",
+  blue: "var(--color-blue)",
+  purple: "var(--color-purple)",
+  darkButton: "var(--color-dark-button)",
+  pink: "var(--color-purple)",
+  control: "var(--color-control)",
+  hover: "var(--color-hover)",
 }
+
+const buttonPalette = {
+  green: "#16A34A",
+  purple: "#4338CA",
+  red: "#EF4444",
+  blue: "#2563EB",
+  yellow: "#EAB308",
+  dark: "#24272F",
+} as const
 
 const ICON_PATHS = {
   dashboard:
@@ -138,28 +153,30 @@ export function SurfaceSwitcher({
   value,
   onChange,
   compact = false,
+  inverted = false,
 }: {
   value: AppSurface
   onChange: (value: AppSurface) => void
   compact?: boolean
+  inverted?: boolean
 }) {
   const options = Object.keys(surfaceLabels) as AppSurface[]
 
   return (
     <label
-      className="flex items-center gap-2 text-[11px]"
-      style={{ color: palette.dim }}
+      className="flex items-center gap-2 text-[13px]"
+      style={{ color: inverted ? "rgba(255,255,255,0.72)" : palette.dim }}
     >
       <span className={compact ? "sr-only" : ""}>Không gian</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value as AppSurface)}
-        className="min-h-9 rounded-lg border px-3 py-1.5 text-[12px] font-semibold outline-none focus:ring-2"
+        className="min-h-10 rounded-full border px-4 py-1.5 text-[14px] font-semibold outline-none focus:ring-2"
         style={{
-          background: "rgba(255,255,255,0.04)",
-          borderColor: palette.border,
-          color: palette.text,
-          ["--tw-ring-color" as string]: palette.orange,
+          background: inverted ? "rgba(255,255,255,0.14)" : palette.control,
+          borderColor: inverted ? "rgba(255,255,255,0.28)" : palette.border,
+          color: inverted ? "#FFFFFF" : palette.text,
+          ["--tw-ring-color" as string]: palette.green,
         }}
       >
         {options.map((option) => (
@@ -173,6 +190,54 @@ export function SurfaceSwitcher({
         ))}
       </select>
     </label>
+  )
+}
+
+export function ThemeToggle({
+  value,
+  onChange,
+  inverted = false,
+}: {
+  value: ThemeMode
+  onChange: (value: ThemeMode) => void
+  inverted?: boolean
+}) {
+  return (
+    <div
+      className="inline-flex min-h-10 items-center rounded-full border p-1"
+      style={{
+        background: inverted ? "rgba(255,255,255,0.14)" : palette.control,
+        borderColor: inverted ? "rgba(255,255,255,0.28)" : palette.border,
+      }}
+      aria-label="Chọn giao diện"
+    >
+      {(["light", "dark"] as ThemeMode[]).map((mode) => {
+        const active = value === mode
+        return (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => onChange(mode)}
+            className="min-h-8 rounded-full px-3 text-[13px] font-semibold transition-colors focus:outline-none focus:ring-2"
+            style={{
+              background: active
+                ? inverted
+                  ? "rgba(255,255,255,0.24)"
+                  : palette.company
+                : "transparent",
+              color: active
+                ? "#FFFFFF"
+                : inverted
+                  ? "rgba(255,255,255,0.72)"
+                  : palette.dim,
+              ["--tw-ring-color" as string]: palette.green,
+            }}
+          >
+            {mode === "light" ? "Sáng" : "Tối"}
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
@@ -212,12 +277,12 @@ export function Avatar({
 }
 
 const toneStyles = {
-  green: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/25",
-  amber: "bg-amber-500/15 text-amber-300 border border-amber-500/25",
-  red: "bg-red-500/15 text-red-300 border border-red-500/25",
-  blue: "bg-blue-500/15 text-blue-300 border border-blue-500/25",
-  slate: "bg-slate-500/15 text-slate-300 border border-slate-500/25",
-  purple: "bg-violet-500/15 text-violet-300 border border-violet-500/25",
+  green: { color: palette.green, background: "rgba(22,163,74,0.14)", borderColor: "rgba(22,163,74,0.28)" },
+  amber: { color: palette.amber, background: "rgba(234,179,8,0.14)", borderColor: "rgba(234,179,8,0.28)" },
+  red: { color: palette.red, background: "rgba(239,68,68,0.14)", borderColor: "rgba(239,68,68,0.28)" },
+  blue: { color: palette.blue, background: "rgba(37,99,235,0.14)", borderColor: "rgba(37,99,235,0.28)" },
+  slate: { color: palette.muted, background: "rgba(36,39,47,0.12)", borderColor: "rgba(36,39,47,0.24)" },
+  purple: { color: palette.purple, background: "rgba(67,56,202,0.14)", borderColor: "rgba(67,56,202,0.28)" },
 } as const
 
 export type Tone = keyof typeof toneStyles
@@ -233,7 +298,8 @@ export function Pill({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold ${toneStyles[tone]} ${className}`}
+      className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[12px] font-semibold ${className}`}
+      style={toneStyles[tone]}
     >
       {children}
     </span>
@@ -246,6 +312,20 @@ export function MemberBadge({ status }: { status: MemberStatus }) {
     expiring: { label: "Sắp hết hạn", tone: "amber" },
     expired: { label: "Đã hết hạn", tone: "red" },
     none: { label: "Chưa có gói", tone: "slate" },
+  }
+  const item = map[status]
+  return <Pill tone={item.tone}>{item.label}</Pill>
+}
+
+export function MemberProfileStatusBadge({
+  status,
+}: {
+  status: MemberProfileStatus
+}) {
+  const map: Record<MemberProfileStatus, { label: string; tone: Tone }> = {
+    active: { label: "Hồ sơ đang hoạt động", tone: "green" },
+    inactive: { label: "Hồ sơ ngừng hoạt động", tone: "amber" },
+    archived: { label: "Hồ sơ đã lưu trữ", tone: "slate" },
   }
   const item = map[status]
   return <Pill tone={item.tone}>{item.label}</Pill>
@@ -335,7 +415,7 @@ export function Panel({
 }) {
   return (
     <section
-      className={`rounded-lg border ${className}`}
+      className={`theme-card-shadow rounded-lg border ${className}`}
       style={{ background: palette.panel, borderColor: palette.border }}
     >
       {(title || subtitle || action) && (
@@ -345,13 +425,13 @@ export function Panel({
         >
           <div className="min-w-0">
             {title && (
-              <div className="truncate text-[13px] font-semibold text-white">
+              <div className="truncate text-[15px] font-semibold text-white">
                 {title}
               </div>
             )}
             {subtitle && (
               <div
-                className="mt-0.5 text-[11px]"
+                className="mt-0.5 text-[13px]"
                 style={{ color: palette.dim }}
               >
                 {subtitle}
@@ -377,23 +457,23 @@ export function ActionButton({
 }: {
   children: ReactNode
   onClick?: () => void
-  variant?: "primary" | "secondary" | "ghost" | "danger"
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "purple" | "blue" | "warning" | "dark"
   icon?: IconName
   block?: boolean
   type?: "button" | "submit"
   disabled?: boolean
 }) {
-  const styleByVariant: Record<"primary" | "secondary" | "ghost" | "danger", CSSProperties> =
+  const styleByVariant: Record<"primary" | "secondary" | "ghost" | "danger" | "purple" | "blue" | "warning" | "dark", CSSProperties> =
     {
       primary: {
-        background: palette.orange,
+        background: buttonPalette.green,
         color: "#fff",
-        borderColor: palette.orange,
+        borderColor: buttonPalette.green,
       },
       secondary: {
-        background: "rgba(255,255,255,0.04)",
-        color: palette.muted,
-        borderColor: palette.border,
+        background: buttonPalette.dark,
+        color: "#fff",
+        borderColor: buttonPalette.dark,
       },
       ghost: {
         background: "transparent",
@@ -401,9 +481,29 @@ export function ActionButton({
         borderColor: "transparent",
       },
       danger: {
-        background: "rgba(239,68,68,0.12)",
-        color: palette.red,
-        borderColor: "rgba(239,68,68,0.32)",
+        background: buttonPalette.red,
+        color: "#fff",
+        borderColor: buttonPalette.red,
+      },
+      purple: {
+        background: buttonPalette.purple,
+        color: "#fff",
+        borderColor: buttonPalette.purple,
+      },
+      blue: {
+        background: buttonPalette.blue,
+        color: "#fff",
+        borderColor: buttonPalette.blue,
+      },
+      warning: {
+        background: buttonPalette.yellow,
+        color: "#1F2937",
+        borderColor: buttonPalette.yellow,
+      },
+      dark: {
+        background: buttonPalette.dark,
+        color: "#fff",
+        borderColor: buttonPalette.dark,
       },
     }
 
@@ -412,12 +512,13 @@ export function ActionButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[12px] font-semibold transition-colors focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60 ${
+      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full border px-5 py-2 text-[14px] font-semibold shadow-sm transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 ${
         block ? "w-full" : ""
       }`}
       style={{
         ...styleByVariant[variant],
-        ["--tw-ring-color" as string]: palette.orange,
+        boxShadow: disabled ? "none" : "0 8px 18px rgba(0,0,0,0.12)",
+        ["--tw-ring-color" as string]: palette.green,
       }}
     >
       {icon && <Ic k={icon} size={15} />}
@@ -431,11 +532,13 @@ export function IconButton({
   label,
   onClick,
   active = false,
+  inverted = false,
 }: {
   icon: IconName
   label: string
   onClick?: () => void
   active?: boolean
+  inverted?: boolean
 }) {
   return (
     <button
@@ -445,10 +548,18 @@ export function IconButton({
       aria-label={label}
       className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2"
       style={{
-        background: active ? "rgba(249,115,22,0.14)" : "rgba(255,255,255,0.03)",
-        borderColor: active ? "rgba(249,115,22,0.35)" : palette.border,
-        color: active ? palette.orange : palette.muted,
-        ["--tw-ring-color" as string]: palette.orange,
+        background: inverted
+          ? "rgba(255,255,255,0.14)"
+          : active
+            ? "rgba(22,163,74,0.14)"
+            : palette.control,
+        borderColor: inverted
+          ? "rgba(255,255,255,0.28)"
+          : active
+            ? "rgba(22,163,74,0.35)"
+            : palette.border,
+        color: inverted ? "#FFFFFF" : active ? palette.green : palette.muted,
+        ["--tw-ring-color" as string]: inverted ? "#FFFFFF" : palette.green,
       }}
     >
       <Ic k={icon} size={16} />
@@ -470,7 +581,7 @@ export function Field({
   return (
     <label className="block">
       <div
-        className="mb-1.5 flex items-center gap-2 text-[11px] font-semibold"
+        className="mb-1.5 flex items-center gap-2 text-[13px] font-semibold"
         style={{ color: palette.muted }}
       >
         <span>{label}</span>
@@ -484,7 +595,7 @@ export function Field({
       {children}
       {hint && (
         <div
-          className="mt-1 text-[10px] leading-relaxed"
+          className="mt-1 text-[12px] leading-relaxed"
           style={{ color: palette.dim }}
         >
           {hint}
@@ -495,10 +606,10 @@ export function Field({
 }
 
 export const inputStyle: CSSProperties = {
-  background: "rgba(255,255,255,0.04)",
+  background: palette.control,
   borderColor: palette.border,
   color: palette.text,
-  ["--tw-ring-color" as string]: palette.orange,
+  ["--tw-ring-color" as string]: palette.green,
 }
 
 export function TextInput({
@@ -518,7 +629,7 @@ export function TextInput({
       placeholder={placeholder}
       defaultValue={defaultValue}
       readOnly={readOnly}
-      className="w-full rounded-lg border px-3 py-2.5 text-[12px] outline-none focus:ring-2"
+      className="w-full rounded-lg border px-3 py-2.5 text-[14px] outline-none focus:ring-2"
       style={inputStyle}
     />
   )
@@ -534,7 +645,7 @@ export function SelectInput({
   return (
     <select
       defaultValue={defaultValue ?? options[0]}
-      className="w-full rounded-lg border px-3 py-2.5 text-[12px] outline-none focus:ring-2"
+      className="w-full rounded-lg border px-3 py-2.5 text-[14px] outline-none focus:ring-2"
       style={inputStyle}
     >
       {options.map((option) => (
@@ -562,7 +673,7 @@ export function TextArea({
       rows={4}
       placeholder={placeholder}
       defaultValue={defaultValue}
-      className="w-full resize-none rounded-lg border px-3 py-2.5 text-[12px] outline-none focus:ring-2"
+      className="w-full resize-none rounded-lg border px-3 py-2.5 text-[14px] outline-none focus:ring-2"
       style={inputStyle}
     />
   )
@@ -581,7 +692,7 @@ export function Segment<T extends string>({
     <div
       className="inline-flex items-center gap-1 rounded-lg border p-1"
       style={{
-        background: "rgba(255,255,255,0.04)",
+        background: palette.control,
         borderColor: palette.border,
       }}
     >
@@ -590,12 +701,12 @@ export function Segment<T extends string>({
           key={option.value}
           type="button"
           onClick={() => onChange(option.value)}
-          className="min-h-8 rounded-md px-3 text-[11px] font-semibold transition-colors focus:outline-none focus:ring-2"
+          className="min-h-8 rounded-md px-3 text-[13px] font-semibold transition-colors focus:outline-none focus:ring-2"
           style={{
             background:
-              value === option.value ? "rgba(249,115,22,0.15)" : "transparent",
-            color: value === option.value ? palette.orange : palette.dim,
-            ["--tw-ring-color" as string]: palette.orange,
+              value === option.value ? "rgba(22,163,74,0.15)" : "transparent",
+            color: value === option.value ? palette.green : palette.dim,
+            ["--tw-ring-color" as string]: palette.green,
           }}
         >
           {option.label}
@@ -619,8 +730,8 @@ export function EmptyState({
       className="flex min-h-44 flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center"
       style={{ borderColor: palette.border, color: palette.dim }}
     >
-      <div className="text-[13px] font-semibold text-white">{title}</div>
-      <div className="mt-1 max-w-md text-[12px] leading-relaxed">{detail}</div>
+      <div className="text-[15px] font-semibold text-white">{title}</div>
+      <div className="mt-1 max-w-md text-[14px] leading-relaxed">{detail}</div>
       {action && <div className="mt-4">{action}</div>}
     </div>
   )
@@ -661,10 +772,10 @@ export function Modal({
           style={{ borderColor: palette.border }}
         >
           <div className="min-w-0">
-            <h2 className="text-[16px] font-bold text-white">{title}</h2>
+            <h2 className="text-[17px] font-bold text-white">{title}</h2>
             {subtitle && (
               <p
-                className="mt-1 text-[12px] leading-relaxed"
+                className="mt-1 text-[14px] leading-relaxed"
                 style={{ color: palette.dim }}
               >
                 {subtitle}

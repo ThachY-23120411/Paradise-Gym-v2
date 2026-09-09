@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react"
-import type { AppSurface, MobileRole, Session } from "./data"
+import type { AppSurface, MobileRole, Session, ThemeMode } from "./data"
 import {
   CARE_ITEMS,
   MEMBERS,
@@ -21,6 +21,7 @@ import {
   Pill,
   SessionBadge,
   SurfaceSwitcher,
+  ThemeToggle,
   fmtVND,
 } from "./ui"
 
@@ -70,11 +71,15 @@ const ROLE_INFO: Record<MobileRole, {
 
 export function MobileShell({
   surface,
+  theme,
   onSurfaceChange,
+  onThemeChange,
   openAction,
 }: {
   surface: AppSurface
+  theme: ThemeMode
   onSurfaceChange: (surface: AppSurface) => void
+  onThemeChange: (theme: ThemeMode) => void
   openAction: (kind: ActionKind) => void
 }) {
   const role: MobileRole =
@@ -95,27 +100,30 @@ export function MobileShell({
     >
       <div className="flex w-full max-w-[430px] items-center justify-between gap-3">
         <div>
-          <div className="text-[12px] font-semibold text-white">Ứng dụng mobile</div>
-          <div className="text-[11px]" style={{ color: palette.dim }}>
+          <div className="text-[14px] font-semibold text-white">Ứng dụng mobile</div>
+          <div className="text-[13px]" style={{ color: palette.dim }}>
             {info.title} · mô phỏng theo vai trò
           </div>
         </div>
-        <SurfaceSwitcher value={surface} onChange={onSurfaceChange} compact />
+        <div className="flex items-center gap-2">
+          <ThemeToggle value={theme} onChange={onThemeChange} />
+          <SurfaceSwitcher value={surface} onChange={onSurfaceChange} compact />
+        </div>
       </div>
 
       <div
         className="flex h-[calc(100vh-96px)] min-h-[680px] w-full max-w-[430px] flex-col overflow-hidden rounded-[28px] border shadow-2xl"
-        style={{ background: "#0B111D", borderColor: "#26344F" }}
+        style={{ background: palette.shell, borderColor: palette.border }}
       >
         <header
-          className="shrink-0 border-b px-4 pb-3 pt-4"
-          style={{ borderColor: palette.border }}
+          className="app-chrome shrink-0 border-b px-4 pb-3 pt-4"
+          style={{ background: palette.company, borderColor: "rgba(255,255,255,0.14)" }}
         >
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div
-                className="text-[11px] font-medium"
-                style={{ color: palette.dim }}
+                className="text-[12px] font-medium"
+                style={{ color: "rgba(255,255,255,0.72)" }}
               >
                 {SHORT_TODAY}
               </div>
@@ -127,9 +135,9 @@ export function MobileShell({
               type="button"
               className="relative flex h-11 w-11 items-center justify-center rounded-lg border"
               style={{
-                background: "rgba(255,255,255,0.04)",
-                borderColor: palette.border,
-                color: palette.muted,
+                background: "rgba(255,255,255,0.14)",
+                borderColor: "rgba(255,255,255,0.28)",
+                color: "#FFFFFF",
               }}
               aria-label="Thông báo"
             >
@@ -153,14 +161,23 @@ export function MobileShell({
               size={34}
             />
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[12px] font-semibold text-white">
+              <div className="truncate text-[13px] font-semibold text-white">
                 {info.user}
               </div>
-              <div className="text-[10px]" style={{ color: palette.dim }}>
+              <div className="app-chrome-muted text-[11px]">
                 {info.title} · {info.branch}
               </div>
             </div>
-            <Pill tone="green">Đang online</Pill>
+            <span
+              className="inline-flex items-center rounded border px-2 py-0.5 text-[12px] font-semibold"
+              style={{
+                background: "rgba(255,255,255,0.16)",
+                borderColor: "rgba(255,255,255,0.28)",
+                color: "#FFFFFF",
+              }}
+            >
+              Đang online
+            </span>
           </div>
         </header>
 
@@ -169,9 +186,10 @@ export function MobileShell({
         </main>
 
         <nav
-          className="grid shrink-0 border-t px-2 pb-3 pt-2"
+          className="app-chrome grid shrink-0 border-t px-2 pb-3 pt-2"
           style={{
-            borderColor: palette.border,
+            background: palette.company,
+            borderColor: "rgba(255,255,255,0.14)",
             gridTemplateColumns: `repeat(${nav.length}, 1fr)`,
           }}
         >
@@ -184,11 +202,11 @@ export function MobileShell({
                 onClick={() =>
                   setTabs((current) => ({ ...current, [role]: item.id }))
                 }
-                className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-[10px] font-semibold transition-colors focus:outline-none focus:ring-2"
+                className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold transition-colors focus:outline-none focus:ring-2"
                 style={{
-                  color: active ? palette.orange : palette.dim,
-                  background: active ? "rgba(249,115,22,0.1)" : "transparent",
-                  ["--tw-ring-color" as string]: palette.orange,
+                  color: active ? "#FFFFFF" : "rgba(255,255,255,0.68)",
+                  background: active ? "rgba(255,255,255,0.14)" : "transparent",
+                  ["--tw-ring-color" as string]: "#FFFFFF",
                 }}
               >
                 <Ic k={item.icon} size={18} />
@@ -236,7 +254,7 @@ function ReceptionistMobile({
       <MobileCard accent={palette.orange}>
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[11px]" style={{ color: palette.dim }}>
+            <div className="text-[12px]" style={{ color: palette.dim }}>
               Ca hiện tại
             </div>
             <div className="text-[16px] font-bold text-white">Quầy Quận 1</div>
@@ -258,12 +276,12 @@ function ReceptionistMobile({
           style={{ color: palette.dim }}
         />
         <input
-          className="min-h-12 w-full rounded-lg border py-3 pl-10 pr-3 text-[14px] outline-none focus:ring-2"
+          className="min-h-12 w-full rounded-lg border py-3 pl-10 pr-3 text-[15px] outline-none focus:ring-2"
           style={{
-            background: "rgba(255,255,255,0.04)",
+            background: palette.control,
             borderColor: palette.border,
             color: palette.text,
-            ["--tw-ring-color" as string]: palette.orange,
+            ["--tw-ring-color" as string]: palette.green,
           }}
           placeholder="Tìm hội viên, mã HV, số điện thoại"
         />
@@ -308,7 +326,7 @@ function ReceptionistMobile({
             className="flex w-full items-start gap-3 rounded-lg border p-3 text-left"
             style={{
               borderColor: palette.border,
-              background: "rgba(255,255,255,0.025)",
+              background: palette.panel,
             }}
           >
             <div
@@ -330,11 +348,11 @@ function ReceptionistMobile({
               />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[12px] font-semibold text-white">
+              <div className="text-[13px] font-semibold text-white">
                 {item.title}
               </div>
               <div
-                className="truncate text-[11px]"
+                className="truncate text-[12px]"
                 style={{ color: palette.dim }}
               >
                 {item.member} · {item.detail}
@@ -368,12 +386,12 @@ function MobileMembers({
           style={{ color: palette.dim }}
         />
         <input
-          className="min-h-12 w-full rounded-lg border py-3 pl-10 pr-3 text-[14px] outline-none focus:ring-2"
+          className="min-h-12 w-full rounded-lg border py-3 pl-10 pr-3 text-[15px] outline-none focus:ring-2"
           style={{
-            background: "rgba(255,255,255,0.04)",
+            background: palette.control,
             borderColor: palette.border,
             color: palette.text,
-            ["--tw-ring-color" as string]: palette.orange,
+            ["--tw-ring-color" as string]: palette.green,
           }}
           placeholder={
             receptionist
@@ -405,17 +423,17 @@ function MobileMembers({
             <div className="flex items-start gap-3">
               <Avatar name={member.name} tone={palette.blue} size={40} />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-bold text-white">
+                <div className="truncate text-[14px] font-bold text-white">
                   {member.name}
                 </div>
                 <div
-                  className="mt-0.5 text-[11px]"
+                  className="mt-0.5 text-[12px]"
                   style={{ color: palette.dim }}
                 >
                   {member.id} · {member.phone}
                 </div>
                 <div
-                  className="mt-1 text-[11px]"
+                  className="mt-1 text-[12px]"
                   style={{ color: palette.muted }}
                 >
                   {member.packageName} · {member.validUntil}
@@ -458,14 +476,14 @@ function MobileSchedule({
           <button
             key={day}
             type="button"
-            className="min-h-11 min-w-[70px] rounded-lg border text-[12px] font-semibold"
+            className="min-h-11 min-w-[70px] rounded-lg border text-[13px] font-semibold"
             style={{
               background:
                 index === 0
-                  ? "rgba(249,115,22,0.12)"
-                  : "rgba(255,255,255,0.03)",
+                  ? "rgba(22,163,74,0.12)"
+                  : palette.control,
               borderColor:
-                index === 0 ? "rgba(249,115,22,0.4)" : palette.border,
+                index === 0 ? "rgba(22,163,74,0.4)" : palette.border,
               color: index === 0 ? palette.orange : palette.muted,
             }}
           >
@@ -504,17 +522,17 @@ function MobileCare({
         <MobileCard key={item.id}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[13px] font-bold text-white">
+              <div className="text-[14px] font-bold text-white">
                 {item.title}
               </div>
               <div
-                className="mt-1 text-[11px]"
+                className="mt-1 text-[12px]"
                 style={{ color: palette.muted }}
               >
                 {item.member} · {item.memberId}
               </div>
               <div
-                className="mt-1 text-[11px] leading-relaxed"
+                className="mt-1 text-[12px] leading-relaxed"
                 style={{ color: palette.dim }}
               >
                 {item.detail}
@@ -558,6 +576,12 @@ function ReceptionistMore({
         onClick={() => openAction("manual-checkin")}
       />
       <MoreRow
+        icon="wallet"
+        title="Thanh toán chuyển khoản"
+        detail="Khởi tạo lệnh CK, theo dõi IPN/Webhook và xem phiếu sau xác nhận"
+        onClick={() => openAction("bank-transfer-payment")}
+      />
+      <MoreRow
         icon="branch"
         title="Liên hệ chi nhánh"
         detail="Quận 1 · 028 3911 2026 · 06:00 - 22:00"
@@ -596,13 +620,13 @@ function TrainerMobile({
   return (
     <div className="space-y-4">
       <MobileCard accent={palette.purple}>
-        <div className="text-[11px]" style={{ color: palette.dim }}>
+        <div className="text-[12px]" style={{ color: palette.dim }}>
           Buổi tiếp theo
         </div>
         <div className="mt-1 text-[18px] font-bold text-white">
           09:00 · Trần Thị Bình
         </div>
-        <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>
+        <div className="mt-1 text-[13px]" style={{ color: palette.muted }}>
           Gói PT 20 buổi · Quận 1 · còn 3 buổi
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
@@ -671,9 +695,9 @@ function TrainerNotifications({
               <Ic k="bell" size={17} />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[13px] font-bold text-white">{title}</div>
+              <div className="text-[14px] font-bold text-white">{title}</div>
               <div
-                className="mt-1 text-[11px]"
+                className="mt-1 text-[12px]"
                 style={{ color: palette.muted }}
               >
                 {detail}
@@ -714,10 +738,10 @@ function TrainerAccount({
             <div className="text-[16px] font-bold text-white">
               {trainer.name}
             </div>
-            <div className="text-[11px]" style={{ color: palette.dim }}>
+            <div className="text-[12px]" style={{ color: palette.dim }}>
               {trainer.id} · {trainer.branch}
             </div>
-            <div className="mt-1 text-[11px]" style={{ color: palette.muted }}>
+            <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>
               {trainer.specialty}
             </div>
           </div>
@@ -756,13 +780,13 @@ function MemberMobile({
       <MobileCard accent={palette.blue}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-[11px]" style={{ color: palette.dim }}>
+            <div className="text-[12px]" style={{ color: palette.dim }}>
               Gói hiện tại
             </div>
             <div className="mt-1 text-[18px] font-bold text-white">
               {member.packageName}
             </div>
-            <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>
+            <div className="mt-1 text-[13px]" style={{ color: palette.muted }}>
               Hết hạn {member.validUntil} · còn {member.sessionsLeft} buổi
             </div>
           </div>
@@ -810,11 +834,11 @@ function MemberMobile({
             <Ic k="warn" size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-bold text-white">
+            <div className="text-[14px] font-bold text-white">
               Gói sắp hết hạn
             </div>
             <div
-              className="mt-1 text-[11px] leading-relaxed"
+              className="mt-1 text-[12px] leading-relaxed"
               style={{ color: palette.muted }}
             >
               Bạn có thể gửi yêu cầu để quầy xử lý. Gói hiện tại chỉ thay đổi
@@ -851,7 +875,7 @@ function MemberPackages({
             <div className="text-[17px] font-bold text-white">
               {member.packageName}
             </div>
-            <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>
+            <div className="mt-1 text-[13px]" style={{ color: palette.muted }}>
               Hiệu lực đến {member.validUntil}
             </div>
           </div>
@@ -866,14 +890,14 @@ function MemberPackages({
 
       {currentPackage && (
         <MobileCard>
-          <div className="text-[13px] font-bold text-white">Giá tham khảo</div>
+          <div className="text-[14px] font-bold text-white">Giá tham khảo</div>
           <div
             className="mt-1 text-[22px] font-bold"
             style={{ color: palette.orange }}
           >
             {fmtVND(currentPackage.price)}
           </div>
-          <div className="text-[11px]" style={{ color: palette.dim }}>
+          <div className="text-[12px]" style={{ color: palette.dim }}>
             Cần quầy xác nhận trước khi tạo đăng ký chính thức.
           </div>
         </MobileCard>
@@ -887,6 +911,28 @@ function MemberPackages({
         Yêu cầu gia hạn
       </ActionButton>
 
+      <MobileCard>
+        <div className="flex items-start gap-3">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+            style={{ background: "rgba(234,179,8,0.14)", color: palette.amber }}
+          >
+            <Ic k="wallet" size={18} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[14px] font-bold text-white">
+              Chuyển khoản đang chờ xác nhận
+            </div>
+            <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>
+              DK002 · 500.000 đ · chờ IPN/Webhook hợp lệ từ ngân hàng
+            </div>
+            <div className="mt-1 text-[11px]" style={{ color: palette.dim }}>
+              Ảnh chứng từ chỉ là bằng chứng hỗ trợ; phiếu thu xuất hiện sau khi xác nhận.
+            </div>
+          </div>
+        </div>
+      </MobileCard>
+
       <MobileSection title="Phiếu thu của tôi">
         {[
           ["PT00118", "01/07/2026", "3.300.000 đ", "Đã xác nhận"],
@@ -897,25 +943,25 @@ function MemberPackages({
             className="flex items-center justify-between rounded-lg border p-3"
             style={{
               borderColor: palette.border,
-              background: "rgba(255,255,255,0.025)",
+              background: palette.panel,
             }}
           >
             <div>
-              <div className="font-mono text-[12px] font-semibold text-white">
+              <div className="font-mono text-[13px] font-semibold text-white">
                 {id}
               </div>
-              <div className="text-[11px]" style={{ color: palette.dim }}>
+              <div className="text-[12px]" style={{ color: palette.dim }}>
                 {date}
               </div>
             </div>
             <div className="text-right">
               <div
-                className="font-mono text-[12px] font-bold"
+                className="font-mono text-[13px] font-bold"
                 style={{ color: palette.green }}
               >
                 {amount}
               </div>
-              <div className="text-[10px]" style={{ color: palette.dim }}>
+              <div className="text-[11px]" style={{ color: palette.dim }}>
                 {status}
               </div>
             </div>
@@ -941,10 +987,10 @@ function MemberAccount({
             <div className="text-[16px] font-bold text-white">
               {member.name}
             </div>
-            <div className="text-[11px]" style={{ color: palette.dim }}>
+            <div className="text-[12px]" style={{ color: palette.dim }}>
               {member.id} · {member.phone}
             </div>
-            <div className="mt-1 text-[11px]" style={{ color: palette.muted }}>
+            <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>
               Tài khoản hội viên
             </div>
           </div>
@@ -958,7 +1004,7 @@ function MemberAccount({
         block
         variant="secondary"
         icon="user"
-        onClick={() => openAction("account-permissions")}
+        onClick={() => openAction("member-preferences")}
       >
         Cập nhật hồ sơ
       </ActionButton>
@@ -991,28 +1037,28 @@ function MobileSessionRow({
       className="flex min-h-[74px] w-full items-center gap-3 rounded-lg border p-3 text-left"
       style={{
         borderColor: palette.border,
-        background: empty ? "rgba(255,255,255,0.02)" : palette.panel,
+        background: empty ? palette.panelSoft : palette.panel,
       }}
     >
       <div className="w-14 shrink-0">
         <div
-          className="font-mono text-[14px] font-bold"
+          className="font-mono text-[15px] font-bold"
           style={{ color: empty ? palette.faint : palette.orange }}
         >
           {session.time}
         </div>
-        <div className="text-[10px]" style={{ color: palette.dim }}>
+        <div className="text-[11px]" style={{ color: palette.dim }}>
           {session.branch}
         </div>
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[13px] font-bold text-white">
+        <div className="truncate text-[14px] font-bold text-white">
           {session.member ?? "Khung giờ trống"}
         </div>
-        <div className="truncate text-[11px]" style={{ color: palette.muted }}>
+        <div className="truncate text-[12px]" style={{ color: palette.muted }}>
           {session.trainer}
         </div>
-        <div className="truncate text-[10px]" style={{ color: palette.dim }}>
+        <div className="truncate text-[11px]" style={{ color: palette.dim }}>
           {session.packageName ?? "Có thể đặt lịch"}
         </div>
       </div>
@@ -1053,7 +1099,7 @@ function MobileSection({
   return (
     <section>
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-[13px] font-bold text-white">{title}</h2>
+        <h2 className="text-[14px] font-bold text-white">{title}</h2>
       </div>
       <div className="space-y-2">{children}</div>
     </section>
@@ -1073,9 +1119,9 @@ function QuickAction({
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-[76px] flex-col items-center justify-center gap-2 rounded-lg border text-[11px] font-semibold"
+      className="flex min-h-[76px] flex-col items-center justify-center gap-2 rounded-lg border text-[12px] font-semibold"
       style={{
-        background: "rgba(255,255,255,0.035)",
+        background: palette.panel,
         borderColor: palette.border,
         color: palette.muted,
       }}
@@ -1096,10 +1142,10 @@ function TinyMetric({
   return (
     <div
       className="rounded-lg p-2 text-center"
-      style={{ background: "rgba(255,255,255,0.04)" }}
+      style={{ background: palette.panelSoft }}
     >
-      <div className="truncate text-[13px] font-bold text-white">{value}</div>
-      <div className="mt-0.5 text-[10px]" style={{ color: palette.dim }}>
+      <div className="truncate text-[14px] font-bold text-white">{value}</div>
+      <div className="mt-0.5 text-[11px]" style={{ color: palette.dim }}>
         {label}
       </div>
     </div>
@@ -1126,14 +1172,14 @@ function MoreRow({
     >
       <div
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-        style={{ background: "rgba(249,115,22,0.12)", color: palette.orange }}
+        style={{ background: "rgba(22,163,74,0.12)", color: palette.orange }}
       >
         <Ic k={icon} size={18} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-bold text-white">{title}</div>
+        <div className="text-[14px] font-bold text-white">{title}</div>
         <div
-          className="mt-1 text-[11px] leading-relaxed"
+          className="mt-1 text-[12px] leading-relaxed"
           style={{ color: palette.dim }}
         >
           {detail}
@@ -1160,10 +1206,10 @@ function PreferenceRow({
       className="flex min-h-14 items-center justify-between rounded-lg border p-3"
       style={{ background: palette.panel, borderColor: palette.border }}
     >
-      <span className="text-[13px] font-semibold text-white">{title}</span>
+      <span className="text-[14px] font-semibold text-white">{title}</span>
       <span
         className="relative h-6 w-11 rounded-full transition-colors"
-        style={{ background: checked ? palette.orange : "#26344F" }}
+        style={{ background: checked ? palette.green : palette.faint }}
         aria-hidden="true"
       >
         <span

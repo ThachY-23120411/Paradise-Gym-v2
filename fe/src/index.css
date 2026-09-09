@@ -1,6 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import 'tailwindcss';
+
+:root {
+  --color-company: #004C39;
+  --color-bg: #FAFFEE;
+  --color-shell: #FFFFFF;
+  --color-panel: #FFFFFF;
+  --color-panel-soft: #F3F9E7;
+  --color-rail: #004C39;
+  --color-border: #D9E8CF;
+  --color-border-soft: #E4F0DA;
+  --color-text: #123329;
+  --color-muted: #3F5F52;
+  --color-dim: #6D8077;
+  --color-faint: #B7C9B0;
+  --color-accent: #16A34A;
+  --color-accent-dark: #0F7A3A;
+  --color-green: #16A34A;
+  --color-yellow: #EAB308;
+  --color-red: #EF4444;
+  --color-blue: #2563EB;
+  --color-purple: #4338CA;
+  --color-dark-button: #24272F;
+  --color-control: #FFFFFF;
+  --color-hover: rgba(0,76,57,0.07);
+  --color-shadow: rgba(0,76,57,0.12);
+}
+
+:root[data-theme='dark'] {
+  --color-bg: #080A10;
+  --color-shell: #09101A;
+  --color-panel: #0E1625;
+  --color-panel-soft: #0A1020;
+  --color-rail: #004C39;
+  --color-border: #1A2540;
+  --color-border-soft: #131E30;
+  --color-text: #EAF2EE;
+  --color-muted: #A8B8C6;
+  --color-dim: #7D8FA2;
+  --color-faint: #34445F;
+  --color-control: rgba(255,255,255,0.045);
+  --color-hover: rgba(255,255,255,0.06);
+  --color-shadow: rgba(0,0,0,0.32);
+}
 
 html,
 body,
@@ -9,9 +52,10 @@ body,
 }
 
 body {
-  font-family: 'Outfit', system-ui, sans-serif;
-  background-color: #080A10;
-  color: #E2E8F0;
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 15px;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -24,15 +68,36 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E2A40;
+  background: var(--color-faint);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2A3850;
+  background: var(--color-dim);
 }
 
 * {
   box-sizing: border-box;
+}
+
+.text-white {
+  color: var(--color-text);
+}
+
+.app-chrome,
+.app-chrome .text-white {
+  color: #FFFFFF;
+}
+
+.app-chrome-muted {
+  color: rgba(255,255,255,0.72) !important;
+}
+
+.app-chrome-dim {
+  color: rgba(255,255,255,0.52) !important;
+}
+
+.theme-card-shadow {
+  box-shadow: 0 12px 32px var(--color-shadow);
 }
 
 .font-mono {

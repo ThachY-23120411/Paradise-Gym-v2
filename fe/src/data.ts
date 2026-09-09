@@ -3,8 +3,10 @@ export type MenuId = "W01" | "W02" | "W03" | "W04" | "W05" | "W06" | "W07" | "W0
 export type WebRole = "admin" | "receptionist"
 export type MobileRole = "receptionist" | "trainer" | "member"
 export type AppSurface = "web-admin" | "web-receptionist" | "mobile-receptionist" | "mobile-trainer" | "mobile-member"
+export type ThemeMode = "light" | "dark"
 
 export type MemberStatus = "active" | "expiring" | "expired" | "none"
+export type MemberProfileStatus = "active" | "inactive" | "archived"
 export type TrainerStatus = "active" | "inactive"
 export type PackageStatus = "draft" | "selling" | "stopped"
 export type RegistrationStatus = "active" | "expiring" | "expired" | "pending"
@@ -21,6 +23,7 @@ export interface Member {
   packageName: string
   validUntil: string
   status: MemberStatus
+  profileStatus?: MemberProfileStatus
   debt: number
   branch: string
   sessionsLeft: number | null
@@ -44,8 +47,8 @@ export interface Trainer {
 export interface GymPackage {
   id: string
   name: string
-  service: "Gym" | "PT"
-  limitType: "time" | "session"
+  service: "Gym" | "PT" | "Combo"
+  limitType: "time" | "session" | "hybrid"
   price: number
   duration: string | null
   sessions: number | null
@@ -468,6 +471,17 @@ export const PACKAGES: GymPackage[] = [
   },
   {
     id: "G05",
+    name: "Gói Gym 10 lượt",
+    service: "Gym",
+    limitType: "session",
+    price: 800000,
+    duration: "60 ngày",
+    sessions: 10,
+    branches: ["Quận 1", "Bình Thạnh"],
+    status: "selling",
+  },
+  {
+    id: "G06",
     name: "Gói PT 10 buổi",
     service: "PT",
     limitType: "session",
@@ -478,7 +492,7 @@ export const PACKAGES: GymPackage[] = [
     status: "selling",
   },
   {
-    id: "G06",
+    id: "G07",
     name: "Gói PT 20 buổi",
     service: "PT",
     limitType: "session",
@@ -489,7 +503,18 @@ export const PACKAGES: GymPackage[] = [
     status: "selling",
   },
   {
-    id: "G07",
+    id: "G08",
+    name: "Combo Gym 3 tháng + PT 10 buổi",
+    service: "Combo",
+    limitType: "hybrid",
+    price: 3200000,
+    duration: "90 ngày",
+    sessions: 10,
+    branches: ["Quận 1", "Bình Thạnh"],
+    status: "selling",
+  },
+  {
+    id: "G09",
     name: "Gói 1 tháng (cũ)",
     service: "Gym",
     limitType: "time",
@@ -586,6 +611,19 @@ export const REGISTRATIONS: Registration[] = [
     total: 4200000,
     paid: 4200000,
     branch: "Bình Thạnh",
+    status: "active",
+  },
+  {
+    id: "DK008",
+    memberId: "HV013",
+    member: "Cao Thanh Minh",
+    packageName: "Combo Gym 3 tháng + PT 10 buổi",
+    from: "05/09/2026",
+    to: "03/12/2026",
+    total: 3200000,
+    paid: 3200000,
+    pt: "Chưa phân công",
+    branch: "Quận 1",
     status: "active",
   },
   {

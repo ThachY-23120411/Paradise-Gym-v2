@@ -5,6 +5,7 @@ import type {
   Member,
   MemberStatus,
   MenuId,
+  ThemeMode,
   WebRole,
 } from "./data"
 import {
@@ -31,6 +32,7 @@ import {
   type IconName,
   IconButton,
   MemberBadge,
+  MemberProfileStatusBadge,
   PackageBadge,
   palette,
   Panel,
@@ -40,6 +42,7 @@ import {
   Segment,
   SessionBadge,
   SurfaceSwitcher,
+  ThemeToggle,
   fmtVND,
   shortMoney,
 } from "./ui"
@@ -128,11 +131,15 @@ const SCREEN_TITLES: Record<MenuId, { title: string; sub: string }> = {
 
 export function WebShell({
   surface,
+  theme,
   onSurfaceChange,
+  onThemeChange,
   openAction,
 }: {
   surface: AppSurface
+  theme: ThemeMode
   onSurfaceChange: (surface: AppSurface) => void
+  onThemeChange: (theme: ThemeMode) => void
   openAction: (kind: ActionKind) => void
 }) {
   const role: WebRole =
@@ -169,7 +176,9 @@ export function WebShell({
           branch={branch}
           onBranch={setBranch}
           surface={surface}
+          theme={theme}
           onSurfaceChange={onSurfaceChange}
+          onThemeChange={onThemeChange}
         />
         <main
           className="flex-1 overflow-auto"
@@ -204,21 +213,21 @@ function Sidebar({
 }) {
   return (
     <aside
-      className="flex shrink-0 flex-col border-r transition-all duration-300"
+      className="app-chrome flex shrink-0 flex-col border-r transition-all duration-300"
       style={{
         width: collapsed ? 60 : 232,
         background: palette.rail,
-        borderColor: "#151E30",
+        borderColor: "rgba(255,255,255,0.14)",
       }}
     >
       <div
         className="flex min-h-[60px] items-center gap-3 border-b px-3 py-4"
-        style={{ borderColor: "#151E30" }}
+        style={{ borderColor: "rgba(255,255,255,0.14)" }}
       >
         <div
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
           style={{
-            background: `linear-gradient(135deg,${palette.orange},${palette.orangeDark})`,
+            background: "rgba(255,255,255,0.16)",
           }}
         >
           <span className="text-sm font-bold leading-none text-white">G</span>
@@ -228,10 +237,7 @@ function Sidebar({
             <div className="truncate text-sm font-bold leading-tight text-white">
               GymPro
             </div>
-            <div
-              className="text-[10px] leading-tight"
-              style={{ color: palette.dim }}
-            >
+            <div className="app-chrome-muted text-[11px] leading-tight">
               Quản lý phòng Gym
             </div>
           </div>
@@ -248,21 +254,21 @@ function Sidebar({
               onClick={() => onNav(item.id)}
               className="group relative mx-0 flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors duration-150 focus:outline-none focus:ring-2"
               style={{
-                color: isActive ? palette.orange : palette.muted,
-                background: isActive ? "rgba(249,115,22,0.08)" : "transparent",
-                ["--tw-ring-color" as string]: palette.orange,
+                color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.72)",
+                background: isActive ? "rgba(255,255,255,0.14)" : "transparent",
+                ["--tw-ring-color" as string]: "#FFFFFF",
               }}
               title={collapsed ? item.label : undefined}
             >
               {isActive && (
                 <span
                   className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r"
-                  style={{ background: palette.orange }}
+                  style={{ background: "#FFFFFF" }}
                 />
               )}
               <Ic k={item.icon} size={17} />
               {!collapsed && (
-                <span className="truncate text-[13px] font-medium">
+                <span className="truncate text-[14px] font-medium">
                   {item.label}
                 </span>
               )}
@@ -281,7 +287,7 @@ function Sidebar({
 
       <div
         className="flex items-center gap-2.5 border-t p-3"
-        style={{ borderColor: "#151E30" }}
+        style={{ borderColor: "rgba(255,255,255,0.14)" }}
       >
         <Avatar
           name={role === "admin" ? "Quản trị viên" : "Lê Thị Thanh Hà"}
@@ -290,10 +296,10 @@ function Sidebar({
         />
         {!collapsed && (
           <div className="min-w-0 flex-1 overflow-hidden">
-            <div className="truncate text-[12px] font-semibold text-white">
+            <div className="truncate text-[13px] font-semibold text-white">
               {role === "admin" ? "Nguyễn Quản Lý" : "Lê Thị Thanh Hà"}
             </div>
-            <div className="text-[10px]" style={{ color: palette.dim }}>
+            <div className="app-chrome-muted text-[11px]">
               {role === "admin"
                 ? "Quản trị viên · Toàn chuỗi"
                 : "Lễ tân · Quận 1"}
@@ -305,7 +311,7 @@ function Sidebar({
             k="logout"
             size={14}
             cls="shrink-0"
-            style={{ color: palette.dim }}
+            style={{ color: "rgba(255,255,255,0.52)" }}
           />
         )}
       </div>
@@ -314,7 +320,10 @@ function Sidebar({
         type="button"
         onClick={onToggle}
         className="flex w-full items-center justify-center border-t py-2 transition-colors hover:bg-white/5"
-        style={{ borderColor: "#151E30", color: palette.dim }}
+        style={{
+          borderColor: "rgba(255,255,255,0.14)",
+          color: "rgba(255,255,255,0.72)",
+        }}
         aria-label={collapsed ? "Mở rộng menu" : "Thu gọn menu"}
       >
         <Ic k={collapsed ? "menu" : "chevLeft"} size={14} />
@@ -329,7 +338,9 @@ function TopBar({
   branch,
   onBranch,
   surface,
+  theme,
   onSurfaceChange,
+  onThemeChange,
   role,
 }: {
   title: string
@@ -337,7 +348,9 @@ function TopBar({
   branch: string
   onBranch: (branch: string) => void
   surface: AppSurface
+  theme: ThemeMode
   onSurfaceChange: (surface: AppSurface) => void
+  onThemeChange: (theme: ThemeMode) => void
   role: WebRole
 }) {
   const [open, setOpen] = useState(false)
@@ -349,30 +362,34 @@ function TopBar({
 
   return (
     <header
-      className="flex h-[60px] shrink-0 items-center gap-4 border-b px-6"
-      style={{ borderColor: palette.borderSoft, background: palette.shell }}
+      className="app-chrome flex h-[68px] shrink-0 items-center gap-4 border-b px-6"
+      style={{
+        borderColor: "rgba(255,255,255,0.14)",
+        background: palette.company,
+      }}
     >
       <div className="min-w-0 flex-1">
-        <h1 className="truncate text-[15px] font-bold leading-tight text-white">
+        <h1 className="truncate text-[16px] font-bold leading-tight text-white">
           {title}
         </h1>
-        <p className="truncate text-[11px]" style={{ color: palette.dim }}>
+        <p className="app-chrome-muted truncate text-[13px]">
           {subtitle}
         </p>
       </div>
 
-      <SurfaceSwitcher value={surface} onChange={onSurfaceChange} />
+      <SurfaceSwitcher value={surface} onChange={onSurfaceChange} inverted />
+      <ThemeToggle value={theme} onChange={onThemeChange} inverted />
 
       <div className="relative">
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="flex min-h-9 items-center gap-2 rounded-md border px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 focus:outline-none focus:ring-2"
+          className="flex min-h-9 items-center gap-2 rounded-md border px-3 py-1.5 text-[13px] font-medium transition-colors duration-150 focus:outline-none focus:ring-2"
           style={{
-            background: "rgba(255,255,255,0.04)",
-            borderColor: palette.border,
-            color: palette.muted,
-            ["--tw-ring-color" as string]: palette.orange,
+            background: "rgba(255,255,255,0.14)",
+            borderColor: "rgba(255,255,255,0.28)",
+            color: "#FFFFFF",
+            ["--tw-ring-color" as string]: "#FFFFFF",
           }}
         >
           <Ic k="branch" size={14} />
@@ -382,7 +399,7 @@ function TopBar({
         {open && role === "admin" && (
           <div
             className="absolute right-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-lg border shadow-xl"
-            style={{ background: "#111825", borderColor: palette.border }}
+            style={{ background: palette.shell, borderColor: palette.border }}
           >
             {branches.map((item) => (
               <button
@@ -392,8 +409,8 @@ function TopBar({
                   onBranch(item)
                   setOpen(false)
                 }}
-                className="w-full px-3 py-2.5 text-left text-[12px] transition-colors hover:bg-white/5"
-                style={{ color: item === branch ? palette.orange : "#8A9BB5" }}
+                className="w-full px-3 py-2.5 text-left text-[13px] transition-colors hover:bg-white/5"
+                style={{ color: item === branch ? palette.green : palette.muted }}
               >
                 {item}
               </button>
@@ -402,8 +419,8 @@ function TopBar({
         )}
       </div>
 
-      <IconButton icon="bell" label="Thông báo" />
-      <div className="text-[11px] font-mono" style={{ color: palette.dim }}>
+      <IconButton icon="bell" label="Thông báo" inverted />
+      <div className="app-chrome-muted text-[13px] font-mono">
         {SHORT_TODAY}
       </div>
     </header>
@@ -522,10 +539,10 @@ function DashboardView({ role, openAction }: ScreenProps) {
               >
                 <TaskIcon type={task.type} />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[12px] font-semibold text-white">
+                  <div className="truncate text-[13px] font-semibold text-white">
                     {task.title} · {task.member}
                   </div>
-                  <div className="text-[11px]" style={{ color: palette.dim }}>
+                  <div className="text-[12px]" style={{ color: palette.dim }}>
                     {task.detail}
                   </div>
                 </div>
@@ -555,7 +572,7 @@ function DashboardView({ role, openAction }: ScreenProps) {
             {CHECKIN_EVENTS.slice(0, 6).map((event) => (
               <div key={event.id} className="flex items-center gap-3 py-2.5">
                 <div
-                  className="flex h-8 w-10 shrink-0 items-center justify-center rounded-md text-[10px] font-bold"
+                  className="flex h-8 w-10 shrink-0 items-center justify-center rounded-md text-[11px] font-bold"
                   style={{
                     background:
                       event.direction === "in"
@@ -567,16 +584,16 @@ function DashboardView({ role, openAction }: ScreenProps) {
                   {event.direction === "in" ? "VÀO" : "RA"}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[12px] font-semibold text-white">
+                  <div className="truncate text-[13px] font-semibold text-white">
                     {event.member}
                   </div>
-                  <div className="text-[10px]" style={{ color: palette.dim }}>
+                  <div className="text-[11px]" style={{ color: palette.dim }}>
                     {event.memberId} · {event.pkg} · {event.device}
                   </div>
                 </div>
                 <div className="text-right">
                   <div
-                    className="font-mono text-[11px]"
+                    className="font-mono text-[12px]"
                     style={{ color: palette.muted }}
                   >
                     {event.time}
@@ -625,16 +642,16 @@ function DashboardView({ role, openAction }: ScreenProps) {
               }}
             >
               <div
-                className="font-mono text-[11px] font-semibold"
+                className="font-mono text-[12px] font-semibold"
                 style={{ color: sessionColor(session.status) }}
               >
                 {session.time}
               </div>
-              <div className="mt-1 truncate text-[12px] font-semibold text-white">
+              <div className="mt-1 truncate text-[13px] font-semibold text-white">
                 {session.member ?? "Khung trống"}
               </div>
               <div
-                className="truncate text-[10px]"
+                className="truncate text-[11px]"
                 style={{ color: palette.dim }}
               >
                 {session.trainer}
@@ -703,7 +720,7 @@ function MembersView({ role, openAction }: ScreenProps) {
         </Toolbar>
 
         <div className="flex-1 overflow-auto">
-          <table className="w-full min-w-[880px] text-[12px]">
+          <table className="w-full min-w-[880px] text-[13px]">
             <thead className="sticky top-0 z-10">
               <tr
                 style={{
@@ -718,7 +735,7 @@ function MembersView({ role, openAction }: ScreenProps) {
                   "Hiệu lực",
                   "Số buổi",
                   role === "admin" ? "Công nợ" : "Ghi chú",
-                  "Trạng thái",
+                  "Trạng thái gói",
                   "",
                 ].map((header) => (
                   <th
@@ -743,7 +760,7 @@ function MembersView({ role, openAction }: ScreenProps) {
                   style={{
                     background:
                       selected?.id === member.id
-                        ? "rgba(249,115,22,0.05)"
+                        ? "rgba(22,163,74,0.05)"
                         : undefined,
                   }}
                 >
@@ -854,7 +871,7 @@ function MembersView({ role, openAction }: ScreenProps) {
             className="flex items-center justify-between border-b px-4 py-3"
             style={{ borderColor: palette.borderSoft }}
           >
-            <span className="text-[13px] font-semibold text-white">
+            <span className="text-[14px] font-semibold text-white">
               Hồ sơ hội viên
             </span>
             <IconButton
@@ -869,13 +886,14 @@ function MembersView({ role, openAction }: ScreenProps) {
               <div className="text-center">
                 <div className="font-bold text-white">{selected.name}</div>
                 <div
-                  className="font-mono text-[11px]"
+                  className="font-mono text-[12px]"
                   style={{ color: palette.dim }}
                 >
                   {selected.id}
                 </div>
               </div>
               <MemberBadge status={selected.status} />
+              <MemberProfileStatusBadge status={selected.profileStatus ?? "active"} />
             </div>
 
             <InfoStack
@@ -896,6 +914,7 @@ function MembersView({ role, openAction }: ScreenProps) {
                   fmtVND(selected.debt),
                   selected.debt > 0 ? palette.red : undefined,
                 ],
+                ["Trạng thái hồ sơ", selected.profileStatus === "inactive" ? "Ngừng hoạt động" : selected.profileStatus === "archived" ? "Đã lưu trữ" : "Đang hoạt động"],
               ]}
             />
 
@@ -930,6 +949,14 @@ function MembersView({ role, openAction }: ScreenProps) {
                 onClick={() => openAction("contact-log")}
               >
                 Ghi nhận chăm sóc
+              </ActionButton>
+              <ActionButton
+                block
+                variant="secondary"
+                icon="settings"
+                onClick={() => openAction("member-status")}
+              >
+                Đổi trạng thái hồ sơ
               </ActionButton>
             </div>
           </div>
@@ -967,15 +994,19 @@ function PackagesView({ openAction }: ScreenProps) {
           <Panel key={pkg.id}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-[14px] font-bold text-white">
+                <div className="text-[15px] font-bold text-white">
                   {pkg.name}
                 </div>
                 <div
-                  className="mt-0.5 text-[10px]"
+                  className="mt-0.5 text-[11px]"
                   style={{ color: palette.dim }}
                 >
                   {pkg.id} · {pkg.service} ·{" "}
-                  {pkg.limitType === "time" ? "Theo thời gian" : "Theo buổi"}
+                  {pkg.limitType === "time"
+                    ? "Theo thời gian"
+                    : pkg.limitType === "session"
+                      ? "Theo buổi"
+                      : "Thời gian + buổi"}
                 </div>
               </div>
               <PackageBadge status={pkg.status} />
@@ -986,12 +1017,14 @@ function PackagesView({ openAction }: ScreenProps) {
             >
               {fmtVND(pkg.price)}
             </div>
-            <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>
-              {pkg.duration
-                ? `Thời hạn: ${pkg.duration}`
-                : `Số buổi: ${pkg.sessions} buổi PT`}
+            <div className="mt-1 text-[13px]" style={{ color: palette.muted }}>
+              {pkg.limitType === "hybrid"
+                ? `Thời hạn: ${pkg.duration} · PT: ${pkg.sessions} buổi`
+                : pkg.duration
+                  ? `Thời hạn: ${pkg.duration}`
+                  : `Số buổi: ${pkg.sessions} buổi PT`}
             </div>
-            <div className="mt-1 text-[11px]" style={{ color: palette.dim }}>
+            <div className="mt-1 text-[12px]" style={{ color: palette.dim }}>
               Áp dụng: {pkg.branches.join(", ")}
             </div>
             <div
@@ -1046,7 +1079,7 @@ function RegistrationsView({ openAction }: ScreenProps) {
       </Toolbar>
 
       <div className="flex-1 overflow-auto">
-        <table className="w-full min-w-[920px] text-[12px]">
+        <table className="w-full min-w-[920px] text-[13px]">
           <thead className="sticky top-0 z-10">
             <tr
               style={{
@@ -1161,7 +1194,7 @@ function TrainersView({ openAction }: ScreenProps) {
   return (
     <div className="flex flex-col gap-4 p-6">
       <div className="flex items-center justify-between">
-        <span className="text-[13px]" style={{ color: palette.muted }}>
+        <span className="text-[14px]" style={{ color: palette.muted }}>
           {TRAINERS.length} huấn luyện viên · lọc theo chi nhánh và trạng thái
         </span>
         <ActionButton icon="plus" onClick={() => openAction("trainer-form")}>
@@ -1183,13 +1216,13 @@ function TrainersView({ openAction }: ScreenProps) {
                   )}
                 </div>
                 <div
-                  className="mt-0.5 font-mono text-[10px]"
+                  className="mt-0.5 font-mono text-[11px]"
                   style={{ color: palette.dim }}
                 >
                   {trainer.id} · {trainer.phone} · {trainer.branch}
                 </div>
                 <div
-                  className="mt-1 text-[11px]"
+                  className="mt-1 text-[12px]"
                   style={{ color: palette.muted }}
                 >
                   {trainer.specialty}
@@ -1264,7 +1297,7 @@ function ScheduleView({ openAction }: ScreenProps) {
           ]}
         />
         <span
-          className="font-mono text-[12px]"
+          className="font-mono text-[13px]"
           style={{ color: palette.muted }}
         >
           Tuần 37 · 07 - 13/09/2026
@@ -1277,7 +1310,7 @@ function ScheduleView({ openAction }: ScreenProps) {
         </ActionButton>
       </Toolbar>
       <div className="flex-1 overflow-auto">
-        <table className="w-full min-w-[820px] text-[11px]">
+        <table className="w-full min-w-[820px] text-[12px]">
           <thead className="sticky top-0 z-10">
             <tr
               style={{
@@ -1338,7 +1371,7 @@ function ScheduleView({ openAction }: ScreenProps) {
                                 : "schedule-change",
                             )
                           }
-                          className="w-full rounded-md px-2 py-1.5 text-left text-[11px] transition-colors hover:bg-white/5"
+                          className="w-full rounded-md px-2 py-1.5 text-left text-[12px] transition-colors hover:bg-white/5"
                           style={{
                             background: `${sessionColor(session.status)}18`,
                             borderLeft: `2px solid ${sessionColor(session.status)}`,
@@ -1359,7 +1392,7 @@ function ScheduleView({ openAction }: ScreenProps) {
                         <button
                           type="button"
                           onClick={() => openAction("schedule-booking")}
-                          className="h-full w-full rounded-md border border-dashed text-[10px] transition-colors hover:bg-white/3"
+                          className="h-full w-full rounded-md border border-dashed text-[11px] transition-colors hover:bg-white/3"
                           style={{
                             borderColor: palette.border,
                             color: palette.faint,
@@ -1452,10 +1485,10 @@ function CheckInView({ openAction }: ScreenProps) {
       >
         <div className="flex flex-col gap-4 p-5">
           <div>
-            <div className="text-[14px] font-bold text-white">
+            <div className="text-[15px] font-bold text-white">
               Kiểm soát ra/vào
             </div>
-            <div className="text-[11px]" style={{ color: palette.dim }}>
+            <div className="text-[12px]" style={{ color: palette.dim }}>
               Nhập mã HV, tên hoặc số điện thoại
             </div>
           </div>
@@ -1471,10 +1504,10 @@ function CheckInView({ openAction }: ScreenProps) {
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => event.key === "Enter" && handleSearch()}
               placeholder="HV001 · Nguyễn Văn An · 0901..."
-              className="w-full rounded-lg border py-3 pl-10 pr-3 text-[13px] outline-none focus:ring-2"
+              className="w-full rounded-lg border py-3 pl-10 pr-3 text-[14px] outline-none focus:ring-2"
               style={{
-                background: "rgba(249,115,22,0.06)",
-                borderColor: "rgba(249,115,22,0.3)",
+                background: "rgba(22,163,74,0.06)",
+                borderColor: "rgba(22,163,74,0.3)",
                 color: palette.text,
                 ["--tw-ring-color" as string]: palette.orange,
               }}
@@ -1496,11 +1529,11 @@ function CheckInView({ openAction }: ScreenProps) {
                       size={36}
                     />
                     <div>
-                      <div className="text-[13px] font-bold text-white">
+                      <div className="text-[14px] font-bold text-white">
                         {lastResult.member.name}
                       </div>
                       <div
-                        className="font-mono text-[10px]"
+                        className="font-mono text-[11px]"
                         style={{ color: palette.dim }}
                       >
                         {lastResult.member.id}
@@ -1529,7 +1562,7 @@ function CheckInView({ openAction }: ScreenProps) {
               ) : (
                 <div className="space-y-3">
                   <CheckBadge result="unknown" />
-                  <p className="text-[12px]" style={{ color: palette.muted }}>
+                  <p className="text-[13px]" style={{ color: palette.muted }}>
                     {lastResult.message}
                   </p>
                   <ActionButton
@@ -1578,11 +1611,11 @@ function CheckInView({ openAction }: ScreenProps) {
           className="flex items-center justify-between border-b px-5 py-3"
           style={{ borderColor: palette.borderSoft }}
         >
-          <span className="text-[13px] font-semibold text-white">
+          <span className="text-[14px] font-semibold text-white">
             Nhật ký ra/vào hôm nay
           </span>
           <span
-            className="font-mono text-[11px]"
+            className="font-mono text-[12px]"
             style={{ color: palette.dim }}
           >
             {events.length} sự kiện · 07/09/2026
@@ -1596,13 +1629,13 @@ function CheckInView({ openAction }: ScreenProps) {
               style={{ borderColor: "#0F1820" }}
             >
               <div
-                className="w-12 shrink-0 font-mono text-[13px] font-semibold"
+                className="w-12 shrink-0 font-mono text-[14px] font-semibold"
                 style={{ color: palette.muted }}
               >
                 {event.time}
               </div>
               <div
-                className="flex h-8 w-10 shrink-0 items-center justify-center rounded-md text-[10px] font-bold"
+                className="flex h-8 w-10 shrink-0 items-center justify-center rounded-md text-[11px] font-bold"
                 style={{
                   background:
                     event.direction === "in"
@@ -1614,10 +1647,10 @@ function CheckInView({ openAction }: ScreenProps) {
                 {event.direction === "in" ? "VÀO" : "RA"}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[13px] font-semibold text-white">
+                <div className="text-[14px] font-semibold text-white">
                   {event.member}
                 </div>
-                <div className="text-[11px]" style={{ color: palette.dim }}>
+                <div className="text-[12px]" style={{ color: palette.dim }}>
                   {event.memberId} · {event.pkg} · {event.device}
                 </div>
               </div>
@@ -1631,7 +1664,7 @@ function CheckInView({ openAction }: ScreenProps) {
   )
 }
 
-function PaymentsView({ openAction }: ScreenProps) {
+function PaymentsView({ role, openAction }: ScreenProps) {
   const debt = MEMBERS.reduce((sum, member) => sum + member.debt, 0)
   const confirmed = PAYMENTS.filter(
     (payment) => payment.status === "confirmed",
@@ -1656,9 +1689,25 @@ function PaymentsView({ openAction }: ScreenProps) {
         <ActionButton icon="plus" onClick={() => openAction("payment-form")}>
           Ghi nhận thu tiền
         </ActionButton>
+        <ActionButton
+          variant="secondary"
+          icon="wallet"
+          onClick={() => openAction("bank-transfer-payment")}
+        >
+          Khởi tạo CK
+        </ActionButton>
+        {role === "admin" && (
+          <ActionButton
+            variant="secondary"
+            icon="edit"
+            onClick={() => openAction("payment-adjustment")}
+          >
+            Điều chỉnh
+          </ActionButton>
+        )}
       </Toolbar>
       <div className="flex-1 overflow-auto">
-        <table className="w-full min-w-[920px] text-[12px]">
+        <table className="w-full min-w-[920px] text-[13px]">
           <thead className="sticky top-0 z-10">
             <tr
               style={{
@@ -1698,13 +1747,13 @@ function PaymentsView({ openAction }: ScreenProps) {
                 className="transition-colors hover:bg-white/3"
               >
                 <td
-                  className="px-4 py-3 font-mono text-[11px]"
+                  className="px-4 py-3 font-mono text-[12px]"
                   style={{ color: palette.muted }}
                 >
                   {payment.id}
                 </td>
                 <td
-                  className="px-4 py-3 font-mono text-[11px]"
+                  className="px-4 py-3 font-mono text-[12px]"
                   style={{ color: palette.muted }}
                 >
                   {payment.time}
@@ -1713,7 +1762,7 @@ function PaymentsView({ openAction }: ScreenProps) {
                   {payment.member}
                 </td>
                 <td
-                  className="px-4 py-3 font-mono text-[11px]"
+                  className="px-4 py-3 font-mono text-[12px]"
                   style={{ color: palette.muted }}
                 >
                   {payment.ref}
@@ -1737,7 +1786,16 @@ function PaymentsView({ openAction }: ScreenProps) {
                   <PaymentBadge status={payment.status} />
                 </td>
                 <td className="px-4 py-3">
-                  <IconButton icon="eye" label="Xem phiếu thu" />
+                  <div className="flex items-center gap-1">
+                    <IconButton icon="eye" label="Xem phiếu thu" />
+                    {role === "admin" && (
+                      <IconButton
+                        icon="edit"
+                        label="Điều chỉnh payment"
+                        onClick={() => openAction("payment-adjustment")}
+                      />
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -1788,25 +1846,25 @@ function CareView({ openAction }: ScreenProps) {
               <TaskIcon type={item.type} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-[13px] font-semibold text-white">
+                  <div className="text-[14px] font-semibold text-white">
                     {item.title}
                   </div>
                   <CareBadge status={item.status} />
                 </div>
                 <div
-                  className="mt-0.5 text-[12px] font-medium"
+                  className="mt-0.5 text-[13px] font-medium"
                   style={{ color: palette.muted }}
                 >
                   {item.member} · {item.memberId}
                 </div>
                 <div
-                  className="mt-0.5 text-[11px]"
+                  className="mt-0.5 text-[12px]"
                   style={{ color: palette.dim }}
                 >
                   {item.detail}
                 </div>
                 <div
-                  className="mt-1 text-[10px]"
+                  className="mt-1 text-[11px]"
                   style={{ color: palette.faint }}
                 >
                   {item.created} · phụ trách: {item.owner}
@@ -1911,7 +1969,7 @@ function ReportsView({ openAction }: ScreenProps) {
                 className="flex flex-1 flex-col items-center gap-1.5"
               >
                 <div
-                  className="font-mono text-[10px]"
+                  className="font-mono text-[11px]"
                   style={{ color: palette.dim }}
                 >
                   {shortMoney(value)}
@@ -1921,11 +1979,11 @@ function ReportsView({ openAction }: ScreenProps) {
                   style={{
                     height: `${(value / maxRev) * 120}px`,
                     background:
-                      index === 2 ? "rgba(249,115,22,0.7)" : palette.border,
+                      index === 2 ? "rgba(22,163,74,0.7)" : palette.border,
                   }}
                 />
                 <div
-                  className="text-[11px] font-medium"
+                  className="text-[12px] font-medium"
                   style={{ color: index === 2 ? palette.orange : "#3A4A60" }}
                 >
                   {months[index]}
@@ -1943,7 +2001,7 @@ function ReportsView({ openAction }: ScreenProps) {
               ["Gói khác", 1, 8, palette.amber],
             ].map(([label, count, pct, color]) => (
               <div key={label as string}>
-                <div className="mb-1 flex justify-between text-[11px]">
+                <div className="mb-1 flex justify-between text-[12px]">
                   <span style={{ color: palette.muted }}>{label}</span>
                   <span className="font-mono" style={{ color: palette.dim }}>
                     {count as number} · {pct as number}%
@@ -1968,7 +2026,7 @@ function ReportsView({ openAction }: ScreenProps) {
         title="Bảng đối chiếu giao dịch"
         subtitle="Số tổng phía trên phải khớp với dòng chi tiết"
       >
-        <table className="w-full min-w-[760px] text-[12px]">
+        <table className="w-full min-w-[760px] text-[13px]">
           <thead>
             <tr style={{ borderBottom: `1px solid ${palette.border}` }}>
               {[
@@ -2032,11 +2090,11 @@ function BranchesView({ openAction }: ScreenProps) {
           <Panel key={branch.id}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-[14px] font-bold text-white">
+                <div className="text-[15px] font-bold text-white">
                   {branch.name}
                 </div>
                 <div
-                  className="mt-0.5 font-mono text-[10px]"
+                  className="mt-0.5 font-mono text-[11px]"
                   style={{ color: palette.dim }}
                 >
                   {branch.id}
@@ -2044,10 +2102,10 @@ function BranchesView({ openAction }: ScreenProps) {
               </div>
               <Pill tone="green">Đang hoạt động</Pill>
             </div>
-            <div className="mt-3 text-[12px]" style={{ color: palette.muted }}>
+            <div className="mt-3 text-[13px]" style={{ color: palette.muted }}>
               {branch.address}
             </div>
-            <div className="mt-1 text-[11px]" style={{ color: palette.dim }}>
+            <div className="mt-1 text-[12px]" style={{ color: palette.dim }}>
               {branch.phone} · Giờ mở cửa: {branch.open}
             </div>
             <div
@@ -2146,15 +2204,15 @@ function SystemView({ openAction }: ScreenProps) {
             >
               <Ic k={group.icon} size={18} />
             </div>
-            <div className="text-[13px] font-bold text-white">
+            <div className="text-[14px] font-bold text-white">
               {group.title}
             </div>
           </div>
-          <div className="text-[12px]" style={{ color: palette.muted }}>
+          <div className="text-[13px]" style={{ color: palette.muted }}>
             {group.desc}
           </div>
           <div
-            className="mt-3 text-[11px] font-medium"
+            className="mt-3 text-[12px] font-medium"
             style={{ color: palette.orange }}
           >
             Cấu hình
@@ -2183,7 +2241,7 @@ function KpiCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div
-            className="text-[11px] font-medium"
+            className="text-[12px] font-medium"
             style={{ color: palette.muted }}
           >
             {label}
@@ -2192,7 +2250,7 @@ function KpiCard({
             {value}
           </div>
           {sub && (
-            <div className="mt-1 text-[11px]" style={{ color: palette.muted }}>
+            <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>
               {sub}
             </div>
           )}
@@ -2240,12 +2298,12 @@ function SearchBox({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border py-2 pl-8 pr-3 text-[12px] outline-none focus:ring-2"
+        className="w-full rounded-lg border py-2 pl-8 pr-3 text-[13px] outline-none focus:ring-2"
         style={{
-          background: "rgba(255,255,255,0.04)",
+          background: palette.control,
           borderColor: palette.border,
-          color: "#C0CCDD",
-          ["--tw-ring-color" as string]: palette.orange,
+          color: palette.text,
+          ["--tw-ring-color" as string]: palette.green,
         }}
       />
     </div>
@@ -2258,14 +2316,14 @@ function InfoStack({ items }: { items: [string, string, string?][] }) {
       {items.map(([label, value, color]) => (
         <div key={label}>
           <div
-            className="mb-0.5 text-[10px] font-medium"
+            className="mb-0.5 text-[11px] font-medium"
             style={{ color: palette.dim }}
           >
             {label}
           </div>
           <div
-            className="text-[12px] font-semibold"
-            style={{ color: color ?? "#C0CCDD" }}
+            className="text-[13px] font-semibold"
+            style={{ color: color ?? palette.text }}
           >
             {value}
           </div>
@@ -2279,10 +2337,10 @@ function Metric({ label, value }: { label: string; value: string | number }) {
   return (
     <div
       className="rounded-lg p-2 text-center"
-      style={{ background: "rgba(255,255,255,0.03)" }}
+      style={{ background: palette.panelSoft }}
     >
-      <div className="truncate text-[14px] font-bold text-white">{value}</div>
-      <div className="text-[10px]" style={{ color: palette.dim }}>
+      <div className="truncate text-[15px] font-bold text-white">{value}</div>
+      <div className="text-[11px]" style={{ color: palette.dim }}>
         {label}
       </div>
     </div>
@@ -2303,7 +2361,7 @@ function MiniStat({
       className="rounded-lg border px-4 py-2"
       style={{ background: `${tone}10`, borderColor: `${tone}33` }}
     >
-      <div className="text-[10px]" style={{ color: palette.dim }}>
+      <div className="text-[11px]" style={{ color: palette.dim }}>
         {label}
       </div>
       <div className="font-mono font-bold" style={{ color: tone }}>
@@ -2391,11 +2449,11 @@ function K01Overlay({
           </div>
         )}
         {allowed && (
-          <div className="mt-2 text-[13px]" style={{ color: palette.dim }}>
+          <div className="mt-2 text-[14px]" style={{ color: palette.dim }}>
             {member.packageName}
           </div>
         )}
-        <div className="mt-5 text-[11px]" style={{ color: "#2A4060" }}>
+        <div className="mt-5 text-[12px]" style={{ color: "#2A4060" }}>
           K01 · Chi nhánh Quận 1 · không hiển thị số điện thoại hoặc công nợ
         </div>
       </div>
