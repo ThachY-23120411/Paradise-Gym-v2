@@ -9,17 +9,199 @@ export type MemberStatus = "active" | "expiring" | "expired" | "none"
 export type MemberProfileStatus = "active" | "inactive" | "archived"
 export type TrainerStatus = "active" | "inactive"
 export type PackageStatus = "draft" | "selling" | "stopped"
-export type RegistrationStatus = "active" | "expiring" | "expired" | "pending"
+export type RegistrationStatus =
+  | "PENDING_PAYMENT"
+  | "SCHEDULED"
+  | "ACTIVE"
+  | "EXPIRED"
+  | "EXHAUSTED"
+  | "CANCELLED"
+
+export interface Registration {
+  id: string
+  memberId: string
+  member: string
+  packageName: string
+  from: string
+  to: string
+  total: number
+  paid: number
+  pt?: string
+  branch: string
+  status: RegistrationStatus
+  warning?: string | null
+  renewedFrom?: string
+}
+
+export const REGISTRATIONS: Registration[] = [
+  {
+    id: "DK001",
+    memberId: "HV001",
+    member: "Nguyễn Văn An",
+    packageName: "Gói 3 tháng",
+    from: "15/07/2026",
+    to: "15/10/2026",
+    total: 1350000,
+    paid: 1350000,
+    branch: "Quận 1",
+    status: "ACTIVE",
+    warning: null,
+  },
+  {
+    id: "DK002",
+    memberId: "HV002",
+    member: "Trần Thị Bình",
+    packageName: "Gói PT 20 buổi",
+    from: "01/07/2026",
+    to: "20/09/2026",
+    total: 3800000,
+    paid: 3300000,
+    pt: "Nguyễn Thành Long",
+    branch: "Quận 1",
+    status: "PENDING_PAYMENT",
+    warning: "Nợ 500.000 đ",
+  },
+  {
+    id: "DK003",
+    memberId: "HV005",
+    member: "Hoàng Đức Em",
+    packageName: "Gói 1 tháng",
+    from: "30/07/2026",
+    to: "30/08/2026",
+    total: 500000,
+    paid: 0,
+    branch: "Quận 1",
+    status: "PENDING_PAYMENT",
+    warning: "Chưa nộp tiền",
+  },
+  {
+    id: "DK004",
+    memberId: "HV004",
+    member: "Phạm Thu Dung",
+    packageName: "Gói 6 tháng",
+    from: "15/08/2026",
+    to: "15/02/2027",
+    total: 2400000,
+    paid: 2400000,
+    branch: "Bình Thạnh",
+    status: "ACTIVE",
+    warning: null,
+  },
+  {
+    id: "DK005",
+    memberId: "HV008",
+    member: "Bùi Thị Hoa",
+    packageName: "Gói 6 tháng",
+    from: "18/03/2026",
+    to: "18/09/2026",
+    total: 2400000,
+    paid: 2400000,
+    branch: "Quận 1",
+    status: "ACTIVE",
+    warning: "Sắp hết hạn (còn 8 ngày)",
+  },
+  {
+    id: "DK006",
+    memberId: "HV012",
+    member: "Đinh Thị Linh",
+    packageName: "Gói PT 20 buổi",
+    from: "09/08/2026",
+    to: "08/12/2026",
+    total: 3800000,
+    paid: 3800000,
+    pt: "Phạm Văn Mạnh",
+    branch: "Quận 1",
+    status: "ACTIVE",
+    warning: null,
+  },
+  {
+    id: "DK007",
+    memberId: "HV010",
+    member: "Trịnh Thị Lan",
+    packageName: "Gói 1 năm",
+    from: "10/10/2026",
+    to: "10/10/2027",
+    total: 4200000,
+    paid: 4200000,
+    branch: "Bình Thạnh",
+    status: "SCHEDULED",
+    warning: "Sắp tới ngày bắt đầu",
+  },
+  {
+    id: "DK008",
+    memberId: "HV013",
+    member: "Cao Thanh Minh",
+    packageName: "Combo Gym 3 tháng + PT 10 buổi",
+    from: "05/09/2026",
+    to: "03/12/2026",
+    total: 3200000,
+    paid: 3200000,
+    pt: "Chưa phân công",
+    branch: "Quận 1",
+    status: "ACTIVE",
+    warning: "PT chưa phân công",
+  },
+  {
+    id: "DK009",
+    memberId: "HV014",
+    member: "Vũ Hoàng Nam",
+    packageName: "Gói PT 10 buổi",
+    from: "01/06/2026",
+    to: "01/09/2026",
+    total: 2000000,
+    paid: 2000000,
+    pt: "Nguyễn Thành Long",
+    branch: "Quận 1",
+    status: "EXHAUSTED",
+    warning: "Đã tập hết 10/10 buổi",
+  },
+  {
+    id: "DK010",
+    memberId: "HV015",
+    member: "Lê Văn Cường",
+    packageName: "Gói 1 tháng",
+    from: "01/05/2026",
+    to: "01/06/2026",
+    total: 500000,
+    paid: 500000,
+    branch: "Quận 1",
+    status: "EXPIRED",
+    warning: null,
+  },
+  {
+    id: "DK011",
+    memberId: "HV018",
+    member: "Đỗ Minh Tâm",
+    packageName: "Gói 3 tháng",
+    from: "08/12/2026",
+    to: "08/03/2027",
+    total: 1350000,
+    paid: 0,
+    branch: "Quận 1",
+    status: "PENDING_PAYMENT",
+    renewedFrom: "DK001",
+    warning: "Gia hạn chờ nộp tiền",
+  },
+]
 export type PaymentStatus = "confirmed" | "pending" | "partial"
 export type CheckResult = "ok" | "expiring" | "expired" | "manual" | "unknown" | "offline"
 export type SessionStatus = "done" | "ongoing" | "upcoming" | "empty" | "cancelled"
 export type CareStatus = "pending" | "sent" | "failed" | "followup"
+
+export interface MemberPackage {
+  name: string
+  type: "Gym" | "PT" | "Combo"
+  validUntil?: string
+  sessionsLeft?: number | null
+  status: MemberStatus
+}
 
 export interface Member {
   id: string
   name: string
   phone: string
   email?: string
+  address?: string
   packageName: string
   validUntil: string
   status: MemberStatus
@@ -30,6 +212,7 @@ export interface Member {
   trainerId?: string
   birthday?: string
   lastVisit?: string
+  packages?: MemberPackage[]
 }
 
 export interface Trainer {
@@ -139,13 +322,28 @@ export const MEMBERS: Member[] = [
     name: "Nguyễn Văn An",
     phone: "0901 234 567",
     email: "an.nguyen@example.vn",
-    packageName: "Gói 3 tháng",
+    packageName: "Gói 3 tháng + PT 10 buổi",
     validUntil: "15/10/2026",
     status: "active",
     debt: 0,
     branch: "Quận 1",
-    sessionsLeft: null,
+    sessionsLeft: 6,
     lastVisit: "09:42 hôm nay",
+    packages: [
+      {
+        name: "Gói Gym 3 tháng",
+        type: "Gym",
+        validUntil: "15/10/2026",
+        status: "active",
+      },
+      {
+        name: "Gói PT 10 buổi",
+        type: "PT",
+        sessionsLeft: 6,
+        validUntil: "30/11/2026",
+        status: "active",
+      },
+    ],
   },
   {
     id: "HV002",
@@ -160,6 +358,21 @@ export const MEMBERS: Member[] = [
     sessionsLeft: 3,
     trainerId: "PT001",
     lastVisit: "04/09/2026",
+    packages: [
+      {
+        name: "Gói PT 20 buổi",
+        type: "PT",
+        sessionsLeft: 3,
+        validUntil: "20/09/2026",
+        status: "expiring",
+      },
+      {
+        name: "Gói Gym 1 tháng (Gia hạn)",
+        type: "Gym",
+        validUntil: "Dự kiến 21/09/2026",
+        status: "none",
+      },
+    ],
   },
   {
     id: "HV003",
@@ -202,7 +415,7 @@ export const MEMBERS: Member[] = [
     id: "HV006",
     name: "Vũ Thị Phương",
     phone: "0906 789 012",
-    packageName: "Gói PT 10 buổi",
+    packageName: "Gói Gym 6T + PT 10B",
     validUntil: "01/11/2026",
     status: "active",
     debt: 0,
@@ -210,6 +423,21 @@ export const MEMBERS: Member[] = [
     sessionsLeft: 7,
     trainerId: "PT003",
     lastVisit: "08:30 hôm nay",
+    packages: [
+      {
+        name: "Gói Gym 6 tháng",
+        type: "Gym",
+        validUntil: "15/10/2026",
+        status: "active",
+      },
+      {
+        name: "Gói PT 10 buổi",
+        type: "PT",
+        sessionsLeft: 7,
+        validUntil: "01/11/2026",
+        status: "active",
+      },
+    ],
   },
   {
     id: "HV007",
@@ -276,13 +504,28 @@ export const MEMBERS: Member[] = [
     id: "HV012",
     name: "Đinh Thị Linh",
     phone: "0922 345 678",
-    packageName: "Gói PT 20 buổi",
+    packageName: "Gói Gym 3T + PT 20B",
     validUntil: "08/12/2026",
     status: "active",
     debt: 0,
     branch: "Quận 1",
     sessionsLeft: 14,
     trainerId: "PT002",
+    packages: [
+      {
+        name: "Gói Gym 3 tháng",
+        type: "Gym",
+        validUntil: "22/11/2026",
+        status: "active",
+      },
+      {
+        name: "Gói PT 20 buổi",
+        type: "PT",
+        sessionsLeft: 14,
+        validUntil: "08/12/2026",
+        status: "active",
+      },
+    ],
   },
   {
     id: "HV013",
@@ -526,119 +769,7 @@ export const PACKAGES: GymPackage[] = [
   },
 ]
 
-export const REGISTRATIONS: Registration[] = [
-  {
-    id: "DK001",
-    memberId: "HV001",
-    member: "Nguyễn Văn An",
-    packageName: "Gói 3 tháng",
-    from: "15/07/2026",
-    to: "15/10/2026",
-    total: 1350000,
-    paid: 1350000,
-    branch: "Quận 1",
-    status: "active",
-  },
-  {
-    id: "DK002",
-    memberId: "HV002",
-    member: "Trần Thị Bình",
-    packageName: "Gói PT 20 buổi",
-    from: "01/07/2026",
-    to: "20/09/2026",
-    total: 3800000,
-    paid: 3300000,
-    pt: "Nguyễn Thành Long",
-    branch: "Quận 1",
-    status: "expiring",
-  },
-  {
-    id: "DK003",
-    memberId: "HV005",
-    member: "Hoàng Đức Em",
-    packageName: "Gói 1 tháng",
-    from: "30/07/2026",
-    to: "30/08/2026",
-    total: 500000,
-    paid: 0,
-    branch: "Quận 1",
-    status: "expired",
-  },
-  {
-    id: "DK004",
-    memberId: "HV004",
-    member: "Phạm Thu Dung",
-    packageName: "Gói 6 tháng",
-    from: "15/08/2026",
-    to: "15/02/2027",
-    total: 2400000,
-    paid: 2400000,
-    branch: "Bình Thạnh",
-    status: "active",
-  },
-  {
-    id: "DK005",
-    memberId: "HV008",
-    member: "Bùi Thị Hoa",
-    packageName: "Gói 6 tháng",
-    from: "18/03/2026",
-    to: "18/09/2026",
-    total: 2400000,
-    paid: 2400000,
-    branch: "Quận 1",
-    status: "expiring",
-  },
-  {
-    id: "DK006",
-    memberId: "HV012",
-    member: "Đinh Thị Linh",
-    packageName: "Gói PT 20 buổi",
-    from: "09/08/2026",
-    to: "08/12/2026",
-    total: 3800000,
-    paid: 3800000,
-    pt: "Phạm Văn Mạnh",
-    branch: "Quận 1",
-    status: "active",
-  },
-  {
-    id: "DK007",
-    memberId: "HV010",
-    member: "Trịnh Thị Lan",
-    packageName: "Gói 1 năm",
-    from: "10/07/2026",
-    to: "10/07/2027",
-    total: 4200000,
-    paid: 4200000,
-    branch: "Bình Thạnh",
-    status: "active",
-  },
-  {
-    id: "DK008",
-    memberId: "HV013",
-    member: "Cao Thanh Minh",
-    packageName: "Combo Gym 3 tháng + PT 10 buổi",
-    from: "05/09/2026",
-    to: "03/12/2026",
-    total: 3200000,
-    paid: 3200000,
-    pt: "Chưa phân công",
-    branch: "Quận 1",
-    status: "active",
-  },
-  {
-    id: "REQ-018",
-    memberId: "HV018",
-    member: "Đỗ Minh Tâm",
-    packageName: "Yêu cầu gia hạn Gói 3 tháng",
-    from: "Chờ xử lý",
-    to: "Dự kiến 08/12/2026",
-    total: 1350000,
-    paid: 0,
-    branch: "Quận 1",
-    status: "pending",
-  },
-]
+
 
 export const PAYMENTS: Payment[] = [
   {

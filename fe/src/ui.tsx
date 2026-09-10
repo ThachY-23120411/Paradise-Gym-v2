@@ -333,12 +333,14 @@ export function MemberProfileStatusBadge({
 
 export function RegistrationBadge({ status }: { status: RegistrationStatus }) {
   const map: Record<RegistrationStatus, { label: string; tone: Tone }> = {
-    active: { label: "Đang hiệu lực", tone: "green" },
-    expiring: { label: "Sắp hết hạn", tone: "amber" },
-    expired: { label: "Đã hết hạn", tone: "red" },
-    pending: { label: "Chờ xử lý", tone: "blue" },
+    PENDING_PAYMENT: { label: "Chờ thanh toán", tone: "amber" },
+    SCHEDULED: { label: "Sắp hiệu lực", tone: "blue" },
+    ACTIVE: { label: "Đang hiệu lực", tone: "green" },
+    EXPIRED: { label: "Đã hết hạn", tone: "red" },
+    EXHAUSTED: { label: "Đã dùng hết", tone: "purple" },
+    CANCELLED: { label: "Đã hủy", tone: "slate" },
   }
-  const item = map[status]
+  const item = map[status] ?? { label: status, tone: "slate" }
   return <Pill tone={item.tone}>{item.label}</Pill>
 }
 
@@ -615,11 +617,15 @@ export const inputStyle: CSSProperties = {
 export function TextInput({
   placeholder,
   defaultValue,
+  value,
+  onChange,
   readOnly = false,
   type = "text",
 }: {
   placeholder?: string
   defaultValue?: string
+  value?: string
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   readOnly?: boolean
   type?: string
 }) {
@@ -628,6 +634,8 @@ export function TextInput({
       type={type}
       placeholder={placeholder}
       defaultValue={defaultValue}
+      value={value}
+      onChange={onChange}
       readOnly={readOnly}
       className="w-full rounded-lg border px-3 py-2.5 text-[14px] outline-none focus:ring-2"
       style={inputStyle}
@@ -638,13 +646,19 @@ export function TextInput({
 export function SelectInput({
   options,
   defaultValue,
+  value,
+  onChange,
 }: {
   options: string[]
   defaultValue?: string
+  value?: string
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void
 }) {
   return (
     <select
-      defaultValue={defaultValue ?? options[0]}
+      defaultValue={value === undefined ? (defaultValue ?? options[0]) : undefined}
+      value={value}
+      onChange={onChange}
       className="w-full rounded-lg border px-3 py-2.5 text-[14px] outline-none focus:ring-2"
       style={inputStyle}
     >
@@ -664,15 +678,21 @@ export function SelectInput({
 export function TextArea({
   placeholder,
   defaultValue,
+  value,
+  onChange,
 }: {
   placeholder?: string
   defaultValue?: string
+  value?: string
+  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
 }) {
   return (
     <textarea
       rows={4}
       placeholder={placeholder}
       defaultValue={defaultValue}
+      value={value}
+      onChange={onChange}
       className="w-full resize-none rounded-lg border px-3 py-2.5 text-[14px] outline-none focus:ring-2"
       style={inputStyle}
     />

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   ActionButton,
   Field,
@@ -13,8 +13,14 @@ import {
 
 export type ActionKind =
   | "member-form"
+  | "member-create"
+  | "member-update"
   | "member-status"
   | "package-form"
+  | "package-create"
+  | "package-update"
+  | "registration-create"
+  | "registration-renew"
   | "registration-form"
   | "payment-form"
   | "bank-transfer-payment"
@@ -30,6 +36,7 @@ export type ActionKind =
   | "branch-form"
   | "account-permissions"
   | "member-preferences"
+  | "duplicate-resolve"
   | "device-settings"
   | "policy-settings"
   | "renewal-request"
@@ -58,11 +65,176 @@ type ActionConfig = {
 }
 
 const ACTIONS: Record<ActionKind, ActionConfig> = {
-  "member-form": {
-    title: "Thêm / cập nhật hồ sơ hội viên",
-    trace: "UX-F01 · W02 · QTV/LT",
+  "registration-create": {
+    title: "Tạo đăng ký gói mới",
+    trace: "UX-F03 · W04 · QTV/LT web",
     intro:
-      "Tạo hồ sơ nhanh tại quầy, không bắt mua gói hoặc tạo tài khoản ngay.",
+      "Tạo lượt đăng ký mới cho hội viên. Chi nhánh bán tự động lấy theo chi nhánh làm việc hiện tại.",
+    steps: ["Hội viên", "Chọn gói đăng ký", "Thời hạn [AUTO]", "Xác nhận & Thu tiền"],
+    fields: [
+      {
+        label: "Hội viên",
+        required: true,
+        placeholder: "Nguyễn Văn An (HV001)",
+        hint: "Mở từ hồ sơ hội viên thì điền sẵn và khóa chỉnh sửa.",
+      },
+      {
+        label: "Chi nhánh bán",
+        kind: "readonly",
+        value: "Chi nhánh Quận 1 (Tự động lấy theo chi nhánh hiện tại)",
+      },
+      {
+        label: "Gói đăng ký",
+        required: true,
+        kind: "select",
+        options: [
+          "Gói 1 tháng (Gym - 500.000đ)",
+          "Gói 3 tháng (Gym - 1.350.000đ)",
+          "Gói 6 tháng (Gym - 2.400.000đ)",
+          "Gói 1 năm (Gym - 4.200.000đ)",
+          "Gói PT 10 buổi (PT - 2.000.000đ)",
+          "Gói PT 20 buổi (PT - 3.800.000đ)",
+          "Combo Gym 3 tháng + PT 10 buổi (3.200.000đ)",
+        ],
+      },
+      {
+        label: "Ngày bắt đầu",
+        required: true,
+        kind: "date",
+        placeholder: "10/09/2026",
+      },
+      {
+        label: "Ngày kết thúc dự kiến [AUTO]",
+        kind: "readonly",
+        value: "10/12/2026 (Tự động tính theo thời hạn gói)",
+      },
+      {
+        label: "PT phụ trách",
+        kind: "readonly",
+        value: "🔒 Chưa phân công (Gửi Yêu cầu chọn PT sau khi thu tiền 100%)",
+        hint: "E02-US02: Đăng ký hoãn phân công PT. Sau khi thu đủ 100%, hội viên chọn PT và gửi Yêu cầu phân công.",
+      },
+      {
+        label: "Giá gốc hiện hành",
+        kind: "readonly",
+        value: "Tự động lấy theo bảng giá niêm yết hiện tại",
+      },
+      {
+        label: "Chính sách giảm giá",
+        kind: "select",
+        options: [
+          "Không giảm giá",
+          "Chính sách hợp lệ (-10%)",
+          "Gửi QTV duyệt ngoài chính sách (-15%)",
+        ],
+      },
+      {
+        label: "Ghi chú đăng ký",
+        kind: "textarea",
+        placeholder: "Ghi chú yêu cầu đặc biệt của hội viên...",
+      },
+    ],
+    checks: [
+      "Chi nhánh bán tự động khóa theo chi nhánh làm việc.",
+      "Tự động tính ngày kết thúc, giá gốc và quyền lợi snapshot.",
+      "Tạo đăng ký thành công với status ban đầu là PENDING_PAYMENT.",
+      "Tự động chuyển ngay sang bước thu tiền sau khi xác nhận.",
+    ],
+    exceptions: [
+      "Gói chưa thu đủ 100% tiền sẽ không được phép Check-in hoặc đặt lịch PT.",
+      "Gói PT/Combo: PT phụ trách ban đầu để trống, phân công sau khi thu đủ tiền.",
+    ],
+    result: "Đã tạo đăng ký mới DK012 (Trạng thái: PENDING_PAYMENT) và mở bước thu tiền.",
+    primary: "Xác nhận tạo đăng ký & Chuyển thu tiền",
+  },
+  "registration-renew": {
+    title: "Gia hạn đăng ký gói",
+    trace: "UX-F03-RENEW · W04 · QTV/LT web",
+    intro:
+      "Tạo lượt gia hạn nối tiếp hợp đồng cũ. Ngày bắt đầu tự động bằng ngày sau end_date gói hiện tại.",
+    steps: ["Hợp đồng cũ", "Chọn gói gia hạn", "Thời hạn nối tiếp [AUTO]", "Chuyển thu tiền"],
+    fields: [
+      {
+        label: "Gia hạn từ hợp đồng cũ",
+        kind: "readonly",
+        value: "DK001 (Hợp đồng đang xem)",
+      },
+      {
+        label: "Hội viên gia hạn",
+        kind: "readonly",
+        value: "Nguyễn Văn An (HV001) · SĐT: 0901234567 [Read-only]",
+      },
+      {
+        label: "Chi nhánh bán",
+        kind: "readonly",
+        value: "Chi nhánh Quận 1 (Tự động lấy theo active branch)",
+      },
+      {
+        label: "Gói hiện tại hết hạn ngày",
+        kind: "readonly",
+        value: "15/10/2026 (End date hợp đồng DK001)",
+      },
+      {
+        label: "Gói gia hạn (Chọn gói hiện hành)",
+        required: true,
+        kind: "select",
+        options: [
+          "Gói 3 tháng (Gym - 1.350.000đ) [Prefilled]",
+          "Gói 6 tháng (Gym - 2.400.000đ)",
+          "Gói 1 năm (Gym - 4.200.000đ)",
+          "Combo Gym 3 tháng + PT 10 buổi (3.200.000đ)",
+        ],
+        hint: "Tự động prefill gói cũ nếu gói còn được phép bán.",
+      },
+      {
+        label: "Ngày bắt đầu mới [AUTO]",
+        kind: "readonly",
+        value: "16/10/2026 (Tự động = Ngày hết hạn cũ + 1 ngày)",
+      },
+      {
+        label: "Ngày kết thúc mới [AUTO]",
+        kind: "readonly",
+        value: "16/01/2027 (Tự động tính theo thời hạn gói mới)",
+      },
+      {
+        label: "Giá niêm yết hiện hành",
+        kind: "readonly",
+        value: "1.350.000 đ (Giá thời điểm gia hạn, không lấy giá cũ)",
+      },
+      {
+        label: "PT phụ trách gia hạn",
+        kind: "readonly",
+        value: "🔒 Chưa phân công (Gửi Yêu cầu chọn PT sau khi thu tiền 100%)",
+        hint: "Gia hạn gói PT/Combo hoãn chọn PT tới khi thu tiền 100%.",
+      },
+      {
+        label: "Chính sách giảm giá",
+        kind: "select",
+        options: [
+          "Không giảm giá",
+          "Giảm giá gia hạn hội viên thân thiết (-5%)",
+          "Chính sách khuyến mãi tháng",
+        ],
+      },
+    ],
+    checks: [
+      "Tự động khóa Hội viên, Mã hợp đồng cũ và Chi nhánh bán.",
+      "Tự động tính ngày bắt đầu mới = end_date cũ + 1 ngày.",
+      "Giá và chính sách lấy theo thời điểm gia hạn hiện tại.",
+      "Tạo đăng ký mới DK012 có renewedFrom = DK001 và status PENDING_PAYMENT.",
+    ],
+    exceptions: [
+      "Gói gia hạn không cộng gộp số buổi PT của gói cũ vào gói mới.",
+      "Gói PT/Combo: PT phụ trách ban đầu để trống, phân công sau khi thu đủ tiền.",
+    ],
+    result: "Đã tạo đăng ký gia hạn mới nối tiếp hợp đồng cũ DK001 (Trạng thái: PENDING_PAYMENT) và mở bước thu tiền.",
+    primary: "Xác nhận gia hạn & Chuyển thu tiền",
+  },
+  "member-create": {
+    title: "Thêm mới hồ sơ hội viên",
+    trace: "UX-F01 · E01-US01 · QTV/LT",
+    intro:
+      "Tạo hồ sơ hội viên mới tại quầy. Nhập họ tên và số điện thoại để bắt đầu.",
     steps: ["Nhận diện", "Liên hệ", "Consent", "Kết quả"],
     fields: [
       {
@@ -74,14 +246,14 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       {
         label: "Mã hội viên",
         kind: "readonly",
-        value: "Hệ thống tự sinh sau khi lưu",
-        hint: "Định danh ổn định khi trùng tên.",
+        value: "(Tự động sinh)",
+        hint: "Mã hội viên được hệ thống tự động sinh sau khi lưu thành công.",
       },
       {
         label: "Số điện thoại",
         required: true,
-        placeholder: "0908 111 222",
-        hint: "Dùng để tìm và cảnh báo nghi trùng; không làm mất số 0 đầu.",
+        placeholder: "Ví dụ: 0908 111 222",
+        hint: "Dùng để tìm kiếm và cảnh báo trùng lặp hồ sơ; giữ nguyên số 0 đầu.",
       },
       {
         label: "Email",
@@ -93,7 +265,7 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         required: true,
         kind: "readonly",
         value: "Chi nhánh Quận 1",
-        hint: "Điền theo ca làm việc hiện tại.",
+        hint: "Trường cố định: Theo chi nhánh của tài khoản thao tác.",
       },
       {
         label: "Ngày sinh",
@@ -109,13 +281,8 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       {
         label: "Trạng thái hồ sơ",
         kind: "readonly",
-        value: "Đang hoạt động (mặc định cho hồ sơ mới)",
-        hint: "Chỉ cập nhật đổi trạng thái khi hồ sơ đã tồn tại.",
-      },
-      {
-        label: "Lý do dùng chung liên hệ / nghi trùng",
-        kind: "textarea",
-        placeholder: "Bắt buộc khi số điện thoại/email trùng nhưng vẫn tạo hồ sơ mới.",
+        value: "Đang hoạt động",
+        hint: "Hồ sơ mới mặc định ở trạng thái Đang hoạt động.",
       },
       {
         label: "Ghi chú vận hành",
@@ -124,17 +291,163 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       },
     ],
     checks: [
-      "Nếu số liên hệ gần trùng, hiển thị hồ sơ gần khớp để mở đối chiếu.",
-      "Sau khi lưu, sinh mã hội viên và giữ ngữ cảnh để đăng ký gói tiếp.",
-      "Hồ sơ chưa có email, ngày sinh hoặc ảnh vẫn tạo được; tài khoản mobile là bước riêng.",
+      "Nếu số liên hệ trùng hoặc gần trùng, hệ thống chuyển sang màn hình Xử lý nghi trùng.",
+      "Sau khi lưu thành công, sinh mã hội viên mới và mở ngữ cảnh đăng ký gói.",
+      "Hồ sơ chưa có email, ngày sinh hoặc ảnh vẫn tạo được.",
     ],
     exceptions: [
-      "Thiếu tên, số điện thoại hoặc chi nhánh: giữ dữ liệu và focus tới tóm tắt lỗi.",
+      "Thiếu tên, số điện thoại hoặc chi nhánh: giữ dữ liệu và báo lỗi.",
       "Mất kết nối: cho thử lại, không đóng form.",
-      "Không tự xóa hồ sơ đã có giao dịch.",
     ],
-    result: "Đã tạo hội viên HV-DEMO-001. Hồ sơ mở với nút Đăng ký gói.",
-    primary: "Lưu hội viên",
+    result: "Đã tạo mới hội viên HV003 thành công.",
+    primary: "Thêm hội viên",
+  },
+  "member-update": {
+    title: "Cập nhật hồ sơ hội viên",
+    trace: "UX-F01-EDIT · E01-US02 · QTV/LT",
+    intro:
+      "Chỉnh sửa thông tin hồ sơ hội viên hiện có trên hệ thống.",
+    steps: ["Nhận diện", "Liên hệ", "Consent", "Kết quả"],
+    fields: [
+      {
+        label: "Mã hội viên",
+        kind: "readonly",
+        value: "HV001",
+        hint: "Trường bắt buộc cố định: Không thể thay đổi mã hội viên đã cấp.",
+      },
+      {
+        label: "Họ và tên",
+        required: true,
+        value: "Nguyễn Hoài Nam",
+        placeholder: "Ví dụ: Nguyễn Hoài Nam",
+        hint: "Hỗ trợ dấu tiếng Việt, bỏ khoảng trắng thừa trước khi lưu.",
+      },
+      {
+        label: "Số điện thoại",
+        required: true,
+        value: "0908 111 222",
+        placeholder: "0908 111 222",
+        hint: "Dùng để tìm và cảnh báo nghi trùng; không làm mất số 0 đầu.",
+      },
+      {
+        label: "Email",
+        value: "nam.nguyen@example.vn",
+        placeholder: "name@example.vn",
+        hint: "Chỉ kiểm tra định dạng khi có nhập.",
+      },
+      {
+        label: "Chi nhánh tiếp nhận",
+        required: true,
+        kind: "readonly",
+        value: "Chi nhánh Quận 1",
+        hint: "Trường bắt buộc cố định: Không thể thay đổi chi nhánh khởi tạo.",
+      },
+      {
+        label: "Ngày sinh",
+        kind: "date",
+        value: "15/05/1990",
+        placeholder: "DD/MM/YYYY",
+        hint: "Không mặc định hôm nay; dùng cho nhắc sinh nhật nếu hội viên đồng ý.",
+      },
+      {
+        label: "Ảnh hồ sơ",
+        placeholder: "Chọn ảnh đại diện mới...",
+        hint: "Ảnh hồ sơ không tự trở thành dữ liệu nhận diện.",
+      },
+      {
+        label: "Trạng thái hồ sơ",
+        kind: "readonly",
+        value: "Đang hoạt động",
+        hint: "Trường bắt buộc cố định: Phải dùng tính năng 'Thay đổi trạng thái' để cập nhật.",
+      },
+      {
+        label: "Ghi chú vận hành",
+        kind: "textarea",
+        value: "Khách ưu tiên tập khung giờ sáng.",
+        placeholder: "Thông tin phục vụ ngắn, không nhập dữ liệu nhạy cảm.",
+      },
+    ],
+    checks: [
+      "Kiểm tra và cảnh báo nếu thay đổi SĐT trùng với hội viên khác.",
+      "Lưu lịch sử thay đổi thông tin hội viên.",
+    ],
+    exceptions: [
+      "Không cho phép sửa các trường bắt buộc cố định: Mã hội viên, Chi nhánh, Trạng thái.",
+    ],
+    result: "Đã cập nhật thông tin hội viên HV001 thành công.",
+    primary: "Cập nhật hồ sơ",
+  },
+  "member-form": {
+    title: "Thêm mới hồ sơ hội viên",
+    trace: "UX-F01 · E01-US01 · QTV/LT",
+    intro:
+      "Tạo hồ sơ hội viên mới tại quầy. Nhập họ tên và số điện thoại để bắt đầu.",
+    steps: ["Nhận diện", "Liên hệ", "Consent", "Kết quả"],
+    fields: [
+      {
+        label: "Họ và tên",
+        required: true,
+        placeholder: "Ví dụ: Nguyễn Hoài Nam",
+        hint: "Hỗ trợ dấu tiếng Việt, bỏ khoảng trắng thừa trước khi lưu.",
+      },
+      {
+        label: "Mã hội viên",
+        kind: "readonly",
+        value: "(Tự động sinh)",
+        hint: "Mã hội viên được hệ thống tự động sinh sau khi lưu thành công.",
+      },
+      {
+        label: "Số điện thoại",
+        required: true,
+        placeholder: "Ví dụ: 0908 111 222",
+        hint: "Dùng để tìm kiếm và cảnh báo trùng lặp hồ sơ; giữ nguyên số 0 đầu.",
+      },
+      {
+        label: "Email",
+        placeholder: "name@example.vn",
+        hint: "Chỉ kiểm tra định dạng khi có nhập.",
+      },
+      {
+        label: "Chi nhánh tiếp nhận",
+        required: true,
+        kind: "readonly",
+        value: "Chi nhánh Quận 1",
+        hint: "Trường cố định: Theo chi nhánh của tài khoản thao tác.",
+      },
+      {
+        label: "Ngày sinh",
+        kind: "date",
+        placeholder: "DD/MM/YYYY",
+        hint: "Không mặc định hôm nay; dùng cho nhắc sinh nhật nếu hội viên đồng ý.",
+      },
+      {
+        label: "Ảnh hồ sơ",
+        placeholder: "Chọn ảnh đại diện nếu khách đồng ý",
+        hint: "Ảnh hồ sơ không tự trở thành dữ liệu nhận diện.",
+      },
+      {
+        label: "Trạng thái hồ sơ",
+        kind: "readonly",
+        value: "Đang hoạt động",
+        hint: "Hồ sơ mới mặc định ở trạng thái Đang hoạt động.",
+      },
+      {
+        label: "Ghi chú vận hành",
+        kind: "textarea",
+        placeholder: "Thông tin phục vụ ngắn, không nhập dữ liệu nhạy cảm.",
+      },
+    ],
+    checks: [
+      "Nếu số liên hệ trùng hoặc gần trùng, hệ thống chuyển sang màn hình Xử lý nghi trùng.",
+      "Sau khi lưu thành công, sinh mã hội viên mới và mở ngữ cảnh đăng ký gói.",
+      "Hồ sơ chưa có email, ngày sinh hoặc ảnh vẫn tạo được.",
+    ],
+    exceptions: [
+      "Thiếu tên, số điện thoại hoặc chi nhánh: giữ dữ liệu và báo lỗi.",
+      "Mất kết nối: cho thử lại, không đóng form.",
+    ],
+    result: "Đã tạo mới hội viên HV003 thành công.",
+    primary: "Thêm hội viên",
   },
   "member-status": {
     title: "Thay đổi trạng thái hồ sơ hội viên",
@@ -188,15 +501,25 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       "Đã cập nhật trạng thái hồ sơ HV001 thành Ngừng hoạt động. Mã audit: AUD-DEMO-001.",
     primary: "Lưu trạng thái",
   },
-  "package-form": {
-    title: "Tạo / sửa danh mục gói tập",
-    trace: "UX-F02 · W03 · QTV",
+  "package-create": {
+    title: "Tạo mới danh mục gói tập",
+    trace: "UX-F02 · E02-US01 · QTV",
     intro:
-      "Thiết lập gói để lễ tân chọn đúng điều kiện, giá và phạm vi khi bán.",
+      "Thiết lập gói tập mới để bán tại quầy và hiển thị cho hội viên xem trên mobile.",
     steps: ["Thông tin", "Quyền tập", "Giá", "Mở bán"],
     fields: [
-      { label: "Tên gói", required: true, placeholder: "PT 10 buổi / 90 ngày" },
-      { label: "Mã gói", kind: "readonly", value: "Hệ thống tự sinh" },
+      {
+        label: "Tên gói",
+        required: true,
+        placeholder: "Ví dụ: PT 10 buổi / 90 ngày",
+        hint: "Bắt buộc nhập. Tên gói hiển thị trên ứng dụng và hóa đơn.",
+      },
+      {
+        label: "Mã gói",
+        kind: "readonly",
+        value: "(Tự động sinh)",
+        hint: "Mã gói tập do hệ thống tự động khởi tạo sau khi lưu.",
+      },
       {
         label: "Loại gói",
         required: true,
@@ -207,6 +530,7 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
           "PT theo buổi",
           "Combo Gym + PT",
         ],
+        hint: "Chọn 1 trong 4 loại gói cơ sở chính thức theo quy định.",
       },
       {
         label: "Cách giới hạn",
@@ -216,29 +540,30 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       },
       {
         label: "Thời hạn",
-        placeholder: "90 ngày",
-        hint: "Bắt buộc nếu gói có hạn dùng.",
+        placeholder: "Ví dụ: 90 ngày",
+        hint: "Bắt buộc nhập nếu gói có giới hạn thời gian sử dụng.",
       },
       {
         label: "Tổng số buổi",
-        placeholder: "10",
-        hint: "Không dùng 0 để ngầm hiểu không giới hạn.",
+        placeholder: "Ví dụ: 10",
+        hint: "Nhập số buổi nếu là gói Gym theo buổi hoặc gói PT. Không dùng 0.",
       },
       {
         label: "Quyền Gym",
-        placeholder: "Ví dụ: 90 ngày hoặc 10 lượt vào",
+        placeholder: "Ví dụ: Vào tập Gym không giới hạn tại chi nhánh đăng ký",
         hint: "Để trống nếu gói không cấp quyền vào Gym.",
       },
       {
         label: "Quyền PT",
-        placeholder: "Ví dụ: 10 buổi PT trong 90 ngày",
-        hint: "Combo cần thể hiện quyền Gym và quyền PT độc lập.",
+        placeholder: "Ví dụ: 10 buổi tập 1-on-1 cùng PT trong 90 ngày",
+        hint: "Để trống nếu gói không có quyền PT.",
       },
       {
         label: "Giá bán",
         required: true,
         kind: "money",
         placeholder: "2.000.000",
+        hint: "Giá niêm yết chính thức trước giảm giá hoặc khuyến mãi.",
       },
       {
         label: "Chi nhánh áp dụng",
@@ -250,26 +575,220 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         label: "Trạng thái bán",
         required: true,
         kind: "select",
+        value: "Đang bán",
         options: ["Nháp", "Đang bán", "Ngừng bán"],
       },
       {
         label: "Mô tả quyền lợi",
         kind: "textarea",
-        placeholder: "Nội dung ngắn hiển thị ở thẻ gói.",
+        placeholder: "Nội dung ngắn hiển thị trên thẻ gói khi hội viên xem trên mobile...",
       },
     ],
     checks: [
-      "Thẻ xem trước hiển thị tên, giá, hạn/số buổi và phạm vi trước khi lưu.",
-      "Gói đã bán giữ điều kiện tại thời điểm đăng ký.",
-      "Không cho tạo loại gói ngoài Gym thời gian, Gym theo buổi, PT theo buổi và Combo.",
-      "Ngừng bán không hủy gói hội viên đang dùng.",
+      "Thẻ xem trước hiển thị tên, giá, hạn/số buổi và phạm vi chi nhánh trước khi lưu.",
+      "Gói mới lưu thành công sẽ hiển thị ngay trong danh mục bán của quầy và mobile hội viên.",
+      "Chỉ được tạo 1 trong 4 loại gói chính thức: Gym thời gian, Gym theo buổi, PT theo buổi và Combo.",
     ],
     exceptions: [
-      "Tên dễ nhầm trong cùng chi nhánh: cảnh báo trước khi mở bán.",
-      "Đổi điều kiện ảnh hưởng lịch cũ: yêu cầu quy trình điều chỉnh riêng.",
+      "Thiếu tên gói, giá bán hoặc loại gói bắt buộc: giữ nguyên form và báo lỗi.",
     ],
-    result: "Đã lưu phiên bản gói. Lần đăng ký sau dùng điều kiện mới.",
-    primary: "Lưu gói tập",
+    result: "Đã tạo mới thành công gói tập G09.",
+    primary: "Tạo gói tập",
+  },
+  "package-update": {
+    title: "Cập nhật danh mục gói tập",
+    trace: "UX-F02-EDIT · E02-US01 · QTV",
+    intro:
+      "Chỉnh sửa điều kiện gói tập hiện có. Thay đổi chỉ áp dụng cho các lần đăng ký/gia hạn mới.",
+    steps: ["Thông tin", "Quyền tập", "Giá", "Mở bán"],
+    fields: [
+      {
+        label: "Mã gói",
+        kind: "readonly",
+        value: "G02",
+        hint: "Trường cố định: Không thể thay đổi mã gói đã cấp.",
+      },
+      {
+        label: "Tên gói",
+        required: true,
+        value: "Gói 3 tháng",
+        placeholder: "Ví dụ: Gói 3 tháng",
+        hint: "Cập nhật tên hiển thị của gói tập.",
+      },
+      {
+        label: "Loại gói",
+        required: true,
+        kind: "select",
+        value: "Gym theo thời gian",
+        options: [
+          "Gym theo thời gian",
+          "Gym theo buổi",
+          "PT theo buổi",
+          "Combo Gym + PT",
+        ],
+        hint: "Loại gói chính thức.",
+      },
+      {
+        label: "Cách giới hạn",
+        required: true,
+        kind: "select",
+        value: "Theo thời gian",
+        options: ["Theo thời gian", "Theo buổi", "Theo thời gian và buổi"],
+      },
+      {
+        label: "Thời hạn",
+        value: "90 ngày",
+        placeholder: "Ví dụ: 90 ngày",
+        hint: "Thời hạn hiệu lực của gói.",
+      },
+      {
+        label: "Tổng số buổi",
+        value: "—",
+        placeholder: "10",
+        hint: "Không áp dụng cho gói Gym theo thời gian.",
+      },
+      {
+        label: "Quyền Gym",
+        value: "Vào tập Gym không giới hạn trong 90 ngày",
+        placeholder: "Quyền Gym",
+      },
+      {
+        label: "Quyền PT",
+        value: "Không cấp quyền PT",
+        placeholder: "Quyền PT",
+      },
+      {
+        label: "Giá bán",
+        required: true,
+        kind: "money",
+        value: "1.350.000",
+        placeholder: "1.350.000",
+        hint: "Cập nhật giá bán mới.",
+      },
+      {
+        label: "Chi nhánh áp dụng",
+        required: true,
+        kind: "select",
+        value: "Cả hai chi nhánh",
+        options: ["Quận 1", "Bình Thạnh", "Cả hai chi nhánh"],
+      },
+      {
+        label: "Trạng thái bán",
+        required: true,
+        kind: "select",
+        value: "Đang bán",
+        options: ["Nháp", "Đang bán", "Ngừng bán"],
+      },
+      {
+        label: "Mô tả quyền lợi",
+        kind: "textarea",
+        value: "Gói tập phổ thông 3 tháng, áp dụng tại tất cả các chi nhánh.",
+        placeholder: "Mô tả ngắn",
+      },
+    ],
+    checks: [
+      "Sửa giá hoặc điều kiện chỉ áp dụng cho các lần đăng ký mới.",
+      "Các đăng ký đã bán trước đó giữ nguyên điều kiện đã snapshot.",
+    ],
+    exceptions: [
+      "Không được sửa trực tiếp điều kiện của các đăng ký cũ đã phát sinh giao dịch.",
+    ],
+    result: "Đã cập nhật thông tin gói tập G02 thành công.",
+    primary: "Cập nhật gói tập",
+  },
+  "package-form": {
+    title: "Tạo mới danh mục gói tập",
+    trace: "UX-F02 · E02-US01 · QTV",
+    intro:
+      "Thiết lập gói tập mới để bán tại quầy và hiển thị cho hội viên xem trên mobile.",
+    steps: ["Thông tin", "Quyền tập", "Giá", "Mở bán"],
+    fields: [
+      {
+        label: "Tên gói",
+        required: true,
+        placeholder: "Ví dụ: PT 10 buổi / 90 ngày",
+        hint: "Bắt buộc nhập. Tên gói hiển thị trên ứng dụng và hóa đơn.",
+      },
+      {
+        label: "Mã gói",
+        kind: "readonly",
+        value: "(Tự động sinh)",
+        hint: "Mã gói tập do hệ thống tự động khởi tạo sau khi lưu.",
+      },
+      {
+        label: "Loại gói",
+        required: true,
+        kind: "select",
+        options: [
+          "Gym theo thời gian",
+          "Gym theo buổi",
+          "PT theo buổi",
+          "Combo Gym + PT",
+        ],
+        hint: "Chọn 1 trong 4 loại gói cơ sở chính thức theo quy định.",
+      },
+      {
+        label: "Cách giới hạn",
+        required: true,
+        kind: "select",
+        options: ["Theo thời gian", "Theo buổi", "Theo thời gian và buổi"],
+      },
+      {
+        label: "Thời hạn",
+        placeholder: "Ví dụ: 90 ngày",
+        hint: "Bắt buộc nhập nếu gói có giới hạn thời gian sử dụng.",
+      },
+      {
+        label: "Tổng số buổi",
+        placeholder: "Ví dụ: 10",
+        hint: "Nhập số buổi nếu là gói Gym theo buổi hoặc gói PT. Không dùng 0.",
+      },
+      {
+        label: "Quyền Gym",
+        placeholder: "Ví dụ: Vào tập Gym không giới hạn tại chi nhánh đăng ký",
+        hint: "Để trống nếu gói không cấp quyền vào Gym.",
+      },
+      {
+        label: "Quyền PT",
+        placeholder: "Ví dụ: 10 buổi tập 1-on-1 cùng PT trong 90 ngày",
+        hint: "Để trống nếu gói không có quyền PT.",
+      },
+      {
+        label: "Giá bán",
+        required: true,
+        kind: "money",
+        placeholder: "2.000.000",
+        hint: "Giá niêm yết chính thức trước giảm giá hoặc khuyến mãi.",
+      },
+      {
+        label: "Chi nhánh áp dụng",
+        required: true,
+        kind: "select",
+        options: ["Quận 1", "Bình Thạnh", "Cả hai chi nhánh"],
+      },
+      {
+        label: "Trạng thái bán",
+        required: true,
+        kind: "select",
+        value: "Đang bán",
+        options: ["Nháp", "Đang bán", "Ngừng bán"],
+      },
+      {
+        label: "Mô tả quyền lợi",
+        kind: "textarea",
+        placeholder: "Nội dung ngắn hiển thị trên thẻ gói khi hội viên xem trên mobile...",
+      },
+    ],
+    checks: [
+      "Thẻ xem trước hiển thị tên, giá, hạn/số buổi và phạm vi chi nhánh trước khi lưu.",
+      "Gói mới lưu thành công sẽ hiển thị ngay trong danh mục bán của quầy và mobile hội viên.",
+      "Chỉ được tạo 1 trong 4 loại gói chính thức: Gym thời gian, Gym theo buổi, PT theo buổi và Combo.",
+    ],
+    exceptions: [
+      "Thiếu tên gói, giá bán hoặc loại gói bắt buộc: giữ nguyên form và báo lỗi.",
+    ],
+    result: "Đã tạo mới thành công gói tập G09.",
+    primary: "Tạo gói tập",
   },
   "registration-form": {
     title: "Đăng ký / gia hạn gói",
@@ -371,13 +890,13 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
     title: "Ghi nhận thu tiền",
     trace: "UX-F04 · W08 hoặc sau W04 · QTV/LT web",
     intro:
-      "Ghi đúng tiền thực nhận, tách trạng thái chờ đối soát và đã xác nhận.",
-    steps: ["Nghĩa vụ", "Khoản thu", "Đối soát", "Phiếu"],
+      "Tự động cập nhật công nợ, chuyển trạng thái hợp đồng và sinh phiếu thu sau khi xác nhận thanh toán.",
+    steps: [],
     fields: [
       {
         label: "Hội viên / đăng ký",
-        required: true,
-        placeholder: "Chọn đăng ký còn phải thu",
+        kind: "readonly",
+        value: "DK002 · Trần Thị Bình · Gói PT 20 buổi",
       },
       {
         label: "Phải thu / đã thu / còn thiếu",
@@ -388,58 +907,35 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         label: "Số thực thu",
         required: true,
         kind: "money",
+        value: "500.000",
         placeholder: "500.000",
+        hint: "Mặc định thu đủ số tiền còn thiếu (500.000 đ). Không vượt quá nợ.",
       },
       {
         label: "Phương thức",
         required: true,
         kind: "select",
-        options: ["Tiền mặt", "Chuyển khoản"],
+        options: ["Tiền mặt", "Chuyển khoản (Banking / VietQR)"],
       },
       {
-        label: "Nguồn xác nhận chuyển khoản",
-        kind: "select",
-        options: [
-          "Tiền mặt tại quầy",
-          "IPN/Webhook hợp lệ",
-          "Chờ đối soát thủ công",
-        ],
-        hint: "Ảnh chứng từ chỉ hỗ trợ đối soát, không tự xác nhận đã thu.",
-      },
-      {
-        label: "Mã tham chiếu",
-        placeholder: "Bắt buộc khi chuyển khoản đã xác nhận",
-      },
-      {
-        label: "Mã chống ghi nhận trùng",
-        kind: "readonly",
-        value: "paymentIntentId/providerEventId",
-      },
-      { label: "Ảnh chứng từ", placeholder: "JPG/PNG tối đa 5 MB" },
-      {
-        label: "Trạng thái xác nhận",
-        kind: "select",
-        options: ["Xác nhận đã thu", "Lưu chờ đối soát"],
-      },
-      {
-        label: "Ghi chú / lý do ngoại lệ",
+        label: "Ghi chú thu tiền",
         kind: "textarea",
-        placeholder: "Bắt buộc khi lùi thời điểm hoặc điều chỉnh.",
+        placeholder: "Nhập ghi chú thu tiền (tùy chọn)...",
       },
     ],
     checks: [
-      "Bước kiểm tra nêu tên/mã hội viên, gói, tiền, phương thức và còn thiếu sau thu.",
-      "Chuyển khoản chỉ xác nhận khi IPN/Webhook hợp lệ, đúng giao dịch, đúng số tiền.",
-      "Chỉ sau xác nhận thành công mới hiện mã phiếu và nút xem/in.",
-      "Ảnh chứng từ không tự đồng nghĩa đã nhận tiền.",
+      "Tên/mã hội viên, gói đăng ký và số tiền prefill chính xác.",
+      "Tiền mặt: Ghi nhận trực tiếp và xác nhận tại quầy.",
+      "Chuyển khoản: Tạo VietQR & tự động xác nhận qua IPN/Webhook.",
+      "Tự động cập nhật công nợ còn 0 đ, chuyển trạng thái đăng ký và sinh Phiếu thu.",
     ],
     exceptions: [
-      "Bấm nhiều lần không tạo nhiều khoản thu.",
-      "Hết thời gian chờ: hiển thị đang kiểm tra kết quả, không mời thu lại ngay.",
-      "Không có nút xóa trực tiếp giao dịch đã xác nhận.",
+      "Số tiền thực thu không được vượt quá số tiền còn thiếu (500.000 đ).",
+      "User không tự chọn/cập nhật trạng thái payment hoặc registration.",
+      "Đối soát chỉ hiển thị khi có giao dịch bất thường.",
     ],
-    result: "Đã ghi nhận phiếu PT-DEMO-001. Còn thiếu sau thu: 0 đ.",
-    primary: "Kiểm tra và ghi nhận",
+    result: "Đã ghi nhận thu 500.000 đ thành công cho DK002. Còn thiếu sau thu: 0 đ. Đã phát hành Phiếu thu PT-2026-0082 và cập nhật đăng ký.",
+    primary: "Xác nhận thu",
   },
   "bank-transfer-payment": {
     title: "Khởi tạo thanh toán chuyển khoản",
@@ -1075,6 +1571,7 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       {
         label: "Họ và tên",
         required: true,
+        value: "Nguyễn Hoài Nam",
         placeholder: "Tên đầy đủ của bạn",
         hint: "Cần khớp với giấy tờ tùy thân.",
       },
@@ -1086,16 +1583,19 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       },
       {
         label: "Email",
+        value: "nam.nguyen@email.com",
         placeholder: "Email để nhận hóa đơn và thông báo",
       },
       {
         label: "Ngày sinh",
         kind: "date",
+        value: "15/05/1990",
         placeholder: "Chọn ngày sinh",
       },
       {
         label: "Tùy chọn hiển thị sinh nhật",
         kind: "select",
+        value: "Chỉ mình tôi",
         options: ["Công khai", "Chỉ mình tôi"],
       },
     ],
@@ -1109,6 +1609,83 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
     ],
     result: "Đã cập nhật thông tin cá nhân và tùy chọn hệ thống.",
     primary: "Lưu thay đổi",
+  },
+  "duplicate-resolve": {
+    title: "Xử lý hồ sơ nghi trùng",
+    trace: "UX-F01-DUP · Hệ thống tự rẽ nhánh khi nhập trùng số điện thoại",
+    intro: "Vui lòng đối chiếu thông tin khách đang tạo với hồ sơ trùng khớp trên hệ thống.",
+    steps: ["Đối chiếu", "Quyết định xử lý"],
+    fields: [
+      {
+        label: "Họ tên (Khách mới)",
+        kind: "readonly",
+        value: "Nguyễn Hoài Nam",
+      },
+      {
+        label: "Danh sách nghi trùng",
+        kind: "select",
+        value: "HV001 · Nguyễn Hoài Nam",
+        options: ["HV001 · Nguyễn Hoài Nam", "HV042 · Nguyễn Văn Bé"],
+        hint: "Chọn từng hồ sơ để đối chiếu thông tin bên dưới.",
+      },
+      {
+        label: "Số điện thoại (Khách mới)",
+        kind: "readonly",
+        value: "0908 111 222",
+      },
+      {
+        label: "Họ tên (Trên hệ thống)",
+        kind: "readonly",
+        value: "Nguyễn Hoài Nam",
+      },
+      {
+        label: "Email (Khách mới)",
+        kind: "readonly",
+        value: "nam.nguyen@example.vn",
+      },
+      {
+        label: "Số điện thoại (Trên hệ thống)",
+        kind: "readonly",
+        value: "0908 111 222",
+      },
+      {
+        label: "Ngày sinh (Khách mới)",
+        kind: "readonly",
+        value: "15/05/1990",
+      },
+      {
+        label: "Email (Trên hệ thống)",
+        kind: "readonly",
+        value: "(Chưa cập nhật)",
+      },
+      {
+        label: "Quyết định xử lý",
+        required: true,
+        kind: "select",
+        value: "Dùng hồ sơ: HV001",
+        options: ["Dùng hồ sơ: HV001", "Dùng hồ sơ: HV042", "Vẫn tạo hồ sơ mới"],
+      },
+      {
+        label: "Ngày sinh (Trên hệ thống)",
+        kind: "readonly",
+        value: "15/05/1990",
+      },
+      {
+        label: "Lý do xác nhận (Tạo hồ sơ mới)",
+        kind: "textarea",
+        placeholder: "Ví dụ: Mẹ đăng ký cho con nhỏ dùng chung SĐT...",
+        hint: "Bắt buộc nhập nếu vẫn tạo hồ sơ mới. Lịch sử sẽ được ghi nhận.",
+      },
+    ],
+    checks: [
+      "Ưu tiên cảnh báo trùng số điện thoại. Email/ngày sinh để tăng độ tin cậy.",
+      "Không có lý do thì không được phép tạo mới.",
+    ],
+    exceptions: [
+      "Số điện thoại đăng nhập đã thuộc tài khoản khác sẽ không được đăng nhập.",
+    ],
+    result: "Đã xử lý nghi trùng. Tiếp tục tạo hồ sơ mới.",
+    primary: "Xác nhận xử lý",
   },
   "account-permissions": {
     title: "Tài khoản và phân quyền",
@@ -1467,6 +2044,253 @@ function renderField(field: FieldSpec) {
   )
 }
 
+interface MemberItem {
+  phone: string
+  name: string
+}
+
+const MOCK_MEMBERS: MemberItem[] = [
+  { phone: "0901234567", name: "Nguyễn Văn An" },
+  { phone: "0912345678", name: "Trần Thị Bình" },
+  { phone: "0988777666", name: "Lê Hoàng Nam" },
+  { phone: "0933222111", name: "Phạm Thanh Hà" },
+  { phone: "0905111222", name: "Vũ Quốc Việt" },
+  { phone: "0977888999", name: "Đặng Thu Thảo" },
+  { phone: "0966444555", name: "Hoàng Minh Trí" },
+]
+
+export function MemberSearchCombobox({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (val: string) => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [query, setQuery] = useState(value || "0901234567 - Nguyễn Văn An")
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (value && value !== query) {
+      setQuery(value)
+    }
+  }, [value])
+
+  const filtered = MOCK_MEMBERS.filter((m) => {
+    const q = query.toLowerCase().trim()
+    if (!q) return true
+    const displayStr = `${m.phone} - ${m.name}`.toLowerCase()
+    const cleanPhone = m.phone.replace(/\s/g, "")
+    const cleanQ = q.replace(/\s/g, "")
+    return (
+      displayStr.includes(q) ||
+      cleanPhone.includes(cleanQ) ||
+      m.name.toLowerCase().includes(q)
+    )
+  })
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <div className="relative flex items-center">
+        <input
+          type="text"
+          className="w-full rounded-xl border px-3 py-2 text-[13px] outline-none transition pr-8"
+          style={{
+            background: palette.control,
+            borderColor: isOpen ? palette.orange : palette.border,
+            color: palette.text,
+          }}
+          placeholder="Nhập SĐT hoặc tên hội viên..."
+          value={query}
+          onFocus={() => setIsOpen(true)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setIsOpen(true)
+          }}
+        />
+        <span
+          className="absolute right-2.5 cursor-pointer text-[10px]"
+          style={{ color: palette.muted }}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? "▲" : "▼"}
+        </span>
+      </div>
+
+      {isOpen && (
+        <div
+          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border shadow-xl py-1 text-[13px]"
+          style={{
+            background: palette.panel,
+            borderColor: palette.border,
+            color: palette.text,
+          }}
+        >
+          {filtered.length > 0 ? (
+            filtered.map((m) => {
+              const displayVal = `${m.phone} - ${m.name}`
+              const isSelected = query === displayVal
+              return (
+                <div
+                  key={m.phone}
+                  className="flex items-center justify-between px-3 py-2 cursor-pointer transition hover:bg-white/10"
+                  style={{
+                    background: isSelected ? "rgba(22, 163, 74, 0.15)" : "transparent",
+                    color: isSelected ? palette.orange : palette.text,
+                  }}
+                  onClick={() => {
+                    setQuery(displayVal)
+                    onChange(displayVal)
+                    setIsOpen(false)
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold" style={{ color: palette.green }}>
+                      {m.phone}
+                    </span>
+                    <span>-</span>
+                    <span className="font-medium">{m.name}</span>
+                  </div>
+                  {isSelected && <span className="text-[12px]">✓</span>}
+                </div>
+              )
+            })
+          ) : (
+            <div className="px-3 py-3 text-center text-[12px]" style={{ color: palette.muted }}>
+              Không tìm thấy hội viên phù hợp với "{query}"
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface RegPackageItem {
+  name: string
+  type: "GYM" | "PT" | "COMBO"
+  price: number
+  gymMonths?: number
+  ptSessions?: number
+  ptMonths?: number
+  scope: string
+}
+
+const REG_PACKAGE_CATALOG: Record<string, RegPackageItem> = {
+  "Gói 1 tháng (Gym - 500.000đ)": {
+    name: "Gói 1 tháng Gym",
+    type: "GYM",
+    price: 500000,
+    gymMonths: 1,
+    scope: "Chi nhánh Quận 1 (Full-time)",
+  },
+  "Gói 3 tháng (Gym - 1.350.000đ)": {
+    name: "Gói 3 tháng Gym",
+    type: "GYM",
+    price: 1350000,
+    gymMonths: 3,
+    scope: "Chi nhánh Quận 1 (Full-time)",
+  },
+  "Gói 6 tháng (Gym - 2.400.000đ)": {
+    name: "Gói 6 tháng Gym",
+    type: "GYM",
+    price: 2400000,
+    gymMonths: 6,
+    scope: "Toàn hệ thống (Full-time)",
+  },
+  "Gói 1 năm (Gym - 4.200.000đ)": {
+    name: "Gói 1 năm Gym",
+    type: "GYM",
+    price: 4200000,
+    gymMonths: 12,
+    scope: "Toàn hệ thống (Full-time)",
+  },
+  "Gói PT 10 buổi (PT - 2.000.000đ)": {
+    name: "Gói PT 10 buổi",
+    type: "PT",
+    price: 2000000,
+    ptSessions: 10,
+    ptMonths: 3,
+    scope: "Chi nhánh Quận 1",
+  },
+  "Gói PT 20 buổi (PT - 3.800.000đ)": {
+    name: "Gói PT 20 buổi",
+    type: "PT",
+    price: 3800000,
+    ptSessions: 20,
+    ptMonths: 6,
+    scope: "Chi nhánh Quận 1",
+  },
+  "Combo Gym 3 tháng + PT 10 buổi (3.200.000đ)": {
+    name: "Combo Gym 3 tháng + PT 10 buổi",
+    type: "COMBO",
+    price: 3200000,
+    gymMonths: 3,
+    ptSessions: 10,
+    ptMonths: 3,
+    scope: "Chi nhánh Quận 1",
+  },
+}
+
+const AN_CONTRACTS: Record<string, { label: string; endDate: string; pkgKey: string }> = {
+  "DK001": {
+    label: "DK001 - Gói 3 tháng Gym (Hết hạn 15/10/2026)",
+    endDate: "15/10/2026",
+    pkgKey: "Gói 3 tháng (Gym - 1.350.000đ)",
+  },
+  "DK004": {
+    label: "DK004 - Gói PT 10 buổi (Hết hạn 30/11/2026)",
+    endDate: "30/11/2026",
+    pkgKey: "Gói PT 10 buổi (PT - 2.000.000đ)",
+  },
+}
+
+function addOneDay(dateStr: string): string {
+  const parts = dateStr.split("/")
+  if (parts.length === 3) {
+    let d = parseInt(parts[0], 10)
+    let m = parseInt(parts[1], 10)
+    let y = parseInt(parts[2], 10)
+    const dt = new Date(y, m - 1, d)
+    dt.setDate(dt.getDate() + 1)
+    const dd = dt.getDate() < 10 ? `0${dt.getDate()}` : `${dt.getDate()}`
+    const mm = dt.getMonth() + 1 < 10 ? `0${dt.getMonth() + 1}` : `${dt.getMonth() + 1}`
+    return `${dd}/${mm}/${dt.getFullYear()}`
+  }
+  return dateStr
+}
+
+function computeEndDate(startDateStr: string, months: number): string {
+  const parts = startDateStr.split("/")
+  if (parts.length === 3) {
+    let d = parseInt(parts[0], 10) || 10
+    let m = parseInt(parts[1], 10) || 9
+    let y = parseInt(parts[2], 10) || 2026
+    m += months
+    while (m > 12) {
+      m -= 12
+      y += 1
+    }
+    const mm = m < 10 ? `0${m}` : `${m}`
+    const dd = d < 10 ? `0${d}` : `${d}`
+    return `${dd}/${mm}/${y}`
+  }
+  return "10/12/2026"
+}
+
 export function ActionModal({
   action,
   onClose,
@@ -1475,23 +2299,106 @@ export function ActionModal({
   onClose: () => void
 }) {
   const [phase, setPhase] = useState<"idle" | "saving" | "success">("idle")
+  const [pkgType, setPkgType] = useState<string>("Gym theo thời gian")
+
+  // Controlled states for payment-form
+  const [payMethod, setPayMethod] = useState<string>("Tiền mặt")
+  const [amountInput, setAmountInput] = useState<string>("500.000")
+  const [noteInput, setNoteInput] = useState<string>("")
+  const [qrCreated, setQrCreated] = useState<boolean>(false)
+
+  // Controlled dynamic states for registration-create & registration-renew & registration-form
+  const [regTab, setRegTab] = useState<"create" | "renew">("create")
+  const [selectedContractKey, setSelectedContractKey] = useState<string>("DK001")
+  const [regMember, setRegMember] = useState<string>("Nguyễn Văn An - 0901 234 567")
+  const [regPkgKey, setRegPkgKey] = useState<string>("Gói 1 tháng (Gym - 500.000đ)")
+  const [regStartDate, setRegStartDate] = useState<string>("10/09/2026")
+  const [regDiscount, setRegDiscount] = useState<string>("Không giảm giá")
+  const [regNote, setRegNote] = useState<string>("")
 
   if (!action) return null
 
   const config = ACTIONS[action]
+
+  const isPackageAction =
+    action === "package-create" ||
+    action === "package-update" ||
+    action === "package-form"
+
+  const isRegistrationCreate = action === "registration-create"
+  const isRegistrationRenew = action === "registration-renew"
+  const isRegistrationFormModal = action === "registration-form"
+  const isRegistrationForm = isRegistrationCreate || isRegistrationRenew || isRegistrationFormModal
+
+  const isEffectiveRenew = isRegistrationRenew || (isRegistrationFormModal && regTab === "renew")
+
+  const displayFields = config.fields.filter((field) => {
+    if (!isPackageAction) return true
+    if (pkgType === "Gym theo thời gian") {
+      return field.label !== "Quyền PT" && field.label !== "Tổng số buổi"
+    }
+    if (pkgType === "Gym theo buổi") {
+      return field.label !== "Quyền PT"
+    }
+    if (pkgType === "PT theo buổi") {
+      return field.label !== "Quyền Gym"
+    }
+    return true
+  })
+
+  // Dynamic calculations for registration form
+  const selectedPkg = REG_PACKAGE_CATALOG[regPkgKey] || REG_PACKAGE_CATALOG["Gói 1 tháng (Gym - 500.000đ)"]
+  const durationMonths = selectedPkg.gymMonths || selectedPkg.ptMonths || 3
+  const selectedContract = AN_CONTRACTS[selectedContractKey] || AN_CONTRACTS["DK001"]
+
+  const effectiveStartDate = isEffectiveRenew
+    ? (isRegistrationFormModal ? addOneDay(selectedContract.endDate) : "16/10/2026")
+    : regStartDate
+
+  const computedEnd = computeEndDate(effectiveStartDate, durationMonths)
+
+  let discountRate = 0
+  if (regDiscount.includes("-10%")) discountRate = 0.10
+  else if (regDiscount.includes("-5%")) discountRate = 0.05
+  else if (regDiscount.includes("-15%")) discountRate = 0.15
+
+  const finalPrice = Math.round(selectedPkg.price * (1 - discountRate))
+
+  // Parse debt & validation check for payment-form
+  const isPaymentForm = action === "payment-form"
+  const debtMax = 500000
+  const parsedAmount = parseInt(amountInput.replace(/\D/g, "") || "0", 10)
+  const isAmountOver = parsedAmount > debtMax
+
   const submit = () => {
+    if (isPaymentForm && isAmountOver) return
     setPhase("saving")
     window.setTimeout(() => setPhase("success"), 500)
   }
 
+  // Dynamic checks and exceptions for right panel
+  const dynamicChecks = isRegistrationForm
+    ? [
+        "Chi nhánh bán tự động khóa theo chi nhánh làm việc.",
+        "Tự động tính ngày kết thúc, giá gốc và quyền lợi snapshot.",
+        "Tạo đăng ký thành công với status ban đầu là PENDING_PAYMENT.",
+        "Tự động chuyển ngay sang bước thu tiền sau khi xác nhận.",
+      ]
+    : config.checks
+
+  const dynamicExceptions = isRegistrationForm
+    ? [
+          "Gói chưa thu đủ 100% tiền sẽ không được phép Check-in.",
+        ]
+    : config.exceptions
+
   return (
     <Modal
       title={config.title}
-      subtitle={`${config.trace} · ${config.intro}`}
       onClose={onClose}
     >
       {phase === "success" ? (
-        <div className="grid gap-4 md:grid-cols-[1fr_280px]">
+        <div className="space-y-4">
           <Panel>
             <div className="flex items-start gap-3">
               <div
@@ -1505,44 +2412,38 @@ export function ActionModal({
               </div>
               <div>
                 <div className="text-[15px] font-bold text-white">
-                  Hoàn tất thao tác
+                  Thanh toán thành công & Đã tạo Phiếu thu
                 </div>
                 <p
                   className="mt-1 text-[13px] leading-relaxed"
                   style={{ color: palette.muted }}
                 >
-                  {config.result}
+                  {isPaymentForm
+                    ? `Đã ghi nhận thanh toán ${amountInput} đ (${payMethod}) cho hợp đồng DK002 (Trần Thị Bình). Công nợ còn lại: 0 đ. Đăng ký gói đã chuyển sang trạng thái SCHEDULED / ACTIVE. Mã phiếu thu: PT-2026-0082.`
+                    : config.result}
                 </p>
+                {isPaymentForm && (
+                  <div className="mt-3 flex gap-2">
+                    <ActionButton variant="secondary">
+                      🖨️ In phiếu thu (PT-2026-0082)
+                    </ActionButton>
+                  </div>
+                )}
               </div>
             </div>
           </Panel>
-          <Panel title="Bước tiếp theo">
-            <div
-              className="space-y-2 text-[13px]"
-              style={{ color: palette.muted }}
+          <div className="flex justify-end gap-2">
+            <ActionButton
+              onClick={() => {
+                setPhase("idle")
+                setQrCreated(false)
+              }}
+              variant="secondary"
             >
-              {config.checks.slice(0, 3).map((item) => (
-                <div key={item} className="flex gap-2">
-                  <Ic
-                    k="check"
-                    size={14}
-                    cls="mt-0.5 shrink-0"
-                    style={{ color: palette.green }}
-                  />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 flex gap-2">
-              <ActionButton
-                onClick={() => setPhase("idle")}
-                variant="secondary"
-              >
-                Xem lại form
-              </ActionButton>
-              <ActionButton onClick={onClose}>Đóng</ActionButton>
-            </div>
-          </Panel>
+              Xem lại form
+            </ActionButton>
+            <ActionButton onClick={onClose}>Đóng</ActionButton>
+          </div>
         </div>
       ) : (
         <form
@@ -1550,100 +2451,405 @@ export function ActionModal({
             event.preventDefault()
             submit()
           }}
-          className="grid gap-4 lg:grid-cols-[1fr_280px]"
+          className="space-y-4"
         >
-          <div className="space-y-4">
-            <Panel>
-              <div className="flex flex-wrap gap-2">
-                {config.steps.map((step, index) => (
-                  <span
-                    key={step}
-                    className="inline-flex min-h-8 items-center rounded-full border px-3 text-[12px] font-semibold"
+          <Panel>
+            {isRegistrationForm ? (
+              <div className="space-y-4">
+                {/* Tab bar for W02 Modal */}
+                {isRegistrationFormModal && (
+                  <div
+                    className="flex items-center gap-2 rounded-xl p-1 border mb-2"
+                    style={{ background: palette.control, borderColor: palette.border }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRegTab("create")
+                        setRegPkgKey("Gói 1 tháng (Gym - 500.000đ)")
+                      }}
+                      className="flex-1 rounded-lg py-2 text-[13px] font-bold transition-all text-center"
+                      style={{
+                        background: regTab === "create" ? "rgba(147, 51, 234, 0.2)" : "transparent",
+                        color: regTab === "create" ? palette.purple : palette.muted,
+                        border: regTab === "create" ? `1px solid ${palette.purple}` : "1px solid transparent",
+                      }}
+                    >
+                      📝 Đăng ký gói mới
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRegTab("renew")
+                        setSelectedContractKey("DK001")
+                        setRegPkgKey(AN_CONTRACTS["DK001"].pkgKey)
+                      }}
+                      className="flex-1 rounded-lg py-2 text-[13px] font-bold transition-all text-center"
+                      style={{
+                        background: regTab === "renew" ? "rgba(147, 51, 234, 0.2)" : "transparent",
+                        color: regTab === "renew" ? palette.purple : palette.muted,
+                        border: regTab === "renew" ? `1px solid ${palette.purple}` : "1px solid transparent",
+                      }}
+                    >
+                      🔄 Gia hạn gói
+                    </button>
+                  </div>
+                )}
+
+                {/* Clean 2-column Registration Form Inputs */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  {isEffectiveRenew ? (
+                    <>
+                      <Field label="Gia hạn từ hợp đồng cũ" required hint={isRegistrationFormModal ? "Chọn hợp đồng cũ cần gia hạn" : "Mã hợp đồng hiện tại"}>
+                        {isRegistrationFormModal ? (
+                          <SelectInput
+                            options={Object.values(AN_CONTRACTS).map((c) => c.label)}
+                            value={selectedContract.label}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                              const foundKey = Object.keys(AN_CONTRACTS).find(
+                                (k) => AN_CONTRACTS[k].label === e.target.value
+                              )
+                              if (foundKey) {
+                                setSelectedContractKey(foundKey)
+                                setRegPkgKey(AN_CONTRACTS[foundKey].pkgKey)
+                              }
+                            }}
+                          />
+                        ) : (
+                          <TextInput value="DK001 (Hợp đồng đang chọn gia hạn)" readOnly />
+                        )}
+                      </Field>
+
+                      <Field label="Hội viên gia hạn" required hint={isRegistrationFormModal ? "Cố định từ hồ sơ hội viên" : "Gõ SĐT hoặc Họ tên để chọn hội viên"}>
+                        {isRegistrationFormModal ? (
+                          <TextInput value="Nguyễn Văn An · SĐT: 0901 234 567" readOnly />
+                        ) : (
+                          <MemberSearchCombobox
+                            value={regMember}
+                            onChange={(val) => setRegMember(val)}
+                          />
+                        )}
+                      </Field>
+                    </>
+                  ) : (
+                    <>
+                      <Field label="Hội viên" required hint={isRegistrationFormModal ? "Cố định từ hồ sơ hội viên" : "Gõ SĐT hoặc Họ tên để tìm & chọn hội viên"}>
+                        {isRegistrationFormModal ? (
+                          <TextInput value="Nguyễn Văn An · SĐT: 0901 234 567" readOnly />
+                        ) : (
+                          <MemberSearchCombobox
+                            value={regMember}
+                            onChange={(val) => setRegMember(val)}
+                          />
+                        )}
+                      </Field>
+
+                      <Field label="Chi nhánh bán" hint="Tự động lấy theo chi nhánh làm việc">
+                        <TextInput value="Chi nhánh Quận 1 (Tự động lấy theo chi nhánh hiện tại)" readOnly />
+                      </Field>
+                    </>
+                  )}
+
+                  <Field label={isEffectiveRenew ? "Gói gia hạn (Chọn gói hiện hành)" : "Gói đăng ký"} required hint="Danh mục gói hiện đang mở bán">
+                    <SelectInput
+                      options={Object.keys(REG_PACKAGE_CATALOG)}
+                      value={regPkgKey}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRegPkgKey(e.target.value)}
+                    />
+                  </Field>
+
+                  {isEffectiveRenew ? (
+                    <Field label="Ngày bắt đầu mới [AUTO]" hint="Tự động = End date cũ + 1 ngày">
+                      <TextInput value={`${effectiveStartDate} (Ngày sau khi hợp đồng cũ hết hạn)`} readOnly />
+                    </Field>
+                  ) : (
+                    <Field label="Ngày bắt đầu" required hint="Mặc định ngày hôm nay hoặc tùy chỉnh">
+                      <TextInput
+                        value={regStartDate}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegStartDate(e.target.value)}
+                        placeholder="DD/MM/YYYY"
+                      />
+                    </Field>
+                  )}
+
+                  <Field label={isEffectiveRenew ? "Ngày kết thúc mới [AUTO]" : "Ngày kết thúc dự kiến [AUTO]"} hint={`Tự động cộng ${durationMonths} tháng theo gói`}>
+                    <TextInput value={`${computedEnd} (Tự động tính theo thời hạn gói)`} readOnly />
+                  </Field>
+
+                  <Field label={isEffectiveRenew ? "Giá niêm yết hiện hành" : "Giá gốc hiện hành"} hint="Niêm yết tại thời điểm đăng ký">
+                    <TextInput value={`${selectedPkg.price.toLocaleString("vi-VN")} đ`} readOnly />
+                  </Field>
+
+                  <Field label="Chính sách giảm giá" hint="Chọn chính sách ưu đãi áp dụng">
+                    <SelectInput
+                      options={[
+                        "Không giảm giá",
+                        "Chính sách hợp lệ (-10%)",
+                        "Giảm giá gia hạn/thân thiết (-5%)",
+                        "Gửi QTV duyệt ngoài chính sách (-15%)",
+                      ]}
+                      value={regDiscount}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRegDiscount(e.target.value)}
+                    />
+                  </Field>
+                </div>
+
+                {/* Note Field (Full width) */}
+                <Field label={isEffectiveRenew ? "Ghi chú gia hạn (Tùy chọn)" : "Ghi chú đăng ký (Tùy chọn)"}>
+                  <TextArea
+                    value={regNote}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRegNote(e.target.value)}
+                    placeholder="Ghi chú yêu cầu đặc biệt của hội viên..."
+                  />
+                </Field>
+              </div>
+            ) : isPaymentForm ? (
+              <div className="space-y-4">
+                {/* Read-Only Prefill Header & Financial Stat Cards */}
+                <div className="space-y-3">
+                  <Field label="Hội viên & Đơn đăng ký" required hint="Cố định từ hợp đồng">
+                    <div
+                      className="flex items-center justify-between rounded-lg border px-3 py-2.5 text-[13px] font-medium"
+                      style={{ background: palette.control, borderColor: palette.border, color: palette.text }}
+                    >
+                      <span>
+                        <strong style={{ color: palette.purple }}>DK002</strong> · Trần Thị Bình · Gói PT 20 buổi
+                      </span>
+                      <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: "rgba(234, 179, 8, 0.15)", color: palette.amber }}>
+                        ⏳ Chờ thanh toán
+                      </span>
+                    </div>
+                  </Field>
+
+                  {/* Financial Stat Cards (Separate Labels/Badges) */}
+                  <div>
+                    <div className="text-[12px] font-semibold mb-1.5" style={{ color: palette.muted }}>
+                      Thông tin tài chính & công nợ hợp đồng
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div
+                        className="rounded-xl border p-3 flex flex-col justify-center"
+                        style={{ background: palette.control, borderColor: palette.border }}
+                      >
+                        <span className="text-[11px] font-medium" style={{ color: palette.dim }}>
+                          Phải thu (Tổng tiền)
+                        </span>
+                        <span className="text-[15px] font-bold mt-0.5" style={{ color: palette.text }}>
+                          3.800.000 đ
+                        </span>
+                      </div>
+
+                      <div
+                        className="rounded-xl border p-3 flex flex-col justify-center"
+                        style={{ background: "rgba(16, 185, 129, 0.08)", borderColor: "rgba(16, 185, 129, 0.25)" }}
+                      >
+                        <span className="text-[11px] font-medium text-emerald-600">
+                          Đã thu
+                        </span>
+                        <span className="text-[15px] font-bold mt-0.5 text-emerald-500">
+                          3.300.000 đ
+                        </span>
+                      </div>
+
+                      <div
+                        className="rounded-xl border p-3 flex flex-col justify-center"
+                        style={{ background: "rgba(239, 68, 68, 0.08)", borderColor: "rgba(239, 68, 68, 0.25)" }}
+                      >
+                        <span className="text-[11px] font-medium text-red-500">
+                          Còn thiếu (Nợ)
+                        </span>
+                        <span className="text-[15px] font-bold mt-0.5 text-red-500">
+                          500.000 đ
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* User Inputs */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field
+                    label="Số thực thu (VNĐ)"
+                    required
+                    hint="Mặc định bằng số tiền còn thiếu"
+                  >
+                    <TextInput
+                      value={amountInput}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAmountInput(e.target.value)}
+                      placeholder="500.000"
+                    />
+                    {isAmountOver && (
+                      <div className="mt-1 text-[12px] font-semibold text-red-500">
+                        ⚠️ Số tiền thu không được vượt quá số tiền còn thiếu (500.000 đ)
+                      </div>
+                    )}
+                  </Field>
+
+                  <Field label="Phương thức thanh toán" required>
+                    <SelectInput
+                      options={["Tiền mặt", "Chuyển khoản (Banking / VietQR)"]}
+                      value={payMethod}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                        setPayMethod(e.target.value)
+                        setQrCreated(false)
+                      }}
+                    />
+                  </Field>
+                </div>
+
+                {/* Dynamic VietQR Box when Chuyển khoản */}
+                {payMethod.includes("Chuyển khoản") && (
+                  <div
+                    className="rounded-xl border p-4"
                     style={{
-                      borderColor:
-                        index === 0 ? "rgba(22,163,74,0.35)" : palette.border,
-                      color: index === 0 ? palette.orange : palette.dim,
-                      background:
-                        index === 0
-                          ? "rgba(22,163,74,0.1)"
-                          : palette.control,
+                      background: palette.control,
+                      borderColor: palette.border,
                     }}
                   >
-                    {index + 1}. {step}
-                  </span>
-                ))}
-              </div>
-            </Panel>
+                    {!qrCreated ? (
+                      <div className="flex flex-col items-center justify-center space-y-2 text-center py-2">
+                        <div className="text-[13px] font-medium" style={{ color: palette.muted }}>
+                          Nhấp nút <strong>"Tạo QR thanh toán"</strong> bên dưới để tạo mã VietQR động theo số tiền thực thu.
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: palette.border }}>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-[14px]" style={{ color: palette.text }}>
+                              VietQR Thanh toán
+                            </span>
+                            <span
+                              className="rounded-full px-2.5 py-0.5 text-[11px] font-bold"
+                              style={{
+                                background: "rgba(234, 179, 8, 0.15)",
+                                color: palette.amber,
+                              }}
+                            >
+                              ⏳ PENDING (Chờ IPN/Webhook)
+                            </span>
+                          </div>
+                          <span className="text-[12px] font-mono" style={{ color: palette.dim }}>
+                            NH: Vietcombank
+                          </span>
+                        </div>
 
-            <Panel>
+                        <div className="grid gap-3 sm:grid-cols-[110px_1fr] items-center">
+                          {/* Mock QR Code */}
+                          <div className="flex h-[110px] w-[110px] items-center justify-center rounded-lg border bg-white p-2 text-center shadow-sm">
+                            <div className="text-[10px] font-mono text-gray-800">
+                              [VIETQR]
+                              <br />
+                              {amountInput} đ
+                              <br />
+                              DK002
+                            </div>
+                          </div>
+
+                          <div className="space-y-1 text-[12px]">
+                            <div>
+                              <span style={{ color: palette.dim }}>Số tài khoản: </span>
+                              <strong className="font-mono" style={{ color: palette.text }}>999888777</strong>
+                            </div>
+                            <div>
+                              <span style={{ color: palette.dim }}>Chủ tài khoản: </span>
+                              <strong style={{ color: palette.text }}>PARADISE GYM COMPANY</strong>
+                            </div>
+                            <div>
+                              <span style={{ color: palette.dim }}>Số tiền: </span>
+                              <strong className="font-mono text-green-600 font-bold">
+                                {amountInput} đ
+                              </strong>
+                            </div>
+                            <div>
+                              <span style={{ color: palette.dim }}>Nội dung CK: </span>
+                              <strong className="font-mono" style={{ color: palette.orange }}>
+                                DK002 HV002
+                              </strong>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 flex items-center justify-between rounded-lg border p-2 text-[12px]" style={{ borderColor: palette.border, background: palette.panel }}>
+                          <span style={{ color: palette.muted }}>
+                            Đang lắng nghe Webhook ngân hàng...
+                          </span>
+                          <ActionButton
+                            type="button"
+                            onClick={() => {
+                              setPhase("saving")
+                              window.setTimeout(() => setPhase("success"), 500)
+                            }}
+                            variant="purple"
+                          >
+                            ⚡ Mô phỏng IPN nhận tiền thành công
+                          </ActionButton>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Note input */}
+                <Field label="Ghi chú thu tiền (Tùy chọn)">
+                  <TextArea
+                    value={noteInput}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNoteInput(e.target.value)}
+                    placeholder="Nhập ghi chú thu tiền..."
+                  />
+                </Field>
+              </div>
+            ) : (
               <div className="grid gap-4 md:grid-cols-2">
-                {config.fields.map((field) => (
+                {displayFields.map((field) => (
                   <Field
                     key={field.label}
                     label={field.label}
                     required={field.required}
                     hint={field.hint}
                   >
-                    {renderField(field)}
+                    {field.label === "Loại gói" ? (
+                      <SelectInput
+                        options={field.options ?? []}
+                        defaultValue={field.value ?? pkgType}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPkgType(e.target.value)}
+                      />
+                    ) : (
+                      renderField(field)
+                    )}
                   </Field>
                 ))}
               </div>
-            </Panel>
-          </div>
+            )}
+          </Panel>
 
-          <aside className="space-y-4">
-            <Panel title="Kiểm tra trước khi lưu">
-              <div
-                className="space-y-2 text-[13px]"
-                style={{ color: palette.muted }}
-              >
-                {config.checks.map((item) => (
-                  <div key={item} className="flex gap-2">
-                    <Ic
-                      k="check"
-                      size={14}
-                      cls="mt-0.5 shrink-0"
-                      style={{ color: palette.green }}
-                    />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-
-            <Panel title="Ngoại lệ cần xử lý">
-              <div
-                className="space-y-2 text-[13px]"
-                style={{ color: palette.muted }}
-              >
-                {config.exceptions.map((item) => (
-                  <div key={item} className="flex gap-2">
-                    <Ic
-                      k="warn"
-                      size={14}
-                      cls="mt-0.5 shrink-0"
-                      style={{ color: palette.amber }}
-                    />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-
-            <div className="flex gap-2">
+          {/* Form Actions Row */}
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <ActionButton onClick={onClose} variant="secondary">
+              Hủy
+            </ActionButton>
+            {isPaymentForm && payMethod.includes("Chuyển khoản") && !qrCreated ? (
               <ActionButton
-                type="submit"
-                block
-                disabled={phase === "saving"}
+                type="button"
+                onClick={() => setQrCreated(true)}
                 variant="purple"
               >
-                {phase === "saving" ? "Đang lưu..." : config.primary}
+                📲 Tạo QR thanh toán
               </ActionButton>
-              <ActionButton onClick={onClose} variant="secondary">
-                Hủy
+            ) : (
+              <ActionButton
+                type="submit"
+                disabled={phase === "saving" || (isPaymentForm && isAmountOver)}
+                variant="purple"
+              >
+                {phase === "saving"
+                  ? "Đang ghi nhận..."
+                  : isPaymentForm
+                  ? "Xác nhận thu"
+                  : config.primary}
               </ActionButton>
-            </div>
-          </aside>
+            )}
+          </div>
         </form>
       )}
     </Modal>

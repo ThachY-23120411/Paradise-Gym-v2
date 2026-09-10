@@ -25,7 +25,7 @@ Tài liệu này chia Epic theo business capability của Paradise Gym, không c
 | Name | Package Catalog, Registration & Entitlements |
 | Goal | Quản lý danh mục gói, đăng ký, gia hạn và quyền lợi tập theo đúng điều kiện đã bán. |
 | Actors | QTV / Quản lý, Lễ tân, Hội viên |
-| Scope | Danh mục Gym theo thời gian, Gym theo buổi, PT theo buổi và Combo Gym + PT; gói được phép bán; tạo đăng ký mới/gia hạn; kỳ hiệu lực; snapshot giá/quyền lợi/phạm vi chi nhánh; liên kết lịch sử khi gia hạn; quyền Gym, quyền PT, Combo và quy tắc không chồng thời gian tương đương. |
+| Scope | Danh mục Gym theo thời gian, Gym theo buổi, PT theo buổi và Combo Gym + PT; gói được phép bán; tạo đăng ký mới/gia hạn (gói PT/Combo không phân công PT ngay, PT được gán sau khi gửi assignment request và PT chấp nhận); kỳ hiệu lực; snapshot giá/quyền lợi/phạm vi chi nhánh; liên kết lịch sử khi gia hạn; quyền Gym, quyền PT, Combo và quy tắc không chồng thời gian tương đương. |
 | Related requirements | Product Spec §3 Danh mục gói tập, Đăng ký & gia hạn; §4 Gói tập; §6 OPEN-04, OPEN-09. |
 | Prerequisites | E01 Member & Customer Profile. |
 | Related Epics | E03 Pricing & Discount Governance; E04 Payment, Debt & Receipts; E05 PT Assignment, Schedule & Session Lifecycle; E06 Gym Access, Check-in & Visit History; E09 Notifications & Member Care; E11 Operational Reporting & Insights. |
@@ -62,9 +62,9 @@ Tài liệu này chia Epic theo business capability của Paradise Gym, không c
 | --- | --- |
 | Epic ID | E05 |
 | Name | PT Assignment, Schedule & Session Lifecycle |
-| Goal | Quản lý phân công PT, lịch làm việc, booking và tiêu thụ buổi PT đúng quyền lợi. |
+| Goal | Quản lý yêu cầu phân công PT (assignment request), lịch làm việc cố định, booking và tiêu thụ buổi PT theo xác nhận kép. |
 | Actors | QTV / Quản lý, Lễ tân, PT, Hội viên |
-| Scope | Hồ sơ PT; availability; phân công PT sau khi tạo registration có quyền PT; chặn booking khi chưa có PT phụ trách; đặt/đổi/hủy lịch; giữ chỗ buổi PT; tổng buổi, đã sử dụng/khấu trừ, đang giữ chỗ, còn có thể đặt; vắng mặt, hủy muộn, lỗi từ PT/phòng tập; PT ghi kết quả buổi phụ trách; QTV sửa kết quả có lý do và audit. |
+| Scope | Hồ sơ PT; giờ làm việc cố định (T2→T6, 8h→17h); PT_ASSIGNMENT_REQUEST (PENDING/ACCEPTED/REJECTED) — hội viên chọn PT và gửi yêu cầu, PT chấp nhận hoặc từ chối; slot khả dụng = giờ cố định - booking đã xác nhận; Lễ tân đặt lịch thay cho hội viên (kể cả chưa có account mobile); đặt/đổi/hủy lịch; giữ chỗ buổi PT; tổng buổi, đã sử dụng/khấu trừ, đang giữ chỗ, còn có thể đặt; xác nhận kép (PT + Hội viên) để hoàn thành buổi và trừ buổi; vắng mặt, hủy muộn, lỗi từ PT/phòng tập; QTV sửa kết quả có lý do và audit. |
 | Related requirements | Product Spec §3 Quản lý PT, Lịch tập & buổi PT; §4 PT/lịch tập; §6 OPEN-08. |
 | Prerequisites | E01 Member & Customer Profile; E02 Package Catalog, Registration & Entitlements; E07 Branch Operations & Data Scope; E08 Accounts, Roles, Permissions & Audit. |
 | Related Epics | E04 Payment, Debt & Receipts; E06 Gym Access, Check-in & Visit History; E09 Notifications & Member Care; E11 Operational Reporting & Insights. |

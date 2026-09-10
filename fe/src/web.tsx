@@ -5,6 +5,8 @@ import type {
   Member,
   MemberStatus,
   MenuId,
+  Registration,
+  RegistrationStatus,
   ThemeMode,
   WebRole,
 } from "./data"
@@ -671,6 +673,8 @@ function MembersView({ role, openAction }: ScreenProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<MemberStatus | "all">("all")
   const [selected, setSelected] = useState<Member | null>(MEMBERS[0])
+  const [selectedPkgIndex, setSelectedPkgIndex] = useState<Record<string, number>>({})
+
   const filtered = useMemo(() => {
     return MEMBERS.filter((member) => {
       const cleanSearch = search.toLowerCase().replace(/\s/g, "")
@@ -707,7 +711,7 @@ function MembersView({ role, openAction }: ScreenProps) {
             options={tabs}
             onChange={setStatusFilter}
           />
-          <ActionButton icon="plus" onClick={() => openAction("member-form")}>
+          <ActionButton icon="plus" onClick={() => openAction("member-create")}>
             Thêm hội viên
           </ActionButton>
           <ActionButton
@@ -731,11 +735,10 @@ function MembersView({ role, openAction }: ScreenProps) {
                 {[
                   "Mã HV",
                   "Họ và tên",
-                  "Gói hiện tại",
-                  "Hiệu lực",
-                  "Số buổi",
-                  role === "admin" ? "Công nợ" : "Ghi chú",
-                  "Trạng thái gói",
+                  "Số điện thoại",
+                  "Email",
+                  "Chi nhánh",
+                  "Trạng thái hồ sơ",
                   "",
                 ].map((header) => (
                   <th
@@ -752,92 +755,77 @@ function MembersView({ role, openAction }: ScreenProps) {
               className="divide-y"
               style={{ ["--tw-divide-color" as string]: palette.borderSoft }}
             >
-              {filtered.map((member) => (
-                <tr
-                  key={member.id}
-                  className="cursor-pointer transition-colors hover:bg-white/3"
-                  onClick={() => setSelected(member)}
-                  style={{
-                    background:
-                      selected?.id === member.id
-                        ? "rgba(22,163,74,0.05)"
-                        : undefined,
-                  }}
-                >
-                  <td
-                    className="px-4 py-3 font-mono"
-                    style={{ color: palette.muted }}
+              {filtered.map((member) => {
+                return (
+                  <tr
+                    key={member.id}
+                    className="cursor-pointer transition-colors hover:bg-white/3"
+                    onClick={() => setSelected(member)}
+                    style={{
+                      background:
+                        selected?.id === member.id
+                          ? "rgba(22,163,74,0.05)"
+                          : undefined,
+                    }}
                   >
-                    {member.id}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Avatar
-                        name={member.name}
-                        tone={palette.blue}
-                        size={30}
-                      />
-                      <div>
+                    <td
+                      className="px-4 py-3 font-mono"
+                      style={{ color: palette.muted }}
+                    >
+                      {member.id}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Avatar
+                          name={member.name}
+                          tone={palette.blue}
+                          size={30}
+                        />
                         <div className="font-semibold text-white">
                           {member.name}
                         </div>
-                        <div style={{ color: palette.dim }}>{member.phone}</div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3" style={{ color: "#A0AABF" }}>
-                    {member.packageName}
-                  </td>
-                  <td
-                    className="px-4 py-3 font-mono"
-                    style={{
-                      color:
-                        member.status === "expired"
-                          ? palette.red
-                          : member.status === "expiring"
-                            ? palette.amber
-                            : "#A0AABF",
-                    }}
-                  >
-                    {member.validUntil}
-                  </td>
-                  <td
-                    className="px-4 py-3 font-mono"
-                    style={{ color: palette.muted }}
-                  >
-                    {member.sessionsLeft ?? "—"}
-                  </td>
-                  <td
-                    className="px-4 py-3 font-mono"
-                    style={{
-                      color: member.debt > 0 ? palette.red : palette.dim,
-                    }}
-                  >
-                    {role === "admin"
-                      ? fmtVND(member.debt)
-                      : member.debt > 0
-                        ? "Cần thu"
-                        : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <MemberBadge status={member.status} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <IconButton
-                        icon="eye"
-                        label="Xem hồ sơ"
-                        onClick={() => setSelected(member)}
+                    </td>
+                    <td
+                      className="px-4 py-3 font-mono"
+                      style={{ color: palette.text }}
+                    >
+                      {member.phone}
+                    </td>
+                    <td
+                      className="px-4 py-3"
+                      style={{ color: palette.muted }}
+                    >
+                      {member.email ?? "Chưa cập nhật"}
+                    </td>
+                    <td
+                      className="px-4 py-3"
+                      style={{ color: palette.text }}
+                    >
+                      {member.branch}
+                    </td>
+                    <td className="px-4 py-3">
+                      <MemberProfileStatusBadge
+                        status={member.profileStatus ?? "active"}
                       />
-                      <IconButton
-                        icon="edit"
-                        label="Chỉnh sửa"
-                        onClick={() => openAction("member-form")}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <IconButton
+                          icon="eye"
+                          label="Xem hồ sơ"
+                          onClick={() => setSelected(member)}
+                        />
+                        <IconButton
+                          icon="edit"
+                          label="Chỉnh sửa"
+                          onClick={() => openAction("member-update")}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
           {filtered.length === 0 && (
@@ -848,7 +836,7 @@ function MembersView({ role, openAction }: ScreenProps) {
                 action={
                   <ActionButton
                     icon="plus"
-                    onClick={() => openAction("member-form")}
+                    onClick={() => openAction("member-create")}
                   >
                     Thêm hội viên
                   </ActionButton>
@@ -872,7 +860,7 @@ function MembersView({ role, openAction }: ScreenProps) {
             style={{ borderColor: palette.borderSoft }}
           >
             <span className="text-[14px] font-semibold text-white">
-              Hồ sơ hội viên
+              Hồ sơ hội viên (US04)
             </span>
             <IconButton
               icon="x"
@@ -892,31 +880,81 @@ function MembersView({ role, openAction }: ScreenProps) {
                   {selected.id}
                 </div>
               </div>
-              <MemberBadge status={selected.status} />
-              <MemberProfileStatusBadge status={selected.profileStatus ?? "active"} />
+              <MemberProfileStatusBadge
+                status={selected.profileStatus ?? "active"}
+              />
             </div>
 
             <InfoStack
               items={[
                 ["Số điện thoại", selected.phone],
                 ["Email", selected.email ?? "Chưa có"],
-                ["Chi nhánh", selected.branch],
-                ["Gói hiện tại", selected.packageName],
-                ["Hiệu lực", selected.validUntil],
-                [
-                  "Số buổi PT còn lại",
-                  selected.sessionsLeft === null
-                    ? "Không áp dụng"
-                    : `${selected.sessionsLeft} buổi`,
-                ],
+                ["Chi nhánh tiếp nhận", selected.branch],
+                ["Lần ghé gần nhất", selected.lastVisit ?? "Chưa ghi nhận"],
                 [
                   "Công nợ",
                   fmtVND(selected.debt),
                   selected.debt > 0 ? palette.red : undefined,
                 ],
-                ["Trạng thái hồ sơ", selected.profileStatus === "inactive" ? "Ngừng hoạt động" : selected.profileStatus === "archived" ? "Đã lưu trữ" : "Đang hoạt động"],
               ]}
             />
+
+            {(() => {
+              const memberPackages = selected.packages ?? [
+                {
+                  name: selected.packageName,
+                  type: selected.sessionsLeft ? "PT" : ("Gym" as const),
+                  validUntil: selected.validUntil,
+                  sessionsLeft: selected.sessionsLeft,
+                  status: selected.status,
+                },
+              ]
+              return (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-[12px] font-bold tracking-wider text-white uppercase">
+                      📦 Các gói đang sở hữu ({memberPackages.length})
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {memberPackages.map((pkg, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-lg border p-3"
+                        style={{
+                          background: palette.panel,
+                          borderColor: palette.border,
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-semibold text-white text-[13px]">
+                            {pkg.name}
+                          </span>
+                          <MemberBadge status={pkg.status} />
+                        </div>
+                        <div
+                          className="mt-2 flex items-center justify-between border-t pt-2 text-[12px]"
+                          style={{
+                            borderColor: palette.borderSoft,
+                            color: palette.muted,
+                          }}
+                        >
+                          <span>
+                            {pkg.type === "PT" ? "Số buổi PT" : "Thời hạn dùng"}
+                          </span>
+                          <span className="font-mono font-medium text-white">
+                            {pkg.sessionsLeft !== undefined &&
+                            pkg.sessionsLeft !== null
+                              ? `Còn ${pkg.sessionsLeft} buổi`
+                              : pkg.validUntil}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
 
             <div className="grid gap-2">
               <ActionButton
@@ -925,14 +963,6 @@ function MembersView({ role, openAction }: ScreenProps) {
                 onClick={() => openAction("registration-form")}
               >
                 Đăng ký / gia hạn
-              </ActionButton>
-              <ActionButton
-                block
-                variant="secondary"
-                icon="payment"
-                onClick={() => openAction("payment-form")}
-              >
-                Ghi nhận thu tiền
               </ActionButton>
               <ActionButton
                 block
@@ -984,7 +1014,7 @@ function PackagesView({ openAction }: ScreenProps) {
             { value: "stopped", label: "Ngừng bán" },
           ]}
         />
-        <ActionButton icon="plus" onClick={() => openAction("package-form")}>
+        <ActionButton icon="plus" onClick={() => openAction("package-create")}>
           Tạo gói mới
         </ActionButton>
       </div>
@@ -1034,13 +1064,13 @@ function PackagesView({ openAction }: ScreenProps) {
               <ActionButton
                 variant="secondary"
                 icon="edit"
-                onClick={() => openAction("package-form")}
+                onClick={() => openAction("package-update")}
               >
                 Sửa
               </ActionButton>
               <ActionButton
                 variant={pkg.status === "selling" ? "danger" : "secondary"}
-                onClick={() => openAction("package-form")}
+                onClick={() => openAction("package-update")}
               >
                 {pkg.status === "selling" ? "Ngừng bán" : "Mở bán lại"}
               </ActionButton>
@@ -1053,138 +1083,483 @@ function PackagesView({ openAction }: ScreenProps) {
 }
 
 function RegistrationsView({ openAction }: ScreenProps) {
-  const [tab, setTab] = useState<"registrations" | "requests">("registrations")
-  const rows =
-    tab === "registrations"
-      ? REGISTRATIONS.filter((item) => item.id.startsWith("DK"))
-      : REGISTRATIONS.filter((item) => item.id.startsWith("REQ"))
+  const [filter, setFilter] = useState<"ALL" | RegistrationStatus>("ALL")
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [selectedReg, setSelectedReg] = useState<Registration | null>(REGISTRATIONS[1]) // Default select DK002
+
+  const rows = REGISTRATIONS.filter((item) => {
+    if (filter !== "ALL" && item.status !== filter) return false
+    if (searchQuery.trim() !== "") {
+      const q = searchQuery.toLowerCase().trim()
+      const memberObj = MEMBERS.find((m) => m.id === item.memberId || m.name === item.member)
+      const phone = memberObj ? memberObj.phone : ""
+      const cleanQ = q.replace(/\s+/g, "")
+      const matchName = item.member.toLowerCase().includes(q)
+      const matchMemberId = item.memberId.toLowerCase().includes(q)
+      const matchRegId = item.id.toLowerCase().includes(q)
+      const matchPhone = phone.replace(/\s+/g, "").includes(cleanQ)
+      return matchName || matchMemberId || matchRegId || matchPhone
+    }
+    return true
+  })
+
+  // Calculate usage stats mock helper
+  const getUsageDetails = (reg: Registration) => {
+    const isPtPackage = reg.packageName.includes("PT")
+    const isCombo = reg.packageName.includes("Combo")
+    const isGym = !isPtPackage || isCombo
+
+    let ptStats = null
+    if (isPtPackage || isCombo) {
+      const totalSessions = reg.packageName.includes("20") ? 20 : 10
+      // Business rule: if PENDING_PAYMENT, sessions used = 0!
+      const usedSessions = reg.status === "PENDING_PAYMENT" ? 0 : reg.status === "EXHAUSTED" ? totalSessions : reg.id === "DK006" ? 8 : 4
+      ptStats = { total: totalSessions, used: usedSessions, remaining: totalSessions - usedSessions }
+    }
+
+    let gymStats = null
+    if (isGym) {
+      const totalDays = reg.packageName.includes("1 năm") ? 365 : reg.packageName.includes("6 tháng") ? 180 : reg.packageName.includes("3 tháng") ? 90 : 30
+      const usedDays = reg.status === "PENDING_PAYMENT" ? 0 : reg.status === "EXPIRED" ? totalDays : reg.id === "DK001" ? 57 : reg.id === "DK004" ? 26 : reg.id === "DK005" ? 172 : 12
+      gymStats = { total: totalDays, used: usedDays, remaining: Math.max(0, totalDays - usedDays) }
+    }
+
+    return { ptStats, gymStats }
+  }
 
   return (
     <div className="flex h-full flex-col">
       <Toolbar>
         <Segment
-          value={tab}
-          onChange={setTab}
+          value={filter}
+          onChange={setFilter}
           options={[
-            { value: "registrations", label: "Đăng ký" },
-            { value: "requests", label: "Yêu cầu gia hạn" },
+            { value: "ALL", label: "Tất cả" },
+            { value: "PENDING_PAYMENT", label: "Chờ thanh toán" },
+            { value: "SCHEDULED", label: "Sắp hiệu lực" },
+            { value: "ACTIVE", label: "Đang hiệu lực" },
+            { value: "EXPIRED", label: "Hết hạn" },
+            { value: "EXHAUSTED", label: "Đã dùng hết" },
+            { value: "CANCELLED", label: "Đã hủy" },
           ]}
         />
+        <div className="relative min-w-[200px] max-w-[260px] flex-1">
+          <input
+            type="text"
+            placeholder="🔍 Tìm theo SĐT, Tên, Mã HV..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-8 w-full rounded-lg border px-3 text-[12px] transition-colors focus:border-purple-500 focus:outline-none"
+            style={{
+              background: palette.control,
+              borderColor: palette.border,
+              color: palette.text,
+            }}
+          />
+        </div>
         <ActionButton
           icon="plus"
-          onClick={() => openAction("registration-form")}
+          onClick={() => openAction("registration-create")}
         >
-          Đăng ký / gia hạn
+          Tạo đăng ký
         </ActionButton>
       </Toolbar>
 
-      <div className="flex-1 overflow-auto">
-        <table className="w-full min-w-[920px] text-[13px]">
-          <thead className="sticky top-0 z-10">
-            <tr
-              style={{
-                background: "#0C1120",
-                borderBottom: `1px solid ${palette.borderSoft}`,
-              }}
-            >
-              {[
-                "Mã",
-                "Hội viên",
-                "Gói / yêu cầu",
-                "Từ ngày",
-                "Đến ngày",
-                "Tổng",
-                "Đã thu",
-                "PT",
-                "Trạng thái",
-                "",
-              ].map((header) => (
-                <th
-                  key={header}
-                  className="px-4 py-3 text-left font-semibold"
-                  style={{ color: palette.dim }}
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody
-            className="divide-y"
-            style={{ ["--tw-divide-color" as string]: palette.borderSoft }}
-          >
-            {rows.map((reg) => (
-              <tr key={reg.id} className="transition-colors hover:bg-white/3">
-                <td
-                  className="px-4 py-3 font-mono"
-                  style={{ color: palette.muted }}
-                >
-                  {reg.id}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="font-semibold text-white">{reg.member}</div>
-                  <div style={{ color: palette.dim }}>
-                    {reg.memberId} · {reg.branch}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-white">{reg.packageName}</td>
-                <td
-                  className="px-4 py-3 font-mono"
-                  style={{ color: palette.muted }}
-                >
-                  {reg.from}
-                </td>
-                <td
-                  className="px-4 py-3 font-mono"
-                  style={{
-                    color:
-                      reg.status === "expired"
-                        ? palette.red
-                        : reg.status === "expiring"
-                          ? palette.amber
-                          : palette.muted,
-                  }}
-                >
-                  {reg.to}
-                </td>
-                <td
-                  className="px-4 py-3 font-mono"
-                  style={{ color: palette.muted }}
-                >
-                  {fmtVND(reg.total)}
-                </td>
-                <td
-                  className="px-4 py-3 font-mono"
-                  style={{
-                    color: reg.paid < reg.total ? palette.amber : palette.green,
-                  }}
-                >
-                  {fmtVND(reg.paid)}
-                </td>
-                <td className="px-4 py-3" style={{ color: palette.muted }}>
-                  {reg.pt ?? "—"}
-                </td>
-                <td className="px-4 py-3">
-                  <RegistrationBadge status={reg.status} />
-                </td>
-                <td className="px-4 py-3">
-                  <ActionButton
-                    variant="secondary"
-                    onClick={() =>
-                      openAction(
-                        tab === "requests"
-                          ? "registration-form"
-                          : "payment-form",
-                      )
-                    }
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left DataGrid */}
+        <div className="flex-1 overflow-auto">
+          <table className="w-full min-w-[950px] text-[13px]">
+            <thead className="sticky top-0 z-10">
+              <tr
+                style={{
+                  background: palette.shell,
+                  borderBottom: `1px solid ${palette.border}`,
+                }}
+              >
+                {[
+                  "Mã",
+                  "Hội viên",
+                  "Gói đăng ký",
+                  "Kỳ hiệu lực",
+                  "Phải thu",
+                  "Đã thu",
+                  "Còn thiếu",
+                  "PT phụ trách",
+                  "Trạng thái",
+                  "Thao tác",
+                ].map((header) => (
+                  <th
+                    key={header}
+                    className="px-3.5 py-3 text-left font-semibold"
+                    style={{ color: palette.dim }}
                   >
-                    {tab === "requests" ? "Xử lý" : "Thu tiền"}
-                  </ActionButton>
-                </td>
+                    {header}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody
+              className="divide-y"
+              style={{ ["--tw-divide-color" as string]: palette.borderSoft }}
+            >
+              {rows.map((reg) => {
+                const isSelected = selectedReg?.id === reg.id
+                const debt = reg.total - reg.paid
+                return (
+                  <tr
+                    key={reg.id}
+                    onClick={() => setSelectedReg(reg)}
+                    className="cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                    style={{
+                      background: isSelected ? "rgba(16, 185, 129, 0.12)" : undefined,
+                    }}
+                  >
+                    <td
+                      className="px-3.5 py-3 font-mono font-medium"
+                      style={{ color: isSelected ? palette.green : palette.muted }}
+                    >
+                      {reg.id}
+                    </td>
+                    <td className="px-3.5 py-3">
+                      <div className="font-semibold" style={{ color: palette.text }}>{reg.member}</div>
+                      <div style={{ color: palette.dim }}>
+                        {reg.memberId} · {reg.branch}
+                      </div>
+                    </td>
+                    <td className="px-3.5 py-3 font-medium" style={{ color: palette.text }}>{reg.packageName}</td>
+                    <td className="px-3.5 py-3 font-mono text-[12px]" style={{ color: palette.muted }}>
+                      {reg.from} → {reg.to}
+                    </td>
+                    <td className="px-3.5 py-3 font-mono" style={{ color: palette.muted }}>
+                      {fmtVND(reg.total)}
+                    </td>
+                    <td
+                      className="px-3.5 py-3 font-mono font-medium"
+                      style={{
+                        color: reg.paid < reg.total ? palette.amber : palette.green,
+                      }}
+                    >
+                      {fmtVND(reg.paid)}
+                    </td>
+                    <td className="px-3.5 py-3 font-mono font-bold" style={{ color: debt > 0 ? palette.red : palette.muted }}>
+                      {debt > 0 ? fmtVND(debt) : "0 đ"}
+                    </td>
+                    <td className="px-3.5 py-3" style={{ color: palette.muted }}>
+                      {reg.pt ?? "—"}
+                    </td>
+                    <td className="px-3.5 py-3">
+                      <RegistrationBadge status={reg.status} />
+                    </td>
+                    <td className="px-3.5 py-3" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1.5">
+                        {reg.status === "PENDING_PAYMENT" && (
+                          <>
+                            <ActionButton
+                              variant="warning"
+                              onClick={() => openAction("payment-form")}
+                            >
+                              Thu tiền
+                            </ActionButton>
+                            <button
+                              onClick={() => setSelectedReg(reg)}
+                              className="rounded-lg px-2 py-1 text-[12px] font-medium transition-all"
+                              style={{ color: palette.muted }}
+                            >
+                              Chi tiết
+                            </button>
+                          </>
+                        )}
+
+                        {reg.status === "SCHEDULED" && (
+                          <button
+                            onClick={() => setSelectedReg(reg)}
+                            className="rounded-lg px-2.5 py-1 text-[12px] font-medium border hover:bg-black/5 dark:hover:bg-white/5"
+                            style={{ color: palette.text, borderColor: palette.border }}
+                          >
+                            Chi tiết
+                          </button>
+                        )}
+
+                        {reg.status === "ACTIVE" && (
+                          <>
+                            <button
+                              onClick={() => setSelectedReg(reg)}
+                              className="rounded-lg px-2 py-1 text-[12px] font-medium hover:bg-black/5 dark:hover:bg-white/5"
+                              style={{ color: palette.muted }}
+                            >
+                              Chi tiết
+                            </button>
+                            <button
+                              onClick={() => openAction("registration-renew")}
+                              className="rounded-lg px-2.5 py-1 text-[12px] font-semibold text-emerald-600 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20"
+                            >
+                              Gia hạn
+                            </button>
+                          </>
+                        )}
+
+                        {reg.status === "EXPIRED" && (
+                          <>
+                            <button
+                              onClick={() => setSelectedReg(reg)}
+                              className="rounded-lg px-2 py-1 text-[12px] font-medium hover:bg-black/5 dark:hover:bg-white/5"
+                              style={{ color: palette.muted }}
+                            >
+                              Chi tiết
+                            </button>
+                            <button
+                              onClick={() => openAction("registration-renew")}
+                              className="rounded-lg px-2.5 py-1 text-[12px] font-semibold text-amber-600 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20"
+                            >
+                              Gia hạn / Mua lại
+                            </button>
+                          </>
+                        )}
+
+                        {reg.status === "EXHAUSTED" && (
+                          <>
+                            <button
+                              onClick={() => setSelectedReg(reg)}
+                              className="rounded-lg px-2 py-1 text-[12px] font-medium hover:bg-black/5 dark:hover:bg-white/5"
+                              style={{ color: palette.muted }}
+                            >
+                              Chi tiết
+                            </button>
+                            <button
+                              onClick={() => openAction("registration-renew")}
+                              className="rounded-lg px-2.5 py-1 text-[12px] font-semibold text-purple-600 bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20"
+                            >
+                              Mua thêm / Gia hạn
+                            </button>
+                          </>
+                        )}
+
+                        {reg.status === "CANCELLED" && (
+                          <button
+                            onClick={() => setSelectedReg(reg)}
+                            className="rounded-lg px-2.5 py-1 text-[12px] font-medium border"
+                            style={{ color: palette.dim, borderColor: palette.border }}
+                          >
+                            Chi tiết
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Right Detail Panel / Sidebar */}
+        {selectedReg && (
+          <div
+            className="w-[380px] border-l p-4 overflow-y-auto flex flex-col gap-4 shadow-xl"
+            style={{
+              borderColor: palette.border,
+              background: palette.panel,
+            }}
+          >
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: palette.border }}>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[12px] font-bold" style={{ color: palette.green }}>
+                    {selectedReg.id}
+                  </span>
+                  <RegistrationBadge status={selectedReg.status} />
+                </div>
+                <h3 className="text-[15px] font-bold leading-tight mt-1" style={{ color: palette.text }}>
+                  Chi tiết Lượt Đăng ký Gói
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedReg(null)}
+                className="text-[12px] px-2 py-1 rounded hover:bg-black/5 dark:hover:bg-white/10"
+                style={{ color: palette.muted }}
+              >
+                ✕ Đóng
+              </button>
+            </div>
+
+            {/* 1. Member Profile & Renewal History */}
+            <div
+              className="rounded-xl p-3.5 flex flex-col gap-2"
+              style={{ background: palette.control, border: `1px solid ${palette.border}` }}
+            >
+              <div className="flex items-center gap-3">
+                <Avatar name={selectedReg.member} tone={palette.green} size={42} />
+                <div>
+                  <div className="font-bold text-[14px]" style={{ color: palette.text }}>{selectedReg.member}</div>
+                  <div className="text-[12px] font-mono" style={{ color: palette.muted }}>
+                    Mã HV: {selectedReg.memberId} · {selectedReg.branch}
+                  </div>
+                </div>
+              </div>
+              {selectedReg.renewedFrom && (
+                <div className="mt-1 pt-2 border-t flex items-center justify-between text-[11px]" style={{ borderColor: palette.border }}>
+                  <span style={{ color: palette.muted }}>Lịch sử gia hạn:</span>
+                  <span className="font-mono font-semibold bg-emerald-500/10 px-2 py-0.5 rounded" style={{ color: palette.green }}>
+                    Nối tiếp từ {selectedReg.renewedFrom}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Package Title & Scope */}
+            <div
+              className="rounded-xl p-3.5 flex flex-col gap-2"
+              style={{ background: "rgba(16, 185, 129, 0.08)", border: `1px solid rgba(16, 185, 129, 0.25)` }}
+            >
+              <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: palette.green }}>
+                Gói dịch vụ
+              </div>
+              <div className="text-[16px] font-extrabold" style={{ color: palette.text }}>
+                {selectedReg.packageName}
+              </div>
+              <div className="flex items-center justify-between text-[12px] pt-1 border-t" style={{ borderColor: "rgba(0,0,0,0.08)" }}>
+                <span style={{ color: palette.muted }}>Kỳ hiệu lực:</span>
+                <span className="font-mono font-medium" style={{ color: palette.text }}>{selectedReg.from} → {selectedReg.to}</span>
+              </div>
+            </div>
+
+            {/* 3. Payment Status & Financial Breakdown */}
+            <div
+              className="rounded-xl p-3.5 flex flex-col gap-2.5"
+              style={{ background: palette.control, border: `1px solid ${palette.border}` }}
+            >
+              <div className="text-[12px] font-bold uppercase tracking-wider" style={{ color: palette.text }}>
+                Tài chính & Công nợ hợp đồng
+              </div>
+
+              <div className="flex justify-between text-[13px]">
+                <span style={{ color: palette.muted }}>Tổng tiền phải thu:</span>
+                <span className="font-mono font-bold" style={{ color: palette.text }}>{fmtVND(selectedReg.total)}</span>
+              </div>
+              <div className="flex justify-between text-[13px]">
+                <span style={{ color: palette.muted }}>Đã thanh toán:</span>
+                <span className="font-mono font-bold" style={{ color: palette.green }}>{fmtVND(selectedReg.paid)}</span>
+              </div>
+
+              <div className="pt-2 border-t flex justify-between items-center text-[13px]" style={{ borderColor: palette.border }}>
+                <span style={{ color: palette.muted }}>Còn thiếu (Công nợ):</span>
+                {selectedReg.total - selectedReg.paid > 0 ? (
+                  <span className="font-mono font-bold" style={{ color: palette.amber }}>
+                    {fmtVND(selectedReg.total - selectedReg.paid)}
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-semibold bg-emerald-500/10 px-2 py-0.5 rounded" style={{ color: palette.green }}>
+                    Đã thu 100%
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 4. Entitlements & Usage Stats */}
+            {(() => {
+              const { ptStats, gymStats } = getUsageDetails(selectedReg)
+              return (
+                <div className="flex flex-col gap-3">
+                  <div className="text-[12px] font-bold uppercase tracking-wider" style={{ color: palette.text }}>
+                    Quyền lợi & Tiến độ sử dụng
+                  </div>
+
+                  {selectedReg.status === "PENDING_PAYMENT" ? (
+                    <div className="rounded-xl p-3 bg-amber-500/10 border border-amber-500/30 text-[12px] leading-relaxed" style={{ color: palette.amber }}>
+                      ⚠️ <strong>Gói chưa kích hoạt:</strong> Do chưa hoàn thành nghĩa vụ thanh toán, hội viên chưa được phép sử dụng gói này để Check-in hoặc Booking PT.
+                    </div>
+                  ) : (
+                    <>
+                      {/* Gym Entitlement Section */}
+                      {gymStats && (
+                        <div
+                          className="rounded-xl p-3 flex flex-col gap-2"
+                          style={{ background: palette.control, border: `1px solid ${palette.border}` }}
+                        >
+                          <div className="flex items-center justify-between text-[12px]">
+                            <span className="font-semibold" style={{ color: palette.text }}>🏋️ Quyền tập Gym:</span>
+                            <span className="font-mono font-bold" style={{ color: palette.green }}>Còn {gymStats.remaining} ngày</span>
+                          </div>
+                          <div className="w-full bg-black/10 dark:bg-white/10 rounded-full h-2 overflow-hidden">
+                            <div
+                              className="bg-emerald-500 h-full rounded-full transition-all"
+                              style={{ width: `${Math.min(100, Math.round((gymStats.used / gymStats.total) * 100))}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-[11px]" style={{ color: palette.muted }}>
+                            <span>Đã trôi qua: {gymStats.used} ngày</span>
+                            <span>Tổng cấp: {gymStats.total} ngày</span>
+                          </div>
+                          <div className="pt-2 border-t text-[11px]" style={{ color: palette.muted, borderColor: palette.border }}>
+                            Chi nhánh áp dụng: <span className="font-medium" style={{ color: palette.text }}>{selectedReg.branch}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* PT Entitlement Section */}
+                      {ptStats && (
+                        <div
+                          className="rounded-xl p-3 flex flex-col gap-2"
+                          style={{ background: palette.control, border: `1px solid ${palette.border}` }}
+                        >
+                          <div className="flex items-center justify-between text-[12px]">
+                            <span className="font-semibold" style={{ color: palette.text }}>🥊 Quyền huấn luyện PT:</span>
+                            <span className="font-mono font-bold" style={{ color: palette.amber }}>Còn {ptStats.remaining} buổi</span>
+                          </div>
+                          <div className="w-full bg-black/10 dark:bg-white/10 rounded-full h-2 overflow-hidden">
+                            <div
+                              className="bg-amber-500 h-full rounded-full transition-all"
+                              style={{ width: `${Math.min(100, Math.round((ptStats.used / ptStats.total) * 100))}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-[11px]" style={{ color: palette.muted }}>
+                            <span>Đã tập: {ptStats.used} buổi</span>
+                            <span>Tổng cấp: {ptStats.total} buổi</span>
+                          </div>
+                          <div className="pt-2 border-t text-[12px] flex items-center justify-between" style={{ borderColor: palette.border }}>
+                            <span style={{ color: palette.muted }}>HLV phụ trách:</span>
+                            <span className="font-semibold" style={{ color: palette.text }}>{selectedReg.pt ?? "Chưa phân công"}</span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )
+            })()}
+
+            {/* 5. Warning Section */}
+            {selectedReg.warning && (
+              <div className="rounded-xl p-3 bg-amber-500/10 border border-amber-500/30 text-[12px]" style={{ color: palette.amber }}>
+                <strong>Cảnh báo:</strong> {selectedReg.warning}
+              </div>
+            )}
+
+            {/* 6. Quick Action Buttons */}
+            <div className="mt-auto pt-3 border-t flex flex-col gap-2" style={{ borderColor: palette.border }}>
+              {selectedReg.status === "PENDING_PAYMENT" && (
+                <ActionButton
+                  variant="warning"
+                  block
+                  onClick={() => openAction("payment-form")}
+                >
+                  💳 Thu tiền công nợ
+                </ActionButton>
+              )}
+
+              {(selectedReg.status === "ACTIVE" || selectedReg.status === "EXPIRED" || selectedReg.status === "EXHAUSTED") && (
+                <ActionButton
+                  variant="primary"
+                  block
+                  onClick={() => openAction("registration-renew")}
+                >
+                  ⚡ Gia hạn gói mới
+                </ActionButton>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -1569,7 +1944,7 @@ function CheckInView({ openAction }: ScreenProps) {
                     block
                     variant="secondary"
                     icon="plus"
-                    onClick={() => openAction("member-form")}
+                    onClick={() => openAction("member-create")}
                   >
                     Tiếp nhận hồ sơ
                   </ActionButton>
@@ -1890,7 +2265,7 @@ function CareView({ openAction }: ScreenProps) {
                 <ActionButton
                   variant="ghost"
                   icon="eye"
-                  onClick={() => openAction("member-form")}
+                  onClick={() => openAction("member-update")}
                 >
                   Hồ sơ
                 </ActionButton>

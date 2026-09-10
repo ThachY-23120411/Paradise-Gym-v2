@@ -291,7 +291,7 @@ function ReceptionistMobile({
         <QuickAction
           icon="plus"
           label="Thêm HV"
-          onClick={() => openAction("member-form")}
+          onClick={() => openAction("member-create")}
         />
         <QuickAction
           icon="calendar"
@@ -404,7 +404,7 @@ function MobileMembers({
         <ActionButton
           block
           icon="plus"
-          onClick={() => openAction("member-form")}
+          onClick={() => openAction("member-create")}
         >
           Thêm hội viên
         </ActionButton>
@@ -415,7 +415,7 @@ function MobileMembers({
             key={member.id}
             type="button"
             onClick={() =>
-              openAction(receptionist ? "member-form" : "session-result")
+              openAction(receptionist ? "member-update" : "session-result")
             }
             className="w-full rounded-lg border p-3 text-left"
             style={{ background: palette.panel, borderColor: palette.border }}
@@ -867,26 +867,41 @@ function MemberPackages({
 }) {
   const member = MEMBERS[1]
   const currentPackage = PACKAGES.find((pkg) => pkg.name === "Gói PT 20 buổi")
+  const pkgs = member.packages ?? [
+    {
+      name: member.packageName,
+      type: "PT" as const,
+      validUntil: member.validUntil,
+      sessionsLeft: member.sessionsLeft,
+      status: member.status,
+    },
+  ]
   return (
     <div className="space-y-4">
-      <MobileCard accent={palette.blue}>
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="text-[17px] font-bold text-white">
-              {member.packageName}
+      <div className="px-1 text-[12px] font-bold uppercase tracking-wider text-white">
+        📦 Các gói đang sở hữu ({pkgs.length})
+      </div>
+      {pkgs.map((pkg, idx) => (
+        <MobileCard key={idx} accent={pkg.type === "PT" ? palette.blue : palette.green}>
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-[16px] font-bold text-white">
+                {pkg.name}
+              </div>
+              <div className="mt-1 text-[13px]" style={{ color: palette.muted }}>
+                {pkg.type === "PT" && pkg.sessionsLeft !== undefined && pkg.sessionsLeft !== null
+                  ? `Còn ${pkg.sessionsLeft} buổi PT · Hạn ${pkg.validUntil}`
+                  : `Hiệu lực đến ${pkg.validUntil}`}
+              </div>
             </div>
-            <div className="mt-1 text-[13px]" style={{ color: palette.muted }}>
-              Hiệu lực đến {member.validUntil}
-            </div>
+            <MemberBadge status={pkg.status} />
           </div>
-          <MemberBadge status={member.status} />
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <TinyMetric label="Còn lại" value={`${member.sessionsLeft} buổi`} />
-          <TinyMetric label="Phạm vi" value={member.branch} />
-          <TinyMetric label="Công nợ" value={fmtVND(member.debt)} />
-        </div>
-      </MobileCard>
+        </MobileCard>
+      ))}
+      <div className="grid grid-cols-2 gap-2">
+        <TinyMetric label="Chi nhánh" value={member.branch} />
+        <TinyMetric label="Công nợ" value={fmtVND(member.debt)} />
+      </div>
 
       {currentPackage && (
         <MobileCard>

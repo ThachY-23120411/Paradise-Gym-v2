@@ -23,7 +23,7 @@ Paradise Gym là hệ thống quản lý vận hành phòng gym trên Web và Mo
 | --- | --- | --- | --- |
 | QTV / Quản lý | Web, Mobile | Quản trị theo phạm vi được cấp; xem tổng quan, báo cáo, hội viên, gói, PT, lịch, thanh toán, chi nhánh, tài khoản, thiết bị, chính sách, audit | Quyền thực tế phụ thuộc role + branch scope + permission; không mặc định mọi QTV đều toàn chuỗi |
 | Lễ tân | Web, Mobile | Tiếp nhận hội viên, đăng ký/gia hạn, điều phối lịch, ghi nhận tiền mặt, hỗ trợ check-in, chăm sóc, xem/xuất phiếu trong chi nhánh | Không tự sửa giá/gói, không xem tài chính toàn hệ thống, không quản trị permission/chi nhánh/toàn bộ thiết bị |
-| PT | Mobile | Xem lịch của mình, học viên được phân công, cập nhật availability, ghi kết quả buổi phụ trách | Không xem công nợ/payment/giảm giá; không xem học viên ngoài phân công; không tự cấp quyền hoặc sửa hồ sơ gốc |
+| PT | Mobile | Xem lịch của mình, học viên được phân công, xem và xử lý yêu cầu phân công (assignment request), xác nhận buổi tập đã diễn ra | Không xem công nợ/payment/giảm giá; không xem học viên ngoài phân công; không tự cấp quyền hoặc sửa hồ sơ gốc; không tự cấu hình giờ rảnh/availability |
 | Hội viên | Mobile | Xem hồ sơ/gói/phiếu của mình, đặt/đổi/hủy lịch PT, xem gói và thực hiện mua/gia hạn khi chức năng self-service được cho phép, cập nhật thông tin cá nhân được phép | Không tự sửa gói, công nợ, số buổi, trạng thái thanh toán, ghi chú nội bộ hoặc dữ liệu người khác |
 | K01 / Màn hình công cộng | Public screen | Hiển thị kết quả check-in và hướng dẫn tối thiểu | Không phải role tài khoản; không hiển thị dữ liệu riêng tư như công nợ, số điện thoại, email, giá gói, ghi chú |
 
@@ -34,11 +34,11 @@ Paradise Gym là hệ thống quản lý vận hành phòng gym trên Web và Mo
 | Tổng quan vận hành | Both | Chỉ số theo quyền, việc cần xử lý, lịch hôm nay, cảnh báo gói/lịch/check-in/thanh toán |
 | Hội viên & khách hàng | Both | Tìm, tạo, cập nhật hồ sơ, cảnh báo nghi trùng, trạng thái hồ sơ, lịch sử gói/lịch/ra-vào/thanh toán theo quyền |
 | Danh mục gói tập | Web, Mobile | Web quản lý danh mục gồm Gym theo thời gian, Gym theo buổi, PT theo buổi và Combo Gym + PT; Mobile cho hội viên xem các gói đang được phép bán |
-| Đăng ký & gia hạn | Both | Tạo đăng ký mới/gia hạn, xác định kỳ hiệu lực và quyền lợi; với gói có quyền PT, hỗ trợ phân công PT sau khi tạo registration và chặn booking cho tới khi có PT phụ trách |
+| Đăng ký & gia hạn | Both | Tạo đăng ký mới/gia hạn, xác định kỳ hiệu lực và quyền lợi; với gói PT hoặc Combo, không phân công PT ngay khi tạo đăng ký, hoãn phân công PT cho tới khi hội viên gửi yêu cầu chọn PT và PT chấp nhận (PT_ASSIGNMENT_REQUEST) |
 | Giảm giá | Web | QTV cấu hình chính sách giảm giá; lễ tân chỉ áp dụng chính sách hợp lệ hoặc gửi yêu cầu duyệt |
 | Thanh toán & công nợ | Both | Theo dõi phải thu/đã thu/còn phải thu, tiền mặt, chuyển khoản, phiếu thu; mobile nội bộ được tạo thanh toán chuyển khoản và xem/xuất phiếu |
-| Quản lý PT | Web, Mobile | Web QTV quản lý hồ sơ PT; mobile PT xem lịch/học viên và cập nhật availability của mình |
-| Lịch tập & buổi PT | Both | Đặt, đổi, hủy lịch; giữ quyền buổi; ghi nhận kết quả; xử lý trùng lịch và vắng mặt |
+| Quản lý PT | Web, Mobile | Web QTV quản lý hồ sơ PT; mobile PT xem lịch/học viên, xem yêu cầu phân công (assignment request) và xác nhận buổi tập |
+| Lịch tập & buổi PT | Both | Đặt, đổi, hủy lịch; Lễ tân đặt lịch thay cho hội viên; giữ quyền buổi; xác nhận kép (PT + Hội viên) để hoàn thành buổi; xử lý trùng lịch và vắng mặt |
 | Check-in / ra vào | Both, K01 | Ghi nhận IN/OUT nếu chi nhánh hỗ trợ, kiểm tra điều kiện vào tập, xử lý lỗi nhận diện, ghi nhận thủ công theo quyền |
 | Chăm sóc & thông báo | Both | Thông báo đăng ký/gia hạn, thanh toán, PT, lịch, sắp hết hạn, sinh nhật, thiết bị; ghi nhận liên hệ chăm sóc |
 | Báo cáo | Both | QTV xem số liệu theo kỳ/chi nhánh/quyền; tách giá trị đăng ký, tiền thực thu và còn phải thu |
@@ -65,14 +65,14 @@ Paradise Gym là hệ thống quản lý vận hành phòng gym trên Web và Mo
 | Gói tập | Gói đã bán giữ snapshot tại thời điểm bán: tên gói, giá gốc, giảm giá, số phải thu, thời hạn, số buổi/quyền lợi và phạm vi chi nhánh. Sửa giá hoặc ngừng bán chỉ ảnh hưởng đăng ký mới. |
 | Gói tập | Chưa hỗ trợ bảo lưu, chuyển nhượng, nâng/hạ cấp hoặc chuyển quyền lợi giữa gói trong phạm vi hiện tại. QTV chỉ hủy đăng ký chưa có khoản thu và chưa phát sinh quyền lợi; trường hợp đã thu/đã dùng cần quy trình riêng. |
 | Giảm giá | Chỉ QTV tạo/sửa chính sách giảm giá. Lễ tân không tự đổi giá gốc hoặc nhập mức giảm tùy ý; giảm ngoài chính sách phải được QTV duyệt. Lịch sử giảm giá đã xác nhận không được sửa/xóa tùy ý. |
-| PT/lịch tập | Mỗi đăng ký PT có một PT phụ trách tại một thời điểm. Nếu chưa phân công PT, đăng ký có thể lưu/thanh toán nhưng chưa cho đặt buổi. Hội viên không mặc định được chọn bất kỳ PT nào. |
+| PT/lịch tập | Khi tạo đăng ký gói PT hoặc Combo, hệ thống KHÔNG phân công PT ngay. Thuộc tính PT phụ trách ban đầu để trống. Sau khi đăng ký đủ điều kiện sử dụng (đã thanh toán đủ 100%), hội viên xem danh sách PT đang hoạt động tại chi nhánh và chọn PT mong muốn. Hệ thống gửi PT_ASSIGNMENT_REQUEST (status = PENDING) tới PT được chọn. PT xem xét yêu cầu: nếu quá tải có thể từ chối (REJECT), hội viên chọn PT khác và gửi request mới; nếu đồng ý (ACCEPT), PT trở thành PT phụ trách cố định (assigned_pt_id) của registration đó. Mỗi registration chỉ gắn 1 PT phụ trách duy nhất. |
 | PT/lịch tập | Với quyền PT theo buổi, hệ thống quản lý tối thiểu `tổng buổi`, `đã sử dụng/khấu trừ`, `đang giữ chỗ` và `còn có thể đặt`; số buổi còn có thể đặt = tổng buổi - đã sử dụng/khấu trừ - đang giữ chỗ và chỉ có giá trị khi quyền PT còn hiệu lực. |
-| PT/lịch tập | QTV quản lý lịch PT theo phạm vi; PT được cập nhật availability của mình; lễ tân xem lịch để điều phối. PT không được biến khung giờ đã có booking thành bận trước khi xử lý booking bị ảnh hưởng. |
-| PT/lịch tập | Lịch PT xác nhận ngay khi đủ điều kiện; không có bước PT duyệt riêng. Xem/chọn giờ chưa giữ chỗ; đặt thành công mới giữ một quyền buổi PT. |
+| PT/lịch tập | Công thức tính Slot Khả Dụng: Slot Khả Dụng = (Giờ làm việc cố định của PT: Thứ 2 → Thứ 6, 08:00 → 17:00) - (Tất cả booking đã xác nhận của PT). PT là nhân viên với giờ làm việc cố định, PT KHÔNG tự cấu hình/cập nhật giờ rảnh hay availability. Khung giờ nào trong T2→T6 (8h→17h) mà chưa có ai đặt (booking) thì mặc định là slot trống và hội viên có thể đặt. |
+| PT/lịch tập | Hội viên chỉ được đặt lịch PT sau khi PT đã ACCEPT assignment request. Lịch PT xác nhận ngay khi đủ điều kiện; xem/chọn giờ chưa giữ chỗ; đặt thành công mới giữ một quyền buổi PT. |
 | PT/lịch tập | Hủy/đổi miễn khấu trừ khi tiếp nhận trước giờ bắt đầu ít nhất 12 giờ. Hủy muộn hoặc hội viên vắng khấu trừ 1 buổi; lỗi từ PT/phòng tập không khấu trừ và cần sắp xếp bù. |
-| PT/lịch tập | Khi booking thành công chỉ giữ buổi, chưa tính đã dùng. Buổi chuyển sang đã dùng/khấu trừ khi hoàn thành, hủy muộn hoặc hội viên vắng. Check-in vào gym không tự hoàn tất buổi PT. |
-| PT/lịch tập | PT ghi kết quả lần đầu cho buổi mình phụ trách sau khi buổi kết thúc, trong vòng 24 giờ. Sửa kết quả sau đó do QTV thực hiện, có lý do và audit. |
-| PT/lịch tập | Phạm vi hiện tại là một hội viên - một PT - một buổi. Lịch làm việc PT có thể lặp lại; chưa hỗ trợ đặt buổi định kỳ, đặt hàng loạt, nhiều người cùng buổi hoặc lớp nhóm. |
+| PT/lịch tập | Khi booking thành công chỉ giữ buổi, chưa tính đã dùng. Buổi chỉ chuyển sang COMPLETED và trừ 1 buổi trong gói khi CẢ PT VÀ HỘI VIÊN đều xác nhận buổi tập đã diễn ra (xác nhận kép). Hủy muộn hoặc hội viên vắng khấu trừ 1 buổi theo quy định. Check-in vào gym không tự hoàn tất buổi PT. |
+| PT/lịch tập | Sau buổi tập kết thúc, PT xác nhận buổi tập đã diễn ra và hội viên xác nhận buổi tập đã diễn ra. Khi cả hai bên đã xác nhận, hệ thống tự động chuyển buổi sang COMPLETED. QTV được phép sửa kết quả sau đó với lý do và audit. |
+| PT/lịch tập | Lễ tân được phép đặt lịch PT thay cho hội viên (kể cả hội viên chưa tạo tài khoản self-service trên mobile app). Khi hội viên gọi điện yêu cầu đặt lịch, lễ tân xem lịch PT và báo lại giờ trống cho hội viên xem xét và chốt. Chỉ khi hội viên đã thanh toán đầy đủ và đã có PT phụ trách (PT đã ACCEPT) thì lễ tân mới đặt lịch được. Scope hiện tại là một hội viên - một PT - một buổi; chưa hỗ trợ đặt buổi định kỳ hoặc lớp nhóm. |
 | Thanh toán | Báo cáo tách ba chỉ số: giá trị đăng ký sau giảm, tiền thực thu, còn phải thu. Các chỉ số này phục vụ vận hành, không mặc định là doanh thu kế toán. |
 | Thanh toán | Cho phép thu nhiều lần cho một đăng ký. Còn nợ không được kích hoạt gói, vào tập hoặc đặt lịch PT; nợ của gói này không tự khóa gói khác đã đủ điều kiện. |
 | Thanh toán | Phương thức trong phạm vi hiện tại: tiền mặt và chuyển khoản ngân hàng bằng VND. Ảnh chứng từ chỉ là bằng chứng hỗ trợ, không tự xác nhận đã thu. |
