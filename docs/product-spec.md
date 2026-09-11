@@ -43,17 +43,18 @@ Paradise Gym là hệ thống quản lý vận hành phòng gym trên Web và Mo
 | Chăm sóc & thông báo | Both | Thông báo đăng ký/gia hạn, thanh toán, PT, lịch, sắp hết hạn, sinh nhật, thiết bị; ghi nhận liên hệ chăm sóc |
 | Báo cáo | Both | QTV xem số liệu theo kỳ/chi nhánh/quyền; tách giá trị đăng ký, tiền thực thu và còn phải thu |
 | Chi nhánh | Web | Quản lý chi nhánh, giờ hoạt động, trạng thái, phạm vi quyền, phạm vi gói |
-| Tài khoản & phân quyền | Web, Mobile | Tài khoản, role, phạm vi chi nhánh, trạng thái tài khoản, hồ sơ cá nhân, tùy chọn thông báo |
+| Tài khoản & phân quyền | Web, Mobile | Menu W13 riêng trên Web Sidebar; danh sách tài khoản, 4 thẻ KPI tổng quan (Tổng số, Active, Khóa, Chờ/Ngừng), bộ lọc Role kèm số lượng (Role (count)), bộ lọc trạng thái dạng Combobox; role, phạm vi chi nhánh, cấp/liên kết tài khoản PT & Hội viên, trạng thái tài khoản (Active, Khóa, Ngừng sử dụng) kèm lý do & Audit log |
 | Thiết bị & nhận diện | Web, K01 | Quản lý thiết bị nhận diện/đầu đọc ra-vào, trạng thái kết nối, dữ liệu nhận diện và consent |
 
 # 4. Business Rules
 
 | Nhóm | Rules |
 | --- | --- |
+| --- | --- |
 | Hội viên | Bắt buộc khi tạo hồ sơ: họ tên, số điện thoại, chi nhánh tiếp nhận. Email, ngày sinh, ảnh, ghi chú là tùy chọn. Mã hội viên, trạng thái, thời điểm tạo và người tạo do hệ thống ghi nhận. |
-| Hội viên | Số điện thoại là bắt buộc để tạo hồ sơ; email không bắt buộc. Hội viên muốn tự phục vụ trên mobile phải có tài khoản gắn với số điện thoại đã xác minh. |
-| Hội viên | Nhiều hồ sơ hội viên có thể dùng chung số điện thoại/email liên hệ trong trường hợp được phép như người thân/người giám hộ; hệ thống phải cảnh báo và yêu cầu xác nhận lý do. Tuy nhiên, số điện thoại dùng làm định danh đăng nhập chỉ thuộc một tài khoản. |
-| Hội viên | Nghi trùng ưu tiên theo số điện thoại; email/ngày sinh hỗ trợ tăng độ tin cậy; họ tên trùng chỉ là gợi ý. Không tự gộp hồ sơ. Tạo mới khi nghi trùng phải có đối chiếu và lý do; trường hợp chưa rõ chuyển QTV. |
+| Hội viên | Mỗi MEMBER_PROFILE bắt buộc có đúng 1 số điện thoại và SĐT phải UNIQUE trên toàn hệ thống. Khi nhập SĐT (tạo mới hoặc chỉnh sửa), hệ thống phải chuẩn hoá (normalize) và kiểm tra trùng lặp ngay lập tức (real-time). Nếu SĐT đã tồn tại: BLOCK không cho lưu hồ sơ mới, hiển thị thông báo lỗi "SĐT đã tồn tại" và cung cấp liên kết/nút bấm mở hồ sơ hiện có. |
+| Hội viên | Bỏ toàn bộ logic cũ về nghi trùng, cảnh báo nghi trùng, cho phép nhiều hội viên dùng chung số điện thoại, nhập lý do dùng chung, guardian/shared contact và các luồng resolve duplicate. Không dùng tên hay mã hội viên để phát hiện duplicate; SĐT là khóa nghiệp vụ chính duy nhất. |
+| Hội viên | Form tạo/sửa hội viên check duplicate SĐT realtime, tuyệt đối không cho lưu nếu trùng. |
 | Hội viên | Trạng thái hồ sơ gồm Đang hoạt động, Ngừng hoạt động, Đã lưu trữ. Trạng thái hồ sơ độc lập với trạng thái từng gói. Hồ sơ có lịch sử không bị xóa bằng thao tác thông thường. |
 | Hội viên | QTV/lễ tân sửa hồ sơ trong phạm vi phục vụ. PT chỉ ghi thông tin huấn luyện cho học viên được phân công. Hội viên chỉ sửa thông tin cá nhân được phép, không sửa gói, nợ, số buổi hoặc ghi chú nội bộ. |
 | Gói tập | Phạm vi cơ sở gồm 4 loại chính thức: Gym theo thời gian; Gym theo buổi có hạn sử dụng; PT theo buổi có hạn sử dụng; Combo Gym + PT. |
@@ -96,10 +97,12 @@ Paradise Gym là hệ thống quản lý vận hành phòng gym trên Web và Mo
 | Chi nhánh | Chi nhánh ngừng hoạt động thì dừng bán/lịch mới, rà soát gói/lịch/công nợ/thiết bị, không tự chuyển khách hoặc lịch. Dữ liệu lịch sử vẫn thuộc chi nhánh cũ. |
 | Tài khoản/phân quyền | Role chính thức: QTV, Lễ tân, PT, Hội viên/Khách hàng. Chủ phòng/quản lý gom vào QTV; khác biệt thể hiện bằng phạm vi chi nhánh và permission nhạy cảm. |
 | Tài khoản/phân quyền | Chưa làm khu vực desktop riêng cho PT/hội viên; tác vụ của họ ưu tiên Mobile. |
-| Tài khoản/phân quyền | Định danh đăng nhập chính là số điện thoại đã xác minh và mật khẩu. Email đã xác minh là kênh khôi phục bổ sung. Số điện thoại đăng nhập là duy nhất cho một tài khoản. |
+| Tài khoản/phân quyền | Định danh đăng nhập chính là ACCOUNT.login_phone đã xác minh và mật khẩu. SĐT đăng nhập phải duy nhất cho một tài khoản. Giao diện Mobile Hội viên hiển thị màn hình Đăng nhập (SĐT + Mật khẩu) và liên kết [Tạo tài khoản]. Khi chọn [Tạo tài khoản], nhập SĐT và hệ thống tự động xử lý theo 3 trường hợp: (1) SĐT đã có Account: thông báo SĐT đã có tài khoản và yêu cầu quay lại Đăng nhập; (2) SĐT đã có Profile tại quầy nhưng CHƯA có Account: hiển thị thẻ nhận diện hồ sơ hiện có -> gửi & xác nhận OTP -> đặt Password -> tạo Account (ROLE_MEMBER) & liên kết với Profile có sẵn; (3) SĐT CHƯA có Profile: mở modal điền thông tin cá nhân (Họ tên, Email, Ngày sinh) -> gửi & xác nhận OTP -> đặt Password -> tự động tạo đồng thời Account + Profile mới. |
+| Tài khoản/phân quyền | Với PT: Hồ sơ PT (PT_PROFILE) và Tài khoản (ACCOUNT) tách biệt. Tạo PT_PROFILE không tự động sinh ACCOUNT. Khi QTV chọn Cấp tài khoản PT, PT xác minh SĐT qua OTP và thiết lập mật khẩu lần đầu để kích hoạt tài khoản. |
 | Tài khoản/phân quyền | Tài khoản đăng nhập tách biệt với hồ sơ nghiệp vụ. Role hội viên liên kết đúng một hồ sơ hội viên; role PT liên kết đúng một hồ sơ PT. Một tài khoản có thể có nhiều role nhưng không cộng gộp quyền giữa các role. |
 | Tài khoản/phân quyền | Khi chuyển role/chi nhánh phải xử lý thay đổi chưa lưu, bỏ dữ liệu không còn thuộc quyền khỏi giao diện và áp quyền theo ngữ cảnh mới. |
 | Tài khoản/phân quyền | Thao tác nhạy cảm gồm đổi role/permission/branch scope, khóa/mở tài khoản, xử lý payment nhạy cảm, miễn/điều chỉnh buổi PT, sửa kết quả PT, ngừng hồ sơ/PT/chi nhánh, quản lý dữ liệu nhận diện. Các thao tác này cần permission riêng, xác nhận/lý do và audit. |
+| Tài khoản/phân quyền | Màn hình riêng W13 "Tài khoản & phân quyền" trên Web Sidebar cung cấp 4 thẻ KPI tổng quan (Tổng số tài khoản, Hoạt động, Khóa, Chờ kích hoạt/Ngừng sử dụng), bộ lọc theo Role có kèm số lượng `Role (count)` (ví dụ `QTV (1)`, `Lễ tân (1)`), bộ lọc theo Trạng thái dạng Combobox (không đếm số lượng), và danh sách tài khoản. Form tài khoản tập trung vào thông tin credential (SĐT đăng nhập, vai trò, phạm vi chi nhánh, trạng thái, lý do khóa), loại bỏ các trường hồ sơ cá nhân/tùy chọn riêng tư không thuộc scope tài khoản. |
 | Tài khoản/phân quyền | Tài khoản có trạng thái Chờ kích hoạt, Hoạt động, Khóa, Ngừng sử dụng. Chỉ QTV có permission phù hợp được quản lý tài khoản trong phạm vi được cấp. |
 | Tài khoản/phân quyền | Audit lưu hành động quan trọng, người thực hiện, role/chi nhánh, đối tượng, giá trị trước/sau khi phù hợp, lý do và thời điểm. Chỉ QTV có permission audit được xem trong phạm vi. |
 | Thông báo | Kênh bắt buộc hiện tại là in-app. Push, SMS chăm sóc, Zalo, email tiếp thị chưa là tích hợp bắt buộc. |

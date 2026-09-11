@@ -10,6 +10,7 @@ import {
   TextInput,
   palette,
 } from "./ui"
+import { MEMBERS } from "./data"
 
 export type ActionKind =
   | "member-form"
@@ -36,7 +37,6 @@ export type ActionKind =
   | "branch-form"
   | "account-permissions"
   | "member-preferences"
-  | "duplicate-resolve"
   | "device-settings"
   | "policy-settings"
   | "renewal-request"
@@ -244,16 +244,10 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         hint: "Hỗ trợ dấu tiếng Việt, bỏ khoảng trắng thừa trước khi lưu.",
       },
       {
-        label: "Mã hội viên",
-        kind: "readonly",
-        value: "(Tự động sinh)",
-        hint: "Mã hội viên được hệ thống tự động sinh sau khi lưu thành công.",
-      },
-      {
         label: "Số điện thoại",
         required: true,
         placeholder: "Ví dụ: 0908 111 222",
-        hint: "Dùng để tìm kiếm và cảnh báo trùng lặp hồ sơ; giữ nguyên số 0 đầu.",
+        hint: "Khóa nghiệp vụ duy nhất của hội viên; giữ nguyên số 0 đầu.",
       },
       {
         label: "Email",
@@ -273,27 +267,11 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         placeholder: "DD/MM/YYYY",
         hint: "Không mặc định hôm nay; dùng cho nhắc sinh nhật nếu hội viên đồng ý.",
       },
-      {
-        label: "Ảnh hồ sơ",
-        placeholder: "Chọn ảnh đại diện nếu khách đồng ý",
-        hint: "Ảnh hồ sơ không tự trở thành dữ liệu nhận diện.",
-      },
-      {
-        label: "Trạng thái hồ sơ",
-        kind: "readonly",
-        value: "Đang hoạt động",
-        hint: "Hồ sơ mới mặc định ở trạng thái Đang hoạt động.",
-      },
-      {
-        label: "Ghi chú vận hành",
-        kind: "textarea",
-        placeholder: "Thông tin phục vụ ngắn, không nhập dữ liệu nhạy cảm.",
-      },
     ],
     checks: [
-      "Nếu số liên hệ trùng hoặc gần trùng, hệ thống chuyển sang màn hình Xử lý nghi trùng.",
+      "Nếu SĐT đã tồn tại, hệ thống báo lỗi và block lưu, cho phép mở hồ sơ hiện có.",
       "Sau khi lưu thành công, sinh mã hội viên mới và mở ngữ cảnh đăng ký gói.",
-      "Hồ sơ chưa có email, ngày sinh hoặc ảnh vẫn tạo được.",
+      "Hồ sơ chưa có email hoặc ngày sinh vẫn tạo được.",
     ],
     exceptions: [
       "Thiếu tên, số điện thoại hoặc chi nhánh: giữ dữ liệu và báo lỗi.",
@@ -313,7 +291,7 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         label: "Mã hội viên",
         kind: "readonly",
         value: "HV001",
-        hint: "Trường bắt buộc cố định: Không thể thay đổi mã hội viên đã cấp.",
+        hint: "Trường cố định: Không thể thay đổi mã hội viên đã cấp.",
       },
       {
         label: "Họ và tên",
@@ -325,9 +303,9 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       {
         label: "Số điện thoại",
         required: true,
-        value: "0908 111 222",
-        placeholder: "0908 111 222",
-        hint: "Dùng để tìm và cảnh báo nghi trùng; không làm mất số 0 đầu.",
+        value: "0901 234 567",
+        placeholder: "0901 234 567",
+        hint: "SĐT bắt buộc duy nhất (Unique Key); block lưu nếu đã tồn tại trên hồ sơ khác.",
       },
       {
         label: "Email",
@@ -340,7 +318,7 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         required: true,
         kind: "readonly",
         value: "Chi nhánh Quận 1",
-        hint: "Trường bắt buộc cố định: Không thể thay đổi chi nhánh khởi tạo.",
+        hint: "Trường cố định: Không thể thay đổi chi nhánh khởi tạo.",
       },
       {
         label: "Ngày sinh",
@@ -349,30 +327,13 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         placeholder: "DD/MM/YYYY",
         hint: "Không mặc định hôm nay; dùng cho nhắc sinh nhật nếu hội viên đồng ý.",
       },
-      {
-        label: "Ảnh hồ sơ",
-        placeholder: "Chọn ảnh đại diện mới...",
-        hint: "Ảnh hồ sơ không tự trở thành dữ liệu nhận diện.",
-      },
-      {
-        label: "Trạng thái hồ sơ",
-        kind: "readonly",
-        value: "Đang hoạt động",
-        hint: "Trường bắt buộc cố định: Phải dùng tính năng 'Thay đổi trạng thái' để cập nhật.",
-      },
-      {
-        label: "Ghi chú vận hành",
-        kind: "textarea",
-        value: "Khách ưu tiên tập khung giờ sáng.",
-        placeholder: "Thông tin phục vụ ngắn, không nhập dữ liệu nhạy cảm.",
-      },
     ],
     checks: [
-      "Kiểm tra và cảnh báo nếu thay đổi SĐT trùng với hội viên khác.",
+      "Kiểm tra duy nhất SĐT; block lưu nếu thay đổi SĐT trùng với hội viên khác.",
       "Lưu lịch sử thay đổi thông tin hội viên.",
     ],
     exceptions: [
-      "Không cho phép sửa các trường bắt buộc cố định: Mã hội viên, Chi nhánh, Trạng thái.",
+      "Không cho phép sửa các trường bắt buộc cố định: Mã hội viên, Chi nhánh.",
     ],
     result: "Đã cập nhật thông tin hội viên HV001 thành công.",
     primary: "Cập nhật hồ sơ",
@@ -391,16 +352,10 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         hint: "Hỗ trợ dấu tiếng Việt, bỏ khoảng trắng thừa trước khi lưu.",
       },
       {
-        label: "Mã hội viên",
-        kind: "readonly",
-        value: "(Tự động sinh)",
-        hint: "Mã hội viên được hệ thống tự động sinh sau khi lưu thành công.",
-      },
-      {
         label: "Số điện thoại",
         required: true,
         placeholder: "Ví dụ: 0908 111 222",
-        hint: "Dùng để tìm kiếm và cảnh báo trùng lặp hồ sơ; giữ nguyên số 0 đầu.",
+        hint: "Khóa nghiệp vụ duy nhất của hội viên; giữ nguyên số 0 đầu.",
       },
       {
         label: "Email",
@@ -420,27 +375,11 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         placeholder: "DD/MM/YYYY",
         hint: "Không mặc định hôm nay; dùng cho nhắc sinh nhật nếu hội viên đồng ý.",
       },
-      {
-        label: "Ảnh hồ sơ",
-        placeholder: "Chọn ảnh đại diện nếu khách đồng ý",
-        hint: "Ảnh hồ sơ không tự trở thành dữ liệu nhận diện.",
-      },
-      {
-        label: "Trạng thái hồ sơ",
-        kind: "readonly",
-        value: "Đang hoạt động",
-        hint: "Hồ sơ mới mặc định ở trạng thái Đang hoạt động.",
-      },
-      {
-        label: "Ghi chú vận hành",
-        kind: "textarea",
-        placeholder: "Thông tin phục vụ ngắn, không nhập dữ liệu nhạy cảm.",
-      },
     ],
     checks: [
-      "Nếu số liên hệ trùng hoặc gần trùng, hệ thống chuyển sang màn hình Xử lý nghi trùng.",
+      "Nếu SĐT đã tồn tại, hệ thống báo lỗi và block lưu, cho phép mở hồ sơ hiện có.",
       "Sau khi lưu thành công, sinh mã hội viên mới và mở ngữ cảnh đăng ký gói.",
-      "Hồ sơ chưa có email, ngày sinh hoặc ảnh vẫn tạo được.",
+      "Hồ sơ chưa có email hoặc ngày sinh vẫn tạo được.",
     ],
     exceptions: [
       "Thiếu tên, số điện thoại hoặc chi nhánh: giữ dữ liệu và báo lỗi.",
@@ -480,11 +419,6 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         kind: "textarea",
         placeholder: "Ví dụ: Hội viên yêu cầu tạm ngừng phục vụ",
         hint: "Bắt buộc khi ngừng hoạt động hoặc lưu trữ.",
-      },
-      {
-        label: "Ảnh hưởng sau khi lưu",
-        kind: "readonly",
-        value: "Giữ nguyên gói, công nợ, lịch sử và giao dịch",
       },
     ],
     checks: [
@@ -1077,21 +1011,26 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
     primary: "Gửi duyệt điều chỉnh",
   },
   "trainer-form": {
-    title: "Hồ sơ huấn luyện viên",
-    trace: "UX-F05 · W05 · QTV",
+    title: "Thêm hồ sơ & khởi tạo tài khoản PT",
+    trace: "W05 · Quản lý Huấn luyện viên",
     intro:
-      "Quản lý thông tin phục vụ phân công, không mở rộng sang hồ sơ nhân sự.",
-    steps: ["Cơ bản", "Chi nhánh", "Chuyên môn", "Tài khoản"],
+      "QTV tạo hồ sơ PT và khởi tạo tài khoản liên kết (PENDING_ACTIVATION). PT sẽ tự kích hoạt qua OTP và tạo mật khẩu lần đầu.",
     fields: [
       {
-        label: "Tên PT",
+        label: "Họ và tên PT",
         required: true,
         placeholder: "Ví dụ: Nguyễn Thành Long",
       },
-      { label: "Mã PT", kind: "readonly", value: "Hệ thống tự sinh" },
       {
-        label: "Điện thoại hoặc email",
-        placeholder: "Cần khi gửi lời mời tài khoản",
+        label: "Số điện thoại (Nhận OTP)",
+        required: true,
+        placeholder: "0911 111 111",
+        hint: "Dùng để kích hoạt tài khoản PT",
+      },
+      {
+        label: "Email liên hệ",
+        required: true,
+        placeholder: "long.pt@example.vn",
       },
       {
         label: "Chi nhánh làm việc",
@@ -1099,30 +1038,37 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         kind: "select",
         options: ["Quận 1", "Bình Thạnh"],
       },
-      { label: "Chuyên môn", placeholder: "Cardio, Strength, Yoga..." },
       {
-        label: "Trạng thái",
+        label: "Chuyên môn đào tạo",
+        placeholder: "Cardio, HIIT, Powerlifting, Yoga...",
+      },
+      {
+        label: "Ngày bắt đầu làm việc",
+        placeholder: "15/01/2025",
+      },
+      {
+        label: "Trạng thái hồ sơ",
         required: true,
         kind: "select",
         options: ["Hoạt động", "Ngừng hoạt động"],
       },
       {
-        label: "Giới thiệu ngắn",
+        label: "Ghi chú bổ sung",
         kind: "textarea",
-        placeholder: "Thông tin giúp điều phối chọn PT phù hợp.",
+        placeholder: "Ghi chú bằng cấp, chuyên môn hoặc yêu cầu công việc...",
       },
     ],
     checks: [
-      "PT ngừng hoạt động không nhận lịch mới.",
-      "Muốn tạo tài khoản thì mở form phân quyền có sẵn liên kết PT.",
-      "Phân công hội viên thực hiện trong đăng ký/gia hạn gói PT.",
+      "Tài khoản được tự động gán ROLE_PT và phạm vi chi nhánh đã chọn.",
+      "Tài khoản mới ở trạng thái PENDING_ACTIVATION.",
+      "PT tự kích hoạt qua OTP và thiết lập mật khẩu cá nhân.",
     ],
     exceptions: [
-      "Không bỏ chi nhánh đang có lịch tương lai nếu chưa xử lý ảnh hưởng.",
-      "Không thêm tính lương/hoa hồng vào phạm vi prototype này.",
+      "QTV không được nhập hoặc thiết lập mật khẩu thay cho PT.",
+      "PT chưa kích hoạt account không được nhận hội viên mới.",
     ],
-    result: "Đã lưu hồ sơ PT-DEMO-001.",
-    primary: "Lưu PT",
+    result: "Đã tạo hồ sơ PT005 thành công! Tài khoản đã được liên kết ở trạng thái PENDING_ACTIVATION.",
+    primary: "Tạo PT & Khởi tạo Account",
   },
   "work-schedule": {
     title: "Lịch làm việc PT",
@@ -1609,83 +1555,6 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
     ],
     result: "Đã cập nhật thông tin cá nhân và tùy chọn hệ thống.",
     primary: "Lưu thay đổi",
-  },
-  "duplicate-resolve": {
-    title: "Xử lý hồ sơ nghi trùng",
-    trace: "UX-F01-DUP · Hệ thống tự rẽ nhánh khi nhập trùng số điện thoại",
-    intro: "Vui lòng đối chiếu thông tin khách đang tạo với hồ sơ trùng khớp trên hệ thống.",
-    steps: ["Đối chiếu", "Quyết định xử lý"],
-    fields: [
-      {
-        label: "Họ tên (Khách mới)",
-        kind: "readonly",
-        value: "Nguyễn Hoài Nam",
-      },
-      {
-        label: "Danh sách nghi trùng",
-        kind: "select",
-        value: "HV001 · Nguyễn Hoài Nam",
-        options: ["HV001 · Nguyễn Hoài Nam", "HV042 · Nguyễn Văn Bé"],
-        hint: "Chọn từng hồ sơ để đối chiếu thông tin bên dưới.",
-      },
-      {
-        label: "Số điện thoại (Khách mới)",
-        kind: "readonly",
-        value: "0908 111 222",
-      },
-      {
-        label: "Họ tên (Trên hệ thống)",
-        kind: "readonly",
-        value: "Nguyễn Hoài Nam",
-      },
-      {
-        label: "Email (Khách mới)",
-        kind: "readonly",
-        value: "nam.nguyen@example.vn",
-      },
-      {
-        label: "Số điện thoại (Trên hệ thống)",
-        kind: "readonly",
-        value: "0908 111 222",
-      },
-      {
-        label: "Ngày sinh (Khách mới)",
-        kind: "readonly",
-        value: "15/05/1990",
-      },
-      {
-        label: "Email (Trên hệ thống)",
-        kind: "readonly",
-        value: "(Chưa cập nhật)",
-      },
-      {
-        label: "Quyết định xử lý",
-        required: true,
-        kind: "select",
-        value: "Dùng hồ sơ: HV001",
-        options: ["Dùng hồ sơ: HV001", "Dùng hồ sơ: HV042", "Vẫn tạo hồ sơ mới"],
-      },
-      {
-        label: "Ngày sinh (Trên hệ thống)",
-        kind: "readonly",
-        value: "15/05/1990",
-      },
-      {
-        label: "Lý do xác nhận (Tạo hồ sơ mới)",
-        kind: "textarea",
-        placeholder: "Ví dụ: Mẹ đăng ký cho con nhỏ dùng chung SĐT...",
-        hint: "Bắt buộc nhập nếu vẫn tạo hồ sơ mới. Lịch sử sẽ được ghi nhận.",
-      },
-    ],
-    checks: [
-      "Ưu tiên cảnh báo trùng số điện thoại. Email/ngày sinh để tăng độ tin cậy.",
-      "Không có lý do thì không được phép tạo mới.",
-    ],
-    exceptions: [
-      "Số điện thoại đăng nhập đã thuộc tài khoản khác sẽ không được đăng nhập.",
-    ],
-    result: "Đã xử lý nghi trùng. Tiếp tục tạo hồ sơ mới.",
-    primary: "Xác nhận xử lý",
   },
   "account-permissions": {
     title: "Tài khoản và phân quyền",
@@ -2291,6 +2160,17 @@ function computeEndDate(startDateStr: string, months: number): string {
   return "10/12/2026"
 }
 
+const MOCK_SYSTEM_ACCOUNTS = [
+  { phone: "0901 234 567", name: "Nguyễn Văn An", role: "Hội viên", branch: "Quận 1", status: "ACTIVE", profile: "HV001" },
+  { phone: "0908 111 222", name: "Nguyễn Hoài Nam", role: "Hội viên", branch: "Quận 1", status: "ACTIVE", profile: "HV002" },
+  { phone: "0912 345 678", name: "Trần Thị Bình", role: "Hội viên", branch: "Bình Thạnh", status: "LOCKED", profile: "HV003" },
+  { phone: "0903 888 999", name: "Lê Thị Thanh Hà", role: "Lễ tân", branch: "Quận 1", status: "ACTIVE", profile: "NV001" },
+  { phone: "0904 777 666", name: "Phạm Quốc Bảo", role: "PT (Huấn luyện viên)", branch: "Quận 1", status: "ACTIVE", profile: "PT001" },
+  { phone: "0909 999 000", name: "Đặng Văn Hùng", role: "QTV (Quản trị viên)", branch: "Toàn hệ thống", status: "ACTIVE", profile: "QTV001" },
+  { phone: "0933 222 111", name: "Lê Văn Tùng", role: "Hội viên", branch: "Quận 1", status: "PENDING_ACTIVATION", profile: "HV004" },
+  { phone: "0977 444 555", name: "Hoàng Minh Đức", role: "PT (Huấn luyện viên)", branch: "Bình Thạnh", status: "INACTIVE", profile: "PT002" },
+]
+
 export function ActionModal({
   action,
   onClose,
@@ -2300,6 +2180,23 @@ export function ActionModal({
 }) {
   const [phase, setPhase] = useState<"idle" | "saving" | "success">("idle")
   const [pkgType, setPkgType] = useState<string>("Gym theo thời gian")
+
+  // Controlled states for member form duplicate SĐT check
+  const [memberPhoneInput, setMemberPhoneInput] = useState<string>("")
+
+  // Controlled states for account-permissions
+  const [accountViewMode, setAccountViewMode] = useState<"list" | "edit">("list")
+  const [accountQuery, setAccountQuery] = useState<string>("")
+  const [accountRoleFilter, setAccountRoleFilter] = useState<string>("Tất cả")
+  const [accountStatusFilter, setAccountStatusFilter] = useState<string>("Tất cả")
+  const [selectedAccount, setSelectedAccount] = useState<{
+    phone: string
+    name: string
+    role: string
+    branch: string
+    status: string
+    profile?: string
+  } | null>(null)
 
   // Controlled states for payment-form
   const [payMethod, setPayMethod] = useState<string>("Tiền mặt")
@@ -2331,6 +2228,17 @@ export function ActionModal({
   const isRegistrationForm = isRegistrationCreate || isRegistrationRenew || isRegistrationFormModal
 
   const isEffectiveRenew = isRegistrationRenew || (isRegistrationFormModal && regTab === "renew")
+
+  const isMemberForm = action === "member-create" || action === "member-update" || action === "member-form"
+  const activePhoneStr = memberPhoneInput !== "" ? memberPhoneInput : (action === "member-update" ? "0901 234 567" : "")
+  const cleanPhoneInput = activePhoneStr.replace(/\D/g, "")
+  const duplicateMemberMatch = isMemberForm && cleanPhoneInput.length >= 8
+    ? MEMBERS.find((m) => {
+        const existingClean = m.phone.replace(/\D/g, "")
+        if (action === "member-update" && m.id === "HV001") return false
+        return existingClean === cleanPhoneInput
+      })
+    : null
 
   const displayFields = config.fields.filter((field) => {
     if (!isPackageAction) return true
@@ -2372,6 +2280,7 @@ export function ActionModal({
 
   const submit = () => {
     if (isPaymentForm && isAmountOver) return
+    if (isMemberForm && duplicateMemberMatch) return
     setPhase("saving")
     window.setTimeout(() => setPhase("success"), 500)
   }
@@ -2799,26 +2708,359 @@ export function ActionModal({
                   />
                 </Field>
               </div>
+            ) : action === "account-permissions" ? (
+              <div className="space-y-4">
+                {accountViewMode === "list" ? (
+                  <div className="space-y-4">
+                    {/* Top KPI Stat Summary Cards */}
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      <div className="rounded-xl border p-3" style={{ background: palette.control, borderColor: palette.border }}>
+                        <div className="text-[11px] font-medium" style={{ color: palette.dim }}>Tổng số tài khoản</div>
+                        <div className="text-[18px] font-bold mt-0.5" style={{ color: palette.text }}>{MOCK_SYSTEM_ACCOUNTS.length}</div>
+                      </div>
+                      <div className="rounded-xl border p-3" style={{ background: "rgba(16, 185, 129, 0.08)", borderColor: "rgba(16, 185, 129, 0.25)" }}>
+                        <div className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Hoạt động (Active)</div>
+                        <div className="text-[18px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                          {MOCK_SYSTEM_ACCOUNTS.filter((a) => a.status === "ACTIVE").length}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border p-3" style={{ background: "rgba(234, 179, 8, 0.08)", borderColor: "rgba(234, 179, 8, 0.25)" }}>
+                        <div className="text-[11px] font-medium text-amber-600 dark:text-amber-400">Chờ kích hoạt</div>
+                        <div className="text-[18px] font-bold text-amber-600 dark:text-amber-400 mt-0.5">
+                          {MOCK_SYSTEM_ACCOUNTS.filter((a) => a.status === "PENDING_ACTIVATION").length}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border p-3" style={{ background: "rgba(239, 68, 68, 0.08)", borderColor: "rgba(239, 68, 68, 0.25)" }}>
+                        <div className="text-[11px] font-medium text-red-600 dark:text-red-400">Đã khóa / Tạm dừng</div>
+                        <div className="text-[18px] font-bold text-red-600 dark:text-red-400 mt-0.5">
+                          {MOCK_SYSTEM_ACCOUNTS.filter((a) => a.status === "LOCKED" || a.status === "INACTIVE").length}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Header Controls: Search, Filters & Add New Button */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3" style={{ borderColor: palette.border }}>
+                      <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
+                        <div className="relative flex-1 min-w-[180px]">
+                          <Ic
+                            k="search"
+                            size={15}
+                            cls="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+                            style={{ color: palette.dim }}
+                          />
+                          <input
+                            type="text"
+                            value={accountQuery}
+                            onChange={(e) => setAccountQuery(e.target.value)}
+                            placeholder="Tìm SĐT đăng nhập, Tên người dùng..."
+                            className="w-full rounded-xl border py-2 pl-9 pr-3 text-[13px] outline-none transition"
+                            style={{
+                              background: palette.control,
+                              borderColor: palette.border,
+                              color: palette.text,
+                            }}
+                          />
+                        </div>
+
+                        {/* Role Filter Pills with Counts */}
+                        <div className="flex items-center gap-1 p-1 rounded-xl border" style={{ background: palette.control, borderColor: palette.border }}>
+                          {[
+                            { key: "Tất cả", label: "Tất cả", count: MOCK_SYSTEM_ACCOUNTS.length },
+                            { key: "QTV", label: "QTV", count: MOCK_SYSTEM_ACCOUNTS.filter(a => a.role.includes("QTV")).length },
+                            { key: "Lễ tân", label: "Lễ tân", count: MOCK_SYSTEM_ACCOUNTS.filter(a => a.role.includes("Lễ tân")).length },
+                            { key: "PT", label: "PT", count: MOCK_SYSTEM_ACCOUNTS.filter(a => a.role.includes("PT")).length },
+                            { key: "Hội viên", label: "Hội viên", count: MOCK_SYSTEM_ACCOUNTS.filter(a => a.role.includes("Hội viên")).length },
+                          ].map((r) => {
+                            const active = accountRoleFilter === r.key
+                            return (
+                              <button
+                                key={r.key}
+                                type="button"
+                                onClick={() => setAccountRoleFilter(r.key)}
+                                className="rounded-lg px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+                                style={{
+                                  background: active ? "rgba(16, 185, 129, 0.2)" : "transparent",
+                                  color: active ? palette.green : palette.muted,
+                                  border: active ? `1px solid ${palette.green}` : "1px solid transparent",
+                                }}
+                              >
+                                {r.label} ({r.count})
+                              </button>
+                            )
+                          })}
+                        </div>
+
+                        {/* Status Filter Combobox (Dynamic Light/Dark Theme palette) */}
+                        <select
+                          value={accountStatusFilter}
+                          onChange={(e) => setAccountStatusFilter(e.target.value)}
+                          className="rounded-xl border py-2 px-3 text-[12px] font-bold outline-none cursor-pointer transition"
+                          style={{
+                            background: palette.control,
+                            borderColor: palette.border,
+                            color: palette.text,
+                          }}
+                        >
+                          <option value="Tất cả" style={{ background: palette.panel, color: palette.text }}>Trạng thái: Tất cả</option>
+                          <option value="ACTIVE" style={{ background: palette.panel, color: palette.text }}>Trạng thái: Active</option>
+                          <option value="PENDING_ACTIVATION" style={{ background: palette.panel, color: palette.text }}>Trạng thái: Pending</option>
+                          <option value="LOCKED" style={{ background: palette.panel, color: palette.text }}>Trạng thái: Locked</option>
+                          <option value="INACTIVE" style={{ background: palette.panel, color: palette.text }}>Trạng thái: Inactive</option>
+                        </select>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedAccount({
+                            phone: "",
+                            name: "",
+                            role: "Lễ tân",
+                            branch: "Quận 1",
+                            status: "PENDING_ACTIVATION",
+                            profile: "",
+                          })
+                          setAccountViewMode("edit")
+                        }}
+                        className="rounded-xl bg-[#10B981] hover:bg-[#059669] px-3.5 py-2 text-[13px] font-bold text-white transition flex items-center gap-1.5 cursor-pointer shadow-md"
+                      >
+                        <Ic k="plus" size={16} />
+                        <span>Cấp / Tạo tài khoản mới</span>
+                      </button>
+                    </div>
+
+                    {/* Account List Table */}
+                    <div className="overflow-x-auto rounded-xl border" style={{ borderColor: palette.border, background: palette.panel }}>
+                      <table className="w-full text-left border-collapse text-[13px]">
+                        <thead>
+                          <tr className="border-b text-[12px] font-bold uppercase tracking-wider" style={{ borderColor: palette.border, background: palette.control, color: palette.muted }}>
+                            <th className="p-3">Định danh SĐT</th>
+                            <th className="p-3">Tên người dùng</th>
+                            <th className="p-3">Vai trò (Role)</th>
+                            <th className="p-3">Phạm vi chi nhánh</th>
+                            <th className="p-3">Trạng thái</th>
+                            <th className="p-3 text-right">Thao tác</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {MOCK_SYSTEM_ACCOUNTS.filter((acc) => {
+                            const matchesSearch =
+                              !accountQuery ||
+                              acc.phone.includes(accountQuery) ||
+                              acc.name.toLowerCase().includes(accountQuery.toLowerCase())
+                            const matchesRole =
+                              accountRoleFilter === "Tất cả" ||
+                              (accountRoleFilter === "QTV" && acc.role.includes("QTV")) ||
+                              (accountRoleFilter === "Lễ tân" && acc.role.includes("Lễ tân")) ||
+                              (accountRoleFilter === "PT" && acc.role.includes("PT")) ||
+                              (accountRoleFilter === "Hội viên" && acc.role.includes("Hội viên"))
+                            const matchesStatus =
+                              accountStatusFilter === "Tất cả" || acc.status === accountStatusFilter
+                            return matchesSearch && matchesRole && matchesStatus
+                          }).map((acc) => (
+                            <tr key={acc.phone} className="hover:bg-white/5 transition">
+                              <td className="p-3 font-mono font-bold" style={{ color: palette.text }}>{acc.phone}</td>
+                              <td className="p-3 font-semibold" style={{ color: palette.text }}>
+                                {acc.name}
+                                {acc.profile && (
+                                  <span className="block text-[11px] font-mono font-normal" style={{ color: palette.dim }}>
+                                    Hồ sơ: {acc.profile}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-3">
+                                <span
+                                  className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold"
+                                  style={{
+                                    background:
+                                      acc.role.includes("QTV")
+                                        ? "rgba(239, 68, 68, 0.15)"
+                                        : acc.role.includes("Lễ tân")
+                                          ? "rgba(59, 130, 246, 0.15)"
+                                          : acc.role.includes("PT")
+                                            ? "rgba(168, 85, 247, 0.15)"
+                                            : "rgba(16, 185, 129, 0.15)",
+                                    color:
+                                      acc.role.includes("QTV")
+                                        ? "#F87171"
+                                        : acc.role.includes("Lễ tân")
+                                          ? "#60A5FA"
+                                          : acc.role.includes("PT")
+                                            ? "#C084FC"
+                                            : "#34D399",
+                                  }}
+                                >
+                                  {acc.role}
+                                </span>
+                              </td>
+                              <td className="p-3" style={{ color: palette.muted }}>{acc.branch}</td>
+                              <td className="p-3">
+                                {acc.status === "ACTIVE" ? (
+                                  <span className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-green-500/15 text-green-600 dark:text-green-400 border border-green-500/30">
+                                    Hoạt động
+                                  </span>
+                                ) : acc.status === "PENDING_ACTIVATION" ? (
+                                  <span className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                    Chờ kích hoạt
+                                  </span>
+                                ) : acc.status === "LOCKED" ? (
+                                  <span className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30">
+                                    Đã khóa
+                                  </span>
+                                ) : (
+                                  <span className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-gray-500/15 text-gray-600 dark:text-gray-400 border border-gray-500/30">
+                                    Ngừng sử dụng
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-3 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedAccount(acc)
+                                    setAccountViewMode("edit")
+                                  }}
+                                  className="rounded-lg border px-2.5 py-1 text-[12px] font-semibold transition cursor-pointer"
+                                  style={{
+                                    background: palette.control,
+                                    borderColor: palette.border,
+                                    color: palette.text,
+                                  }}
+                                >
+                                  Phân quyền / Sửa
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  /* Account Editing / Creation Sub-Form */
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: palette.border }}>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setAccountViewMode("list")}
+                          className="rounded-lg bg-white/10 hover:bg-white/20 px-2.5 py-1 text-[12px] font-semibold text-gray-300 transition cursor-pointer"
+                        >
+                          ← Quay lại danh sách tài khoản
+                        </button>
+                        <span className="text-[14px] font-bold text-white">
+                          {selectedAccount?.phone ? `Cập nhật tài khoản: ${selectedAccount.name} (${selectedAccount.phone})` : "Tạo mới & Cấp tài khoản người dùng"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Field label="Tên hiển thị" required>
+                        <TextInput defaultValue={selectedAccount?.name || ""} placeholder="Ví dụ: Lê Thị Thanh Hà" />
+                      </Field>
+
+                      <Field label="Định danh đăng nhập (SĐT)" required hint="Mỗi tài khoản có 1 SĐT đăng nhập duy nhất">
+                        <TextInput defaultValue={selectedAccount?.phone || ""} placeholder="Số điện thoại đã xác minh" />
+                      </Field>
+
+                      <Field label="Hồ sơ liên kết" hint="Tùy chọn liên kết PT001 hoặc HV001">
+                        <TextInput defaultValue={selectedAccount?.profile || ""} placeholder="Mã hồ sơ PT hoặc Hội viên" />
+                      </Field>
+
+                      <Field label="Vai trò (Role)" required>
+                        <SelectInput
+                          options={["Lễ tân", "QTV (Admin)", "Huấn luyện viên (PT)", "Hội viên"]}
+                          defaultValue={selectedAccount?.role || "Lễ tân"}
+                        />
+                      </Field>
+
+                      <Field label="Chi nhánh / Phạm vi">
+                        <SelectInput
+                          options={["Chi nhánh Quận 1", "Toàn hệ thống (All branches)", "Chi nhánh Bình Thạnh"]}
+                          defaultValue={selectedAccount?.branch || "Chi nhánh Quận 1"}
+                        />
+                      </Field>
+
+                      <Field label="Trạng thái tài khoản">
+                        <SelectInput
+                          options={["Hoạt động (Active)", "Chờ kích hoạt (Pending)", "Khóa (Locked)", "Ngừng sử dụng (Inactive)"]}
+                          defaultValue={
+                            selectedAccount?.status === "ACTIVE"
+                              ? "Hoạt động (Active)"
+                              : selectedAccount?.status === "PENDING_ACTIVATION"
+                                ? "Chờ kích hoạt (Pending)"
+                                : selectedAccount?.status === "LOCKED"
+                                  ? "Khóa (Locked)"
+                                  : "Ngừng sử dụng (Inactive)"
+                          }
+                        />
+                      </Field>
+
+                      <Field label="Lý do thay quyền / khóa" hint="Bắt buộc khi thay đổi vai trò hoặc khóa tài khoản">
+                        <TextArea placeholder="Nhập lý do thay đổi quyền hoặc lý do khóa tài khoản..." />
+                      </Field>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {displayFields.map((field) => (
-                  <Field
-                    key={field.label}
-                    label={field.label}
-                    required={field.required}
-                    hint={field.hint}
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  {displayFields.map((field) => (
+                    <div key={field.label}>
+                      <Field
+                        label={field.label}
+                        required={field.required}
+                        hint={field.hint}
+                      >
+                        {field.label === "Loại gói" ? (
+                          <SelectInput
+                            options={field.options ?? []}
+                            defaultValue={field.value ?? pkgType}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPkgType(e.target.value)}
+                          />
+                        ) : field.label === "Số điện thoại" ? (
+                          <>
+                            <TextInput
+                              placeholder={field.placeholder || "0908 111 222"}
+                              value={memberPhoneInput !== "" ? memberPhoneInput : (field.value || "")}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMemberPhoneInput(e.target.value)}
+                            />
+                            {duplicateMemberMatch && (
+                              <div className="mt-1 text-[12px] font-medium text-red-500">
+                                ⚠️ SĐT đã tồn tại trên hồ sơ {duplicateMemberMatch.id} ({duplicateMemberMatch.name}). Hệ thống khóa lưu.
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          renderField(field)
+                        )}
+                      </Field>
+                    </div>
+                  ))}
+                </div>
+
+                {action === "trainer-form" && (
+                  <div
+                    className="rounded-xl border p-4 space-y-2"
+                    style={{ background: palette.control, borderColor: palette.border }}
                   >
-                    {field.label === "Loại gói" ? (
-                      <SelectInput
-                        options={field.options ?? []}
-                        defaultValue={field.value ?? pkgType}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPkgType(e.target.value)}
-                      />
-                    ) : (
-                      renderField(field)
-                    )}
-                  </Field>
-                ))}
+                    <div className="flex items-center justify-between">
+                      <span className="text-[13px] font-bold text-white flex items-center gap-1.5">
+                        🔑 Tự động tạo & liên kết Tài khoản PT (Account)
+                      </span>
+                      <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                        ⏳ PENDING_ACTIVATION
+                      </span>
+                    </div>
+                    <p className="text-[12px] leading-relaxed text-gray-300">
+                      🔒 <strong>QTV không nhập mật khẩu:</strong> Hệ thống tự động khởi tạo tài khoản gán quyền <code>ROLE_PT</code> và gán phạm vi chi nhánh đã chọn.
+                    </p>
+                    <p className="text-[12px] leading-relaxed text-gray-400">
+                      📱 PT sẽ nhận mã OTP kích hoạt qua SĐT/Email và tự đăng nhập, tạo mật khẩu cá nhân lần đầu trên ứng dụng Mobile.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </Panel>
@@ -2839,7 +3081,7 @@ export function ActionModal({
             ) : (
               <ActionButton
                 type="submit"
-                disabled={phase === "saving" || (isPaymentForm && isAmountOver)}
+                disabled={phase === "saving" || (isPaymentForm && isAmountOver) || (isMemberForm && !!duplicateMemberMatch)}
                 variant="purple"
               >
                 {phase === "saving"

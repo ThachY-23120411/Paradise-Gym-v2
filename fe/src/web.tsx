@@ -35,6 +35,7 @@ import {
   IconButton,
   MemberBadge,
   MemberProfileStatusBadge,
+  Modal,
   PackageBadge,
   palette,
   Panel,
@@ -53,6 +54,8 @@ type ScreenProps = {
   role: WebRole
   branch: string
   openAction: (kind: ActionKind) => void
+  onNavigateToSchedule?: (ptId: string) => void
+  selectedPtIdForSchedule?: string | null
 }
 
 const NAV_ITEMS: {
@@ -76,6 +79,12 @@ const NAV_ITEMS: {
     id: "W12",
     label: "Hệ thống & thiết bị",
     icon: "settings",
+    adminOnly: true,
+  },
+  {
+    id: "W13",
+    label: "Tài khoản & phân quyền",
+    icon: "user",
     adminOnly: true,
   },
 ]
@@ -129,6 +138,10 @@ const SCREEN_TITLES: Record<MenuId, { title: string; sub: string }> = {
     title: "Hệ thống & thiết bị",
     sub: "Tài khoản, quyền, chính sách, thiết bị và nhật ký thao tác",
   },
+  W13: {
+    title: "Tài khoản & phân quyền",
+    sub: "Quản lý tài khoản toàn hệ thống, gán vai trò, phân quyền chi nhánh và khóa/kích hoạt tài khoản",
+  },
 }
 
 export function WebShell({
@@ -147,6 +160,7 @@ export function WebShell({
   const role: WebRole =
     surface === "web-receptionist" ? "receptionist" : "admin"
   const [activeMenu, setActiveMenu] = useState<MenuId>("W01")
+  const [selectedPtIdForSchedule, setSelectedPtIdForSchedule] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState(false)
   const [branch, setBranch] = useState("Chi nhánh Quận 1")
   const visibleItems =
@@ -191,6 +205,11 @@ export function WebShell({
             role={role}
             branch={branch}
             openAction={openAction}
+            onNavigateToSchedule={(ptId) => {
+              setSelectedPtIdForSchedule(ptId)
+              setActiveMenu("W06")
+            }}
+            selectedPtIdForSchedule={selectedPtIdForSchedule}
           />
         </main>
       </div>
@@ -455,9 +474,176 @@ function ScreenContent({ menuId, ...props }: ScreenProps & { menuId: MenuId }) {
       return <BranchesView {...props} />
     case "W12":
       return <SystemView {...props} />
+    case "W13":
+      return <AccountPermissionsView {...props} />
     default:
       return null
   }
+}
+
+function AccountPermissionsView({ openAction }: ScreenProps) {
+  const [query, setQuery] = useState("")
+  const [roleFilter, setRoleFilter] = useState("Tất cả")
+  const [statusFilter, setStatusFilter] = useState("Tất cả")
+
+  const accounts = [
+    { phone: "0901 234 567", name: "Nguyễn Văn An", role: "Hội viên", branch: "Quận 1", status: "ACTIVE", profile: "HV001" },
+    { phone: "0908 111 222", name: "Nguyễn Hoài Nam", role: "Hội viên", branch: "Quận 1", status: "ACTIVE", profile: "HV002" },
+    { phone: "0912 345 678", name: "Trần Thị Bình", role: "Hội viên", branch: "Bình Thạnh", status: "LOCKED", profile: "HV003" },
+    { phone: "0903 888 999", name: "Lê Thị Thanh Hà", role: "Lễ tân", branch: "Quận 1", status: "ACTIVE", profile: "NV001" },
+    { phone: "0904 777 666", name: "Phạm Quốc Bảo", role: "PT (Huấn luyện viên)", branch: "Quận 1", status: "ACTIVE", profile: "PT001" },
+    { phone: "0909 999 000", name: "Đặng Văn Hùng", role: "QTV (Quản trị viên)", branch: "Toàn hệ thống", status: "ACTIVE", profile: "QTV001" },
+    { phone: "0933 222 111", name: "Lê Văn Tùng", role: "Hội viên", branch: "Quận 1", status: "PENDING_ACTIVATION", profile: "HV004" },
+    { phone: "0977 444 555", name: "Hoàng Minh Đức", role: "PT (Huấn luyện viên)", branch: "Bình Thạnh", status: "INACTIVE", profile: "PT002" },
+  ]
+
+  const activeCount = accounts.filter((a) => a.status === "ACTIVE").length
+  const pendingCount = accounts.filter((a) => a.status === "PENDING_ACTIVATION").length
+  const lockedCount = accounts.filter((a) => a.status === "LOCKED" || a.status === "INACTIVE").length
+
+  const filtered = accounts.filter((acc) => {
+    const matchQ = !query || acc.phone.includes(query) || acc.name.toLowerCase().includes(query.toLowerCase())
+    const matchR = roleFilter === "Tất cả" || acc.role.includes(roleFilter)
+    const matchS = statusFilter === "Tất cả" || acc.status === statusFilter
+    return matchQ && matchR && matchS
+  })
+
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      {/* Top Stat Overview Cards */}
+      <div className="grid gap-4 xl:grid-cols-4 md:grid-cols-2">
+        <KpiCard label="Tổng tài khoản hệ thống" value={accounts.length} sub="Định danh SĐT duy nhất" icon="users" accent={palette.blue} />
+        <KpiCard label="Tài khoản đang Hoạt động" value={activeCount} sub="Có thể đăng nhập hệ thống" icon="check" accent={palette.green} />
+        <KpiCard label="Tài khoản Chờ kích hoạt" value={pendingCount} sub="Chưa xác thực OTP/mật khẩu" icon="warn" accent={palette.amber} />
+        <KpiCard label="Tài khoản Đã khóa / Tạm dừng" value={lockedCount} sub="Bị khóa hoặc ngưng sử dụng" icon="logout" accent={palette.red} />
+      </div>
+
+      {/* Main Table Panel */}
+      <Panel>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b pb-4" style={{ borderColor: palette.border }}>
+          <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+            <SearchBox value={query} onChange={setQuery} placeholder="Tìm SĐT đăng nhập, Tên người dùng..." />
+            
+            {/* Role Filter Pills with Counts */}
+            <div className="flex items-center gap-1 rounded-lg border p-1" style={{ background: palette.control, borderColor: palette.border }}>
+              {[
+                { key: "Tất cả", label: "Tất cả", count: accounts.length },
+                { key: "QTV", label: "QTV", count: accounts.filter(a => a.role.includes("QTV")).length },
+                { key: "Lễ tân", label: "Lễ tân", count: accounts.filter(a => a.role.includes("Lễ tân")).length },
+                { key: "PT", label: "PT", count: accounts.filter(a => a.role.includes("PT")).length },
+                { key: "Hội viên", label: "Hội viên", count: accounts.filter(a => a.role.includes("Hội viên")).length },
+              ].map((r) => {
+                const active = roleFilter === r.key
+                return (
+                  <button
+                    key={r.key}
+                    type="button"
+                    onClick={() => setRoleFilter(r.key)}
+                    className="rounded-md px-2.5 py-1 text-[12px] font-semibold transition cursor-pointer"
+                    style={{
+                      background: active ? palette.green : "transparent",
+                      color: active ? "#ffffff" : palette.muted,
+                    }}
+                  >
+                    {r.label} ({r.count})
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Status Filter Combobox (Dynamic Light/Dark Theme palette) */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="rounded-lg border py-2 px-3 text-[13px] font-semibold outline-none cursor-pointer transition"
+              style={{
+                background: palette.control,
+                borderColor: palette.border,
+                color: palette.text,
+              }}
+            >
+              <option value="Tất cả" style={{ background: palette.panel, color: palette.text }}>Trạng thái: Tất cả</option>
+              <option value="ACTIVE" style={{ background: palette.panel, color: palette.text }}>Trạng thái: Active</option>
+              <option value="PENDING_ACTIVATION" style={{ background: palette.panel, color: palette.text }}>Trạng thái: Pending</option>
+              <option value="LOCKED" style={{ background: palette.panel, color: palette.text }}>Trạng thái: Locked</option>
+              <option value="INACTIVE" style={{ background: palette.panel, color: palette.text }}>Trạng thái: Inactive</option>
+            </select>
+          </div>
+
+          <ActionButton icon="plus" onClick={() => openAction("account-permissions")}>
+            Cấp / Tạo tài khoản mới
+          </ActionButton>
+        </div>
+
+        {/* Account Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-[13px]">
+            <thead>
+              <tr className="border-b font-medium" style={{ borderColor: palette.border, color: palette.muted }}>
+                <th className="py-3 px-3">SĐT Đăng nhập</th>
+                <th className="py-3 px-3">Người sử dụng</th>
+                <th className="py-3 px-3">Vai trò (Role)</th>
+                <th className="py-3 px-3">Chi nhánh áp dụng</th>
+                <th className="py-3 px-3">Trạng thái</th>
+                <th className="py-3 px-3 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {filtered.map((acc) => (
+                <tr key={acc.phone} className="hover:bg-white/5 transition">
+                  <td className="py-3 px-3 font-mono font-bold" style={{ color: palette.text }}>{acc.phone}</td>
+                  <td className="py-3 px-3 font-semibold" style={{ color: palette.text }}>
+                    {acc.name}
+                    {acc.profile && (
+                      <span className="block text-[11px] font-mono font-normal" style={{ color: palette.dim }}>
+                        Hồ sơ: {acc.profile}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-3 px-3">
+                    <Pill
+                      tone={
+                        acc.role.includes("QTV")
+                          ? "red"
+                          : acc.role.includes("Lễ tân")
+                          ? "blue"
+                          : acc.role.includes("PT")
+                          ? "purple"
+                          : "green"
+                      }
+                    >
+                      {acc.role}
+                    </Pill>
+                  </td>
+                  <td className="py-3 px-3" style={{ color: palette.muted }}>{acc.branch}</td>
+                  <td className="py-3 px-3">
+                    {acc.status === "ACTIVE" ? (
+                      <Pill tone="green">Hoạt động</Pill>
+                    ) : acc.status === "PENDING_ACTIVATION" ? (
+                      <Pill tone="amber">Chờ kích hoạt</Pill>
+                    ) : acc.status === "LOCKED" ? (
+                      <Pill tone="red">Đã khóa</Pill>
+                    ) : (
+                      <Pill tone="faint">Ngừng sử dụng</Pill>
+                    )}
+                  </td>
+                  <td className="py-3 px-3 text-right">
+                    <ActionButton
+                      variant="secondary"
+                      icon="edit"
+                      onClick={() => openAction("account-permissions")}
+                    >
+                      Phân quyền / Sửa
+                    </ActionButton>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
+    </div>
+  )
 }
 
 function DashboardView({ role, openAction }: ScreenProps) {
@@ -1565,84 +1751,491 @@ function RegistrationsView({ openAction }: ScreenProps) {
   )
 }
 
-function TrainersView({ openAction }: ScreenProps) {
+function TrainersView({ openAction, onNavigateToSchedule }: ScreenProps) {
+  const [search, setSearch] = useState("")
+  const [branchFilter, setBranchFilter] = useState<string>("ALL")
+  const [statusFilter, setStatusFilter] = useState<string>("ALL")
+  const [selectedPt, setSelectedPt] = useState<typeof TRAINERS[0] | null>(TRAINERS[0] ?? null)
+  const [activeTabInPanel, setActiveTabInPanel] = useState<"members" | "requests" | "info">("members")
+
+  // Mock pending requests data per PT
+  const mockRequests: Record<string, { memberId: string; memberName: string; packageName: string; date: string }[]> = {
+    PT001: [
+      { memberId: "HV008", memberName: "Bùi Thị Hoa", packageName: "Gói PT 10 buổi", date: "Hôm nay 08:30" },
+      { memberId: "HV012", memberName: "Đinh Thị Linh", packageName: "Gói PT 20 buổi", date: "Hôm qua 15:45" },
+    ],
+    PT002: [
+      { memberId: "HV014", memberName: "Vũ Hoàng Nam", packageName: "Gói PT 10 buổi", date: "Hôm nay 10:15" },
+    ],
+  }
+
+  // Mock assigned students list per PT
+  const mockStudents: Record<string, { id: string; name: string; phone: string; pkg: string; completed: number; total: number }[]> = {
+    PT001: [
+      { id: "HV001", name: "Nguyễn Văn An", phone: "0901 234 567", pkg: "Gói 3 tháng + PT 10 buổi", completed: 4, total: 10 },
+      { id: "HV002", name: "Trần Thị Bình", phone: "0912 345 678", pkg: "Gói PT 20 buổi", completed: 4, total: 20 },
+      { id: "HV005", name: "Hoàng Đức Em", phone: "0905 111 222", pkg: "Gói PT 10 buổi", completed: 0, total: 10 },
+    ],
+    PT002: [
+      { id: "HV004", name: "Phạm Thu Dung", phone: "0933 222 111", pkg: "Gói 6 tháng Gym + PT 10 buổi", completed: 2, total: 10 },
+      { id: "HV013", name: "Cao Thanh Minh", phone: "0977 888 999", pkg: "Combo Gym 3 tháng + PT 10 buổi", completed: 1, total: 10 },
+    ],
+    PT003: [
+      { id: "HV010", name: "Trịnh Thị Lan", phone: "0966 444 555", pkg: "Gói PT 20 buổi", completed: 0, total: 20 },
+    ],
+    PT004: [
+      { id: "HV018", name: "Đỗ Minh Tâm", phone: "0988 111 222", pkg: "Gói 3 tháng Gym", completed: 0, total: 0 },
+    ],
+  }
+
+  const filteredTrainers = useMemo(() => {
+    return TRAINERS.filter((t) => {
+      const cleanSearch = search.toLowerCase().replace(/\s/g, "")
+      const matchSearch =
+        !cleanSearch ||
+        t.name.toLowerCase().includes(search.toLowerCase()) ||
+        t.phone.replace(/\s/g, "").includes(cleanSearch) ||
+        t.id.toLowerCase().includes(cleanSearch) ||
+        t.specialty.toLowerCase().includes(search.toLowerCase())
+
+      const matchBranch = branchFilter === "ALL" || t.branch.includes(branchFilter)
+
+      let matchStatus = true
+      if (statusFilter === "ACTIVE") matchStatus = t.status === "active" && t.accountStatus === "active"
+      else if (statusFilter === "INACTIVE") matchStatus = t.status === "inactive"
+      else if (statusFilter === "PENDING") matchStatus = t.accountStatus === "pending_activation"
+
+      return matchSearch && matchBranch && matchStatus
+    })
+  }, [search, branchFilter, statusFilter])
+
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <div className="flex items-center justify-between">
-        <span className="text-[14px]" style={{ color: palette.muted }}>
-          {TRAINERS.length} huấn luyện viên · lọc theo chi nhánh và trạng thái
-        </span>
-        <ActionButton icon="plus" onClick={() => openAction("trainer-form")}>
-          Thêm PT
-        </ActionButton>
+    <div className="flex h-full">
+      {/* Left DataGrid / Table Container */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Toolbar>
+          <SearchBox
+            value={search}
+            onChange={setSearch}
+            placeholder="Tên PT, mã PT, SĐT, chuyên môn..."
+          />
+          <select
+            value={branchFilter}
+            onChange={(e) => setBranchFilter(e.target.value)}
+            className="h-9 rounded-lg border px-3 text-[13px] outline-none focus:ring-2"
+            style={{
+              background: palette.control,
+              borderColor: palette.border,
+              color: palette.text,
+              ["--tw-ring-color" as string]: palette.green,
+            }}
+          >
+            <option value="ALL">Tất cả chi nhánh</option>
+            <option value="Quận 1">Chi nhánh Quận 1</option>
+            <option value="Bình Thạnh">Chi nhánh Bình Thạnh</option>
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-9 rounded-lg border px-3 text-[13px] outline-none focus:ring-2"
+            style={{
+              background: palette.control,
+              borderColor: palette.border,
+              color: palette.text,
+              ["--tw-ring-color" as string]: palette.green,
+            }}
+          >
+            <option value="ALL">Tất cả trạng thái</option>
+            <option value="ACTIVE">Đang hoạt động (Ready)</option>
+            <option value="PENDING">Chưa kích hoạt Acc (Pending)</option>
+            <option value="INACTIVE">Ngừng hoạt động (Inactive)</option>
+          </select>
+          <ActionButton icon="plus" onClick={() => openAction("trainer-form")}>
+            + Thêm PT
+          </ActionButton>
+        </Toolbar>
+
+        <div className="flex-1 overflow-auto">
+          <table className="w-full min-w-[920px] text-[13px]">
+            <thead className="sticky top-0 z-10">
+              <tr
+                style={{
+                  background: palette.shell,
+                  borderBottom: `1px solid ${palette.borderSoft}`,
+                }}
+              >
+                {[
+                  "Mã PT",
+                  "HLV & SĐT",
+                  "Chi nhánh",
+                  "Chuyên môn",
+                  "Hồ sơ",
+                  "Tài khoản",
+                  "HV phụ trách",
+                  "Yêu cầu",
+                  "Buổi hôm nay",
+                ].map((header) => (
+                  <th
+                    key={header}
+                    className="px-4 py-3 text-left font-semibold"
+                    style={{ color: palette.dim }}
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody
+              className="divide-y"
+              style={{ ["--tw-divide-color" as string]: palette.borderSoft }}
+            >
+              {filteredTrainers.map((trainer) => {
+                const isSelected = selectedPt?.id === trainer.id
+                const isPending = trainer.accountStatus === "pending_activation"
+                const isInactive = trainer.status === "inactive"
+
+                return (
+                  <tr
+                    key={trainer.id}
+                    className="cursor-pointer transition-colors hover:bg-white/3"
+                    onClick={() => setSelectedPt(trainer)}
+                    style={{
+                      background: isSelected ? "rgba(22,163,74,0.05)" : undefined,
+                    }}
+                  >
+                    <td className="px-4 py-3 font-mono" style={{ color: palette.muted }}>
+                      {trainer.id}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <Avatar name={trainer.name} tone={palette.purple} size={30} />
+                        <div>
+                          <div className="font-semibold" style={{ color: palette.text }}>{trainer.name}</div>
+                          <div className="font-mono text-[11px]" style={{ color: palette.dim }}>
+                            {trainer.phone}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3" style={{ color: palette.text }}>
+                      {trainer.branch}
+                    </td>
+                    <td className="px-4 py-3 font-medium" style={{ color: palette.purple }}>
+                      {trainer.specialty}
+                    </td>
+                    <td className="px-4 py-3">
+                      {isInactive ? (
+                        <span className="rounded-full px-2 py-0.5 text-[11px] font-bold bg-gray-500/20 text-gray-500 border border-gray-500/30">
+                          Inactive
+                        </span>
+                      ) : (
+                        <span className="rounded-full px-2 py-0.5 text-[11px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          Active
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {isPending ? (
+                        <span className="rounded-full px-2 py-0.5 text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                          Pending OTP
+                        </span>
+                      ) : (
+                        <span className="rounded-full px-2 py-0.5 text-[11px] font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                          Active
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-semibold" style={{ color: palette.text }}>
+                      {trainer.students} HV
+                    </td>
+                    <td className="px-4 py-3">
+                      {trainer.pendingRequests ? (
+                        <span className="font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-0.5 text-[11px]">
+                          {trainer.pendingRequests} chờ
+                        </span>
+                      ) : (
+                        <span style={{ color: palette.dim }}>0</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-semibold" style={{ color: palette.green }}>
+                      {trainer.todaySessions || 0} buổi
+                    </td>
+                  </tr>
+                )
+              })}
+              {filteredTrainers.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="p-8 text-center text-[13px]" style={{ color: palette.dim }}>
+                    Không tìm thấy huấn luyện viên nào phù hợp với bộ lọc.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div className="grid gap-3 xl:grid-cols-2">
-        {TRAINERS.map((trainer) => (
-          <Panel key={trainer.id}>
-            <div className="flex items-start gap-3">
-              <Avatar name={trainer.name} tone={palette.purple} size={48} />
+
+      {/* Right Detail Panel (Inspector) */}
+      <div
+        className="w-[400px] shrink-0 border-l overflow-y-auto p-4 space-y-4"
+        style={{ borderColor: palette.borderSoft, background: palette.shell }}
+      >
+        {selectedPt ? (
+          <>
+            {/* Header PT Profile Info */}
+            <div className="flex items-start gap-3 pb-3 border-b" style={{ borderColor: palette.borderSoft }}>
+              <Avatar name={selectedPt.name} tone={palette.purple} size={48} />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <div className="truncate font-bold text-white">
-                    {trainer.name}
-                  </div>
-                  {trainer.status === "inactive" && (
-                    <Pill>Ngừng hoạt động</Pill>
-                  )}
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-[16px] truncate" style={{ color: palette.text }}>{selectedPt.name}</h3>
+                  <span className="font-mono text-[12px]" style={{ color: palette.muted }}>({selectedPt.id})</span>
                 </div>
-                <div
-                  className="mt-0.5 font-mono text-[11px]"
-                  style={{ color: palette.dim }}
-                >
-                  {trainer.id} · {trainer.phone} · {trainer.branch}
+                <div className="text-[12px] mt-0.5" style={{ color: palette.text }}>
+                  SĐT: <span className="font-medium">{selectedPt.phone}</span>
                 </div>
-                <div
-                  className="mt-1 text-[12px]"
-                  style={{ color: palette.muted }}
-                >
-                  {trainer.specialty}
+                <div className="text-[12px]" style={{ color: palette.text }}>
+                  Chi nhánh: <span className="font-medium">{selectedPt.branch}</span>
+                </div>
+                <div className="text-[12px] font-medium mt-0.5" style={{ color: palette.text }}>
+                  Chuyên môn: <span style={{ color: palette.purple }}>{selectedPt.specialty}</span>
                 </div>
               </div>
             </div>
-            <div
-              className="mt-4 grid grid-cols-3 gap-2 border-t pt-3"
-              style={{ borderColor: palette.border }}
-            >
-              <Metric label="Học viên" value={trainer.students} />
-              <Metric label="Lịch kế tiếp" value={trainer.nextSlot} />
-              <Metric label="Buổi/tuần TB" value={5} />
-            </div>
-            <div className="mt-3 flex gap-2">
+
+            {/* Quick Action Buttons */}
+            <div className="grid grid-cols-2 gap-2">
               <ActionButton
                 variant="secondary"
                 icon="user"
+                block
                 onClick={() => openAction("trainer-form")}
               >
-                Hồ sơ
+                Sửa hồ sơ
               </ActionButton>
               <ActionButton
-                variant="secondary"
+                variant="purple"
                 icon="calendar"
-                onClick={() => openAction("work-schedule")}
+                block
+                onClick={() => onNavigateToSchedule && onNavigateToSchedule(selectedPt.id)}
               >
-                Lịch làm
-              </ActionButton>
-              <ActionButton
-                variant="secondary"
-                icon="signup"
-                onClick={() => openAction("registration-form")}
-              >
-                Phân công
+                Xem lịch tập
               </ActionButton>
             </div>
-          </Panel>
-        ))}
+
+            {/* Status Warning Banners */}
+            {selectedPt.accountStatus === "pending_activation" && (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-[12px] space-y-1" style={{ color: palette.text }}>
+                <div className="font-bold flex items-center gap-1.5" style={{ color: palette.amber }}>
+                  <span>⚠️</span>
+                  <span>Tài khoản chưa kích hoạt (PENDING_ACTIVATION)</span>
+                </div>
+                <p style={{ color: palette.muted }}>
+                  PT tự kích hoạt bằng OTP để cài password. Khi ở trạng thái Pending, PT chưa thể nhận hội viên mới.
+                </p>
+              </div>
+            )}
+            {selectedPt.status === "inactive" && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-[12px] space-y-1" style={{ color: palette.text }}>
+                <div className="font-bold flex items-center gap-1.5" style={{ color: palette.red }}>
+                  <span>⛔</span>
+                  <span>Hồ sơ tạm dừng hoạt động (INACTIVE)</span>
+                </div>
+                <p style={{ color: palette.muted }}>
+                  PT đang ngừng tiếp nhận yêu cầu mới. Vui lòng rà soát toàn bộ học viên và lịch tập còn dở dở trước khi đóng hồ sơ.
+                </p>
+              </div>
+            )}
+
+            {/* Panel Tabs Navigation */}
+            <div className="flex border-b text-[13px]" style={{ borderColor: palette.borderSoft }}>
+              <button
+                type="button"
+                onClick={() => setActiveTabInPanel("members")}
+                className="flex-1 pb-2 font-medium border-b-2 transition-colors text-center"
+                style={{
+                  borderColor: activeTabInPanel === "members" ? palette.green : "transparent",
+                  color: activeTabInPanel === "members" ? palette.green : palette.dim,
+                }}
+              >
+                Hội viên ({selectedPt.students})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTabInPanel("requests")}
+                className="flex-1 pb-2 font-medium border-b-2 transition-colors text-center relative"
+                style={{
+                  borderColor: activeTabInPanel === "requests" ? palette.green : "transparent",
+                  color: activeTabInPanel === "requests" ? palette.green : palette.dim,
+                }}
+              >
+                Yêu cầu ({selectedPt.pendingRequests || 0})
+                {!!selectedPt.pendingRequests && (
+                  <span className="ml-1 rounded-full bg-amber-500 text-black font-bold text-[10px] px-1.5 py-0.2">
+                    {selectedPt.pendingRequests}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTabInPanel("info")}
+                className="flex-1 pb-2 font-medium border-b-2 transition-colors text-center"
+                style={{
+                  borderColor: activeTabInPanel === "info" ? palette.green : "transparent",
+                  color: activeTabInPanel === "info" ? palette.green : palette.dim,
+                }}
+              >
+                Chi tiết
+              </button>
+            </div>
+
+            {/* Tab 1: Assigned Members */}
+            {activeTabInPanel === "members" && (
+              <div className="space-y-2.5">
+                <div className="text-[12px] font-medium mb-1" style={{ color: palette.dim }}>
+                  Danh sách hội viên đã gán cho {selectedPt.name}:
+                </div>
+                {(mockStudents[selectedPt.id] || []).map((m) => {
+                  const percent = m.total > 0 ? Math.min(100, Math.round((m.completed / m.total) * 100)) : 0
+                  return (
+                    <div
+                      key={m.id}
+                      className="rounded-lg border p-3 text-[12px] space-y-2"
+                      style={{ background: palette.control, borderColor: palette.border }}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-bold" style={{ color: palette.text }}>
+                            {m.name} <span className="font-mono font-normal" style={{ color: palette.muted }}>({m.id})</span>
+                          </div>
+                          <div className="text-[11px]" style={{ color: palette.muted }}>SĐT: {m.phone}</div>
+                          <div className="text-[11px] font-medium" style={{ color: palette.text }}>{m.pkg}</div>
+                        </div>
+                        {m.total > 0 ? (
+                          <div className="text-right shrink-0">
+                            <span className="inline-block rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                              Đã tập {m.completed}/{m.total} buổi
+                            </span>
+                            <div className="text-[10px] mt-0.5 font-semibold" style={{ color: palette.dim }}>
+                              Còn {m.total - m.completed} buổi
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="rounded-full bg-gray-500/15 border border-gray-500/30 px-2.5 py-0.5 text-[11px] font-bold text-gray-500 shrink-0">
+                            Gói hết hạn
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Progress Bar */}
+                      {m.total > 0 && (
+                        <div className="space-y-1 pt-1 border-t" style={{ borderColor: palette.border }}>
+                          <div className="flex items-center justify-between text-[10px] font-semibold" style={{ color: palette.dim }}>
+                            <span>Tiến trình hoàn thành</span>
+                            <span>{percent}%</span>
+                          </div>
+                          <div className="w-full bg-black/10 dark:bg-white/10 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="bg-emerald-500 h-full rounded-full transition-all"
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+                {!(mockStudents[selectedPt.id]?.length) && (
+                  <div className="p-6 text-center text-[12px]" style={{ color: palette.dim }}>
+                    Chưa có hội viên nào gán cho PT này.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 2: Pending Assignment Requests */}
+            {activeTabInPanel === "requests" && (
+              <div className="space-y-3">
+                <div className="text-[12px]" style={{ color: palette.dim }}>
+                  Yêu cầu hội viên gửi tới PT <strong>{selectedPt.name}</strong> sau khi thanh toán:
+                </div>
+                {(mockRequests[selectedPt.id] || []).map((req, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-lg border p-3 text-[12px] space-y-2"
+                    style={{ background: palette.control, borderColor: palette.border }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-bold" style={{ color: palette.text }}>
+                          {req.memberName} <span className="font-mono" style={{ color: palette.muted }}>({req.memberId})</span>
+                        </div>
+                        <div className="font-medium text-[11px]" style={{ color: palette.amber }}>
+                          {req.packageName} · {req.date}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-1 border-t" style={{ borderColor: palette.border }}>
+                      <ActionButton
+                        size="small"
+                        variant="purple"
+                        block
+                        onClick={() => alert(`Đã chấp nhận (ACCEPT) yêu cầu của hội viên ${req.memberName}!`)}
+                      >
+                        ✓ Accept
+                      </ActionButton>
+                      <ActionButton
+                        size="small"
+                        variant="secondary"
+                        block
+                        onClick={() => alert(`Đã từ chối (REJECT) yêu cầu của hội viên ${req.memberName}!`)}
+                      >
+                        ✕ Reject
+                      </ActionButton>
+                    </div>
+                  </div>
+                ))}
+                {!(mockRequests[selectedPt.id]?.length) && (
+                  <div className="p-6 text-center text-[12px]" style={{ color: palette.dim }}>
+                    Không có yêu cầu chọn PT nào đang chờ duyệt.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 3: Detail Info */}
+            {activeTabInPanel === "info" && (
+              <div className="space-y-3">
+                <InfoStack
+                  items={[
+                    ["Mã huấn luyện viên", selectedPt.id],
+                    ["Họ và tên", selectedPt.name],
+                    ["Số điện thoại", selectedPt.phone],
+                    ["Chi nhánh hoạt động", selectedPt.branch],
+                    ["Chuyên môn chính", selectedPt.specialty],
+                    ["Trạng thái hồ sơ", selectedPt.status === "active" ? "Hoạt động (ACTIVE)" : "Ngừng hoạt động (INACTIVE)", selectedPt.status === "active" ? palette.green : palette.muted],
+                    ["Trạng thái tài khoản", selectedPt.accountStatus === "active" ? "Đã kích hoạt (ROLE_PT)" : "Chờ kích hoạt OTP (PENDING_ACTIVATION)", selectedPt.accountStatus === "active" ? palette.blue : palette.amber],
+                    ["Số hội viên phụ trách", `${selectedPt.students} hội viên`],
+                    ["Số buổi dạy hôm nay", `${selectedPt.todaySessions || 0} buổi`],
+                    ["Ngày bắt đầu làm việc", selectedPt.startDate || "01/01/2024"],
+                    ["Ghi chú hệ thống", selectedPt.notes || "PT chuyên trách mảng Gym Fitness & Bodybuilding tại chi nhánh."],
+                  ]}
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="p-8 text-center text-[13px]" style={{ color: palette.dim }}>
+            Chọn một huấn luyện viên trong bảng bên trái để xem thông tin chi tiết.
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-function ScheduleView({ openAction }: ScreenProps) {
+function ScheduleView({ openAction, selectedPtIdForSchedule }: ScreenProps) {
+  const [ptFilter, setPtFilter] = useState<string>(selectedPtIdForSchedule || "ALL")
+
   const hours = [
     "06:00",
     "07:00",
@@ -1657,7 +2250,11 @@ function ScheduleView({ openAction }: ScreenProps) {
     "18:00",
     "19:00",
   ]
-  const trainers = TRAINERS.filter((trainer) => trainer.status === "active")
+  const trainers = TRAINERS.filter((trainer) => {
+    if (trainer.status !== "active") return false
+    if (ptFilter !== "ALL" && trainer.id !== ptFilter) return false
+    return true
+  })
 
   return (
     <div className="flex h-full flex-col">
@@ -1671,6 +2268,18 @@ function ScheduleView({ openAction }: ScreenProps) {
             { value: "list", label: "Danh sách" },
           ]}
         />
+        <select
+          value={ptFilter}
+          onChange={(e) => setPtFilter(e.target.value)}
+          className="h-8 rounded-lg border px-3 text-[12px] bg-slate-900 border-slate-700 text-white focus:outline-none"
+        >
+          <option value="ALL">Tất cả HLV (PT)</option>
+          {TRAINERS.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name} ({t.id})
+            </option>
+          ))}
+        </select>
         <span
           className="font-mono text-[13px]"
           style={{ color: palette.muted }}

@@ -10,9 +10,9 @@ Tài liệu này chia Epic theo business capability của Paradise Gym, không c
 | --- | --- |
 | Epic ID | E01 |
 | Name | Member & Customer Profile |
-| Goal | Quản lý hồ sơ hội viên/khách hàng thống nhất, đủ dữ liệu vận hành và tránh trùng lặp sai. |
+| Goal | Quản lý hồ sơ hội viên/khách hàng thống nhất, chuẩn hoá SĐT duy nhất và chặn tạo trùng lặp. |
 | Actors | QTV / Quản lý, Lễ tân, PT, Hội viên |
-| Scope | Tạo, tìm, cập nhật hồ sơ; số điện thoại/email liên hệ; cảnh báo nghi trùng; xác nhận lý do khi dùng chung contact; trạng thái hồ sơ; lịch sử gói, lịch, ra/vào, thanh toán theo quyền; hội viên cập nhật thông tin cá nhân được phép. |
+| Scope | Tạo, tìm, cập nhật hồ sơ; kiểm tra duy nhất SĐT (real-time duplicate block); trạng thái hồ sơ; lịch sử gói, lịch, ra/vào, thanh toán theo quyền; hội viên cập nhật thông tin cá nhân được phép. Bỏ toàn bộ logic nghi trùng, lý do dùng chung SĐT và guardian contact. |
 | Related requirements | Product Spec §2 Actors & Permissions; §3 Hội viên & khách hàng; §4 Hội viên; §6 OPEN-05. |
 | Prerequisites | E07 Branch Operations & Data Scope; E08 Accounts, Roles, Permissions & Audit. |
 | Related Epics | E02 Package Catalog, Registration & Entitlements; E04 Payment, Debt & Receipts; E05 PT Assignment, Schedule & Session Lifecycle; E06 Gym Access, Check-in & Visit History; E09 Notifications & Member Care; E10 Devices & Recognition Consent. |
@@ -103,7 +103,7 @@ Tài liệu này chia Epic theo business capability của Paradise Gym, không c
 | Name | Accounts, Roles, Permissions & Audit |
 | Goal | Kiểm soát tài khoản, vai trò, phạm vi chi nhánh, permission nhạy cảm và audit cho các nghiệp vụ quan trọng. |
 | Actors | QTV / Quản lý, Lễ tân, PT, Hội viên |
-| Scope | Role QTV, Lễ tân, PT, Hội viên/Khách hàng; tài khoản tách với hồ sơ nghiệp vụ; số điện thoại đăng nhập duy nhất; nhiều role trên một tài khoản nhưng không cộng gộp quyền; chuyển role/chi nhánh theo ngữ cảnh; trạng thái tài khoản; permission cho thao tác nhạy cảm; audit hành động quan trọng theo phạm vi. |
+| Scope | Màn hình menu W13 riêng "Tài khoản & phân quyền" trên Web Sidebar; 4 thẻ KPI tổng quan (Tổng số tài khoản, Active, Khóa, Chờ/Ngừng); bộ lọc Role kèm số lượng (Role (count)) và Combobox trạng thái không kèm số lượng; role QTV, Lễ tân, PT, Hội viên/Khách hàng; tài khoản tách với hồ sơ nghiệp vụ; số điện thoại đăng nhập duy nhất; nhiều role trên một tài khoản nhưng không cộng gộp quyền; chuyển role/chi nhánh theo ngữ cảnh; trạng thái tài khoản (Active, Khóa, Ngừng sử dụng) kèm lý do & Audit log; permission cho thao tác nhạy cảm. |
 | Related requirements | Product Spec §2 Actors & Permissions; §3 Tài khoản & phân quyền; §4 Tài khoản/phân quyền. |
 | Prerequisites | E07 Branch Operations & Data Scope. |
 | Related Epics | E01 Member & Customer Profile; E03 Pricing & Discount Governance; E04 Payment, Debt & Receipts; E05 PT Assignment, Schedule & Session Lifecycle; E06 Gym Access, Check-in & Visit History; E10 Devices & Recognition Consent; E11 Operational Reporting & Insights. |

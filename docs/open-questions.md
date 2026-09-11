@@ -6,9 +6,9 @@ Tài liệu này liệt kê các vấn đề nghiệp vụ cần được quyế
 
 - HV-01: Khi tạo hồ sơ hội viên/khách hàng, những trường nào là bắt buộc tối thiểu?
 - HV-02: Có cho phép tạo hồ sơ khi chưa có số điện thoại hoặc email không?
-- HV-03: Quy tắc phát hiện hồ sơ nghi trùng dựa trên những thông tin nào?
-- HV-04: Khi phát hiện nghi trùng, nhân viên được tiếp tục tạo hồ sơ mới trong trường hợp nào?
-- HV-05: Có cho phép nhiều hội viên dùng chung số điện thoại hoặc email không?
+- HV-03: Quy tắc kiểm tra duy nhất SĐT (real-time duplicate check) khi tạo/sửa hồ sơ hội viên như thế nào?
+- HV-04: Xử lý ra sao khi SĐT nhập vào đã tồn tại trên hệ thống (chặn lưu hồ sơ mới & cung cấp liên kết mở hồ sơ hiện có)?
+- HV-05: Có cho phép dùng chung số điện thoại hoặc gộp hồ sơ trùng SĐT không? (Không, SĐT phải duy nhất 100%).
 - HV-06: Trạng thái hồ sơ hội viên gồm những trạng thái nào, và khác gì với hiệu lực gói tập?
 - HV-07: Hồ sơ đã có đăng ký, lịch hoặc giao dịch thì được xóa, lưu trữ hay chỉ ngừng hoạt động?
 - HV-08: Ai được sửa tên, liên hệ, ảnh hồ sơ, ngày sinh và ghi chú vận hành của hội viên?

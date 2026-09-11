@@ -89,9 +89,16 @@ export function MobileShell({
         ? "member"
         : "receptionist"
   const [tabs, setTabs] = useState<Record<MobileRole, string>>(DEFAULT_TAB)
+  const [isLoggedIn, setIsLoggedIn] = useState<Record<MobileRole, boolean>>({
+    receptionist: true,
+    trainer: true,
+    member: false,
+  })
+
   const activeTab = tabs[role]
   const nav = MOBILE_NAV[role]
   const info = ROLE_INFO[role]
+  const isLoggedOut = role === "member" && !isLoggedIn.member
 
   return (
     <div
@@ -115,106 +122,119 @@ export function MobileShell({
         className="flex h-[calc(100vh-96px)] min-h-[680px] w-full max-w-[430px] flex-col overflow-hidden rounded-[28px] border shadow-2xl"
         style={{ background: palette.shell, borderColor: palette.border }}
       >
-        <header
-          className="app-chrome shrink-0 border-b px-4 pb-3 pt-4"
-          style={{ background: palette.company, borderColor: "rgba(255,255,255,0.14)" }}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div
-                className="text-[12px] font-medium"
-                style={{ color: "rgba(255,255,255,0.72)" }}
-              >
-                {SHORT_TODAY}
+        {!isLoggedOut && (
+          <header
+            className="app-chrome shrink-0 border-b px-4 pb-3 pt-4"
+            style={{ background: palette.company, borderColor: "rgba(255,255,255,0.14)" }}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div
+                  className="text-[12px] font-medium"
+                  style={{ color: "rgba(255,255,255,0.72)" }}
+                >
+                  {SHORT_TODAY}
+                </div>
+                <h1 className="truncate text-[18px] font-bold text-white">
+                  {mobileTitle(role, activeTab)}
+                </h1>
               </div>
-              <h1 className="truncate text-[18px] font-bold text-white">
-                {mobileTitle(role, activeTab)}
-              </h1>
-            </div>
-            <button
-              type="button"
-              className="relative flex h-11 w-11 items-center justify-center rounded-lg border"
-              style={{
-                background: "rgba(255,255,255,0.14)",
-                borderColor: "rgba(255,255,255,0.28)",
-                color: "#FFFFFF",
-              }}
-              aria-label="Thông báo"
-            >
-              <Ic k="bell" size={18} />
-              <span
-                className="absolute right-2 top-2 h-2 w-2 rounded-full"
-                style={{ background: palette.red }}
-              />
-            </button>
-          </div>
-          <div className="mt-3 flex items-center gap-2">
-            <Avatar
-              name={info.user}
-              tone={
-                role === "member"
-                  ? palette.blue
-                  : role === "trainer"
-                    ? palette.purple
-                    : palette.orange
-              }
-              size={34}
-            />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[13px] font-semibold text-white">
-                {info.user}
-              </div>
-              <div className="app-chrome-muted text-[11px]">
-                {info.title} · {info.branch}
-              </div>
-            </div>
-            <span
-              className="inline-flex items-center rounded border px-2 py-0.5 text-[12px] font-semibold"
-              style={{
-                background: "rgba(255,255,255,0.16)",
-                borderColor: "rgba(255,255,255,0.28)",
-                color: "#FFFFFF",
-              }}
-            >
-              Đang online
-            </span>
-          </div>
-        </header>
-
-        <main className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-          <MobileContent role={role} tab={activeTab} openAction={openAction} />
-        </main>
-
-        <nav
-          className="app-chrome grid shrink-0 border-t px-2 pb-3 pt-2"
-          style={{
-            background: palette.company,
-            borderColor: "rgba(255,255,255,0.14)",
-            gridTemplateColumns: `repeat(${nav.length}, 1fr)`,
-          }}
-        >
-          {nav.map((item) => {
-            const active = activeTab === item.id
-            return (
               <button
-                key={item.id}
                 type="button"
-                onClick={() =>
-                  setTabs((current) => ({ ...current, [role]: item.id }))
-                }
-                className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold transition-colors focus:outline-none focus:ring-2"
+                className="relative flex h-11 w-11 items-center justify-center rounded-lg border"
                 style={{
-                  color: active ? "#FFFFFF" : "rgba(255,255,255,0.68)",
-                  background: active ? "rgba(255,255,255,0.14)" : "transparent",
-                  ["--tw-ring-color" as string]: "#FFFFFF",
+                  background: "rgba(255,255,255,0.14)",
+                  borderColor: "rgba(255,255,255,0.28)",
+                  color: "#FFFFFF",
+                }}
+                aria-label="Thông báo"
+              >
+                <Ic k="bell" size={18} />
+                <span
+                  className="absolute right-2 top-2 h-2 w-2 rounded-full"
+                  style={{ background: palette.red }}
+                />
+              </button>
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <Avatar
+                name={info.user}
+                tone={
+                  role === "member"
+                    ? palette.blue
+                    : role === "trainer"
+                      ? palette.purple
+                      : palette.orange
+                }
+                size={34}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13px] font-semibold text-white">
+                  {info.user}
+                </div>
+                <div className="app-chrome-muted text-[11px]">
+                  {info.title} · {info.branch}
+                </div>
+              </div>
+              <span
+                className="inline-flex items-center rounded border px-2 py-0.5 text-[12px] font-semibold"
+                style={{
+                  background: "rgba(255,255,255,0.16)",
+                  borderColor: "rgba(255,255,255,0.28)",
+                  color: "#FFFFFF",
                 }}
               >
-                <Ic k={item.icon} size={18} />
-                <span>{item.label}</span>
-              </button>
-            )
-          })}
-        </nav>
+                Đang online
+              </span>
+            </div>
+          </header>
+        )}
+
+        <main className={`min-h-0 flex-1 overflow-y-auto ${isLoggedOut ? "p-0" : "px-4 py-4"}`}>
+          {isLoggedOut ? (
+            <MemberAuthFlow onLoginSuccess={() => setIsLoggedIn((prev) => ({ ...prev, member: true }))} />
+          ) : (
+            <MobileContent
+              role={role}
+              tab={activeTab}
+              openAction={openAction}
+              onLogout={() => setIsLoggedIn((prev) => ({ ...prev, member: false }))}
+            />
+          )}
+        </main>
+
+        {!isLoggedOut && (
+          <nav
+            className="app-chrome grid shrink-0 border-t px-2 pb-3 pt-2"
+            style={{
+              background: palette.company,
+              borderColor: "rgba(255,255,255,0.14)",
+              gridTemplateColumns: `repeat(${nav.length}, 1fr)`,
+            }}
+          >
+            {nav.map((item) => {
+              const active = activeTab === item.id
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() =>
+                    setTabs((current) => ({ ...current, [role]: item.id }))
+                  }
+                  className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold transition-colors focus:outline-none focus:ring-2"
+                  style={{
+                    color: active ? "#FFFFFF" : "rgba(255,255,255,0.68)",
+                    background: active ? "rgba(255,255,255,0.14)" : "transparent",
+                    ["--tw-ring-color" as string]: "#FFFFFF",
+                  }}
+                >
+                  <Ic k={item.icon} size={18} />
+                  <span>{item.label}</span>
+                </button>
+              )
+            })}
+          </nav>
+        )}
       </div>
     </div>
   )
@@ -224,16 +244,18 @@ function MobileContent({
   role,
   tab,
   openAction,
+  onLogout,
 }: {
   role: MobileRole
   tab: string
   openAction: (kind: ActionKind) => void
+  onLogout?: () => void
 }) {
   if (role === "receptionist")
     return <ReceptionistMobile tab={tab} openAction={openAction} />
   if (role === "trainer")
     return <TrainerMobile tab={tab} openAction={openAction} />
-  return <MemberMobile tab={tab} openAction={openAction} />
+  return <MemberMobile tab={tab} openAction={openAction} onLogout={onLogout} />
 }
 
 function ReceptionistMobile({
@@ -762,17 +784,604 @@ function TrainerAccount({
   )
 }
 
+export function MemberAuthFlow({
+  onLoginSuccess,
+}: {
+  onLoginSuccess: () => void
+}) {
+  const [step, setStep] = useState<
+    | "login"
+    | "check_phone"
+    | "case1_exists"
+    | "case2_info"
+    | "case2_otp"
+    | "case3_info"
+    | "case3_otp"
+    | "success"
+  >("login")
+
+  const [phone, setPhone] = useState("0902 345 678")
+  const [password, setPassword] = useState("••••••••")
+  const [regPhone, setRegPhone] = useState("0901 234 567")
+  const [otp, setOtp] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [fullname, setFullname] = useState("")
+  const [email, setEmail] = useState("")
+  const [pwdError, setPwdError] = useState("")
+  const [resendNotice, setResendNotice] = useState("")
+
+  const [matchedMember, setMatchedMember] = useState<{ id: string; name: string; branch: string } | null>(null)
+  const [successMsg, setSuccessMsg] = useState("")
+
+  const handleCheckPhone = () => {
+    const clean = regPhone.replace(/\D/g, "")
+    // Case 1: Existing Account (e.g. 0902 345 678 - HV002 Trần Thị Bình)
+    if (clean === "0902345678") {
+      setStep("case1_exists")
+      return
+    }
+    // Case 2: Existing Profile at desk, NO account yet (e.g. 0901 234 567 - HV001 Nguyễn Văn An)
+    const found = MEMBERS.find((m) => m.phone.replace(/\D/g, "") === clean)
+    if (found) {
+      setMatchedMember({ id: found.id, name: found.name, branch: found.branch })
+      setNewPassword("")
+      setConfirmPassword("")
+      setPwdError("")
+      setStep("case2_info")
+      return
+    }
+    // Case 3: NO profile exists -> Self registration
+    setNewPassword("")
+    setConfirmPassword("")
+    setPwdError("")
+    setStep("case3_info")
+  }
+
+  const handleCase2InfoSubmit = () => {
+    if (!newPassword) {
+      setPwdError("Vui lòng nhập mật khẩu mới")
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPwdError("Mật khẩu xác nhận không khớp")
+      return
+    }
+    setPwdError("")
+    setOtp("")
+    setResendNotice("")
+    setStep("case2_otp")
+  }
+
+  const handleCase3InfoSubmit = () => {
+    if (!fullname.trim()) {
+      setPwdError("Vui lòng nhập họ và tên")
+      return
+    }
+    if (!newPassword) {
+      setPwdError("Vui lòng tạo mật khẩu")
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPwdError("Mật khẩu xác nhận không khớp")
+      return
+    }
+    setPwdError("")
+    setOtp("")
+    setResendNotice("")
+    setStep("case3_otp")
+  }
+
+  return (
+    <div className="h-full min-h-[600px] w-full">
+      {step === "login" && (
+        <div className="flex flex-col items-center justify-between h-full min-h-[600px] p-6 text-white bg-[#121212]">
+          <div className="w-full flex-1 flex flex-col items-center justify-center space-y-8">
+            {/* PARADISE GYM Brand Logo */}
+            <div className="text-center">
+              <h1 className="text-[28px] font-black tracking-wider text-[#10B981] leading-none">
+                PARADISE
+              </h1>
+              <h1 className="text-[28px] font-black tracking-wider text-[#10B981] leading-none mt-1">
+                GYM
+              </h1>
+            </div>
+
+            {/* Input Card */}
+            <div className="w-full space-y-3">
+              <div className="rounded-xl bg-[#262626] border border-white/10 overflow-hidden divide-y divide-white/10">
+                <div className="flex items-center px-4 py-3 gap-3">
+                  <Ic k="phone" size={18} style={{ color: palette.dim }} />
+                  <input
+                    type="text"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Số điện thoại"
+                    className="w-full bg-transparent text-[14px] text-white outline-none placeholder-gray-400"
+                  />
+                </div>
+                <div className="flex items-center px-4 py-3 gap-3">
+                  <Ic k="shield" size={18} style={{ color: palette.dim }} />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Mật khẩu"
+                    className="w-full bg-transparent text-[14px] text-white outline-none placeholder-gray-400"
+                  />
+                </div>
+              </div>
+
+              {/* SIGN IN Button */}
+              <button
+                type="button"
+                onClick={onLoginSuccess}
+                className="w-full py-3.5 rounded-full bg-[#059669] hover:bg-[#10B981] text-white font-bold text-[14px] tracking-wide transition shadow-lg cursor-pointer text-center"
+              >
+                ĐĂNG NHẬP (SIGN IN)
+              </button>
+
+              {/* Links */}
+              <div className="pt-2 text-center space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setStep("check_phone")}
+                  className="text-[13px] font-medium text-[#10B981] hover:underline cursor-pointer"
+                >
+                  Chưa có tài khoản? Tạo tài khoản ngay →
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Terms */}
+          <div className="text-center text-[11px] text-gray-500 leading-relaxed px-4 pt-6">
+            Bằng việc sử dụng ứng dụng này, bạn đồng ý với điều khoản sử dụng và chính sách bảo mật của Paradise Gym.
+          </div>
+        </div>
+      )}
+
+      {step === "check_phone" && (
+        <div className="p-4">
+          <MobileCard>
+            <div className="space-y-4">
+              <div>
+                <div className="text-[16px] font-bold text-white">Tạo tài khoản mới</div>
+                <div className="text-[12px] mt-0.5" style={{ color: palette.muted }}>
+                  Nhập số điện thoại của bạn để đăng ký hoặc kích hoạt tài khoản.
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[12px] font-semibold text-white block mb-1">
+                  Số điện thoại
+                </label>
+                <input
+                  type="text"
+                  value={regPhone}
+                  onChange={(e) => setRegPhone(e.target.value)}
+                  placeholder="Ví dụ: 0901 234 567"
+                  className="w-full rounded-xl border px-3 py-2.5 text-[13px] outline-none transition"
+                  style={{
+                    background: palette.control,
+                    borderColor: palette.border,
+                    color: palette.text,
+                  }}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <ActionButton variant="secondary" onClick={() => setStep("login")}>
+                  ← Quay lại
+                </ActionButton>
+                <ActionButton block variant="purple" onClick={handleCheckPhone}>
+                  Tiếp tục →
+                </ActionButton>
+              </div>
+            </div>
+          </MobileCard>
+        </div>
+      )}
+
+      {step === "case1_exists" && (
+        <div className="p-4">
+          <MobileCard accent={palette.red}>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-red-400 font-bold text-[14px]">
+                <Ic k="warn" size={18} />
+                <span>Số điện thoại đã được đăng ký</span>
+              </div>
+              <p className="text-[13px] leading-relaxed text-gray-300">
+                Số điện thoại <strong>{regPhone}</strong> đã có tài khoản trên ứng dụng Paradise Gym.
+              </p>
+              <p className="text-[12px] text-gray-400">
+                Vui lòng quay lại màn hình Đăng nhập để truy cập tài khoản của bạn.
+              </p>
+              <div className="pt-2">
+                <ActionButton block variant="purple" onClick={() => setStep("login")}>
+                  Quay lại Đăng nhập
+                </ActionButton>
+              </div>
+            </div>
+          </MobileCard>
+        </div>
+      )}
+
+      {step === "case2_info" && matchedMember && (
+        <div className="p-4">
+          <MobileCard accent={palette.green}>
+            <div className="space-y-4">
+              <div>
+                <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-green-500/15 text-green-400 border border-green-500/30">
+                  Xác nhận hồ sơ hội viên
+                </span>
+                <div className="text-[16px] font-bold text-white mt-2">
+                  Kích hoạt tài khoản
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-3 space-y-1" style={{ background: palette.panel, borderColor: palette.border }}>
+                <div className="text-[13px] font-bold text-white">
+                  {matchedMember.name}
+                </div>
+                <div className="text-[12px]" style={{ color: palette.muted }}>
+                  Mã hội viên: <strong className="font-mono text-white">{matchedMember.id}</strong> · Chi nhánh: {matchedMember.branch}
+                </div>
+              </div>
+
+              {pwdError && (
+                <div className="rounded-lg bg-red-500/15 border border-red-500/30 p-2.5 text-[12px] text-red-400 font-semibold">
+                  ⚠️ {pwdError}
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[12px] font-semibold text-white block mb-1">
+                    Tạo mật khẩu cá nhân *
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Nhập mật khẩu mới..."
+                    className="w-full rounded-xl border px-3 py-2 text-[13px] outline-none transition"
+                    style={{
+                      background: palette.control,
+                      borderColor: palette.border,
+                      color: palette.text,
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[12px] font-semibold text-white block mb-1">
+                    Xác nhận mật khẩu *
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Nhập lại mật khẩu..."
+                    className="w-full rounded-xl border px-3 py-2 text-[13px] outline-none transition"
+                    style={{
+                      background: palette.control,
+                      borderColor: palette.border,
+                      color: palette.text,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <ActionButton variant="secondary" onClick={() => setStep("check_phone")}>
+                  ← Quay lại
+                </ActionButton>
+                <ActionButton
+                  block
+                  variant="purple"
+                  onClick={handleCase2InfoSubmit}
+                >
+                  Tiếp tục → Gửi mã OTP
+                </ActionButton>
+              </div>
+            </div>
+          </MobileCard>
+        </div>
+      )}
+
+      {step === "case2_otp" && matchedMember && (
+        <div className="p-4">
+          <MobileCard accent={palette.green}>
+            <div className="space-y-4">
+              <div>
+                <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-green-500/15 text-green-400 border border-green-500/30">
+                  Xác thực OTP
+                </span>
+                <div className="text-[16px] font-bold text-white mt-2">
+                  Nhập mã xác thực
+                </div>
+                <div className="text-[12px] mt-1" style={{ color: palette.muted }}>
+                  Mã OTP gồm 6 chữ số đã được gửi đến số điện thoại <strong className="text-white font-mono">{regPhone}</strong>.
+                </div>
+              </div>
+
+              {resendNotice && (
+                <div className="rounded-lg bg-green-500/15 border border-green-500/30 p-2.5 text-[12px] text-green-400">
+                  ✓ {resendNotice}
+                </div>
+              )}
+
+              <div>
+                <label className="text-[12px] font-semibold text-white block mb-1">
+                  Mã xác thực OTP *
+                </label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Nhập mã OTP 6 chữ số..."
+                  className="w-full rounded-xl border px-3 py-2 text-[13px] font-mono outline-none transition"
+                  style={{
+                    background: palette.control,
+                    borderColor: palette.border,
+                    color: palette.text,
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] text-gray-400">Chưa nhận được mã?</span>
+                <button
+                  type="button"
+                  onClick={() => setResendNotice(`Đã gửi lại mã OTP mới đến SĐT ${regPhone}`)}
+                  className="text-[12px] font-semibold text-[#10B981] hover:underline cursor-pointer"
+                >
+                  Gửi lại mã OTP
+                </button>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <ActionButton variant="secondary" onClick={() => setStep("case2_info")}>
+                  ← Quay lại
+                </ActionButton>
+                <ActionButton
+                  block
+                  variant="purple"
+                  onClick={() => {
+                    setSuccessMsg(`Tài khoản hội viên đã kích hoạt và liên kết thành công với hồ sơ ${matchedMember.name} (${matchedMember.id})!`)
+                    setStep("success")
+                  }}
+                >
+                  Kích hoạt & Đăng nhập
+                </ActionButton>
+              </div>
+            </div>
+          </MobileCard>
+        </div>
+      )}
+
+      {step === "case3_info" && (
+        <div className="p-4">
+          <MobileCard accent={palette.orange}>
+            <div className="space-y-4">
+              <div>
+                <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-orange-500/15 text-orange-400 border border-orange-500/30">
+                  Đăng ký hồ sơ mới
+                </span>
+                <div className="text-[16px] font-bold text-white mt-2">
+                  Thông tin cá nhân & Mật khẩu
+                </div>
+                <div className="text-[12px]" style={{ color: palette.muted }}>
+                  Vui lòng điền thông tin để đăng ký hồ sơ và tạo mật khẩu cho tài khoản.
+                </div>
+              </div>
+
+              {pwdError && (
+                <div className="rounded-lg bg-red-500/15 border border-red-500/30 p-2.5 text-[12px] text-red-400 font-semibold">
+                  ⚠️ {pwdError}
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[12px] font-semibold text-white block mb-1">
+                    Họ và tên *
+                  </label>
+                  <input
+                    type="text"
+                    value={fullname}
+                    onChange={(e) => setFullname(e.target.value)}
+                    placeholder="Ví dụ: Nguyễn Văn An"
+                    className="w-full rounded-xl border px-3 py-2 text-[13px] outline-none transition"
+                    style={{
+                      background: palette.control,
+                      borderColor: palette.border,
+                      color: palette.text,
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[12px] font-semibold text-white block mb-1">
+                    Email (Tùy chọn)
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@example.vn"
+                    className="w-full rounded-xl border px-3 py-2 text-[13px] outline-none transition"
+                    style={{
+                      background: palette.control,
+                      borderColor: palette.border,
+                      color: palette.text,
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[12px] font-semibold text-white block mb-1">
+                    Tạo mật khẩu cá nhân *
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Nhập mật khẩu..."
+                    className="w-full rounded-xl border px-3 py-2 text-[13px] outline-none transition"
+                    style={{
+                      background: palette.control,
+                      borderColor: palette.border,
+                      color: palette.text,
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[12px] font-semibold text-white block mb-1">
+                    Xác nhận mật khẩu *
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Nhập lại mật khẩu..."
+                    className="w-full rounded-xl border px-3 py-2 text-[13px] outline-none transition"
+                    style={{
+                      background: palette.control,
+                      borderColor: palette.border,
+                      color: palette.text,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <ActionButton variant="secondary" onClick={() => setStep("check_phone")}>
+                  ← Quay lại
+                </ActionButton>
+                <ActionButton
+                  block
+                  variant="purple"
+                  onClick={handleCase3InfoSubmit}
+                >
+                  Tiếp tục → Gửi mã OTP
+                </ActionButton>
+              </div>
+            </div>
+          </MobileCard>
+        </div>
+      )}
+
+      {step === "case3_otp" && (
+        <div className="p-4">
+          <MobileCard accent={palette.orange}>
+            <div className="space-y-4">
+              <div>
+                <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-orange-500/15 text-orange-400 border border-orange-500/30">
+                  Xác thực OTP
+                </span>
+                <div className="text-[16px] font-bold text-white mt-2">
+                  Nhập mã xác thực
+                </div>
+                <div className="text-[12px] mt-1" style={{ color: palette.muted }}>
+                  Mã OTP gồm 6 chữ số đã được gửi đến số điện thoại <strong className="text-white font-mono">{regPhone}</strong>.
+                </div>
+              </div>
+
+              {resendNotice && (
+                <div className="rounded-lg bg-green-500/15 border border-green-500/30 p-2.5 text-[12px] text-green-400">
+                  ✓ {resendNotice}
+                </div>
+              )}
+
+              <div>
+                <label className="text-[12px] font-semibold text-white block mb-1">
+                  Mã xác thực OTP *
+                </label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Nhập mã OTP 6 chữ số..."
+                  className="w-full rounded-xl border px-3 py-2 text-[13px] font-mono outline-none transition"
+                  style={{
+                    background: palette.control,
+                    borderColor: palette.border,
+                    color: palette.text,
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] text-gray-400">Chưa nhận được mã?</span>
+                <button
+                  type="button"
+                  onClick={() => setResendNotice(`Đã gửi lại mã OTP mới đến SĐT ${regPhone}`)}
+                  className="text-[12px] font-semibold text-[#10B981] hover:underline cursor-pointer"
+                >
+                  Gửi lại mã OTP
+                </button>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <ActionButton variant="secondary" onClick={() => setStep("case3_info")}>
+                  ← Quay lại
+                </ActionButton>
+                <ActionButton
+                  block
+                  variant="purple"
+                  onClick={() => {
+                    setSuccessMsg(`Tạo mới Hồ sơ hội viên & Tài khoản cho ${fullname || "Hội viên mới"} thành công!`)
+                    setStep("success")
+                  }}
+                >
+                  Hoàn tất đăng ký
+                </ActionButton>
+              </div>
+            </div>
+          </MobileCard>
+        </div>
+      )}
+
+      {step === "success" && (
+        <div className="p-4">
+          <MobileCard accent={palette.green}>
+            <div className="space-y-3 text-center py-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/20 text-green-400 mx-auto">
+                <Ic k="check" size={24} />
+              </div>
+              <div className="text-[16px] font-bold text-white">Đăng ký thành công!</div>
+              <p className="text-[13px] leading-relaxed text-gray-300">
+                {successMsg}
+              </p>
+              <div className="pt-2">
+                <ActionButton block variant="purple" onClick={onLoginSuccess}>
+                  Vào ứng dụng ngay
+                </ActionButton>
+              </div>
+            </div>
+          </MobileCard>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function MemberMobile({
   tab,
   openAction,
+  onLogout,
 }: {
   tab: string
   openAction: (kind: ActionKind) => void
+  onLogout?: () => void
 }) {
   if (tab === "HV02")
     return <MobileSchedule openAction={openAction} memberView />
   if (tab === "HV03") return <MemberPackages openAction={openAction} />
-  if (tab === "HV04") return <MemberAccount openAction={openAction} />
+  if (tab === "HV04") return <MemberAccount openAction={openAction} onLogout={onLogout} />
 
   const member = MEMBERS[1]
   return (
@@ -879,7 +1488,7 @@ function MemberPackages({
   return (
     <div className="space-y-4">
       <div className="px-1 text-[12px] font-bold uppercase tracking-wider text-white">
-        📦 Các gói đang sở hữu ({pkgs.length})
+        Các gói đang sở hữu ({pkgs.length})
       </div>
       {pkgs.map((pkg, idx) => (
         <MobileCard key={idx} accent={pkg.type === "PT" ? palette.blue : palette.green}>
@@ -989,8 +1598,10 @@ function MemberPackages({
 
 function MemberAccount({
   openAction,
+  onLogout,
 }: {
   openAction: (kind: ActionKind) => void
+  onLogout?: () => void
 }) {
   const member = MEMBERS[1]
   return (
@@ -1023,6 +1634,16 @@ function MemberAccount({
       >
         Cập nhật hồ sơ
       </ActionButton>
+      {onLogout && (
+        <ActionButton
+          block
+          variant="red"
+          icon="logout"
+          onClick={onLogout}
+        >
+          Đăng xuất tài khoản
+        </ActionButton>
+      )}
     </div>
   )
 }

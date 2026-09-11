@@ -1,4 +1,4 @@
-export type MenuId = "W01" | "W02" | "W03" | "W04" | "W05" | "W06" | "W07" | "W08" | "W09" | "W10" | "W11" | "W12"
+export type MenuId = "W01" | "W02" | "W03" | "W04" | "W05" | "W06" | "W07" | "W08" | "W09" | "W10" | "W11" | "W12" | "W13"
 
 export type WebRole = "admin" | "receptionist"
 export type MobileRole = "receptionist" | "trainer" | "member"
@@ -215,6 +215,8 @@ export interface Member {
   packages?: MemberPackage[]
 }
 
+export type TrainerAccountStatus = "active" | "pending_activation" | "suspended"
+
 export interface Trainer {
   id: string
   name: string
@@ -222,9 +224,14 @@ export interface Trainer {
   email: string
   specialty: string
   students: number
+  pendingRequests?: number
+  todaySessions?: number
   status: TrainerStatus
+  accountStatus: TrainerAccountStatus
   branch: string
-  nextSlot: string
+  nextSlot?: string
+  startDate?: string
+  notes?: string
 }
 
 export interface GymPackage {
@@ -628,9 +635,13 @@ export const TRAINERS: Trainer[] = [
     email: "long.pt@example.vn",
     specialty: "Cardio, HIIT",
     students: 8,
+    pendingRequests: 2,
+    todaySessions: 4,
     status: "active",
+    accountStatus: "active",
     branch: "Quận 1",
     nextSlot: "09:00 hôm nay",
+    startDate: "15/01/2025",
   },
   {
     id: "PT002",
@@ -639,9 +650,13 @@ export const TRAINERS: Trainer[] = [
     email: "manh.pt@example.vn",
     specialty: "Powerlifting, Strength",
     students: 6,
+    pendingRequests: 1,
+    todaySessions: 3,
     status: "active",
+    accountStatus: "active",
     branch: "Quận 1",
     nextSlot: "10:00 hôm nay",
+    startDate: "01/03/2025",
   },
   {
     id: "PT003",
@@ -650,9 +665,13 @@ export const TRAINERS: Trainer[] = [
     email: "ngoc.pt@example.vn",
     specialty: "Yoga, Pilates",
     students: 10,
+    pendingRequests: 0,
+    todaySessions: 5,
     status: "active",
+    accountStatus: "pending_activation",
     branch: "Bình Thạnh",
     nextSlot: "11:00 hôm nay",
+    startDate: "10/08/2026",
   },
   {
     id: "PT004",
@@ -661,9 +680,13 @@ export const TRAINERS: Trainer[] = [
     email: "phu.pt@example.vn",
     specialty: "Bodybuilding, Nutrition",
     students: 4,
+    pendingRequests: 0,
+    todaySessions: 0,
     status: "inactive",
+    accountStatus: "active",
     branch: "Quận 1",
     nextSlot: "Tạm ngừng nhận lịch",
+    startDate: "20/11/2024",
   },
 ]
 
