@@ -4,6 +4,7 @@ import {
   CARE_ITEMS,
   MEMBERS,
   PACKAGES,
+  PAYMENTS,
   REGISTRATIONS,
   SESSIONS,
   SHORT_TODAY,
@@ -96,8 +97,10 @@ export function MobileShell({
     member: false,
   })
   const [memberTrainerAssignments, setMemberTrainerAssignments] = useState<Record<string, string>>({
-    HV002: "PT001",
+    // Seed demo: DK002 đã được PT001 chấp nhận phụ trách.
+    DK002: "PT001",
   })
+  const [memberTrainerRequests, setMemberTrainerRequests] = useState<Record<string, string>>({})
 
   const activeTab = tabs[role]
   const nav = MOBILE_NAV[role]
@@ -204,6 +207,9 @@ export function MobileShell({
               openAction={openAction}
               memberTrainerAssignments={memberTrainerAssignments}
               onAssignMemberTrainer={(registrationId, trainerId) => setMemberTrainerAssignments((prev) => ({ ...prev, [registrationId]: trainerId }))}
+              memberTrainerRequests={memberTrainerRequests}
+              onRequestMemberTrainer={(registrationId, trainerId) => setMemberTrainerRequests((prev) => ({ ...prev, [registrationId]: trainerId }))}
+              onNavigateMemberTab={(tab) => setTabs((prev) => ({ ...prev, member: tab }))}
               onLogout={() => setIsLoggedIn((prev) => ({ ...prev, member: false }))}
             />
           )}
@@ -252,6 +258,9 @@ function MobileContent({
   openAction,
   memberTrainerAssignments,
   onAssignMemberTrainer,
+  memberTrainerRequests,
+  onRequestMemberTrainer,
+  onNavigateMemberTab,
   onLogout,
 }: {
   role: MobileRole
@@ -259,13 +268,16 @@ function MobileContent({
   openAction: (kind: ActionKind) => void
   memberTrainerAssignments: Record<string, string>
   onAssignMemberTrainer: (registrationId: string, trainerId: string) => void
+  memberTrainerRequests: Record<string, string>
+  onRequestMemberTrainer: (registrationId: string, trainerId: string) => void
+  onNavigateMemberTab: (tab: string) => void
   onLogout?: () => void
 }) {
   if (role === "receptionist")
     return <ReceptionistMobile tab={tab} openAction={openAction} />
   if (role === "trainer")
     return <TrainerMobile tab={tab} openAction={openAction} />
-  return <MemberMobile tab={tab} openAction={openAction} memberTrainerAssignments={memberTrainerAssignments} onAssignMemberTrainer={onAssignMemberTrainer} onLogout={onLogout} />
+  return <MemberMobile tab={tab} openAction={openAction} memberTrainerAssignments={memberTrainerAssignments} onAssignMemberTrainer={onAssignMemberTrainer} memberTrainerRequests={memberTrainerRequests} onRequestMemberTrainer={onRequestMemberTrainer} onNavigateMemberTab={onNavigateMemberTab} onLogout={onLogout} />
 }
 
 function ReceptionistMobile({
@@ -491,66 +503,132 @@ function MobileMembers({
 function MobileSchedule({
   openAction,
   memberView = false,
-  assignedTrainerId,
+  memberTrainerAssignments = {},
 }: {
   openAction: (kind: ActionKind) => void
   memberView?: boolean
-  assignedTrainerId?: string
+  memberTrainerAssignments?: Record<string, string>
 }) {
+  const [scheduleTab, setScheduleTab] = useState<"mine" | "book">("mine")
+  const [statusFilter, setStatusFilter] = useState<"all" | "awaiting_confirmation" | "upcoming" | "cancelled" | "done">("all")
+  const [sessionOverrides, setSessionOverrides] = useState<Record<string, Session["status"]>>({})
+  const [selectedRegistrationId, setSelectedRegistrationId] = useState<string>("DK002")
+  const [selectedDate, setSelectedDate] = useState<string>("2026-09-11")
+  const memberRegistrations = REGISTRATIONS.filter((registration) => registration.memberId === "HV002")
+  const selectedRegistration = memberRegistrations.find((registration) => registration.id === selectedRegistrationId) ?? memberRegistrations[0]
+  const selectedTrainerId = selectedRegistration ? memberTrainerAssignments[selectedRegistration.id] : undefined
+  const selectedTrainer = selectedTrainerId ? TRAINERS.find((trainer) => trainer.id === selectedTrainerId) : undefined
   const sessions = memberView
-    ? SESSIONS.filter(
-        (session) => session.memberId === "HV002" || session.status === "empty",
-      )
+    ? SESSIONS.filter((session) => session.memberId === "HV002").map((session) => ({ ...session, status: sessionOverrides[session.id] ?? session.status }))
     : SESSIONS
-  const trainer = assignedTrainerId ? TRAINERS.find((item) => item.id === assignedTrainerId) : undefined
+  const filteredSessions = statusFilter === "all" ? sessions : sessions.filter((session) => session.status === statusFilter)
+  const statusFilters: { id: typeof statusFilter; label: string }[] = [
+    { id: "all", label: "Tất cả" },
+    { id: "awaiting_confirmation", label: "Chờ xác nhận" },
+    { id: "upcoming", label: "Đã đặt" },
+    { id: "cancelled", label: "Đã hủy" },
+    { id: "done", label: "Hoàn thành" },
+  ]
+  const selectedDay = selectedDate.split("-").slice(1).reverse().join("/")
+  const selectedDateLabel = selectedDate.split("-").reverse().join("/")
+  const slots = ["08:00 - 10:00", "10:00 - 12:00", "12:00 - 14:00", "14:00 - 16:00", "16:00 - 18:00"]
+  const trainerSessions = selectedTrainer
+    ? SESSIONS.filter((session) => session.trainerId === selectedTrainer.id && session.date === selectedDateLabel && session.status !== "cancelled")
+    : []
+
+  if (!memberView) {
+    return (
+      <div className="space-y-4">
+        <MobileSection title="Lịch trong ngày">
+          {sessions.map((session) => <MobileSessionRow key={session.id} session={session} openAction={openAction} />)}
+        </MobileSection>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {["07/09", "08/09", "09/09", "10/09", "11/09"].map((day, index) => (
-          <button
-            key={day}
-            type="button"
-            className="min-h-11 min-w-[70px] rounded-lg border text-[13px] font-semibold"
-            style={{
-              background:
-                index === 0
-                  ? "rgba(22,163,74,0.12)"
-                  : palette.control,
-              borderColor:
-                index === 0 ? "rgba(22,163,74,0.4)" : palette.border,
-              color: index === 0 ? palette.orange : palette.muted,
-            }}
-          >
-            {day}
-          </button>
-        ))}
+      <div className="grid grid-cols-2 rounded-xl border p-1" style={{ background: palette.control, borderColor: palette.border }}>
+        <button type="button" onClick={() => setScheduleTab("mine")} className="rounded-lg px-3 py-2 text-[12px] font-bold" style={{ background: scheduleTab === "mine" ? palette.company : "transparent", color: scheduleTab === "mine" ? "#FFFFFF" : palette.muted }}>
+          Lịch của tôi
+        </button>
+        <button type="button" onClick={() => setScheduleTab("book")} className="rounded-lg px-3 py-2 text-[12px] font-bold" style={{ background: scheduleTab === "book" ? palette.company : "transparent", color: scheduleTab === "book" ? "#FFFFFF" : palette.muted }}>
+          Đặt lịch PT
+        </button>
       </div>
-      {memberView && trainer ? (
-        <MobileCard accent={palette.blue}>
-          <div className="flex items-center gap-3">
-            <Avatar name={trainer.name} tone={palette.blue} size={42} />
-            <div className="min-w-0 flex-1">
-              <div className="text-[12px]" style={{ color: palette.dim }}>PT phụ trách</div>
-              <div className="truncate text-[14px] font-bold text-white">{trainer.name}</div>
-              <div className="text-[11px]" style={{ color: palette.muted }}>{trainer.specialty} · Lịch riêng của PT</div>
-            </div>
+
+      {scheduleTab === "mine" ? (
+        <>
+          <MobileDatePicker value={selectedDate} onChange={setSelectedDate} />
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {statusFilters.map((filter) => {
+              const count = filter.id === "all" ? sessions.length : sessions.filter((session) => session.status === filter.id).length
+              return <button key={filter.id} type="button" onClick={() => setStatusFilter(filter.id)} className="shrink-0 rounded-lg border px-3 py-2 text-[11px] font-semibold" style={{ background: statusFilter === filter.id ? palette.company : palette.control, borderColor: statusFilter === filter.id ? palette.company : palette.border, color: statusFilter === filter.id ? "#FFFFFF" : palette.muted }}>{filter.label} ({count})</button>
+            })}
           </div>
-        </MobileCard>
-      ) : null}
-      <ActionButton block icon="plus" onClick={() => openAction("schedule-booking")}>
-        Đặt lịch PT
-      </ActionButton>
-      <MobileSection title={memberView ? "Lịch của tôi" : "Lịch trong ngày"}>
-        {sessions.map((session) => (
-          <MobileSessionRow
-            key={session.id}
-            session={session}
-            openAction={openAction}
-          />
-        ))}
-      </MobileSection>
+          <MobileSection title="Lịch của tôi">
+            {filteredSessions.length > 0 ? filteredSessions.map((session) => <div key={session.id} className="space-y-2"><MobileSessionRow session={session} openAction={openAction} />{session.status === "upcoming" && <ActionButton block variant="danger" onClick={() => setSessionOverrides((prev) => ({ ...prev, [session.id]: "cancelled" }))}>Hủy lịch</ActionButton>}{session.status === "awaiting_confirmation" && <ActionButton block onClick={() => setSessionOverrides((prev) => ({ ...prev, [session.id]: "done" }))}>Xác nhận hoàn thành</ActionButton>}</div>) : <MobileCard><div className="text-center text-[13px]" style={{ color: palette.muted }}>Chưa có buổi tập ở trạng thái này.</div></MobileCard>}
+          </MobileSection>
+        </>
+      ) : (
+        <>
+          <MobileCard accent={palette.green}>
+            <div className="text-[13px] font-bold text-white">Chọn gói muốn sử dụng</div>
+            <div className="mt-1 text-[11px]" style={{ color: palette.muted }}>Lịch bên dưới sẽ hiển thị theo PT phụ trách của gói.</div>
+            <select value={selectedRegistration?.id ?? ""} onChange={(event) => setSelectedRegistrationId(event.target.value)} className="mt-3 h-10 w-full rounded-lg border px-3 text-[12px] font-semibold outline-none" style={{ background: palette.control, borderColor: palette.border, color: palette.text }}>
+              {memberRegistrations.map((registration) => <option key={registration.id} value={registration.id}>{registration.packageName} · {registration.id}</option>)}
+            </select>
+          </MobileCard>
+
+          {selectedTrainer ? <MobileCard accent={palette.blue}><div className="flex items-center gap-3"><Avatar name={selectedTrainer.name} tone={palette.blue} size={42} /><div className="min-w-0 flex-1"><div className="text-[12px]" style={{ color: palette.dim }}>Lịch của PT</div><div className="truncate text-[15px] font-bold text-white">{selectedTrainer.name}</div><div className="text-[11px]" style={{ color: palette.muted }}>{selectedTrainer.branch} · Mỗi buổi 2 giờ</div></div></div></MobileCard> : <MobileCard><div className="text-[13px] font-bold text-white">Gói này chưa có PT phụ trách</div><div className="mt-1 text-[12px]" style={{ color: palette.muted }}>Vào Gói của tôi để chọn PT và gửi yêu cầu. Chỉ đặt lịch sau khi PT chấp nhận.</div></MobileCard>}
+
+          <MobileDatePicker value={selectedDate} onChange={setSelectedDate} />
+          <div className="space-y-2"><div className="text-[12px] font-bold uppercase tracking-wider text-white">Khung giờ · {selectedDay}/2026</div>{slots.map((slot) => { const bookedSession = trainerSessions.find((session) => session.time === slot.split(" - ")[0]); const occupied = Boolean(bookedSession); return <button key={slot} type="button" disabled={!selectedTrainer || occupied} onClick={() => openAction("schedule-booking")} className="w-full rounded-xl border p-3 text-left" style={{ background: occupied ? "rgba(148,163,184,0.08)" : palette.panel, borderColor: occupied ? palette.border : "rgba(16,185,129,0.35)", opacity: selectedTrainer ? 1 : 0.6 }}><div className="flex items-center gap-3"><span className="w-[92px] shrink-0 whitespace-pre-line font-mono text-[12px] font-bold" style={{ color: palette.muted }}>{slot.replace(" - ", " -\n")}</span>{bookedSession ? <div className="min-w-0 flex-1"><div className="truncate text-[13px] font-bold text-white">{bookedSession.member}</div><div className="truncate text-[11px]" style={{ color: palette.muted }}>{bookedSession.packageName}</div></div> : <span className="flex-1 text-[12px]" style={{ color: selectedTrainer ? palette.green : palette.muted }}>{selectedTrainer ? "Khung giờ trống · Chọn để đặt" : "Chưa thể chọn"}</span>}{bookedSession ? <SessionBadge status={bookedSession.status} /> : <Ic k="plus" size={16} style={{ color: palette.green }} />}</div></button> })}</div>
+        </>
+      )}
     </div>
+  )
+}
+
+function MobileDatePicker({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (date: string) => void
+}) {
+  const [month, setMonth] = useState(() => {
+    const [year, monthNumber] = value.split("-").map(Number)
+    return new Date(year, monthNumber - 1, 1)
+  })
+  const year = month.getFullYear()
+  const monthIndex = month.getMonth()
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+  const firstDayOffset = (new Date(year, monthIndex, 1).getDay() + 6) % 7
+  const monthLabel = month.toLocaleDateString("vi-VN", { month: "long", year: "numeric" })
+  const calendarCells = Array.from({ length: firstDayOffset + daysInMonth }, (_, index) => index < firstDayOffset ? null : index - firstDayOffset + 1)
+
+  return (
+    <MobileCard>
+      <div className="flex items-center justify-between">
+        <div className="text-[15px] font-bold text-white capitalize">{monthLabel}</div>
+        <div className="flex items-center gap-1">
+          <button type="button" aria-label="Tháng trước" onClick={() => setMonth(new Date(year, monthIndex - 1, 1))} className="flex h-8 w-8 items-center justify-center rounded-lg text-[18px]" style={{ color: palette.muted }}>‹</button>
+          <button type="button" aria-label="Tháng sau" onClick={() => setMonth(new Date(year, monthIndex + 1, 1))} className="flex h-8 w-8 items-center justify-center rounded-lg text-[18px]" style={{ color: palette.muted }}>›</button>
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-7 text-center text-[10px] font-semibold" style={{ color: palette.muted }}>
+        {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((day) => <span key={day}>{day}</span>)}
+      </div>
+      <div className="mt-2 grid grid-cols-7 gap-y-1 text-center">
+        {calendarCells.map((day, index) => {
+          if (!day) return <span key={`empty-${index}`} className="h-8" />
+          const date = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+          const selected = date === value
+          return <button key={date} type="button" onClick={() => onChange(date)} className="mx-auto flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold" style={{ background: selected ? palette.blue : "transparent", color: selected ? "#FFFFFF" : palette.text }}>{day}</button>
+        })}
+      </div>
+    </MobileCard>
   )
 }
 
@@ -1395,102 +1473,64 @@ function MemberMobile({
   openAction,
   memberTrainerAssignments,
   onAssignMemberTrainer,
+  memberTrainerRequests,
+  onRequestMemberTrainer,
+  onNavigateMemberTab,
   onLogout,
 }: {
   tab: string
   openAction: (kind: ActionKind) => void
   memberTrainerAssignments: Record<string, string>
   onAssignMemberTrainer: (registrationId: string, trainerId: string) => void
+  memberTrainerRequests: Record<string, string>
+  onRequestMemberTrainer: (registrationId: string, trainerId: string) => void
+  onNavigateMemberTab: (tab: string) => void
   onLogout?: () => void
 }) {
   const memberRegistration = REGISTRATIONS.find((registration) => registration.memberId === "HV002")
-  const assignedTrainerId = memberRegistration ? memberTrainerAssignments[memberRegistration.id] : undefined
+  const requestedTrainerId = memberRegistration ? memberTrainerRequests[memberRegistration.id] : undefined
+  const requestedTrainer = requestedTrainerId ? TRAINERS.find((trainer) => trainer.id === requestedTrainerId) : undefined
   if (tab === "HV02")
-    return <MobileSchedule openAction={openAction} memberView assignedTrainerId={assignedTrainerId} />
-  if (tab === "HV03") return <MemberPackages openAction={openAction} memberTrainerAssignments={memberTrainerAssignments} onAssignMemberTrainer={onAssignMemberTrainer} />
+    return <MobileSchedule openAction={openAction} memberView memberTrainerAssignments={memberTrainerAssignments} />
+  if (tab === "HV03") return <MemberPackages openAction={openAction} memberTrainerAssignments={memberTrainerAssignments} onAssignMemberTrainer={onAssignMemberTrainer} memberTrainerRequests={memberTrainerRequests} onRequestMemberTrainer={onRequestMemberTrainer} />
   if (tab === "HV04") return <MemberAccount openAction={openAction} onLogout={onLogout} />
 
-  const member = MEMBERS[1]
+  const upcomingSession = SESSIONS.find((session) => session.memberId === "HV002" && session.status === "upcoming")
   return (
     <div className="space-y-4">
       <MobileCard accent={palette.blue}>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="text-[12px]" style={{ color: palette.dim }}>
-              Gói hiện tại
-            </div>
-            <div className="mt-1 text-[18px] font-bold text-white">
-              {member.packageName}
-            </div>
-            <div className="mt-1 text-[13px]" style={{ color: palette.muted }}>
-              Hết hạn {member.validUntil} · còn {member.sessionsLeft} buổi
-            </div>
-          </div>
-          <MemberBadge status={member.status} />
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <ActionButton
-            variant="secondary"
-            icon="calendar"
-            onClick={() => openAction("schedule-booking")}
-          >
-            Đặt lịch PT
-          </ActionButton>
-          <ActionButton
-            variant="secondary"
-            icon="refresh"
-            onClick={() => openAction("renewal-request")}
-          >
-            Gia hạn
-          </ActionButton>
-        </div>
+        <div className="text-[12px]" style={{ color: palette.dim }}>Xin chào, Trần Thị Bình</div>
+        <div className="mt-1 text-[20px] font-bold text-white">Hôm nay bạn muốn làm gì?</div>
+        <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>Trang tổng quan để bạn biết việc cần làm và đi nhanh đến đúng chức năng.</div>
       </MobileCard>
 
-      <MobileSection title="Lịch sắp tới">
-        {SESSIONS.filter((session) => session.memberId === "HV002").map(
-          (session) => (
-            <MobileSessionRow
-              key={session.id}
-              session={session}
-              openAction={openAction}
-            />
-          ),
-        )}
-      </MobileSection>
-
-      <MobileCard>
+      <MobileCard accent={requestedTrainer ? palette.amber : palette.green}>
         <div className="flex items-start gap-3">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-lg"
-            style={{
-              background: "rgba(245,158,11,0.12)",
-              color: palette.amber,
-            }}
-          >
-            <Ic k="warn" size={18} />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg" style={{ background: requestedTrainer ? "rgba(245,158,11,0.14)" : "rgba(16,185,129,0.14)", color: requestedTrainer ? palette.amber : palette.green }}>
+            <Ic k={requestedTrainer ? "clock" : "check"} size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[14px] font-bold text-white">
-              Gói sắp hết hạn
-            </div>
-            <div
-              className="mt-1 text-[12px] leading-relaxed"
-              style={{ color: palette.muted }}
-            >
-              Bạn có thể gửi yêu cầu để quầy xử lý. Gói hiện tại chỉ thay đổi
-              sau khi quầy xác nhận.
-            </div>
+            <div className="text-[13px] font-bold text-white">{requestedTrainer ? "Yêu cầu PT đang chờ phản hồi" : "Không có việc cần xử lý"}</div>
+            <div className="mt-1 text-[12px] leading-relaxed" style={{ color: palette.muted }}>{requestedTrainer ? `${requestedTrainer.name} đang xem yêu cầu chọn PT của bạn.` : "Bạn có thể mua gói mới hoặc đặt một buổi trong lịch PT."}</div>
           </div>
         </div>
-        <div className="mt-3">
-          <ActionButton
-            block
-            icon="refresh"
-            onClick={() => openAction("renewal-request")}
-          >
-            Gửi yêu cầu gia hạn
-          </ActionButton>
+        {requestedTrainer && <div className="mt-3"><ActionButton block variant="secondary" onClick={() => onNavigateMemberTab("HV03")}>Xem yêu cầu PT</ActionButton></div>}
+      </MobileCard>
+
+      <MobileCard>
+        <div className="flex items-center justify-between gap-3">
+          <div><div className="text-[12px]" style={{ color: palette.dim }}>Lịch sắp tới</div><div className="mt-1 text-[15px] font-bold text-white">{upcomingSession ? `${upcomingSession.date} · ${upcomingSession.time}` : "Chưa có lịch sắp tới"}</div>{upcomingSession && <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>{upcomingSession.trainer} · {upcomingSession.packageName}</div>}</div>
+          <Ic k="calendar" size={22} style={{ color: palette.blue }} />
         </div>
+        <div className="mt-3"><ActionButton block variant="secondary" onClick={() => onNavigateMemberTab("HV02")}>Xem lịch của tôi</ActionButton></div>
+      </MobileCard>
+
+      <MobileCard accent={palette.green}>
+        <div className="flex items-start justify-between gap-3">
+          <div><div className="text-[12px]" style={{ color: palette.dim }}>Thao tác nhanh</div><div className="mt-1 text-[16px] font-bold text-white">Quản lý gói tập</div><div className="mt-1 text-[12px] leading-relaxed" style={{ color: palette.muted }}>Mua gói, xem tiến độ sử dụng và quản lý PT phụ trách.</div></div>
+          <Ic k="package" size={22} style={{ color: palette.green }} />
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2"><ActionButton block onClick={() => onNavigateMemberTab("HV03")}>Mua gói</ActionButton><ActionButton block variant="secondary" onClick={() => onNavigateMemberTab("HV03")}>Gói của tôi</ActionButton></div>
       </MobileCard>
     </div>
   )
@@ -1498,11 +1538,32 @@ function MemberMobile({
 
 function MemberPackages({
   openAction,
+  memberTrainerAssignments,
+  onAssignMemberTrainer,
+  memberTrainerRequests,
+  onRequestMemberTrainer,
 }: {
   openAction: (kind: ActionKind) => void
+  memberTrainerAssignments: Record<string, string>
+  onAssignMemberTrainer: (registrationId: string, trainerId: string) => void
+  memberTrainerRequests: Record<string, string>
+  onRequestMemberTrainer: (registrationId: string, trainerId: string) => void
 }) {
   const member = MEMBERS[1]
-  const currentPackage = PACKAGES.find((pkg) => pkg.name === "Gói PT 20 buổi")
+
+  const [view, setView] = useState<"owned" | "buy" | "pay" | "trainer" | "requests" | "details">("owned")
+  const [packageStatusFilter, setPackageStatusFilter] = useState<"active" | "pending" | "expired">("active")
+  const [selectedPackage, setSelectedPackage] = useState<GymPackage | null>(null)
+  const [selectedRegistrationId, setSelectedRegistrationId] = useState<string>("DK002")
+  const [paymentMethod, setPaymentMethod] = useState<"Chuyển khoản" | "Ví điện tử">("Chuyển khoản")
+  const memberRegistrations = REGISTRATIONS.filter((registration) => registration.memberId === member.id)
+  const selectedRegistration = memberRegistrations.find((registration) => registration.id === selectedRegistrationId)
+  const assignedTrainerId = selectedRegistration ? memberTrainerAssignments[selectedRegistration.id] : undefined
+  const assignedTrainer = assignedTrainerId ? TRAINERS.find((trainer) => trainer.id === assignedTrainerId) : undefined
+  const requestedTrainerId = selectedRegistration ? memberTrainerRequests[selectedRegistration.id] : undefined
+  const requestedTrainer = requestedTrainerId ? TRAINERS.find((trainer) => trainer.id === requestedTrainerId) : undefined
+  const sellingPackages = PACKAGES.filter((pkg) => pkg.status === "selling")
+  const [memberPaymentHistory, setMemberPaymentHistory] = useState(() => PAYMENTS.filter((payment) => payment.member === member.name))
   const pkgs = member.packages ?? [
     {
       name: member.packageName,
@@ -1512,113 +1573,151 @@ function MemberPackages({
       status: member.status,
     },
   ]
+  if (view === "buy") {
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 rounded-xl border p-1" style={{ background: palette.control, borderColor: palette.border }}>
+          <button type="button" onClick={() => setView("owned")} className="rounded-lg px-2 py-2 text-[11px] font-bold" style={{ color: palette.muted }}>Gói của tôi</button>
+          <button type="button" className="rounded-lg px-2 py-2 text-[11px] font-bold" style={{ background: palette.company, color: "#FFFFFF" }}>Mua gói</button>
+          <button type="button" onClick={() => setView("requests")} className="rounded-lg px-2 py-2 text-[11px] font-bold" style={{ color: palette.muted }}>Yêu cầu PT</button>
+        </div>
+        <div>
+          <div className="text-[18px] font-bold text-white">Mua gói tập</div>
+          <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>Chọn gói phù hợp, sau đó thanh toán trực tuyến.</div>
+        </div>
+        {sellingPackages.map((pkg) => (
+          <MobileCard key={pkg.id} accent={pkg.service === "PT" || pkg.service === "Combo" ? palette.blue : palette.green}>
+            <div className="flex items-start justify-between gap-3">
+              <div><div className="text-[15px] font-bold text-white">{pkg.name}</div><div className="mt-1 text-[12px]" style={{ color: palette.muted }}>{pkg.duration ?? "Theo buổi"} · {pkg.sessions ? `${pkg.sessions} buổi PT` : "Không giới hạn lượt"}</div></div>
+              <div className="text-right font-mono text-[14px] font-bold" style={{ color: palette.orange }}>{fmtVND(pkg.price)}</div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <ActionButton block variant="secondary" onClick={() => { setSelectedPackage(pkg); setView("details") }}>Xem chi tiết</ActionButton>
+              <ActionButton block onClick={() => { setSelectedPackage(pkg); setView("pay") }}>Mua gói</ActionButton>
+            </div>
+          </MobileCard>
+        ))}
+        <ActionButton block variant="secondary" onClick={() => setView("owned")}>← Gói của tôi</ActionButton>
+      </div>
+    )
+  }
+
+  if (view === "requests") {
+    const requests = Object.entries(memberTrainerRequests)
+      .map(([registrationId, trainerId]) => ({
+        registration: memberRegistrations.find((registration) => registration.id === registrationId),
+        trainer: TRAINERS.find((trainer) => trainer.id === trainerId),
+      }))
+      .filter((request) => request.registration && request.trainer)
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 rounded-xl border p-1" style={{ background: palette.control, borderColor: palette.border }}>
+          <button type="button" onClick={() => setView("owned")} className="rounded-lg px-2 py-2 text-[11px] font-bold" style={{ color: palette.muted }}>Gói của tôi</button>
+          <button type="button" onClick={() => setView("buy")} className="rounded-lg px-2 py-2 text-[11px] font-bold" style={{ color: palette.muted }}>Mua gói</button>
+          <button type="button" className="rounded-lg px-2 py-2 text-[11px] font-bold" style={{ background: palette.company, color: "#FFFFFF" }}>Yêu cầu PT</button>
+        </div>
+        <div><div className="text-[18px] font-bold text-white">Yêu cầu PT</div><div className="mt-1 text-[12px]" style={{ color: palette.muted }}>Theo dõi các yêu cầu chọn PT đang chờ phản hồi.</div></div>
+        {requests.length > 0 ? requests.map(({ registration, trainer }) => <MobileCard key={registration!.id} accent={palette.amber}><div className="flex items-center gap-3"><Avatar name={trainer!.name} tone={palette.blue} size={42} /><div className="min-w-0 flex-1"><div className="text-[14px] font-bold text-white">{registration!.packageName}</div><div className="mt-1 text-[12px]" style={{ color: palette.muted }}>PT được yêu cầu: {trainer!.name}</div><div className="mt-1 text-[11px] font-semibold" style={{ color: palette.amber }}>Chờ PT phản hồi</div></div></div></MobileCard>) : <MobileCard><div className="text-center text-[13px]" style={{ color: palette.muted }}>Chưa có yêu cầu PT nào.</div></MobileCard>}
+      </div>
+    )
+  }
+
+  if (view === "details" && selectedPackage) {
+    return (
+      <div className="space-y-4">
+        <MobileCard accent={selectedPackage.service === "PT" || selectedPackage.service === "Combo" ? palette.blue : palette.green}><div className="text-[18px] font-bold text-white">{selectedPackage.name}</div><div className="mt-2 text-[13px]" style={{ color: palette.muted }}>{selectedPackage.duration ?? "Theo buổi"} · {selectedPackage.sessions ? `${selectedPackage.sessions} buổi PT` : "Không giới hạn lượt"}</div><div className="mt-3 text-[22px] font-bold" style={{ color: palette.orange }}>{fmtVND(selectedPackage.price)}</div></MobileCard>
+        <MobileCard><div className="text-[13px] font-bold text-white">Quyền lợi gói</div><div className="mt-2 space-y-2 text-[12px]" style={{ color: palette.muted }}><div>✓ Sử dụng tại các chi nhánh áp dụng</div><div>✓ Theo dõi lịch và trạng thái gói trên mobile</div>{(selectedPackage.service === "PT" || selectedPackage.service === "Combo") && <div>✓ Chọn PT phụ trách sau khi thanh toán</div>}</div></MobileCard>
+        <ActionButton block onClick={() => setView("pay")}>Mua gói</ActionButton>
+        <ActionButton block variant="secondary" onClick={() => setView("buy")}>← Danh sách gói</ActionButton>
+      </div>
+    )
+  }
+
+  if (view === "pay" && selectedPackage) {
+    return (
+      <div className="space-y-4">
+        <MobileCard accent={palette.orange}><div className="text-[16px] font-bold text-white">Thanh toán gói</div><div className="mt-2 flex justify-between text-[13px]" style={{ color: palette.muted }}><span>{selectedPackage.name}</span><strong className="text-white">{fmtVND(selectedPackage.price)}</strong></div></MobileCard>
+        <MobileCard><div className="text-[13px] font-bold text-white">Phương thức thanh toán</div><div className="mt-3 grid grid-cols-2 gap-2">{(["Chuyển khoản", "Ví điện tử"] as const).map((method) => <button key={method} type="button" onClick={() => setPaymentMethod(method)} className="rounded-lg border p-3 text-[12px] font-semibold" style={{ borderColor: paymentMethod === method ? palette.green : palette.border, color: paymentMethod === method ? palette.green : palette.muted }}>{method}</button>)}</div><div className="mt-3 rounded-lg p-3 text-[12px]" style={{ background: palette.control, color: palette.muted }}>{paymentMethod === "Chuyển khoản" ? "Tạo QR thanh toán và chờ ngân hàng xác nhận." : "Thanh toán qua ví điện tử liên kết."}</div></MobileCard>
+        <ActionButton block variant="purple" onClick={() => { setMemberPaymentHistory((payments) => [{ id: `PT-MOBILE-${payments.length + 1}`, time: "Vừa xong", member: member.name, ref: selectedPackage.id, method: "Chuyển khoản", amount: selectedPackage.price, status: "pending", by: "Thanh toán mobile", branch: member.branch }, ...payments]); setView(selectedPackage.service === "PT" || selectedPackage.service === "Combo" ? "trainer" : "owned") }}>Thanh toán {fmtVND(selectedPackage.price)}</ActionButton>
+        <ActionButton block variant="secondary" onClick={() => setView("buy")}>← Chọn gói khác</ActionButton>
+      </div>
+    )
+  }
+
+  if (view === "trainer" && selectedPackage) {
+    return (
+      <div className="space-y-4">
+        <MobileCard accent={palette.blue}><div className="text-[16px] font-bold text-white">Chọn PT phụ trách</div><div className="mt-1 text-[12px]" style={{ color: palette.muted }}>Chọn PT để gửi yêu cầu. PT cần phản hồi trước khi bạn có thể đặt lịch.</div></MobileCard>
+        {TRAINERS.filter((trainer) => trainer.status === "active").map((trainer) => <button key={trainer.id} type="button" className="w-full text-left" onClick={() => { onRequestMemberTrainer(selectedRegistrationId, trainer.id); setView("owned") }}><MobileCard><div className="flex items-center gap-3"><Avatar name={trainer.name} tone={palette.blue} size={44} /><div className="min-w-0 flex-1"><div className="truncate text-[14px] font-bold text-white">{trainer.name}</div><div className="text-[11px]" style={{ color: palette.muted }}>{trainer.specialty} · {trainer.branch}</div></div><span className="text-[12px] font-bold" style={{ color: palette.green }}>Gửi yêu cầu</span></div></MobileCard></button>)}
+      </div>
+    )
+  }
+
+  const visiblePackages = pkgs.filter((pkg) => {
+    if (packageStatusFilter === "active") return pkg.status === "active" || pkg.status === "expiring"
+    if (packageStatusFilter === "pending") return pkg.status === "none"
+    return pkg.status === "expired"
+  })
+  const packageStatusTabs: { id: typeof packageStatusFilter; label: string }[] = [
+    { id: "active", label: "Đang sử dụng" },
+    { id: "pending", label: "Chờ xử lý" },
+    { id: "expired", label: "Đã hết hạn" },
+  ]
+
   return (
     <div className="space-y-4">
-      <div className="px-1 text-[12px] font-bold uppercase tracking-wider text-white">
-        Các gói đang sở hữu ({pkgs.length})
+      <div className="grid grid-cols-3 rounded-xl border p-1" style={{ background: palette.control, borderColor: palette.border }}>
+        <button type="button" className="rounded-lg px-2 py-2 text-[11px] font-bold" style={{ background: palette.company, color: "#FFFFFF" }}>Gói của tôi</button>
+        <button type="button" onClick={() => setView("buy")} className="rounded-lg px-2 py-2 text-[11px] font-bold" style={{ color: palette.muted }}>Mua gói</button>
+        <button type="button" onClick={() => setView("requests")} className="rounded-lg px-2 py-2 text-[11px] font-bold" style={{ color: palette.muted }}>Yêu cầu PT</button>
       </div>
-      {pkgs.map((pkg, idx) => (
-        <MobileCard key={idx} accent={pkg.type === "PT" ? palette.blue : palette.green}>
+      <div className="px-1 text-[12px] font-bold uppercase tracking-wider text-white">Gói của tôi ({pkgs.length})</div>
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {packageStatusTabs.map((tab) => {
+          const count = tab.id === "active" ? pkgs.filter((pkg) => pkg.status === "active" || pkg.status === "expiring").length : tab.id === "pending" ? pkgs.filter((pkg) => pkg.status === "none").length : pkgs.filter((pkg) => pkg.status === "expired").length
+          return <button key={tab.id} type="button" onClick={() => setPackageStatusFilter(tab.id)} className="shrink-0 rounded-lg border px-3 py-2 text-[11px] font-semibold" style={{ background: packageStatusFilter === tab.id ? palette.company : palette.control, borderColor: packageStatusFilter === tab.id ? palette.company : palette.border, color: packageStatusFilter === tab.id ? "#FFFFFF" : palette.muted }}>{tab.label} ({count})</button>
+        })}
+      </div>
+      {requestedTrainer && !assignedTrainer && <MobileCard accent={palette.amber}><div className="flex items-start gap-3"><Ic k="clock" size={18} style={{ color: palette.amber }} /><div><div className="text-[13px] font-bold text-white">Yêu cầu PT đang chờ duyệt</div><div className="mt-1 text-[12px]" style={{ color: palette.muted }}>{requestedTrainer.name} · Gói PT 20 buổi</div><div className="mt-1 text-[11px]" style={{ color: palette.dim }}>Bạn sẽ nhận thông báo khi PT phản hồi. Chưa thể đặt lịch trong thời gian chờ duyệt.</div></div></div></MobileCard>}
+      {visiblePackages.length > 0 ? visiblePackages.map((pkg, idx) => {
+        const packageRegistration = memberRegistrations.find((registration) => registration.packageName === pkg.name)
+        const packageAssignedTrainerId = packageRegistration ? memberTrainerAssignments[packageRegistration.id] : undefined
+        const packageAssignedTrainer = packageAssignedTrainerId ? TRAINERS.find((trainer) => trainer.id === packageAssignedTrainerId) : undefined
+        const packageRequestedTrainerId = packageRegistration ? memberTrainerRequests[packageRegistration.id] : undefined
+        const packageRequestedTrainer = packageRequestedTrainerId ? TRAINERS.find((trainer) => trainer.id === packageRequestedTrainerId) : undefined
+        const needsTrainer = pkg.type === "PT" || pkg.type === "Combo"
+        return (
+        <MobileCard key={idx} accent={pkg.type === "PT" || pkg.type === "Combo" ? palette.blue : palette.green}>
           <div className="flex items-start justify-between">
             <div>
               <div className="text-[16px] font-bold text-white">
                 {pkg.name}
               </div>
               <div className="mt-1 text-[13px]" style={{ color: palette.muted }}>
-                {pkg.type === "PT" && pkg.sessionsLeft !== undefined && pkg.sessionsLeft !== null
-                  ? `Còn ${pkg.sessionsLeft} buổi PT · Hạn ${pkg.validUntil}`
-                  : `Hiệu lực đến ${pkg.validUntil}`}
+                {pkg.progress ?? (pkg.type === "PT" && pkg.sessionsLeft !== undefined && pkg.sessionsLeft !== null ? `Còn ${pkg.sessionsLeft} buổi PT` : `Hiệu lực đến ${pkg.validUntil}`)}
               </div>
+              {pkg.status === "active" || pkg.status === "expiring" ? <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ background: palette.control }}><div className="h-full rounded-full" style={{ width: pkg.type === "PT" ? "85%" : pkg.type === "Combo" ? "35%" : "60%", background: pkg.type === "PT" ? palette.blue : palette.green }} /></div> : null}
             </div>
-            <MemberBadge status={pkg.status} />
+            <div className="text-right"><MemberBadge status={pkg.status} />{needsTrainer && <div className="mt-2 text-[11px]" style={{ color: packageAssignedTrainer ? palette.green : packageRequestedTrainer ? palette.amber : palette.muted }}>{packageAssignedTrainer ? `PT: ${packageAssignedTrainer.name}` : packageRequestedTrainer ? `Đang chờ: ${packageRequestedTrainer.name}` : "PT: Chưa chọn"}</div>}</div>
           </div>
+        {needsTrainer && !packageAssignedTrainer && !packageRequestedTrainer && packageRegistration && (
+          <div className="mt-3"><ActionButton block variant="secondary" onClick={() => { setSelectedRegistrationId(packageRegistration.id); setSelectedPackage(PACKAGES.find((item) => item.name === pkg.name) ?? null); setView("trainer") }}>Chọn PT phụ trách</ActionButton></div>
+        )}
         </MobileCard>
-      ))}
-      <div className="grid grid-cols-2 gap-2">
-        <TinyMetric label="Chi nhánh" value={member.branch} />
-        <TinyMetric label="Công nợ" value={fmtVND(member.debt)} />
-      </div>
-
-      {currentPackage && (
-        <MobileCard>
-          <div className="text-[14px] font-bold text-white">Giá tham khảo</div>
-          <div
-            className="mt-1 text-[22px] font-bold"
-            style={{ color: palette.orange }}
-          >
-            {fmtVND(currentPackage.price)}
-          </div>
-          <div className="text-[12px]" style={{ color: palette.dim }}>
-            Cần quầy xác nhận trước khi tạo đăng ký chính thức.
-          </div>
-        </MobileCard>
-      )}
-
-      <ActionButton
-        block
-        icon="refresh"
-        onClick={() => openAction("renewal-request")}
-      >
-        Yêu cầu gia hạn
-      </ActionButton>
+      )}) : <MobileCard><div className="text-center text-[13px]" style={{ color: palette.muted }}>Chưa có gói ở trạng thái này.</div></MobileCard>}
 
       <MobileCard>
-        <div className="flex items-start gap-3">
-          <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-            style={{ background: "rgba(234,179,8,0.14)", color: palette.amber }}
-          >
-            <Ic k="wallet" size={18} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-[14px] font-bold text-white">
-              Chuyển khoản đang chờ xác nhận
-            </div>
-            <div className="mt-1 text-[12px]" style={{ color: palette.muted }}>
-              DK002 · 500.000 đ · chờ IPN/Webhook hợp lệ từ ngân hàng
-            </div>
-            <div className="mt-1 text-[11px]" style={{ color: palette.dim }}>
-              Ảnh chứng từ chỉ là bằng chứng hỗ trợ; phiếu thu xuất hiện sau khi xác nhận.
-            </div>
-          </div>
+        <div className="flex items-center justify-between"><div className="text-[14px] font-bold text-white">Lịch sử thanh toán</div><Ic k="wallet" size={18} style={{ color: palette.green }} /></div>
+        <div className="mt-1 text-[11px]" style={{ color: palette.muted }}>Các giao dịch mua và thanh toán gói của bạn.</div>
+        <div className="mt-3 space-y-2">
+          {memberPaymentHistory.length > 0 ? memberPaymentHistory.map((payment) => {
+            const registration = memberRegistrations.find((item) => item.id === payment.ref)
+            const statusLabel = payment.status === "confirmed" ? "Đã xác nhận" : payment.status === "partial" ? "Thanh toán một phần" : "Đang chờ xác nhận"
+            const statusColor = payment.status === "confirmed" ? palette.green : payment.status === "partial" ? palette.amber : palette.blue
+            return <div key={payment.id} className="rounded-lg border p-3" style={{ borderColor: palette.border, background: palette.panel }}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="font-mono text-[12px] font-bold text-white">{payment.id}</div><div className="mt-1 truncate text-[12px]" style={{ color: palette.muted }}>{registration?.packageName ?? payment.ref} · {payment.time}</div><div className="mt-1 text-[11px]" style={{ color: palette.dim }}>{payment.method}</div></div><div className="text-right"><div className="font-mono text-[13px] font-bold" style={{ color: palette.green }}>{fmtVND(payment.amount)}</div><div className="mt-1 text-[10px] font-semibold" style={{ color: statusColor }}>{statusLabel}</div></div></div></div>
+          }) : <div className="text-center text-[12px]" style={{ color: palette.muted }}>Chưa có giao dịch thanh toán.</div>}
         </div>
       </MobileCard>
-
-      <MobileSection title="Phiếu thu của tôi">
-        {[
-          ["PT00118", "01/07/2026", "3.300.000 đ", "Đã xác nhận"],
-          ["PT00109", "20/05/2026", "500.000 đ", "Đã xác nhận"],
-        ].map(([id, date, amount, status]) => (
-          <div
-            key={id}
-            className="flex items-center justify-between rounded-lg border p-3"
-            style={{
-              borderColor: palette.border,
-              background: palette.panel,
-            }}
-          >
-            <div>
-              <div className="font-mono text-[13px] font-semibold text-white">
-                {id}
-              </div>
-              <div className="text-[12px]" style={{ color: palette.dim }}>
-                {date}
-              </div>
-            </div>
-            <div className="text-right">
-              <div
-                className="font-mono text-[13px] font-bold"
-                style={{ color: palette.green }}
-              >
-                {amount}
-              </div>
-              <div className="text-[11px]" style={{ color: palette.dim }}>
-                {status}
-              </div>
-            </div>
-          </div>
-        ))}
-      </MobileSection>
     </div>
   )
 }
@@ -1651,8 +1750,7 @@ function MemberAccount({
       </MobileCard>
       <PreferenceRow title="Nhận thông báo trong ứng dụng" checked />
       <PreferenceRow title="Nhắc lịch PT trước buổi" checked />
-      <PreferenceRow title="Sinh nhật công khai tại K01" />
-      <PreferenceRow title="Nhận nội dung tiếp thị" />
+
       <ActionButton
         block
         variant="secondary"
