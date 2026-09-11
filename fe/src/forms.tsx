@@ -10,7 +10,7 @@ import {
   TextInput,
   palette,
 } from "./ui"
-import { MEMBERS } from "./data"
+import { MEMBERS, REGISTRATIONS, TRAINERS } from "./data"
 
 export type ActionKind =
   | "member-form"
@@ -36,6 +36,7 @@ export type ActionKind =
   | "contact-log"
   | "branch-form"
   | "account-permissions"
+  | "account-edit"
   | "member-preferences"
   | "device-settings"
   | "policy-settings"
@@ -1011,10 +1012,11 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
     primary: "Gửi duyệt điều chỉnh",
   },
   "trainer-form": {
-    title: "Thêm hồ sơ & khởi tạo tài khoản PT",
+    title: "Thêm hồ sơ PT",
     trace: "W05 · Quản lý Huấn luyện viên",
     intro:
-      "QTV tạo hồ sơ PT và khởi tạo tài khoản liên kết (PENDING_ACTIVATION). PT sẽ tự kích hoạt qua OTP và tạo mật khẩu lần đầu.",
+      "QTV tạo hồ sơ PT. PT tự kích hoạt tài khoản trên ứng dụng Mobile bằng OTP và thiết lập mật khẩu lần đầu.",
+    steps: ["Hồ sơ PT", "Chi nhánh", "Liên hệ", "Kích hoạt Mobile"],
     fields: [
       {
         label: "Họ và tên PT",
@@ -1025,7 +1027,7 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         label: "Số điện thoại (Nhận OTP)",
         required: true,
         placeholder: "0911 111 111",
-        hint: "Dùng để kích hoạt tài khoản PT",
+        hint: "Dùng để PT kích hoạt tài khoản trên ứng dụng Mobile"
       },
       {
         label: "Email liên hệ",
@@ -1059,16 +1061,16 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       },
     ],
     checks: [
-      "Tài khoản được tự động gán ROLE_PT và phạm vi chi nhánh đã chọn.",
-      "Tài khoản mới ở trạng thái PENDING_ACTIVATION.",
-      "PT tự kích hoạt qua OTP và thiết lập mật khẩu cá nhân.",
+      "Hồ sơ PT được tạo với phạm vi chi nhánh đã chọn.",
+      "Không tự động tạo tài khoản khi lưu hồ sơ PT.",
+      "PT tự đăng ký/kích hoạt tài khoản qua OTP và thiết lập mật khẩu trên ứng dụng Mobile.",
     ],
     exceptions: [
       "QTV không được nhập hoặc thiết lập mật khẩu thay cho PT.",
       "PT chưa kích hoạt account không được nhận hội viên mới.",
     ],
-    result: "Đã tạo hồ sơ PT005 thành công! Tài khoản đã được liên kết ở trạng thái PENDING_ACTIVATION.",
-    primary: "Tạo PT & Khởi tạo Account",
+    result: "Đã tạo hồ sơ PT005 thành công! PT có thể kích hoạt tài khoản bằng OTP trên ứng dụng Mobile.",
+    primary: "Tạo hồ sơ PT",
   },
   "work-schedule": {
     title: "Lịch làm việc PT",
@@ -1129,7 +1131,7 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       {
         label: "Hội viên",
         required: true,
-        placeholder: "HV002 · Trần Thị Bình",
+        placeholder: "Tìm theo SĐT hội viên",
       },
       {
         label: "Gói PT sử dụng",
@@ -1140,32 +1142,28 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       {
         label: "Chi nhánh",
         required: true,
-        kind: "select",
-        options: ["Quận 1", "Bình Thạnh"],
+        kind: "readonly",
+        value: "Chi nhánh Quận 1 · theo quầy đang đăng nhập",
       },
       {
-        label: "PT",
+        label: "PT phụ trách",
         required: true,
-        kind: "select",
-        options: ["Nguyễn Thành Long", "Phạm Văn Mạnh", "Lê Thị Ngọc"],
+        kind: "readonly",
+        value: "Tự động theo hội viên và assignment đã ACCEPT",
       },
       {
         label: "Ngày tập",
         required: true,
         kind: "date",
-        placeholder: "09/09/2026",
+        placeholder: "Chọn ngày trên Calendar Picker",
       },
       {
         label: "Khung giờ",
         required: true,
         kind: "select",
-        options: ["09:00 - 10:00", "11:00 - 12:00", "16:00 - 17:00"],
+        options: ["08:00 - 10:00", "10:00 - 12:00", "12:00 - 14:00", "14:00 - 16:00", "16:00 - 18:00"],
       },
-      {
-        label: "Thời lượng",
-        kind: "readonly",
-        value: "60 phút theo cấu hình gói",
-      },
+
       {
         label: "Ghi chú cho buổi",
         kind: "textarea",
@@ -1200,7 +1198,7 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
         label: "Thao tác",
         required: true,
         kind: "select",
-        options: ["Đổi lịch", "Hủy lịch"],
+        options: ["Đổi lịch", "Hủy lịch (CANCELLED · release slot)"],
       },
       { label: "Ngày mới", kind: "date", placeholder: "10/09/2026" },
       {
@@ -1221,12 +1219,13 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
     ],
     checks: [
       "Chỉ thay lịch cũ sau khi chỗ mới đã xác nhận.",
-      "Nếu cập nhật thất bại, lịch cũ vẫn giữ nguyên.",
+      "Hủy lịch chuyển trạng thái sang CANCELLED, ghi audit và release slot; không xóa record lịch sử.",
       "Quá hạn mà thiếu quyền: giải thích và cho liên hệ quầy.",
     ],
     exceptions: [
       "Không trừ buổi khi chỉ đổi lịch trong hạn.",
-      "Hủy yêu cầu gia hạn không hủy đăng ký đã xử lý trước đó.",
+      "Hủy lịch phải ghi người thao tác, thời điểm, lý do và trạng thái trước/sau.",
+      "Không xóa record lịch sử sau khi release slot.",
     ],
     result: "Đã cập nhật lịch. Lịch cũ được thay bằng khung mới đã xác nhận.",
     primary: "Xác nhận thay đổi",
@@ -1266,7 +1265,8 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
     ],
     checks: [
       "Check-in vào gym không tự hoàn tất buổi PT.",
-      "Gửi kết quả lặp lại không trừ buổi thêm lần nữa.",
+      "Chỉ chuyển sang Hoàn thành khi PT và hội viên cùng xác nhận; khi đó trừ đúng 1 buổi.",
+      "Mọi cập nhật kết quả phải ghi audit; gửi lặp lại không trừ buổi thêm lần nữa.",
       "PT chỉ ghi buổi của mình hoặc được phân công.",
     ],
     exceptions: [
@@ -1274,7 +1274,7 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
       "Sửa kết quả đã lưu phải ghi trước/sau và người tác động.",
     ],
     result:
-      "Đã ghi kết quả buổi PT. Số buổi còn lại được cập nhật theo chính sách.",
+      "Đã ghi kết quả buổi PT và audit. Nếu đủ xác nhận kép, booking chuyển Hoàn thành và trừ đúng 1 buổi.",
     primary: "Lưu kết quả",
   },
   "manual-checkin": {
@@ -1556,9 +1556,33 @@ const ACTIONS: Record<ActionKind, ActionConfig> = {
     result: "Đã cập nhật thông tin cá nhân và tùy chọn hệ thống.",
     primary: "Lưu thay đổi",
   },
+  "account-edit": {
+    title: "Sửa tài khoản",
+    trace: "UX-F14-EDIT · W13 · QTV",
+    intro: "Chỉ cập nhật thông tin ACCOUNT; hồ sơ nghiệp vụ được sửa ở màn hình riêng.",
+    steps: ["Tài khoản", "Trạng thái", "Vai trò", "Phạm vi"],
+    fields: [
+      { label: "SĐT đăng nhập", kind: "readonly", value: "0909 123 456", hint: "Không đổi trực tiếp tại form này." },
+      { label: "Trạng thái tài khoản", required: true, kind: "select", options: ["ACTIVE", "LOCKED", "INACTIVE", "PENDING_ACTIVATION"] },
+      { label: "Vai trò", required: true, kind: "select", options: ["MEMBER · Hội viên", "PT · Huấn luyện viên", "RECEPTIONIST · Lễ tân", "QTV · Quản trị viên"], hint: "Cho phép chọn nhiều vai trò; bản prototype hiển thị các role đang gắn." },
+      { label: "Phạm vi chi nhánh", kind: "select", options: ["Quận 1", "Bình Thạnh", "Quận 1 + Bình Thạnh", "Toàn hệ thống"], hint: "Chỉ áp dụng với role nhân viên: PT, Lễ tân, QTV." },
+
+    ],
+    checks: [
+      "SĐT đăng nhập chỉ đọc; muốn đổi phải dùng flow Đổi SĐT với kiểm tra duy nhất và OTP.",
+      "Không chỉnh họ tên, email, ngày sinh, chuyên môn PT, gói tập, lịch, số buổi hoặc password tại đây.",
+      "Thay đổi role, branch scope hoặc trạng thái phải ghi lý do và audit.",
+    ],
+    exceptions: [
+      "Không cho gán branch scope cho role MEMBER.",
+      "Không khóa tài khoản quản trị cuối cùng.",
+    ],
+    result: "Đã cập nhật ACCOUNT và ghi audit thay đổi trạng thái, vai trò hoặc phạm vi.",
+    primary: "Lưu thay đổi",
+  },
   "account-permissions": {
     title: "Tài khoản và phân quyền",
-    trace: "UX-F14 · W12 · quản lý tài khoản",
+    trace: "UX-F14 · W13 · quản lý tài khoản",
     intro:
       "Cấp đúng người, đúng vai trò, đúng phạm vi; tránh lộ quyền quản trị.",
     steps: ["Tài khoản", "Liên kết", "Vai trò", "Xem trước quyền"],
@@ -2174,18 +2198,27 @@ const MOCK_SYSTEM_ACCOUNTS = [
 export function ActionModal({
   action,
   onClose,
+  scheduleContext,
 }: {
   action: ActionKind | null
   onClose: () => void
+  scheduleContext?: {
+    time?: string
+    trainerId?: string
+    date?: string
+  }
 }) {
   const [phase, setPhase] = useState<"idle" | "saving" | "success">("idle")
   const [pkgType, setPkgType] = useState<string>("Gym theo thời gian")
 
   // Controlled states for member form duplicate SĐT check
   const [memberPhoneInput, setMemberPhoneInput] = useState<string>("")
+  const [bookingMemberId, setBookingMemberId] = useState<string>("")
+  const [bookingPackageId, setBookingPackageId] = useState<string>("")
 
   // Controlled states for account-permissions
   const [accountViewMode, setAccountViewMode] = useState<"list" | "edit">("list")
+  const [accountRoles, setAccountRoles] = useState<string[]>(["MEMBER"])
   const [accountQuery, setAccountQuery] = useState<string>("")
   const [accountRoleFilter, setAccountRoleFilter] = useState<string>("Tất cả")
   const [accountStatusFilter, setAccountStatusFilter] = useState<string>("Tất cả")
@@ -2232,6 +2265,37 @@ export function ActionModal({
   const isMemberForm = action === "member-create" || action === "member-update" || action === "member-form"
   const activePhoneStr = memberPhoneInput !== "" ? memberPhoneInput : (action === "member-update" ? "0901 234 567" : "")
   const cleanPhoneInput = activePhoneStr.replace(/\D/g, "")
+  const bookingMemberQuery = memberPhoneInput.trim().toLowerCase()
+  const bookingMemberResults = action === "schedule-booking" && bookingMemberQuery
+    ? MEMBERS.filter((member) => {
+        const normalizedPhone = member.phone.replace(/\D/g, "")
+        return normalizedPhone.includes(bookingMemberQuery.replace(/\D/g, ""))
+      }).slice(0, 5)
+    : []
+  const selectedBookingMember = MEMBERS.find((member) => member.id === bookingMemberId)
+  const validBookingPackages = selectedBookingMember
+    ? REGISTRATIONS.filter((registration) =>
+        registration.memberId === selectedBookingMember.id &&
+        registration.status === "ACTIVE" &&
+        registration.paid >= registration.total &&
+        Boolean(registration.pt) &&
+        registration.pt !== "Chưa phân công" &&
+        registration.to >= "11/09/2026" &&
+        (selectedBookingMember.sessionsLeft ?? 0) > 0,
+      )
+    : []
+  const selectedBookingPackage = validBookingPackages.find((registration) => registration.id === bookingPackageId) ??
+    (validBookingPackages.length === 1 ? validBookingPackages[0] : undefined)
+  const bookingAssignedTrainer = selectedBookingPackage?.pt
+  const bookingTrainer = scheduleContext?.trainerId
+    ? TRAINERS.find((trainer) => trainer.id === scheduleContext.trainerId)
+    : undefined
+  const slotTrainerMismatch = Boolean(
+    action === "schedule-booking" &&
+      scheduleContext?.trainerId &&
+      selectedBookingPackage &&
+      bookingAssignedTrainer !== scheduleContext.trainerId,
+  )
   const duplicateMemberMatch = isMemberForm && cleanPhoneInput.length >= 8
     ? MEMBERS.find((m) => {
         const existingClean = m.phone.replace(/\D/g, "")
@@ -2277,10 +2341,21 @@ export function ActionModal({
   const debtMax = 500000
   const parsedAmount = parseInt(amountInput.replace(/\D/g, "") || "0", 10)
   const isAmountOver = parsedAmount > debtMax
+  const toDateKey = (date: string) => {
+    const [day, month, year] = date.split("/")
+    return `${year}-${month}-${day}`
+  }
+  const isPastBookingDate = Boolean(
+    action === "schedule-booking" &&
+      scheduleContext?.date &&
+      toDateKey(scheduleContext.date) < toDateKey("11/09/2026"),
+  )
 
   const submit = () => {
     if (isPaymentForm && isAmountOver) return
     if (isMemberForm && duplicateMemberMatch) return
+    if (action === "schedule-booking" && (!selectedBookingMember || !selectedBookingPackage || slotTrainerMismatch || isPastBookingDate)) return
+    if (isPastBookingDate) return
     setPhase("saving")
     window.setTimeout(() => setPhase("success"), 500)
   }
@@ -2708,6 +2783,43 @@ export function ActionModal({
                   />
                 </Field>
               </div>
+            ) : action === "account-edit" ? (
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="SĐT đăng nhập" hint="SĐT dùng đăng nhập là duy nhất và không đổi trực tiếp tại đây.">
+                    <TextInput value="0909 123 456" readOnly />
+                  </Field>
+                  <Field label="Trạng thái tài khoản" required>
+                    <SelectInput options={["ACTIVE", "LOCKED", "INACTIVE", "PENDING_ACTIVATION"]} defaultValue="ACTIVE" />
+                  </Field>
+                </div>
+                <Field label="Vai trò" required hint="Một tài khoản có thể có nhiều vai trò; quyền không tự cộng gộp ngoài phạm vi được cấp.">
+                  <div className="flex flex-wrap gap-2 rounded-lg border p-3" style={{ background: palette.control, borderColor: palette.border }}>
+                    {["MEMBER", "PT", "RECEPTIONIST", "QTV"].map((role) => {
+                      const selected = accountRoles.includes(role)
+                      return (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => setAccountRoles((current) => selected ? current.filter((item) => item !== role) : [...current, role])}
+                          className="rounded-full border px-3 py-1.5 text-[12px] font-semibold transition"
+                          style={{
+                            background: selected ? "rgba(22,163,74,0.14)" : "transparent",
+                            borderColor: selected ? "rgba(22,163,74,0.45)" : palette.border,
+                            color: selected ? palette.green : palette.muted,
+                          }}
+                        >
+                          {selected ? `${role} ×` : `+ ${role}`}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </Field>
+                <Field label="Phạm vi chi nhánh" hint="Chỉ áp dụng với role nhân viên: PT, Lễ tân, QTV.">
+                  <SelectInput options={["Quận 1", "Bình Thạnh", "Quận 1 + Bình Thạnh", "Toàn hệ thống"]} defaultValue="Quận 1" />
+                </Field>
+
+              </div>
             ) : action === "account-permissions" ? (
               <div className="space-y-4">
                 {accountViewMode === "list" ? (
@@ -2738,7 +2850,7 @@ export function ActionModal({
                       </div>
                     </div>
 
-                    {/* Header Controls: Search, Filters & Add New Button */}
+                    {/* Header Controls: Search and filters */}
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3" style={{ borderColor: palette.border }}>
                       <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
                         <div className="relative flex-1 min-w-[180px]">
@@ -2809,24 +2921,6 @@ export function ActionModal({
                         </select>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedAccount({
-                            phone: "",
-                            name: "",
-                            role: "Lễ tân",
-                            branch: "Quận 1",
-                            status: "PENDING_ACTIVATION",
-                            profile: "",
-                          })
-                          setAccountViewMode("edit")
-                        }}
-                        className="rounded-xl bg-[#10B981] hover:bg-[#059669] px-3.5 py-2 text-[13px] font-bold text-white transition flex items-center gap-1.5 cursor-pointer shadow-md"
-                      >
-                        <Ic k="plus" size={16} />
-                        <span>Cấp / Tạo tài khoản mới</span>
-                      </button>
                     </div>
 
                     {/* Account List Table */}
@@ -2927,7 +3021,7 @@ export function ActionModal({
                                     color: palette.text,
                                   }}
                                 >
-                                  Phân quyền / Sửa
+                                  Sửa
                                 </button>
                               </td>
                             </tr>
@@ -2937,7 +3031,7 @@ export function ActionModal({
                     </div>
                   </div>
                 ) : (
-                  /* Account Editing / Creation Sub-Form */
+                  /* Account editing sub-form */
                   <div className="space-y-4">
                     <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: palette.border }}>
                       <div className="flex items-center gap-2">
@@ -2949,7 +3043,7 @@ export function ActionModal({
                           ← Quay lại danh sách tài khoản
                         </button>
                         <span className="text-[14px] font-bold text-white">
-                          {selectedAccount?.phone ? `Cập nhật tài khoản: ${selectedAccount.name} (${selectedAccount.phone})` : "Tạo mới & Cấp tài khoản người dùng"}
+                          Cập nhật tài khoản: {selectedAccount?.name} ({selectedAccount?.phone})
                         </span>
                       </div>
                     </div>
@@ -3013,7 +3107,50 @@ export function ActionModal({
                         required={field.required}
                         hint={field.hint}
                       >
-                        {field.label === "Loại gói" ? (
+                        {action === "schedule-booking" && field.label === "Hội viên" ? (
+                          <div className="relative">
+                            <TextInput
+                              placeholder="Tìm theo SĐT hội viên"
+                              value={selectedBookingMember ? `${selectedBookingMember.id} - ${selectedBookingMember.name}` : memberPhoneInput}
+                              onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                setBookingMemberId("")
+                                setMemberPhoneInput(event.target.value)
+                              }}
+                            />
+                            {!selectedBookingMember && bookingMemberQuery && (
+                              <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-lg border shadow-lg" style={{ background: palette.panel, borderColor: palette.border }}>
+                                {bookingMemberResults.map((member) => (
+                                  <button
+                                    key={member.id}
+                                    type="button"
+                                    className="block w-full px-3 py-2 text-left text-[12px] hover:bg-emerald-500/10"
+                                    style={{ color: palette.text }}
+                                    onClick={() => {
+                                      setBookingMemberId(member.id)
+                                      setMemberPhoneInput(member.phone)
+                                    }}
+                                  >
+                                    {member.id} - {member.name} · {member.phone}
+                                  </button>
+                                ))}
+                                {bookingMemberResults.length === 0 && <div className="px-3 py-2 text-[12px]" style={{ color: palette.muted }}>Không tìm thấy hội viên theo SĐT.</div>}
+                              </div>
+                            )}
+                            {selectedBookingMember && validBookingPackages.length === 0 && <div className="mt-1 text-[11px] font-semibold" style={{ color: palette.red }}>Hội viên không có gói PT/Combo hợp lệ còn buổi.</div>}
+                            {slotTrainerMismatch && <div className="mt-1 text-[11px] font-semibold" style={{ color: palette.red }}>Gói đang chọn thuộc {bookingAssignedTrainer}; không thể đặt vào slot của PT này.</div>}
+                          </div>
+                        ) : action === "schedule-booking" && field.label === "Gói PT sử dụng" ? (
+                          <SelectInput
+                            options={validBookingPackages.length > 0 ? validBookingPackages.map((registration) => `${registration.id} · ${registration.packageName} · còn buổi`) : ["Chưa có gói PT hợp lệ"]}
+                            defaultValue={selectedBookingPackage ? `${selectedBookingPackage.id} · ${selectedBookingPackage.packageName} · còn buổi` : undefined}
+                            onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setBookingPackageId(event.target.value.split(" · ")[0])}
+                          />
+                        ) : action === "schedule-booking" && (field.label === "Chi nhánh" || field.label === "PT phụ trách") ? (
+                          <TextInput
+                            value={field.label === "Chi nhánh" ? (scheduleContext?.trainerId ? "Chi nhánh Quận 1 · theo slot" : "Chi nhánh Quận 1 · theo quầy đang đăng nhập") : (bookingTrainer ? `${bookingTrainer.name} (${bookingTrainer.id}) · theo slot` : "Tự động theo assignment đã ACCEPT")}
+                            readOnly
+                          />
+                        ) : field.label === "Loại gói" ? (
                           <SelectInput
                             options={field.options ?? []}
                             defaultValue={field.value ?? pkgType}
@@ -3032,6 +3169,20 @@ export function ActionModal({
                               </div>
                             )}
                           </>
+                        ) : action === "schedule-booking" && field.label === "Ngày tập" && scheduleContext?.date ? (
+                          <div className="relative">
+                            <input
+                              type="date"
+                              value={scheduleContext.date.split("/").reverse().join("-")}
+                              readOnly
+                              aria-label="Ngày tập đã chọn"
+                              className="h-10 w-full rounded-lg border px-3 pr-10 text-[13px] outline-none"
+                              style={{ background: palette.control, borderColor: palette.border, color: palette.text }}
+                            />
+                            <Ic k="calendar" cls="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" style={{ color: palette.muted }} />
+                          </div>
+                        ) : action === "schedule-booking" && field.label === "Khung giờ" && scheduleContext?.time ? (
+                          <TextInput value={scheduleContext.time} readOnly />
                         ) : (
                           renderField(field)
                         )}
@@ -3047,17 +3198,17 @@ export function ActionModal({
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-[13px] font-bold text-white flex items-center gap-1.5">
-                        🔑 Tự động tạo & liên kết Tài khoản PT (Account)
+                        📱 PT tự kích hoạt tài khoản trên Mobile
                       </span>
-                      <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                        ⏳ PENDING_ACTIVATION
+                      <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        OTP
                       </span>
                     </div>
                     <p className="text-[12px] leading-relaxed text-gray-300">
-                      🔒 <strong>QTV không nhập mật khẩu:</strong> Hệ thống tự động khởi tạo tài khoản gán quyền <code>ROLE_PT</code> và gán phạm vi chi nhánh đã chọn.
+                      QTV chỉ tạo hồ sơ PT và lưu số điện thoại liên hệ. Không tạo tài khoản hoặc đặt mật khẩu tại đây.
                     </p>
                     <p className="text-[12px] leading-relaxed text-gray-400">
-                      📱 PT sẽ nhận mã OTP kích hoạt qua SĐT/Email và tự đăng nhập, tạo mật khẩu cá nhân lần đầu trên ứng dụng Mobile.
+                      PT dùng số điện thoại này để đăng ký/kích hoạt tài khoản, xác minh OTP và tạo mật khẩu cá nhân trên ứng dụng Mobile.
                     </p>
                   </div>
                 )}
@@ -3081,7 +3232,7 @@ export function ActionModal({
             ) : (
               <ActionButton
                 type="submit"
-                disabled={phase === "saving" || (isPaymentForm && isAmountOver) || (isMemberForm && !!duplicateMemberMatch)}
+                disabled={phase === "saving" || (isPaymentForm && isAmountOver) || (isMemberForm && !!duplicateMemberMatch) || isPastBookingDate || (action === "schedule-booking" && (!selectedBookingMember || !selectedBookingPackage || slotTrainerMismatch))}
                 variant="purple"
               >
                 {phase === "saving"

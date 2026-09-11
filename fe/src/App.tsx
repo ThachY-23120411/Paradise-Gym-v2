@@ -13,7 +13,19 @@ export default function App() {
   const [surface, setSurface] = useState<AppSurface>("web-admin")
   const [theme, setTheme] = useState<ThemeMode>(getInitialTheme)
   const [action, setAction] = useState<ActionKind | null>(null)
-  const openAction = (kind: ActionKind) => setAction(kind)
+  const [scheduleContext, setScheduleContext] = useState<{
+    time?: string
+    trainerId?: string
+    date?: string
+  }>({})
+  const openAction = (kind: ActionKind) => {
+    setScheduleContext({})
+    setAction(kind)
+  }
+  const openScheduleBooking = (context?: { time?: string; trainerId?: string; date?: string }) => {
+    setScheduleContext(context ?? {})
+    setAction("schedule-booking")
+  }
   const isMobile = surface.startsWith("mobile")
 
   useEffect(() => {
@@ -38,9 +50,10 @@ export default function App() {
           onSurfaceChange={setSurface}
           onThemeChange={setTheme}
           openAction={openAction}
+          openScheduleBooking={openScheduleBooking}
         />
       )}
-      <ActionModal action={action} onClose={() => setAction(null)} />
+      <ActionModal action={action} onClose={() => setAction(null)} scheduleContext={scheduleContext} />
     </>
   )
 }

@@ -185,7 +185,7 @@ export const REGISTRATIONS: Registration[] = [
 ]
 export type PaymentStatus = "confirmed" | "pending" | "partial"
 export type CheckResult = "ok" | "expiring" | "expired" | "manual" | "unknown" | "offline"
-export type SessionStatus = "done" | "ongoing" | "upcoming" | "empty" | "cancelled"
+export type SessionStatus = "done" | "awaiting_confirmation" | "ongoing" | "upcoming" | "empty" | "cancelled"
 export type CareStatus = "pending" | "sent" | "failed" | "followup"
 
 export interface MemberPackage {
@@ -295,6 +295,8 @@ export interface Session {
   branch: string
   status: SessionStatus
   note?: string
+  cancelledAt?: string
+  auditNote?: string
 }
 
 export interface CareItem {
@@ -970,7 +972,8 @@ export const SESSIONS: Session[] = [
     member: "Trần Thị Bình",
     packageName: "PT 20 buổi",
     branch: "Quận 1",
-    status: "ongoing",
+    status: "awaiting_confirmation",
+    auditNote: "Chờ PT và hội viên cùng xác nhận buổi đã diễn ra.",
   },
   {
     id: "LICH-004",
@@ -1025,6 +1028,98 @@ export const SESSIONS: Session[] = [
     trainer: "Phạm Văn Mạnh",
     branch: "Quận 1",
     status: "empty",
+  },
+  {
+    id: "LICH-015",
+    date: "11/09/2026",
+    time: "10:00",
+    trainerId: "PT002",
+    trainer: "Phạm Văn Mạnh",
+    memberId: "HV012",
+    member: "Đinh Thị Linh",
+    packageName: "PT 20 buổi",
+    branch: "Quận 1",
+    status: "upcoming",
+    auditNote: "Booking đã qua giờ 10:00–12:00; chờ xác nhận hoàn thành.",
+  },
+  {
+    id: "LICH-012",
+    date: "12/09/2026",
+    time: "08:00",
+    trainerId: "PT002",
+    trainer: "Phạm Văn Mạnh",
+    memberId: "HV001",
+    member: "Nguyễn Văn An",
+    packageName: "PT 10 buổi",
+    branch: "Quận 1",
+    status: "upcoming",
+    auditNote: "Booking còn hiệu lực; đã qua giờ tập, chờ xác nhận hoàn thành.",
+  },
+  {
+    id: "LICH-013",
+    date: "12/09/2026",
+    time: "12:00",
+    trainerId: "PT002",
+    trainer: "Phạm Văn Mạnh",
+    memberId: "HV002",
+    member: "Trần Thị Bình",
+    packageName: "PT 20 buổi",
+    branch: "Quận 1",
+    status: "awaiting_confirmation",
+    auditNote: "Chờ PT và hội viên cùng xác nhận sau buổi tập.",
+  },
+  {
+    id: "LICH-014",
+    date: "12/09/2026",
+    time: "16:00",
+    trainerId: "PT002",
+    trainer: "Phạm Văn Mạnh",
+    memberId: "HV008",
+    member: "Bùi Thị Hoa",
+    packageName: "PT 10 buổi",
+    branch: "Quận 1",
+    status: "done",
+    auditNote: "Đã xác nhận kép và trừ 1 buổi.",
+  },
+  {
+    id: "LICH-009",
+    date: "14/08/2026",
+    time: "08:00",
+    trainerId: "PT002",
+    trainer: "Phạm Văn Mạnh",
+    memberId: "HV008",
+    member: "Bùi Thị Hoa",
+    packageName: "PT 10 buổi",
+    branch: "Quận 1",
+    status: "done",
+    note: "Đã xác nhận đủ hai phía.",
+  },
+  {
+    id: "LICH-010",
+    date: "14/08/2026",
+    time: "12:00",
+    trainerId: "PT002",
+    trainer: "Phạm Văn Mạnh",
+    memberId: "HV012",
+    member: "Đinh Thị Linh",
+    packageName: "PT 20 buổi",
+    branch: "Quận 1",
+    status: "awaiting_confirmation",
+    auditNote: "Chờ PT và hội viên cùng xác nhận buổi đã diễn ra.",
+  },
+  {
+    id: "LICH-011",
+    date: "14/08/2026",
+    time: "16:00",
+    trainerId: "PT002",
+    trainer: "Phạm Văn Mạnh",
+    memberId: "HV014",
+    member: "Vũ Hoàng Nam",
+    packageName: "PT 10 buổi",
+    branch: "Quận 1",
+    status: "cancelled",
+    cancelledAt: "13/08/2026 16:20",
+    auditNote: "Hủy trước hạn 12 giờ; slot đã được release.",
   },
 ]
 

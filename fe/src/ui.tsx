@@ -379,7 +379,8 @@ export function CheckBadge({ result }: { result: CheckResult }) {
 
 export function SessionBadge({ status }: { status: SessionStatus }) {
   const map: Record<SessionStatus, { label: string; tone: Tone }> = {
-    done: { label: "Đã ghi nhận", tone: "green" },
+    done: { label: "Hoàn thành", tone: "green" },
+    awaiting_confirmation: { label: "Chờ xác nhận hoàn thành", tone: "amber" },
     ongoing: { label: "Đang diễn ra", tone: "amber" },
     upcoming: { label: "Sắp tới", tone: "blue" },
     empty: { label: "Trống", tone: "slate" },

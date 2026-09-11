@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from "react"
-import type { AppSurface, MobileRole, Session, ThemeMode } from "./data"
+import type { AppSurface, GymPackage, MobileRole, Session, ThemeMode } from "./data"
 import {
   CARE_ITEMS,
   MEMBERS,
   PACKAGES,
+  REGISTRATIONS,
   SESSIONS,
   SHORT_TODAY,
   TODAY_LABEL,
@@ -93,6 +94,9 @@ export function MobileShell({
     receptionist: true,
     trainer: true,
     member: false,
+  })
+  const [memberTrainerAssignments, setMemberTrainerAssignments] = useState<Record<string, string>>({
+    HV002: "PT001",
   })
 
   const activeTab = tabs[role]
@@ -198,6 +202,8 @@ export function MobileShell({
               role={role}
               tab={activeTab}
               openAction={openAction}
+              memberTrainerAssignments={memberTrainerAssignments}
+              onAssignMemberTrainer={(registrationId, trainerId) => setMemberTrainerAssignments((prev) => ({ ...prev, [registrationId]: trainerId }))}
               onLogout={() => setIsLoggedIn((prev) => ({ ...prev, member: false }))}
             />
           )}
@@ -244,18 +250,22 @@ function MobileContent({
   role,
   tab,
   openAction,
+  memberTrainerAssignments,
+  onAssignMemberTrainer,
   onLogout,
 }: {
   role: MobileRole
   tab: string
   openAction: (kind: ActionKind) => void
+  memberTrainerAssignments: Record<string, string>
+  onAssignMemberTrainer: (registrationId: string, trainerId: string) => void
   onLogout?: () => void
 }) {
   if (role === "receptionist")
     return <ReceptionistMobile tab={tab} openAction={openAction} />
   if (role === "trainer")
     return <TrainerMobile tab={tab} openAction={openAction} />
-  return <MemberMobile tab={tab} openAction={openAction} onLogout={onLogout} />
+  return <MemberMobile tab={tab} openAction={openAction} memberTrainerAssignments={memberTrainerAssignments} onAssignMemberTrainer={onAssignMemberTrainer} onLogout={onLogout} />
 }
 
 function ReceptionistMobile({
@@ -481,15 +491,18 @@ function MobileMembers({
 function MobileSchedule({
   openAction,
   memberView = false,
+  assignedTrainerId,
 }: {
   openAction: (kind: ActionKind) => void
   memberView?: boolean
+  assignedTrainerId?: string
 }) {
   const sessions = memberView
     ? SESSIONS.filter(
         (session) => session.memberId === "HV002" || session.status === "empty",
       )
     : SESSIONS
+  const trainer = assignedTrainerId ? TRAINERS.find((item) => item.id === assignedTrainerId) : undefined
 
   return (
     <div className="space-y-4">
@@ -513,11 +526,19 @@ function MobileSchedule({
           </button>
         ))}
       </div>
-      <ActionButton
-        block
-        icon="plus"
-        onClick={() => openAction("schedule-booking")}
-      >
+      {memberView && trainer ? (
+        <MobileCard accent={palette.blue}>
+          <div className="flex items-center gap-3">
+            <Avatar name={trainer.name} tone={palette.blue} size={42} />
+            <div className="min-w-0 flex-1">
+              <div className="text-[12px]" style={{ color: palette.dim }}>PT phụ trách</div>
+              <div className="truncate text-[14px] font-bold text-white">{trainer.name}</div>
+              <div className="text-[11px]" style={{ color: palette.muted }}>{trainer.specialty} · Lịch riêng của PT</div>
+            </div>
+          </div>
+        </MobileCard>
+      ) : null}
+      <ActionButton block icon="plus" onClick={() => openAction("schedule-booking")}>
         Đặt lịch PT
       </ActionButton>
       <MobileSection title={memberView ? "Lịch của tôi" : "Lịch trong ngày"}>
@@ -1372,15 +1393,21 @@ export function MemberAuthFlow({
 function MemberMobile({
   tab,
   openAction,
+  memberTrainerAssignments,
+  onAssignMemberTrainer,
   onLogout,
 }: {
   tab: string
   openAction: (kind: ActionKind) => void
+  memberTrainerAssignments: Record<string, string>
+  onAssignMemberTrainer: (registrationId: string, trainerId: string) => void
   onLogout?: () => void
 }) {
+  const memberRegistration = REGISTRATIONS.find((registration) => registration.memberId === "HV002")
+  const assignedTrainerId = memberRegistration ? memberTrainerAssignments[memberRegistration.id] : undefined
   if (tab === "HV02")
-    return <MobileSchedule openAction={openAction} memberView />
-  if (tab === "HV03") return <MemberPackages openAction={openAction} />
+    return <MobileSchedule openAction={openAction} memberView assignedTrainerId={assignedTrainerId} />
+  if (tab === "HV03") return <MemberPackages openAction={openAction} memberTrainerAssignments={memberTrainerAssignments} onAssignMemberTrainer={onAssignMemberTrainer} />
   if (tab === "HV04") return <MemberAccount openAction={openAction} onLogout={onLogout} />
 
   const member = MEMBERS[1]
@@ -1637,7 +1664,7 @@ function MemberAccount({
       {onLogout && (
         <ActionButton
           block
-          variant="red"
+          variant="danger"
           icon="logout"
           onClick={onLogout}
         >

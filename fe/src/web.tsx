@@ -7,6 +7,7 @@ import type {
   MenuId,
   Registration,
   RegistrationStatus,
+  Session,
   ThemeMode,
   WebRole,
 } from "./data"
@@ -54,6 +55,7 @@ type ScreenProps = {
   role: WebRole
   branch: string
   openAction: (kind: ActionKind) => void
+  openScheduleBooking?: (context?: { time?: string; trainerId?: string; date?: string }) => void
   onNavigateToSchedule?: (ptId: string) => void
   selectedPtIdForSchedule?: string | null
 }
@@ -150,12 +152,14 @@ export function WebShell({
   onSurfaceChange,
   onThemeChange,
   openAction,
+  openScheduleBooking,
 }: {
   surface: AppSurface
   theme: ThemeMode
   onSurfaceChange: (surface: AppSurface) => void
   onThemeChange: (theme: ThemeMode) => void
   openAction: (kind: ActionKind) => void
+  openScheduleBooking?: (context?: { time?: string; trainerId?: string; date?: string }) => void
 }) {
   const role: WebRole =
     surface === "web-receptionist" ? "receptionist" : "admin"
@@ -205,6 +209,7 @@ export function WebShell({
             role={role}
             branch={branch}
             openAction={openAction}
+            openScheduleBooking={openScheduleBooking}
             onNavigateToSchedule={(ptId) => {
               setSelectedPtIdForSchedule(ptId)
               setActiveMenu("W06")
@@ -570,9 +575,6 @@ function AccountPermissionsView({ openAction }: ScreenProps) {
             </select>
           </div>
 
-          <ActionButton icon="plus" onClick={() => openAction("account-permissions")}>
-            Cấp / Tạo tài khoản mới
-          </ActionButton>
         </div>
 
         {/* Account Table */}
@@ -601,19 +603,24 @@ function AccountPermissionsView({ openAction }: ScreenProps) {
                     )}
                   </td>
                   <td className="py-3 px-3">
-                    <Pill
-                      tone={
-                        acc.role.includes("QTV")
-                          ? "red"
-                          : acc.role.includes("Lễ tân")
-                          ? "blue"
-                          : acc.role.includes("PT")
-                          ? "purple"
-                          : "green"
-                      }
-                    >
-                      {acc.role}
-                    </Pill>
+                    <div className="flex max-w-[190px] flex-wrap gap-1.5">
+                      {acc.role.split(/\s*[,|+]\s*/).filter(Boolean).map((role) => (
+                        <Pill
+                          key={role}
+                          tone={
+                            role.includes("QTV")
+                              ? "red"
+                              : role.includes("Lễ tân") || role.includes("RECEPTIONIST")
+                              ? "blue"
+                              : role.includes("PT")
+                              ? "purple"
+                              : "green"
+                          }
+                        >
+                          {role.trim()}
+                        </Pill>
+                      ))}
+                    </div>
                   </td>
                   <td className="py-3 px-3" style={{ color: palette.muted }}>{acc.branch}</td>
                   <td className="py-3 px-3">
@@ -624,16 +631,16 @@ function AccountPermissionsView({ openAction }: ScreenProps) {
                     ) : acc.status === "LOCKED" ? (
                       <Pill tone="red">Đã khóa</Pill>
                     ) : (
-                      <Pill tone="faint">Ngừng sử dụng</Pill>
+                      <Pill tone="slate">Ngừng sử dụng</Pill>
                     )}
                   </td>
                   <td className="py-3 px-3 text-right">
                     <ActionButton
                       variant="secondary"
                       icon="edit"
-                      onClick={() => openAction("account-permissions")}
+                      onClick={() => openAction("account-edit")}
                     >
-                      Phân quyền / Sửa
+                      Sửa
                     </ActionButton>
                   </td>
                 </tr>
@@ -2176,7 +2183,6 @@ function TrainersView({ openAction, onNavigateToSchedule }: ScreenProps) {
                     </div>
                     <div className="flex gap-2 pt-1 border-t" style={{ borderColor: palette.border }}>
                       <ActionButton
-                        size="small"
                         variant="purple"
                         block
                         onClick={() => alert(`Đã chấp nhận (ACCEPT) yêu cầu của hội viên ${req.memberName}!`)}
@@ -2184,7 +2190,6 @@ function TrainersView({ openAction, onNavigateToSchedule }: ScreenProps) {
                         ✓ Accept
                       </ActionButton>
                       <ActionButton
-                        size="small"
                         variant="secondary"
                         block
                         onClick={() => alert(`Đã từ chối (REJECT) yêu cầu của hội viên ${req.memberName}!`)}
@@ -2233,166 +2238,329 @@ function TrainersView({ openAction, onNavigateToSchedule }: ScreenProps) {
   )
 }
 
-function ScheduleView({ openAction, selectedPtIdForSchedule }: ScreenProps) {
-  const [ptFilter, setPtFilter] = useState<string>(selectedPtIdForSchedule || "ALL")
+function ScheduleView({ openAction, openScheduleBooking, selectedPtIdForSchedule }: ScreenProps) {
+  const [ptQuery, setPtQuery] = useState("")
+  const [ptFilter, setPtFilter] = useState<string>(selectedPtIdForSchedule || "")
+  const [viewDate, setViewDate] = useState("07/09/2026")
+  const [calendarMonth, setCalendarMonth] = useState(8)
+  const [calendarYear, setCalendarYear] = useState(2026)
+  const [sessionOverrides, setSessionOverrides] = useState<Record<string, Session["status"]>>({})
+  const todayDate = "11/09/2026"
+  const toDateKey = (date: string) => {
+    const [day, month, year] = date.split("/")
+    return `${year}-${month}-${day}`
+  }
+  const isPastDate = toDateKey(viewDate) < toDateKey(todayDate)
+  const monthLabel = new Date(calendarYear, calendarMonth, 1).toLocaleDateString("vi-VN", { month: "long", year: "numeric" })
+  const firstWeekday = new Date(calendarYear, calendarMonth, 1).getDay()
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate()
+  const calendarCells = Array.from({ length: firstWeekday + daysInMonth }, (_, index) =>
+    index < firstWeekday ? null : index - firstWeekday + 1,
+  )
 
-  const hours = [
-    "06:00",
-    "07:00",
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00",
-    "18:00",
-    "19:00",
-  ]
-  const trainers = TRAINERS.filter((trainer) => {
-    if (trainer.status !== "active") return false
-    if (ptFilter !== "ALL" && trainer.id !== ptFilter) return false
-    return true
+  const workingHours = ["08:00", "10:00", "12:00", "14:00", "16:00"]
+  const slotEndTimes: Record<string, string> = {
+    "08:00": "10:00",
+    "10:00": "12:00",
+    "12:00": "14:00",
+    "14:00": "16:00",
+    "16:00": "18:00",
+  }
+  const availableTrainers = TRAINERS.filter(
+    (trainer) => trainer.status === "active",
+  )
+  const matchedTrainers = availableTrainers.filter((trainer) => {
+    const query = ptQuery.trim().toLowerCase()
+    return (
+      !query ||
+      trainer.name.toLowerCase().includes(query) ||
+      trainer.phone.includes(query) ||
+      trainer.id.toLowerCase().includes(query)
+    )
   })
+  const selectedTrainer = availableTrainers.find((trainer) => trainer.id === ptFilter)
+  const selectedSessions = selectedTrainer
+    ? SESSIONS.filter(
+        (session) =>
+          session.trainerId === selectedTrainer.id &&
+          session.date === viewDate &&
+          session.status !== "empty",
+      ).map((session) => ({
+        ...session,
+        status: sessionOverrides[session.id] ?? session.status,
+      }))
+    : []
+  const sessionStatusLabel = (status: Session["status"]) => {
+    if (status === "done") return "Hoàn thành"
+    if (status === "awaiting_confirmation") return "Chờ xác nhận hoàn thành"
+    if (status === "cancelled") return "Đã hủy"
+    if (status === "ongoing") return "Đang diễn ra"
+    return "Đã đặt"
+  }
+  const canCancelSession = (session: Session) =>
+    session.status === "upcoming" || session.status === "ongoing"
+  const canConfirmCompletion = (session: Session) =>
+    session.status === "upcoming" || session.status === "ongoing"
+  const sessionHasEnded = (session: Session) =>
+    isPastDate || (viewDate === todayDate && session.time < "12:00")
+
+  const getSessionAt = (time: string) =>
+    selectedSessions.find((session) => session.time === time)
 
   return (
-    <div className="flex h-full flex-col">
-      <Toolbar>
-        <Segment
-          value="week"
-          onChange={() => undefined}
-          options={[
-            { value: "week", label: "Tuần" },
-            { value: "day", label: "Ngày" },
-            { value: "list", label: "Danh sách" },
-          ]}
-        />
-        <select
-          value={ptFilter}
-          onChange={(e) => setPtFilter(e.target.value)}
-          className="h-8 rounded-lg border px-3 text-[12px] bg-slate-900 border-slate-700 text-white focus:outline-none"
-        >
-          <option value="ALL">Tất cả HLV (PT)</option>
-          {TRAINERS.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name} ({t.id})
-            </option>
-          ))}
-        </select>
-        <span
-          className="font-mono text-[13px]"
-          style={{ color: palette.muted }}
-        >
-          Tuần 37 · 07 - 13/09/2026
-        </span>
-        <ActionButton
-          icon="plus"
-          onClick={() => openAction("schedule-booking")}
-        >
-          Đặt lịch
-        </ActionButton>
-      </Toolbar>
-      <div className="flex-1 overflow-auto">
-        <table className="w-full min-w-[820px] text-[12px]">
-          <thead className="sticky top-0 z-10">
-            <tr
+    <div className="flex h-full flex-col gap-4 overflow-auto p-5">
+      <section
+        className="rounded-2xl border p-4"
+        style={{ background: palette.panel, borderColor: palette.border }}
+      >
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p
+              className="text-[11px] font-bold uppercase tracking-[0.16em]"
+              style={{ color: palette.green }}
+            >
+              W06 · Lịch tập PT
+            </p>
+            <h2 className="mt-1 text-[20px] font-bold" style={{ color: palette.text }}>
+              Chọn HLV để xem lịch
+            </h2>
+            <p className="mt-1 text-[12px]" style={{ color: palette.muted }}>
+              Khung làm việc cố định 08:00–18:00. Mỗi buổi mặc định kéo dài 2 giờ.
+            </p>
+          </div>
+          <div className="flex min-w-[300px] flex-1 flex-wrap justify-end gap-2 sm:flex-none">
+            <div className="relative min-w-[220px]">
+              <input
+                value={ptQuery}
+                onChange={(event) => setPtQuery(event.target.value)}
+                placeholder="Tìm theo tên, SĐT hoặc mã PT"
+                className="h-9 w-full rounded-xl border px-3 text-[12px] outline-none"
+                style={{
+                  background: palette.control,
+                  borderColor: palette.border,
+                  color: palette.text,
+                }}
+              />
+            </div>
+            <select
+              value={ptFilter}
+              onChange={(event) => setPtFilter(event.target.value)}
+              className="h-9 min-w-[220px] rounded-xl border px-3 text-[12px] font-semibold outline-none"
               style={{
-                background: "#0C1120",
-                borderBottom: `1px solid ${palette.borderSoft}`,
+                background: palette.control,
+                borderColor: palette.border,
+                color: palette.text,
               }}
             >
-              <th
-                className="w-20 px-4 py-3 text-left font-semibold"
-                style={{ color: palette.dim }}
-              >
-                Giờ
-              </th>
-              {trainers.map((trainer) => (
-                <th
-                  key={trainer.id}
-                  className="px-3 py-3 text-left font-semibold"
-                  style={{ color: palette.dim }}
-                >
-                  <div>{trainer.name.split(" ").slice(-2).join(" ")}</div>
-                  <div
-                    className="font-mono font-normal"
-                    style={{ color: palette.faint }}
-                  >
-                    {trainer.id}
-                  </div>
-                </th>
+              <option value="">Chọn huấn luyện viên</option>
+              {matchedTrainers.map((trainer) => (
+                <option key={trainer.id} value={trainer.id}>
+                  {trainer.name} · {trainer.phone} · {trainer.id}
+                </option>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {hours.map((hour) => (
-              <tr
-                key={hour}
-                className="h-14 border-b"
-                style={{ borderColor: "#0F1820" }}
-              >
-                <td
-                  className="px-4 py-2 font-mono"
-                  style={{ color: "#3A4A60" }}
-                >
-                  {hour}
-                </td>
-                {trainers.map((trainer) => {
-                  const session = SESSIONS.find(
-                    (item) =>
-                      item.trainerId === trainer.id && item.time === hour,
-                  )
+            </select>
+          </div>
+        </div>
+        {ptQuery && matchedTrainers.length === 0 && (
+          <p className="mt-3 text-[12px]" style={{ color: palette.amber }}>
+            Không tìm thấy HLV đang hoạt động với thông tin này.
+          </p>
+        )}
+      </section>
+
+      {!selectedTrainer ? (
+        <section
+          className="flex min-h-[300px] flex-1 items-center justify-center rounded-2xl border border-dashed p-8 text-center"
+          style={{ borderColor: palette.border, background: palette.panel }}
+        >
+          <div className="max-w-[420px]">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-2xl">
+              ◷
+            </div>
+            <h3 className="text-[16px] font-bold" style={{ color: palette.text }}>
+              Chưa có HLV được chọn
+            </h3>
+            <p className="mt-2 text-[13px] leading-relaxed" style={{ color: palette.muted }}>
+              Tìm theo tên hoặc số điện thoại, sau đó chọn một HLV để xem các buổi đã đặt và khung giờ còn trống.
+            </p>
+          </div>
+        </section>
+      ) : (
+        <section
+          className="flex flex-1 flex-col overflow-hidden rounded-2xl border"
+          style={{ background: palette.panel, borderColor: palette.border }}
+        >
+          <div
+            className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3"
+            style={{ borderColor: palette.border }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-[14px] font-bold" style={{ color: palette.green }}>
+                PT
+              </div>
+              <div>
+                <div className="text-[15px] font-bold" style={{ color: palette.text }}>
+                  {selectedTrainer.name}
+                </div>
+                <div className="text-[11px]" style={{ color: palette.muted }}>
+                  {selectedTrainer.id} · {selectedTrainer.phone} · {selectedTrainer.branch}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <input
+                  value={viewDate}
+                  readOnly
+                  className="h-9 w-[125px] rounded-lg border px-3 text-[12px] outline-none"
+                  style={{ background: palette.control, borderColor: palette.border, color: palette.text }}
+                />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px]" style={{ color: palette.muted }}>▣</span>
+              </div>
+
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-auto">
+            <div className="grid min-w-[880px] grid-cols-[230px_88px_1fr]">
+              <aside className="border-r p-4" style={{ borderColor: palette.border }}>
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-[15px] font-semibold capitalize" style={{ color: palette.text }}>{monthLabel}</span>
+                  <div className="flex gap-1">
+                    <button type="button" className="rounded-md px-2 py-1 text-[16px]" style={{ color: palette.muted }} onClick={() => {
+                      const previous = new Date(calendarYear, calendarMonth - 1, 1)
+                      setCalendarMonth(previous.getMonth())
+                      setCalendarYear(previous.getFullYear())
+                    }}>‹</button>
+                    <button type="button" className="rounded-md px-2 py-1 text-[16px]" style={{ color: palette.muted }} onClick={() => {
+                      const next = new Date(calendarYear, calendarMonth + 1, 1)
+                      setCalendarMonth(next.getMonth())
+                      setCalendarYear(next.getFullYear())
+                    }}>›</button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-7 gap-y-2 text-center text-[10px] font-semibold" style={{ color: palette.dim }}>
+                  {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((day) => <span key={day}>{day}</span>)}
+                </div>
+                <div className="mt-2 grid grid-cols-7 gap-y-1 text-center text-[11px]">
+                  {calendarCells.map((day, index) => {
+                    if (!day) return <span key={`empty-${index}`} />
+                    const dateValue = `${String(day).padStart(2, "0")}/${String(calendarMonth + 1).padStart(2, "0")}/${calendarYear}`
+                    const selected = dateValue === viewDate
+                    const past = toDateKey(dateValue) < toDateKey(todayDate)
+                    return (
+                      <button
+                        key={dateValue}
+                        type="button"
+                        onClick={() => setViewDate(dateValue)}
+                        className="mx-auto flex h-7 w-7 items-center justify-center rounded-full transition hover:bg-emerald-500/10"
+                        style={{ background: selected ? palette.blue : "transparent", color: past ? palette.dim : selected ? "#fff" : palette.text }}
+                      >
+                        {day}
+                      </button>
+                    )
+                  })}
+                </div>
+              </aside>
+              <div className="border-r" style={{ borderColor: palette.border }}>
+                <div className="h-12 border-b px-4 py-4 text-[11px] font-bold uppercase tracking-wider" style={{ borderColor: palette.border, color: palette.dim }}>
+                  Giờ
+                </div>
+                {workingHours.map((time) => (
+                  <div key={time} className="h-24 border-b px-4 py-4 font-mono text-[12px]" style={{ borderColor: palette.border, color: palette.muted }}>
+                    {time} → {slotEndTimes[time]}
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div className="h-12 border-b px-4 py-3" style={{ borderColor: palette.border }}>
+                  <div className="text-[12px] font-semibold" style={{ color: palette.text }}>{viewDate}</div>
+                  <div className="text-[10px]" style={{ color: palette.dim }}>
+                    Khung làm việc cố định · 08:00–18:00
+                  </div>
+
+                </div>
+                {workingHours.map((time) => {
+                  const session = getSessionAt(time)
                   return (
-                    <td key={trainer.id} className="px-3 py-2">
-                      {session && session.status !== "empty" ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            openAction(
-                              session.status === "done"
-                                ? "session-result"
-                                : "schedule-change",
-                            )
-                          }
-                          className="w-full rounded-md px-2 py-1.5 text-left text-[12px] transition-colors hover:bg-white/5"
-                          style={{
-                            background: `${sessionColor(session.status)}18`,
-                            borderLeft: `2px solid ${sessionColor(session.status)}`,
-                          }}
+                    <div key={time} className="h-24 border-b p-2" style={{ borderColor: palette.border }}>
+                      {session ? (
+                        <div
+                          className="relative grid h-full w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-xl p-3 text-left transition hover:brightness-110"
+                          style={{ background: `${sessionColor(session.status)}18`, borderLeft: `3px solid ${sessionColor(session.status)}` }}
                         >
-                          <div className="truncate font-semibold text-white">
-                            {session.member}
-                          </div>
-                          <div
-                            style={{
-                              color: `${sessionColor(session.status)}CC`,
-                            }}
+                          <button
+                            type="button"
+                            onClick={() => openAction(session.status === "done" ? "session-result" : "schedule-change")}
+                            className="flex min-w-0 flex-col items-start text-left"
                           >
-                            {session.packageName}
+                            <div className="truncate text-[13px] font-bold" style={{ color: palette.text }}>{session.member || "Đã giữ lịch"}</div>
+                            <div className="mt-1 text-[11px]" style={{ color: sessionColor(session.status) }}>{session.packageName || "Buổi PT"}</div>
+                            <div className="mt-1 text-[11px] font-semibold" style={{ color: sessionColor(session.status) }}>{sessionStatusLabel(session.status)}</div>
+                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="flex shrink-0 items-center gap-2">
+                              {session.status === "upcoming" && (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="rounded-md px-3 py-1.5 text-[10px] font-bold text-white shadow-sm"
+                                    style={{ background: "#EF4444", color: "#FFFFFF" }}
+                                    onClick={(event) => {
+                                      event.stopPropagation()
+                                      openAction("schedule-change")
+                                    }}
+                                  >
+                                    Hủy lịch
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={!sessionHasEnded(session)}
+                                    className="rounded-md px-3 py-1.5 text-[10px] font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+                                    style={{ background: sessionHasEnded(session) ? palette.green : palette.muted, color: "#FFFFFF" }}
+                                    onClick={(event) => {
+                                      event.stopPropagation()
+                                      setSessionOverrides((current) => ({ ...current, [session.id]: "awaiting_confirmation" }))
+                                    }}
+                                  >
+                                    Xác nhận hoàn thành
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </div>
-                        </button>
+                        </div>
                       ) : (
                         <button
                           type="button"
-                          onClick={() => openAction("schedule-booking")}
-                          className="h-full w-full rounded-md border border-dashed text-[11px] transition-colors hover:bg-white/3"
-                          style={{
-                            borderColor: palette.border,
-                            color: palette.faint,
+                          onClick={() => {
+                            if (isPastDate) return
+                            if (openScheduleBooking) {
+                              openScheduleBooking({
+                                time: `${time} - ${slotEndTimes[time]}`,
+                                trainerId: selectedTrainer.id,
+                                date: viewDate,
+                              })
+                            } else {
+                              openAction("schedule-booking")
+                            }
                           }}
+                          disabled={isPastDate}
+                          className="flex h-full w-full items-center justify-between rounded-xl border border-dashed px-4 text-left transition hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                          style={{ borderColor: palette.border, color: palette.muted }}
                         >
-                          Đặt lịch
+                          <span className="text-[12px]">Khung giờ trống</span>
+                          <span className="text-[11px] font-semibold" style={{ color: palette.green }}>Chọn khung giờ +</span>
                         </button>
                       )}
-                    </td>
+                    </div>
                   )
                 })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   )
 }
@@ -3378,10 +3546,11 @@ function TaskIcon({
 }
 
 function sessionColor(
-  status: "done" | "ongoing" | "upcoming" | "empty" | "cancelled",
+  status: "done" | "awaiting_confirmation" | "ongoing" | "upcoming" | "empty" | "cancelled",
 ) {
   const colors = {
     done: palette.green,
+    awaiting_confirmation: palette.amber,
     ongoing: palette.orange,
     upcoming: palette.blue,
     empty: palette.faint,
