@@ -1,39 +1,89 @@
-# UI Related Screen Audit
+# UI Related Screen Audit theo Role / Platform
 
-Rà theo `docs/user-stories/**/Related Screen` và source UI hiện tại.
+Canonical rule:
 
-## Kết quả chính
+- QTV và Lễ tân chỉ có Web.
+- Hội viên và PT chỉ có Mobile.
+- Epic Mobile của Hội viên chính là năm mục footer `HV01`–`HV05`.
+- Các capability W01–W13 dùng chung chỉ là traceability; không dùng để gán Hội viên/PT vào Web hoặc QTV/Lễ tân vào Mobile.
 
-| User story | Related Screen | Bổ sung / chỉnh sửa UI |
+## Platform boundary
+
+| Role | Canonical UI | Không thuộc scope |
 | --- | --- | --- |
-| E01-US01, E01-US03, E10-US02 | Web/Mobile modal Thêm/Sửa hồ sơ hội viên | Đánh dấu số điện thoại và chi nhánh là bắt buộc; chuẩn hoá SĐT, kiểm tra duy nhất SĐT realtime và chặn lưu nếu trùng kèm liên kết mở hồ sơ hiện có. Rút gọn các trường thừa (Mã HV tự sinh, Trạng thái mặc định, Ảnh hồ sơ, Ghi chú vận hành). Bỏ hoàn toàn modal nghi trùng/dùng chung contact. |
-| E01-US02 | Web/Mobile modal Cập nhật hồ sơ và modal Thay đổi trạng thái hồ sơ | Tách trạng thái hồ sơ khỏi trạng thái gói; cập nhật hồ sơ giữ nguyên dữ liệu nghiệp vụ, đổi trạng thái cần lý do và ghi audit. |
-| E02-US01, E02-US02, E02-US04, E07-US02 | Web W03 Gói tập; Web modal Tạo/Sửa danh mục gói tập | Bổ sung đủ 4 loại gói trong spec: Gym theo thời gian, Gym theo buổi, PT theo buổi, Combo Gym + PT; thêm trường quyền Gym/quyền PT và dữ liệu demo Combo. |
-| E02-US02, E02-US03, E03-US02, E03-US03, E05-US02 | Web/Mobile modal Đăng ký/Gia hạn gói | Bổ sung lựa chọn Combo, ngày kết thúc dự kiến, quyền lợi snapshot, chính sách giảm giá và luồng gửi QTV duyệt ngoài chính sách. |
-| E03-US01, E03-US02, E03-US03 | Web modal Cấu hình chính sách | Bổ sung nhóm chính sách giảm giá, mức giảm tối đa/quota và phạm vi áp dụng. |
-| E04-US02 | Mobile nội bộ modal Thanh toán chuyển khoản | Tạo modal mới `bank-transfer-payment` cho Mobile Lễ tân; cập nhật Related Screen tới `screenshot/le-tan/light-mobile-modal-thanh-toan-chuyen-khoan.png`. |
-| E04-US02 | Mobile HV03 Gói của tôi | Bổ sung trạng thái chuyển khoản đang chờ IPN/Webhook và ghi chú ảnh chứng từ không tự xác nhận đã thu. |
-| E04-US05, E08-US04 | Web modal Điều chỉnh payment đã xác nhận | Tạo modal mới `payment-adjustment` cho QTV; cập nhật Related Screen tới `screenshot/qtv/light-web-modal-dieu-chinh-payment-da-xac-nhan.png`. |
-| E04-US01, E04-US02, E04-US04, E04-US05 | Web modal Ghi nhận thu tiền; Web W08 Thu tiền & công nợ | Bổ sung nguồn xác nhận chuyển khoản, mã chống ghi nhận trùng, IPN/Webhook hợp lệ và nút khởi tạo CK/điều chỉnh trên W08. |
-| E05-US03, E05-US04, E05-US05, E08-US04 | Web W06 Lịch tập & buổi PT / Web modal Đặt lịch, Đổi/Hủy lịch, Ghi nhận kết quả | Calendar theo một PT với trạng thái Đã đặt, Chờ xác nhận hoàn thành, Hoàn thành, Đã hủy; booking còn hiệu lực có Hủy lịch; hủy chuyển CANCELLED, ghi audit, release slot nhưng giữ record; booking đã qua giờ có action cập nhật kết quả và xác nhận kép để trừ đúng 1 buổi. Modal Đặt lịch tối giản cho Lễ tân: Searchable Dropdown hội viên theo SĐT, gói PT/Combo hợp lệ tự lọc, branch/PT readonly và auto-fill ngày/giờ/PT/branch khi mở từ slot. |
-| E06-US02 | Web/Mobile modal Ghi nhận ra/vào thủ công | Bổ sung thời điểm ghi nhận và tham chiếu sự kiện thiết bị, khớp rule bắt buộc của story. |
-| E07-US01, E07-US04 | Web/Mobile modal Tạo/Sửa chi nhánh | Bổ sung lịch tuần, ngày nghỉ/ngoại lệ và rà soát gói/lịch/công nợ/thiết bị khi ngừng hoạt động. |
-| E08-US01, E08-US02, E08-US03, E08-US04, E09-US04 | Web W13 Tài khoản & phân quyền / Web/Mobile modal Tài khoản và phân quyền & Mobile Đăng nhập Hội viên | Đưa Tài khoản & phân quyền thành menu W13 riêng trên Web Sidebar; bổ sung 4 thẻ KPI tổng quan (Tổng số, Active, Khóa, Chờ/Ngừng), bộ lọc Role kèm tổng số lượng (ví dụ QTV (1)), Combobox lọc trạng thái không kèm số lượng, thích ứng màu sắc Light/Dark mode tự động; loại bỏ các trường hồ sơ cá nhân thừa và thao tác QTV cấp/tạo tài khoản khỏi form tài khoản. Màn hình Đăng nhập Mobile Hội viên/PT & luồng kích hoạt bằng OTP. |
-| E10-US01, E10-US02, E10-US03, E10-US04 | Web/Mobile modal Thiết bị và kết nối | Bổ sung mục đích IN/OUT, trạng thái thiết bị, trạng thái consent nhận diện và kết quả thử nhận diện. |
+| QTV / Quản lý | Web W01–W13 theo permission | Mobile |
+| Lễ tân | Web W01, W02, W04, W06, W07, W08, W09 | Mobile |
+| Hội viên | Mobile HV01, HV02, HV03, HV04, HV05 | Web |
+| PT | Mobile PT01, PT02, PT03, PT04 | Web |
+
+## Mobile Hội viên — footer Epic mapping
+
+| Epic/Menu | Source UI | Canonical User Stories | Audit kết quả |
+| --- | --- | --- | --- |
+| HV01 · Trang chủ | `MemberMobile`, tab `HV01` | HV01-US01 | Hiển thị lời chào, trạng thái yêu cầu PT, lịch sắp tới và quick action tới HV02/HV03. Chỉ đọc/điều hướng, không chỉnh nghiệp vụ trực tiếp. |
+| HV02 · Lịch tập | `MobileSchedule`, tab `HV02` | HV02-US01, HV02-US02, HV02-US03 | Có tab `Lịch của tôi`/`Đặt lịch PT`, date picker, filter trạng thái, slot theo PT, hủy lịch và xác nhận hoàn thành. Booking chỉ hợp lệ khi payment/assignment/slot đủ điều kiện. |
+| HV03 · Gói của tôi | `MemberPackages`, tab `HV03` | HV03-US01 đến HV03-US05 | Có tab `Gói của tôi`/`Mua gói`/`Yêu cầu PT`, filter trạng thái gói, progress, chi tiết quyền lợi, thanh toán, chọn PT, request tracking và payment history. |
+| HV04 · Tài khoản | `MemberAccount`, `MemberAuthFlow`, tab `HV04` | HV04-US01 đến HV04-US04 | Có đăng nhập SĐT/mật khẩu, tạo/kích hoạt qua OTP theo 3 case, cập nhật hồ sơ/preference và đăng xuất. Không hiển thị Web admin permission. |
+| HV05 · Thông báo | `MemberNotifications`, tab `HV05` | HV05-US01 | Nhận thông báo tự động (Thanh toán, PT assignment, Lịch tập, Xác nhận buổi học, Nhắc hạn gói, Sinh nhật), lọc chưa đọc, mở rộng chi tiết nội dung và đánh dấu đã đọc (không tự động điều hướng). |
+
+## Mobile Hội viên — các điểm cần giữ đồng bộ
+
+| User Story | Related Screen | Quy tắc UI/flow |
+| --- | --- | --- |
+| HV01-US01 | `HV01 · Trang chủ` | Chỉ hiển thị dữ liệu của Hội viên hiện hành; action card điều hướng về HV02/HV03. |
+| HV02-US01 | `HV02 · Lịch tập` → `Lịch của tôi` | Lọc theo ngày và trạng thái `Chờ xác nhận`, `Đã đặt`, `Đã hủy`, `Hoàn thành`; ngày quá khứ chỉ xem lịch sử. |
+| HV02-US02 | `HV02 · Lịch tập` → `Đặt lịch PT` | Chỉ hiển thị gói PT/Combo đủ điều kiện (đã thanh toán 100%), PT đã ACCEPT và slot trống; không cho đặt khi chưa thanh toán/hết buổi/hết hạn. |
+| HV02-US03 | Session action trong HV02 | Hủy không xóa record; hoàn thành chỉ sau xác nhận kép PT + Hội viên; Hội viên không tự chỉnh số buổi. QTV điều chỉnh kết quả trên Web qua QTV-W06-US04 với lý do/audit. |
+| HV03-US01 | `HV03 · Gói của tôi` | Hiển thị quyền lợi, thời hạn, tiến độ, số buổi và trạng thái PT/request/payment. |
+| HV03-US02 | `HV03` → `Mua gói` → `Xem chi tiết` | Package detail là read-only; giá/quyền lợi lấy từ danh mục được phép bán. |
+| HV03-US03 | `HV03` → `Thanh toán gói` | Payment pending không được coi là đã thu đủ; IPN/Webhook phải idempotent; adjustment thực hiện trên Web. |
+| HV03-US04 | `HV03` → `Chọn PT phụ trách` | Tạo `PT_ASSIGNMENT_REQUEST = PENDING`; Hội viên không tự ACCEPT. |
+| HV03-US05 | `HV03` → `Yêu cầu PT`/`Lịch sử thanh toán` | Request và payment history chỉ đọc, không xóa/sửa từ Mobile. |
+| HV04-US01, HV04-US02 | `MemberAuthFlow` | SĐT duy nhất; xử lý account đã tồn tại, profile có sẵn chưa có account, hoặc tạo profile mới; OTP/mật khẩu không ghi audit. |
+| HV04-US03 | `HV04` → `Cập nhật hồ sơ` | Chỉ sửa trường được phép và preference; không sửa gói, số buổi hoặc ghi chú nội bộ. |
+| HV04-US04 | `HV04` → `Đăng xuất tài khoản` | Chỉ kết thúc session, không xóa profile, package, payment hoặc booking. |
+| HV05-US01 | `HV05 · Thông báo` | Chỉ hiển thị thông báo của Hội viên đang đăng nhập, đánh dấu Đã đọc và mở rộng nội dung tại chỗ (không tự động điều hướng). |
+
+## Cross-role traceability
+
+| Mobile User Story | Role tương tác | Platform của role tương tác |
+| --- | --- | --- |
+| HV02-US02 | Web QTV/Lễ tân điều phối | Mobile Hội viên đặt self-service |
+| HV02-US03 | Mobile PT + Mobile Hội viên | QTV xác nhận/xem kết quả và điều chỉnh trên Web qua QTV-W06-US04 khi có lý do |
+| HV03-US03 | Web QTV/Lễ tân xử lý nhạy cảm | Mobile Hội viên theo dõi payment của mình |
+| HV03-US04 | Mobile Hội viên gửi request | Mobile PT ACCEPT/REJECT |
+| HV04-US03 | Mobile Hội viên tự cập nhật | Phần được phép |
+
+## Web-only mapping
+
+| Role | Menu Web | UI scope |
+| --- | --- | --- |
+| QTV | W01–W13 | Toàn bộ menu theo permission và branch scope; W07 xử lý check-in/ra vào, K01 chỉ là public/shared consumer |
+| Lễ tân | W01, W02, W04, W06, W07, W08, W09 | Chỉ menu vận hành được cấp trong chi nhánh |
+
+Canonical User Story Web:
+
+- QTV: [`docs/user-stories/qtv/`](user-stories/qtv/), activity flow index [`docs/system-flow-specs/qtv/`](system-flow-specs/qtv/).
+- Lễ tân: [`docs/user-stories/le-tan/`](user-stories/le-tan/), activity flow index [`docs/system-flow-specs/le-tan/`](system-flow-specs/le-tan/).
+
 
 ## Screenshot bổ sung mới
 
 | File | Nằm trong Related Screen |
 | --- | --- |
-| `screenshot/le-tan/light-mobile-modal-thanh-toan-chuyen-khoan.png` | `E04-US02` |
-| `screenshot/qtv/light-web-modal-dieu-chinh-payment-da-xac-nhan.png` | `E04-US05` |
-| `screenshot/hoi-vien/light-mobile-HV-dang-nhap.png` | `E08-US01` |
-| `screenshot/hoi-vien/light-mobile-HV-tao-tai-khoan-nhap-sdt.png` | `E08-US01` |
-| `screenshot/hoi-vien/light-mobile-HV-tao-tai-khoan-case2-lien-ket-ho-so-quay.png` | `E08-US01` |
-| `screenshot/hoi-vien/light-mobile-HV-tao-tai-khoan-case2-xac-thuc-otp.png` | `E08-US01` |
-| `screenshot/hoi-vien/light-mobile-HV-tao-tai-khoan-case3-tu-dang-ky-ho-so-moi.png` | `E08-US01` |
-| `screenshot/hoi-vien/light-mobile-HV-tao-tai-khoan-case3-xac-thuc-otp.png` | `E08-US01` |
+| `screenshot/le-tan/light-mobile-modal-thanh-toan-chuyen-khoan.png` | Web/mobile operational reference cho E08-US02; không phải Mobile Hội viên canonical |
+| `screenshot/qtv/light-web-modal-dieu-chinh-payment-da-xac-nhan.png` | Web QTV E08-US05 / audit payment |
+| `screenshot/hoi-vien/light-mobile-HV-dang-nhap.png` | HV04-US01 |
+| `screenshot/hoi-vien/light-mobile-HV-tao-tai-khoan-nhap-sdt.png` | HV04-US02 |
+| `screenshot/hoi-vien/light-mobile-HV-tao-tai-khoan-case2-lien-ket-ho-so-quay.png` | HV04-US02 |
+| `screenshot/hoi-vien/light-mobile-HV-tao-tai-khoan-case2-xac-thuc-otp.png` | HV04-US02 |
+| `screenshot/hoi-vien/light-mobile-HV-tao-tai-khoan-case3-tu-dang-ky-ho-so-moi.png` | HV04-US02 |
+| `screenshot/hoi-vien/light-mobile-HV-tao-tai-khoan-case3-xac-thuc-otp.png` | HV04-US02 |
 
 ## Kiểm tra link
 
-- Tất cả link screenshot dạng `../../../screenshot/...` trong `Related Screen` đã được kiểm tra tồn tại sau khi bổ sung.
+- Canonical Mobile Hội viên: [`docs/epic/hoi-vien/`](epic/hoi-vien/), [`docs/user-stories/hoi-vien/`](user-stories/hoi-vien/), [`docs/system-flow-specs/hoi-vien/`](system-flow-specs/hoi-vien/).
+- Canonical Web QTV/Lễ tân và Mobile PT được tách namespace riêng; không dùng story của role khác làm Related Screen chính.
+- Tài liệu legacy vẫn giữ tại [`docs/user-stories-legacy/`](user-stories-legacy/).
+
+

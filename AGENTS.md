@@ -14,7 +14,19 @@ Apply project rules only when relevant to the current task.
 For changes to Product Spec, Epics, User Stories, business rules,
 features, workflows, or UI:
 
-- Follow `.agents/rules/docs-sync.md`.
+- Before creating or updating a Product Spec, Epic, User Story,
+  Acceptance Criteria (AC), or UI Flow, always read and apply
+  `.agents/rules/docs-sync.md`.
+- When documenting any form, modal, or input flow, specify every field's
+  input state (`USER-INPUT`, `AUTO-FILL`, `PREFILL`, `READONLY`),
+  required/optional status, conditional/dynamic behavior, and data source;
+  do not use vague descriptions such as “người dùng nhập thông tin” or
+  “hệ thống tự điền”.
+- In Field-level specification tables, include ONLY the actual input/display fields present on the UI modal/form interface. Do NOT include action buttons (e.g. Save, Cancel) or backend auto-generated fields that are not displayed on the modal UI.
+- When creating or updating an Activity Diagram, always read and apply
+  `.agents/skills/activity-diagram/SKILL.md`; keep the written Main Flow,
+  Alternate Flows, and Exception Flows and use explicit UML-style nodes,
+  control flow, boundary, and role-based swimlanes.
 - Keep all affected documentation and UI consistent.
 - Inspect only related artifacts.
 - Do not scan or rewrite unrelated files.

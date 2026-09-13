@@ -1,4 +1,4 @@
-# Open Questions - Paradise Gym
+﻿# Open Questions - Paradise Gym
 
 Tài liệu này liệt kê các vấn đề nghiệp vụ cần được quyết định trước khi viết Product Spec. Các mục dưới đây chỉ là câu hỏi mở, không bao gồm phương án trả lời hoặc giả định triển khai.
 
@@ -25,7 +25,7 @@ Tài liệu này liệt kê các vấn đề nghiệp vụ cần được quyế
 - PKG-06: Với gói theo buổi/PT, cần phân biệt các số liệu nào: tổng buổi, đã dùng, đang giữ chỗ, còn có thể đặt?
 - PKG-07: Khi nào gói được coi là có hiệu lực: sau khi lưu đăng ký, sau khi thu đủ tiền hay theo điều kiện khác?
 - PKG-08: Có hỗ trợ bảo lưu, chuyển gói, chuyển nhượng, nâng cấp, hạ cấp hoặc hủy gói không?
-- PKG-09: Khuyến mãi, giảm giá hoặc mã giảm giá có nằm trong phạm vi Product Spec không?
+- ~~PKG-09: Khuyến mãi, giảm giá hoặc mã giảm giá có nằm trong phạm vi Product Spec không?~~ → **Đã chốt: Không. Module giảm giá nằm ngoài phạm vi phiên bản hiện tại.**
 - PKG-10: Ai được sửa giá, điều kiện gói hoặc ngừng bán gói?
 - PKG-11: Khi danh mục gói đổi giá hoặc ngừng bán, lịch sử đăng ký đã bán trước đó hiển thị theo quy tắc nào?
 - PKG-12: Hội viên gửi yêu cầu gia hạn thì quầy xử lý theo những trạng thái nào?
@@ -46,11 +46,11 @@ Tài liệu này liệt kê các vấn đề nghiệp vụ cần được quyế
 - PT-12: Có hỗ trợ đặt lịch một lần, đặt định kỳ, đặt nhiều người cùng buổi hoặc lớp nhóm không?
 - PT-13: Khi PT ngừng hoạt động nhưng còn lịch tương lai, ai xử lý và xử lý theo quy trình nào?
 
-## Thanh toán/công nợ
+## Thanh toán/lịch sử thanh toán
 
 - PAY-01: "Doanh thu" trong báo cáo được định nghĩa là tiền thực thu, giá trị gói đã bán, hay một chỉ số khác?
-- PAY-02: Hệ thống có cho phép công nợ hoặc thu một phần không?
-- PAY-03: Nếu còn nợ, hội viên có được kích hoạt gói, vào tập hoặc đặt lịch PT không?
+- ~~PAY-02: Hệ thống có cho phép lịch sử thanh toán hoặc thu một phần không?~~ → **Đã chốt: Không. Hệ thống bắt buộc thanh toán 100% 1 lần duy nhất, không cho phép đóng tiền nhiều lần hay ghi nợ.**
+- ~~PAY-03: Nếu còn nợ, hội viên có được kích hoạt gói, vào tập hoặc đặt lịch PT không?~~ → **Đã chốt: Đăng ký gói phải được thanh toán 100% 1 lần mới được kích hoạt/sử dụng dịch vụ. Không có trạng thái còn nợ.**
 - PAY-04: Các phương thức thanh toán chính thức cần quản lý là gì?
 - PAY-05: Chuyển khoản được xác nhận bằng thông tin nào: mã tham chiếu, ảnh chứng từ, đối soát thủ công hay cách khác?
 - PAY-06: Ảnh chứng từ có giá trị như bằng chứng hỗ trợ hay được coi là xác nhận đã thu?
@@ -96,7 +96,7 @@ Tài liệu này liệt kê các vấn đề nghiệp vụ cần được quyế
 - AUTH-05: Tài khoản người dùng được liên kết với hồ sơ hội viên hoặc hồ sơ PT theo quy tắc nào?
 - AUTH-06: Một tài khoản có được có nhiều vai trò không?
 - AUTH-07: Khi chuyển vai trò hoặc chi nhánh, hệ thống cần xử lý dữ liệu đang hiển thị và thao tác chưa lưu như thế nào?
-- AUTH-08: Vai trò nào được xem thông tin tiền, công nợ, số điện thoại, email và ghi chú nội bộ?
+- AUTH-08: Vai trò nào được xem thông tin tiền, lịch sử thanh toán, số điện thoại, email và ghi chú nội bộ?
 - AUTH-09: Vai trò nào được tạo/sửa/xóa hồ sơ, gói, đăng ký, lịch, giao dịch, chi nhánh, thiết bị và tài khoản?
 - AUTH-10: Những quyền nào được coi là quyền nhạy cảm cần xác nhận hoặc ghi lý do khi thay đổi?
 - AUTH-11: Ai được cấp, sửa, khóa hoặc khôi phục tài khoản?
