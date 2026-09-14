@@ -18,15 +18,6 @@
    - **Từ chối tiếp nhận:** PT bấm nút `[ Từ chối ]`, chọn/nhập lý do từ chối (ví dụ: *Trùng ca làm việc, Đã kín ca phụ trách*). Hệ thống cập nhật trạng thái yêu cầu thành `Đã từ chối` (`REJECTED`) và thông báo cho Học viên / Quản lý để điều phối PT khác.
 5. Hệ thống gửi thông báo kết quả xử lý cho Học viên và làm mới danh sách yêu cầu.
 
-### Field-level specification — Màn hình Tiếp nhận yêu cầu phân công PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Danh sách yêu cầu chờ xử lý | `READONLY` | required | `DYNAMIC`: nạp danh sách các yêu cầu phân công đang ở trạng thái `PENDING` của PT | Database assignment request |
-| Thẻ thông tin học viên & gói | `READONLY` | required | `DYNAMIC`: nạp Họ tên, SĐT, Tên gói PT, Chi nhánh và Ghi chú mong muốn của HV | Data request |
-| Nút `[ Đồng ý tiếp nhận ]` | `USER-INPUT` | required | `DYNAMIC`: bấm để chấp nhận phân công | Thao tác chấp nhận |
-| Nút `[ Từ chối ]` | `USER-INPUT` | required | `DYNAMIC`: bấm để từ chối phân công | Thao tác từ chối |
-| Lý do từ chối | `USER-INPUT` | optional | `CONDITIONAL`: bắt buộc nhập/chọn khi PT bấm Từ chối | Danh sách lý do / Văn bản tự do |
-
 - **Business rules / logic:**
   - PT có quyền chủ động chấp nhận hoặc từ chối yêu cầu phân công tùy theo ca làm việc và tải công việc hiện tại.
   - Khi PT chấp nhận, học viên lập tức xuất hiện trong danh sách `PT02-US01` và cho phép tiến hành đặt lịch tập `PT01-US01`.

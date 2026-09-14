@@ -1,4 +1,4 @@
-﻿# QTV-W12-US04 - Theo dõi trạng thái và sự cố thiết bị
+# QTV-W12-US04 - Theo dõi trạng thái và sự cố thiết bị
 
 ## Preconditions
 - QTV đã đăng nhập, thiết bị đã được khai báo thuộc chi nhánh và QTV có permission theo dõi/quản lý thiết bị.
@@ -16,18 +16,13 @@
 5. SYS lưu incident, cập nhật trạng thái xử lý và giữ log kỹ thuật.
 6. Khi thiết bị gửi bù event, SYS giữ timestamp/bối cảnh phát sinh và không phát lại trải nghiệm cũ trên K01.
 
-### Field-level specification — Màn hình theo dõi và ghi nhận sự cố thiết bị
+### Field-level specification — Modal Ghi nhận & xử lý sự cố thiết bị
 | Field / control | State | Required | Conditional / dynamic | Source / validation |
 |---|---|---|---|---|
-| Chi nhánh | `USER-INPUT` | optional | `DYNAMIC`: chỉ hiển thị các chi nhánh thuộc branch scope của QTV | Branch scope / Ngữ cảnh hiện tại |
-| Bộ lọc trạng thái thiết bị | `USER-INPUT` | optional | `DYNAMIC`: các tùy chọn trạng thái (`Online`, `Offline`, `Error`, `Pending Sync`) | Catalog trạng thái thiết bị |
-| Chọn thiết bị | `USER-INPUT` | required | `DYNAMIC`: chọn thiết bị trong danh sách lọc để xem chi tiết / báo sự cố | Registry thiết bị |
-| Mô tả sự cố | `USER-INPUT` | required | `CONDITIONAL`: chỉ bắt buộc trong modal **Ghi nhận sự cố**; không chấp nhận chuỗi rỗng | QTV / Lễ tân nhập |
-| Mức độ sự cố | `USER-INPUT` | required | `CONDITIONAL`: chọn từ danh mục mức độ ưu tiên xử lý | Catalog mức độ sự cố |
-| Trạng thái xử lý sự cố | `USER-INPUT` | required | `CONDITIONAL`: QTV cập nhật tiến độ (`Open`, `In progress`, `Resolved`) | Catalog trạng thái workflow |
-| Heartbeat gần nhất / Pending Sync | `AUTO-FILL` | READONLY | `DYNAMIC`: hiển thị thời điểm nhịp tim gần nhất và số lượng event chờ đồng bộ | Telemetry từ thiết bị |
-| Bối cảnh sự kiện gửi bù | `AUTO-FILL` | READONLY (PREFILL) | `CONDITIONAL`: chỉ hiển thị đối với sự kiện đồng bộ muộn; giữ nguyên timestamp phát sinh gốc | Timestamp thiết bị + thời điểm server nhận |
-| Người ghi nhận / Thời điểm | `AUTO-FILL` | READONLY | `DYNAMIC`: hệ thống tự động ghi lại khi lưu bản ghi sự cố | Thời gian hệ thống & Tài khoản đăng nhập |
+| Chọn thiết bị | `USER-INPUT` | required | `DYNAMIC`: chọn thiết bị bị sự cố | Registry thiết bị |
+| Mô tả sự cố | `USER-INPUT` | required | `DYNAMIC`: nhập mô tả chi tiết sự cố thiết bị | QTV / Lễ tân nhập |
+| Mức độ sự cố | `USER-INPUT` | required | `DYNAMIC`: chọn mức độ ưu tiên xử lý (`Thấp`, `Trung bình`, `Cao`, `Nghiêm trọng`) | Catalog mức độ sự cố |
+| Trạng thái xử lý sự cố | `USER-INPUT` | required | `DYNAMIC`: QTV cập nhật tiến độ (`Open`, `In progress`, `Resolved`) | Catalog trạng thái workflow |
 
 - **Business rules / logic:**
   - Thiết bị lỗi không được là lý do để hội viên vượt rào qua cổng mà không đủ điều kiện gói; trường hợp sự cố chuyển sang xử lý thủ công tại W07.

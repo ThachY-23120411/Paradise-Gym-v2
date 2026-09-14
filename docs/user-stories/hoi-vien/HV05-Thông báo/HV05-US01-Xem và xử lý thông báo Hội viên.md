@@ -22,14 +22,6 @@
 4. Hội viên bấm chọn một thẻ thông báo cụ thể trong danh sách.
 5. Hệ thống cập nhật trạng thái thông báo thành "Đã đọc" và mở rộng hiển thị đầy đủ nội dung chi tiết thông báo ngay trên màn hình (không tự động điều hướng sang màn hình khác).
 
-### Field-level specification — Màn hình Thông báo Hội viên
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Tab lọc trạng thái | `USER-INPUT` | optional | `DYNAMIC`: chọn xem `Tất cả` hoặc `Chưa đọc` | Cấu hình lọc |
-| Danh sách thông báo | `READONLY` | required | `DYNAMIC`: danh sách 6 nhóm thông báo thuộc Hội viên hiện hành | Database notification |
-| Thẻ thông báo (Tiêu đề, Nội dung, Thời gian) | `READONLY` | required | `DYNAMIC`: nạp tiêu đề, tóm tắt nội dung sự kiện và thời gian phát thông báo | Notification record |
-| Thao tác chọn thông báo | `USER-INPUT` | required | `DYNAMIC`: bấm dòng thông báo để mở rộng chi tiết nội dung và đánh dấu Đã đọc | Thao tác mở xem thông báo |
-
 - **Business rules / logic:**
   - Hệ thống chỉ hiển thị thông báo của chính Hội viên đang đăng nhập, bảo đảm tuyệt đối tính riêng tư và an toàn dữ liệu.
   - Thao tác xem thông báo chỉ cập nhật trạng thái "Đã đọc" và mở rộng nội dung, không tự động điều hướng màn hình hay thay đổi trạng thái nghiệp vụ liên quan.

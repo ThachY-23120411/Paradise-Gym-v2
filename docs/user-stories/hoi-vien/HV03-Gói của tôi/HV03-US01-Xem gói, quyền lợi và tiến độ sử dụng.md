@@ -27,15 +27,6 @@
      - Nếu gói PT/Combo chưa chọn PT phụ trách: Hiển thị `PT: Chưa chọn` và nút CTA màu đen **`[ Chọn PT phụ trách ]`**.
 7. Khi Hội viên bấm nút **`[ Chọn PT phụ trách ]`**, SYS điều hướng sang màn hình Chọn PT cho gói đó (thuộc `HV03-US04`).
 
-### Field-level specification — Màn hình Gói của tôi
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Sub-tab chính (`Gói của tôi` / `Mua gói` / `Yêu cầu PT`) | `USER-INPUT` | required | `DYNAMIC`: mặc định chọn sub-tab `Gói của tôi` | Segment control trên Mobile |
-| Chip lọc trạng thái (`Đang sử dụng` / `Chờ xử lý` / `Đã hết hạn`) | `USER-INPUT` | required | `DYNAMIC`: mặc định chọn `Đang sử dụng (n)` | Bộ lọc trạng thái gói |
-| Card Gói tập (Tên gói, Progress bar, Badge status) | `AUTO-FILL` | READONLY | `DYNAMIC`: nạp tự động tên gói, tiến độ sử dụng (số buổi/số ngày) và thanh Progress bar | Dữ liệu registration của Hội viên |
-| Thông tin PT phụ trách (`PT: Nguyễn Thành Long` / `PT: Chưa chọn`) | `AUTO-FILL` | READONLY | `CONDITIONAL`: chỉ hiển thị với các gói PT hoặc Combo | Dữ liệu assignment PT |
-| Nút CTA `[ Chọn PT phụ trách ]` | `USER-INPUT` | optional | `CONDITIONAL`: chỉ hiển thị nổi bật trên Card gói PT/Combo chưa chọn PT | Nút điều hướng sang HV03-US04 |
-
 - **Business rules / logic:**
   - Danh sách chỉ hiển thị các gói tập thuộc sở hữu của chính Hội viên đang đăng nhập.
   - Tiến độ sử dụng phản ánh trung thực số buổi đã tập (được trừ sau khi buổi tập PT `DONE`) hoặc số ngày đã trôi qua kể từ ngày kích hoạt gói Gym.

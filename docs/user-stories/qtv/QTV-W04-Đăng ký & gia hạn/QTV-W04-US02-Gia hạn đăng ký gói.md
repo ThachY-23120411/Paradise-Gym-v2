@@ -61,7 +61,7 @@ flowchart TB
     subgraph L1["Swimlane — SYS"]
       S01["Nạp thông tin đăng ký cũ, Ngày hết hạn cũ & pre-fill Gói/Giá hiện hành"]
       S02["Pre-fill Ngày bắt đầu mới (old end + 1 ngày) & tính Ngày kết thúc mới"]
-      S03["Tạo Registration mới (PENDING_PAYMENT), gán renewedFrom & snapshot giá ngầm"]
+      S03["Tạo Registration mới (PENDING_PAYMENT), gán renewedFrom"]
       A01 --> S01 --> S02 --> A02
       A03 --> S03 --> F01
     end

@@ -22,14 +22,6 @@
    - PT chỉ xem được danh sách học viên được phân công cho chính mình.
    - Không hiển thị thông tin tài chính, thanh toán hay công nợ của học viên trên màn hình danh sách.
 
-### Field-level specification — Màn hình Danh sách học viên được phân công
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Ô tìm kiếm học viên | `USER-INPUT` | optional | `DYNAMIC`: nhập tên hoặc SĐT để lọc danh sách học viên | Văn bản tự do |
-| Thẻ học viên | `READONLY` | required | `DYNAMIC`: hiển thị Họ tên HV, SĐT, Tên gói PT, Số buổi còn lại | Data assignment PT-Member |
-| Badge trạng thái gói | `READONLY` | required | `DYNAMIC`: `Đang hoạt động`, `Sắp hết hạn` | Trạng thái gói tập |
-| Nút `[ Xem chi tiết / Lộ trình ]` | `USER-INPUT` | required | `DYNAMIC`: bấm dòng học viên để mở xem lộ trình tập luyện | Thao tác chọn học viên |
-
 ## Alternate Flows
 
 ### AF-01 — PT chưa có học viên nào được phân công

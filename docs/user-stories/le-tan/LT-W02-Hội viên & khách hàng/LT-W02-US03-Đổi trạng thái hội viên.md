@@ -51,7 +51,6 @@ flowchart TB
       A02["Chọn Trạng thái mới, nhập Lý do (nếu có)"]
       A03["Chọn Lưu thay đổi"]
       F01((("Final — Trạng thái được cập nhật")))
-      F02((("Final — Hủy thao tác")))
       I01 --> A01
       A02 --> A03
     end

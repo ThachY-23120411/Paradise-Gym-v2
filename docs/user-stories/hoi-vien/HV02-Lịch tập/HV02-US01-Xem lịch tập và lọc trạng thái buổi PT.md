@@ -20,15 +20,6 @@
    - **Thông tin nhân sự & Gói**: Họ tên Hội viên, Họ tên PT phụ trách (`Nguyễn Thành Long`), Tên gói tập (`PT 20 buổi`).
    - **Trạng thái & Thao tác**: Badge trạng thái (`Chờ xác nhận hoàn thành`, `Đã đặt`, `Đã hủy`) và nút CTA thao tác nhanh (`[ Xác nhận hoàn thành ]` hoặc `[ Hủy lịch ]`).
 
-### Field-level specification — Màn hình Lịch của tôi
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Sub-tab phân loại (`Lịch của tôi` / `Đặt lịch PT`) | `USER-INPUT` | required | `DYNAMIC`: mặc định chọn tab `Lịch của tôi` | Segment control trên Mobile |
-| DatePicker / Chọn ngày | `USER-INPUT` | required | `DYNAMIC`: hiển thị lịch tháng, cho phép chuyển tháng/năm và chọn ngày cụ thể | Widget Calendar Mobile |
-| Chip lọc trạng thái | `USER-INPUT` | optional | `DYNAMIC`: `Tất cả (n)`, `Chờ xác nhận (n)`, `Đã đặt (n)`, `Đã hủy (n)` | Bộ lọc danh sách booking |
-| Card buổi tập (Giờ, Chi nhánh, PT, Gói, Status) | `AUTO-FILL` | READONLY | `DYNAMIC`: nạp tự động theo ngày và điều kiện lọc | Dữ liệu booking của Hội viên |
-| Nút CTA trên Card (`Xác nhận hoàn thành` / `Hủy lịch`) | `USER-INPUT` | optional | `CONDITIONAL`: nút `[ Xác nhận hoàn thành ]` chỉ hiện với booking `Chờ xác nhận hoàn thành`; nút `[ Hủy lịch ]` chỉ hiện với booking `Đã đặt` / `Chờ xác nhận` hợp lệ | Nút thao tác trực tiếp |
-
 - **Business rules / logic:**
   - Màn hình mặc định tải danh sách buổi tập trong ngày được chọn trên DatePicker.
   - Các trạng thái booking bao gồm: `AWAITING_CONFIRMATION` (Chờ xác nhận hoàn thành hoặc chờ PT nhận lịch), `UPCOMING` (Đã đặt), `DONE` (Hoàn thành), `CANCELLED` (Đã hủy).

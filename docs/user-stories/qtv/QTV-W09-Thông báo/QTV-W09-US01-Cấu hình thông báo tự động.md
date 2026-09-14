@@ -39,17 +39,14 @@
      - Nếu `Trạng thái = OFF`: SYS bỏ qua, không gửi In-app notification.
    - QTV **không được quyền thay đổi Người nhận (Recipient Rule)** hay Kênh gửi (`IN_APP`) cố định của sự kiện.
 
-### Field-level specification — Màn hình & Drawer Cấu hình thông báo tự động
+### Field-level specification — Drawer Cấu hình thông báo tự động
 | Field / control | State | Required | Conditional / dynamic | Source / validation |
 |---|---|---|---|---|
-| Tab `Cấu hình thông báo tự động` | `USER-INPUT` | required | `DYNAMIC`: chọn tab cấu hình | Thao tác chuyển tab |
-| Bảng danh sách Event | `READONLY` | required | `DYNAMIC`: hiển thị cột Event, Template và Trạng thái ON/OFF | Database notification_event |
 | Mã & Tên sự kiện | `READONLY` | required | `DYNAMIC`: nạp tên sự kiện được chọn | Event metadata |
 | Đối tượng nhận (Recipient) | `READONLY` | required | `DYNAMIC`: hiển thị đối tượng nhận cố định theo nghiệp vụ (Hội viên / PT / Lễ tân) | Business recipient rule |
 | Kênh thông báo (Channel) | `READONLY` | required | `DYNAMIC`: hiển thị mặc định `IN_APP` | Cấu hình kênh |
 | Combobox chọn Mẫu thông báo | `USER-INPUT` + `PREFILL` | required | `DYNAMIC`: danh sách các Template khả dụng từ `US02` | Database notification_template |
 | Trạng thái kích hoạt | `USER-INPUT` + `PREFILL` | required | `DYNAMIC`: chọn `ON` (Cho phép tự động gửi) hoặc `OFF` (Tắt tự động gửi) | Event Status |
-| Nút `[ Lưu ]` | `USER-INPUT` | required | `CONDITIONAL`: bấm để lưu ánh xạ quy tắc | Thao tác lưu form |
 
 ## Alternate Flows
 

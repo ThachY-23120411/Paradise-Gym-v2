@@ -16,7 +16,7 @@
 4. Hội viên bấm `[ Xác nhận lưu ]`.
 5. SYS validate dữ liệu và ghi nhận cập nhật hồ sơ/preference thành công.
 
-### Field-level specification — Màn hình Hồ sơ & Cài đặt thông báo
+### Field-level specification — Form Cập nhật hồ sơ & tùy chọn thông báo
 | Field / control | State | Required | Conditional / dynamic | Source / validation |
 |---|---|---|---|---|
 | Ảnh đại diện | `USER-INPUT` | optional | `DYNAMIC`: cho phép chọn ảnh mới từ thiết bị | Ảnh đại diện Hội viên |

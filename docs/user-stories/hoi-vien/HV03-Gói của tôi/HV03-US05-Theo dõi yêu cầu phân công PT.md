@@ -22,14 +22,6 @@
      - `Đã từ chối` (`REJECTED` - badge màu đỏ): PT không nhận lớp, hiển thị kèm nút CTA **`[ Chọn PT khác ]`**.
 4. Nếu yêu cầu bị từ chối (`REJECTED`), Hội viên bấm nút **`[ Chọn PT khác ]`** để điều hướng sang màn hình Chọn PT (`HV03-US04`) cho gói đó.
 
-### Field-level specification — Sub-tab Yêu cầu PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Sub-tab Yêu cầu PT | `USER-INPUT` | required | `DYNAMIC`: chọn sub-tab `Yêu cầu PT` | Segment control trên Mobile |
-| Card Yêu cầu PT (Tên gói, Tên PT, Ngày gửi) | `AUTO-FILL` | READONLY | `DYNAMIC`: nạp tự động thông tin yêu cầu chọn PT | Dữ liệu assignment request |
-| Badge trạng thái (`Đang chờ`, `Đã chấp nhận`, `Đã từ chối`) | `READONLY` | required | `DYNAMIC`: nạp tự động trạng thái xử lý của PT | Trạng thái request trên hệ thống |
-| Nút CTA `[ Chọn PT khác ]` | `USER-INPUT` | optional | `CONDITIONAL`: chỉ hiển thị khi yêu cầu ở trạng thái `Đã từ chối` (`REJECTED`) | Nút điều hướng sang HV03-US04 |
-
 - **Business rules / logic:**
   - Yêu cầu ở trạng thái `PENDING` (Đang chờ) khóa không cho gửi thêm yêu cầu khác trên cùng một gói tập.
   - Khi PT bấm Chấp nhận (`ACCEPTED`), HLV đó được gắn làm PT phụ trách chính thức và mở quyền đặt lịch cho Hội viên ở menu HV02.

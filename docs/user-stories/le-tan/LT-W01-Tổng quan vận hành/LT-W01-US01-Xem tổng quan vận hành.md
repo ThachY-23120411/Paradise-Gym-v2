@@ -39,15 +39,6 @@
      - Nút `[Ghi nhận Ra/Vào]` $\rightarrow$ Chuyển nhanh tới màn hình Ghi nhận Ra/Vào thủ công (`LT-W07-US02`).
 4. Lễ tân bấm vào một thẻ Card trong khối Việc cần xử lý hoặc nút Quick Action để mở modal/điều hướng xử lý nghiệp vụ ngay cho hội viên tại quầy.
 
-### Field-level specification — Dashboard Tổng quan Lễ tân
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Chi nhánh phục vụ | `READONLY` | required | `DYNAMIC`: hiển thị tên chi nhánh hiện tại của Lễ tân | Current user profile & branch context |
-| Khối Card KPI Hôm nay | `READONLY` | required | `DYNAMIC`: hiển thị 4 chỉ số (Check-in, Booking PT, Registration chờ thanh toán, Yêu cầu cần xử lý) | Branch operational metrics |
-| Khối Thẻ Việc cần xử lý | `READONLY (PREFILL)` | required | `DYNAMIC`: nạp danh sách registration chưa thu tiền, booking chờ xác nhận, thiết bị lỗi kèm link điều hướng | System branch task queue |
-| Khối Hoạt động & Lịch hôm nay | `READONLY` | required | `DYNAMIC`: nạp danh sách lịch PT hôm nay và nhật ký check-in gần nhất tại chi nhánh | Schedule & Check-in database |
-| Quick Actions Lễ tân | `USER-INPUT` | required | `DYNAMIC`: hiển thị 4 nút shortcut quầy (`[+ Thêm hội viên]`, `[+ Tạo đăng ký]`, `[+ Đặt lịch PT]`, `[Ghi nhận Ra/Vào]`) | Counter operation shortcuts |
-
 - **Business rules / logic:**
   - Dashboard Lễ tân tập trung tối đa cho công tác phục vụ khách tại quầy và giải quyết công việc trong ngày.
   - Lễ tân không thể xem báo cáo doanh thu quản trị, báo cáo tài chính toàn chuỗi hoặc so sánh giữa các chi nhánh.

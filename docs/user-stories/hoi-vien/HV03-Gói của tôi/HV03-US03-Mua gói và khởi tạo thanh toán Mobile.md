@@ -24,15 +24,6 @@
 5. Ngân hàng (BANK) xử lý và tự động gửi thông báo kết quả giao dịch qua IPN/Webhook tới hệ thống SYS.
 6. SYS xác thực chữ ký và dữ liệu giao dịch IPN/Webhook $\rightarrow$ Tạo phiếu thu thanh toán 100%, kích hoạt gói tập (`ACTIVE` hoặc `SCHEDULED`) và gửi thông báo In-app xác nhận thành công cho Hội viên.
 
-### Field-level specification — Màn hình Thanh toán gói tập (VietQR)
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Tên gói tập | `READONLY` | required | `DYNAMIC`: nạp tên gói tập đã chọn từ HV03-US02 | Thông tin gói tập |
-| Số tiền thanh toán (100%) | `READONLY` | required | `DYNAMIC`: nạp giá trị 100% của gói tập | Giá niêm yết gói tập |
-| Phương thức thanh toán | `READONLY` | required | `DYNAMIC`: cố định duy nhất `Chuyển khoản Ngân hàng (VietQR)` | Hình thức thanh toán Mobile |
-| Mã VietQR & Chi tiết chuyển khoản | `AUTO-FILL` + `READONLY` | required | `DYNAMIC`: tự động hiển thị mã QR, Tên TK, STK, Ngân hàng và Nội dung chuyển khoản duy nhất | Cổng thanh toán VietQR / Hệ thống |
-| Nút `[ Tải mã QR ]` / `[ Sao chép STK ]` | `USER-INPUT` | optional | `DYNAMIC`: hỗ trợ lưu ảnh QR hoặc copy STK/Nội dung | Tiện ích trên Mobile |
-
 - **Business rules / logic:**
   - Kênh thanh toán trên Mobile App chỉ có **duy nhất 1 hình thức là Chuyển khoản Ngân hàng (VietQR)**.
   - Thanh toán **100% giá trị gói trong 1 lần chuyển khoản duy nhất**.

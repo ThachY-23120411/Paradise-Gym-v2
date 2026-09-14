@@ -17,13 +17,6 @@
 5. SYS khởi tạo yêu cầu phân công `PT_ASSIGNMENT_REQUEST` ở trạng thái `PENDING` (Chờ duyệt) và tự động gửi thông báo cho PT được chọn.
 6. Màn hình cập nhật trạng thái yêu cầu đang chờ phản hồi.
 
-### Field-level specification — Màn hình Chọn PT phụ trách
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Thông tin gói tập mục tiêu | `READONLY` | required | `DYNAMIC`: nạp tên gói và thông tin gói tập được mở từ HV03-US01 | Registration gói của Hội viên |
-| Danh sách PT hoạt động | `USER-INPUT` | required | `DYNAMIC`: hiển thị danh sách HLV (PT) đang hoạt động thuộc chi nhánh | Danh mục PT active theo chi nhánh |
-| Nút CTA `[ Xác nhận gửi yêu cầu ]` | `USER-INPUT` | required | `CONDITIONAL`: chỉ cho phép bấm sau khi Hội viên chọn 1 PT trong danh sách | Thao tác nút bấm trên Mobile |
-
 - **Business rules / logic:**
   - Màn hình này chỉ mở cho các gói PT/Combo đã thanh toán 100%, còn hiệu lực và chưa có PT phụ trách.
   - Mỗi gói tập chỉ có duy nhất 1 yêu cầu phân công PT ở trạng thái `PENDING` tại một thời điểm.

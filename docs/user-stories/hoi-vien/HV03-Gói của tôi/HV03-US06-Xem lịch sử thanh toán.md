@@ -21,16 +21,6 @@
    - **Badge trạng thái**: `Đã thanh toán` (`CONFIRMED` - badge màu xanh lá).
 4. Hội viên xem chi tiết thông tin hóa đơn/phiếu thu giao dịch.
 
-### Field-level specification — Màn hình Lịch sử thanh toán
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Danh sách Phiếu thu / Giao dịch | `AUTO-FILL` | READONLY | `DYNAMIC`: nạp tự động lịch sử thanh toán 100% của Hội viên | Lịch sử payment của Hội viên |
-| Mã phiếu thu & Tên gói | `READONLY` | required | `DYNAMIC`: nạp từ mã giao dịch và tên gói tập tương ứng | Record thanh toán |
-| Thời gian thanh toán | `READONLY` | required | `DYNAMIC`: thời điểm hệ thống nhận Webhook/IPN xác nhận 100% | Timestamp giao dịch |
-| Phương thức thanh toán | `READONLY` | required | `DYNAMIC`: cố định `Chuyển khoản Ngân hàng (VietQR)` | Cổng thanh toán VietQR |
-| Số tiền thanh toán (100%) | `READONLY` | required | `DYNAMIC`: số tiền chuyển khoản 100% thực tế | Số tiền giao dịch |
-| Badge trạng thái | `READONLY` | required | `DYNAMIC`: mặc định `Đã thanh toán` với các phiếu thu hợp lệ | Trạng thái payment |
-
 - **Business rules / logic:**
   - Chỉ hiển thị lịch sử giao dịch thuộc chính tài khoản Hội viên đang đăng nhập.
   - Mọi giao dịch trên Mobile đều thanh toán 100% qua VietQR.

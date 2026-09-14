@@ -22,16 +22,6 @@
    - PT **không có quyền hủy lịch tập** (nút/thao tác Hủy lịch không xuất hiện đối với vai trò PT; chỉ có Hội viên hoặc Lễ tân/QTV thực hiện hủy lịch).
    - Khi PT bấm `[ Xác nhận hoàn thành ]` tại khung giờ đã đặt, hệ thống chuyển sang modal ghi nhận kết quả buổi học (`PT01-US02`).
 
-### Field-level specification — Màn hình PT01 · Lịch tập PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Calendar / DatePicker chọn ngày | `USER-INPUT` + `PREFILL` | required | `DYNAMIC`: Lưới lịch tháng (ví dụ `< Tháng 9 Năm 2026 >`), mặc định chọn ngày hiện tại | Chọn ngày/tháng/năm |
-| Tiêu đề ngày & Khung làm việc | `READONLY` | optional | `DYNAMIC`: hiển thị ngày được chọn và khung giờ làm việc cố định (`08:00 - 18:00`) | Cấu hình ca làm việc PT |
-| Danh sách 5 khung giờ cố định | `READONLY` | required | `DYNAMIC`: 5 slot cố định (`08:00-10:00`, `10:00-12:00`, `12:00-14:00`, `14:00-16:00`, `16:00-18:00`) | Database session PT |
-| Thẻ thông tin buổi tập đã đặt | `READONLY` | optional | `DYNAMIC`: hiển thị Họ tên Học viên, Tên gói PT, Badge trạng thái (`Đã đặt`, `Đang diễn ra`, `Đã ghi nhận`, `Đã hủy`) | Data booking PT-Member |
-| Nhãn Khung giờ trống | `READONLY` | optional | `DYNAMIC`: hiển thị nhãn "Khung giờ trống" tại slot chưa có người đặt | Slot trống |
-| Nút `[ Xác nhận hoàn thành ]` | `USER-INPUT` | optional | `CONDITIONAL`: chỉ hiển thị đối với khung giờ đã đặt và đã qua/đang diễn ra khung giờ tập | Thao tác mở modal ghi nhận kết quả |
-
 ## Alternate Flows
 
 ### AF-01 — PT xem lịch dạy của ngày khác trên Calendar

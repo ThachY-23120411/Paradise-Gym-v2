@@ -21,17 +21,6 @@
    - **Quyền lợi chọn PT**: Nếu là gói PT hoặc Combo, hiển thị rõ quyền chọn HLV cá nhân sau khi mua.
 5. Hội viên bấm nút CTA **`[ Mua gói ]`** để chuyển sang màn hình Khởi tạo thanh toán (`HV03-US03`).
 
-### Field-level specification — Màn hình Chi tiết gói đang bán
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Sub-tab Mua gói | `USER-INPUT` | required | `DYNAMIC`: chọn sub-tab `Mua gói` | Segment control trên Mobile |
-| Package Card danh sách bán | `USER-INPUT` | required | `DYNAMIC`: nạp tự động các gói đang mở bán | Danh mục gói tập trên hệ thống |
-| Tên gói & Giá tiền (100%) | `READONLY` | required | `DYNAMIC`: nạp từ thông tin gói tập được chọn | Danh mục gói tập |
-| Thời hạn / Số buổi tập | `READONLY` | required | `DYNAMIC`: hiển thị thời hạn (ngày/tháng) và số buổi PT | Danh mục gói tập |
-| Phạm vi chi nhánh áp dụng | `READONLY` | required | `DYNAMIC`: hiển thị danh sách chi nhánh cho phép sử dụng | Danh mục gói tập |
-| Quyền lợi chọn PT phụ trách | `READONLY` | optional | `CONDITIONAL`: chỉ hiển thị đối với gói PT hoặc Combo | Quy định loại gói tập |
-| Nút CTA `[ Mua gói ]` | `USER-INPUT` | required | `CONDITIONAL`: bấm để chuyển sang luồng thanh toán | Nút điều hướng sang HV03-US03 |
-
 - **Business rules / logic:**
   - Tab `Mua gói` mặc định chỉ hiển thị các gói tập đang ở trạng thái mở bán (`Active`), hệ thống không hiển thị các gói đã ngưng bán hoặc bị ẩn.
   - Giá tiền và quyền lợi hiển thị là giá cố định (100%), không có bớt giá hay giảm giá.

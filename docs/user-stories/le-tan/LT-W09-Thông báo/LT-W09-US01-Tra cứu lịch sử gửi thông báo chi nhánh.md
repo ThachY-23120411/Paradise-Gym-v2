@@ -24,14 +24,6 @@
    - Thông báo được Hệ thống (SYS) tự động phát sinh khi các sự kiện nghiệp vụ xảy ra (Thanh toán, Đặt lịch PT, Phân công PT...). Lễ tân không soạn hay gửi thông báo thủ công.
    - Màn hình dùng để **tra cứu và kiểm tra lịch sử thông báo** chi nhánh. Lễ tân chỉ xem được dữ liệu hội viên/PT thuộc chi nhánh phục vụ của mình.
 
-### Field-level specification — Màn hình Tra cứu lịch sử thông báo Lễ tân
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Ô tìm kiếm người nhận | `USER-INPUT` | optional | `DYNAMIC`: tìm theo tên hoặc SĐT hội viên/PT | Văn bản tự do |
-| Bộ lọc thời gian | `USER-INPUT` | optional | `DYNAMIC`: chọn Từ ngày - Đến ngày | Date range picker |
-| Bảng nhật ký thông báo chi nhánh | `READONLY` | required | `DYNAMIC`: 6 cột (Thời gian, Event, Người nhận, Nội dung, Nguồn, Đọc) thuộc branch scope | Database notification_log |
-| Deep-link Mã Nguồn chứng từ | `USER-INPUT` | optional | `DYNAMIC`: bấm mã nguồn (`PAY001`, `BK001`) để điều hướng về chứng từ tương ứng | Deep-link navigation |
-
 ## Alternate Flows
 
 ### AF-01 — Không có nhật ký trong phạm vi

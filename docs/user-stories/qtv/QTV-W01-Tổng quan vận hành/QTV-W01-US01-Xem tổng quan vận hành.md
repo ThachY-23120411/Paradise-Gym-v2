@@ -40,17 +40,6 @@
 5. SYS truy vấn lại dữ liệu và cập nhật hiển thị đồng bộ cho cả 5 khối thành phần theo bộ lọc mới.
 6. QTV có thể bấm vào một thẻ Card trong khối Việc cần xử lý hoặc nút Quick Action để điều hướng tới màn hình nghiệp vụ chi tiết.
 
-### Field-level specification — Dashboard Tổng quan QTV
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Kỳ xem | `USER-INPUT` | optional | `DYNAMIC`: chọn mốc `Hôm nay`, `Tuần này`, `Tháng này` | Cấu hình lọc date range |
-| Combobox Chi nhánh | `USER-INPUT` | optional | `CONDITIONAL`: chỉ hiển thị khi QTV được cấp scope nhiều chi nhánh | Danh sách chi nhánh trong branch scope |
-| Khối Card KPI Vận hành & Tài chính | `READONLY` | required | `DYNAMIC`: nạp 4 nhóm chỉ số (Hội viên, Gói/Registration, Payment 100%, Booking/Check-in) theo bộ lọc | Database aggregation (thanh toán 100%, không nợ) |
-| Khối Việc cần xử lý | `READONLY (PREFILL)` | required | `DYNAMIC`: nạp số lượng công việc tồn đọng và link điều hướng sang W04/W05/W06/W12 | System pending task queue |
-| Khối Lịch tập PT hôm nay | `READONLY` | required | `DYNAMIC`: hiển thị các booking PT sắp diễn ra hôm nay kèm nút `[ Xem toàn bộ lịch PT ]` | Booking database |
-| Khối Cảnh báo vận hành | `READONLY` | required | `DYNAMIC`: hiển thị danh sách cảnh báo thiết bị offline hoặc sự cố vận hành | System operational alerts |
-| Nút Quick Actions QTV | `USER-INPUT` | optional | `DYNAMIC`: các nút lối tắt `[+ Thêm hội viên]`, `[+ Tạo đăng ký]`, `[Cấu hình thông báo]`, `[Xem báo cáo]` | Module navigation links |
-
 - **Business rules / logic:**
   - Dashboard chỉ dùng để theo dõi trạng thái vận hành hôm nay và danh sách việc cần xử lý; không thực hiện trực tiếp thao tác chỉnh sửa dữ liệu nghiệp vụ tại W01.
   - Loại bỏ hoàn toàn các chỉ số liên quan đến công nợ, nợ tồn, thanh toán một phần hay phải thu còn thiếu.

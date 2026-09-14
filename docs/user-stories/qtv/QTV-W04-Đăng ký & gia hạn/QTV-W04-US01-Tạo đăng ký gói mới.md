@@ -67,7 +67,7 @@ flowchart TB
     subgraph L2["Swimlane — SYS"]
       S01["Pre-fill Giá gốc hiện hành"]
       S02["Pre-fill Ngày kết thúc dự kiến dựa vào thời hạn gói được chọn"]
-      S03["Tạo đăng ký (Registration PENDING_PAYMENT) & snapshot giá ngầm"]
+      S03["Tạo đăng ký (Registration PENDING_PAYMENT)"]
       A03 --> S01 --> A04 --> S02 --> A05 --> S03 --> F01
     end
   end

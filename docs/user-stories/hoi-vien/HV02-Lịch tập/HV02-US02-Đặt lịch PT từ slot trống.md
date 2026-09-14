@@ -25,16 +25,6 @@
 9. SYS kiểm tra thanh toán 100%, hiệu lực gói, số buổi khả dụng và xác nhận không có xung đột khung giờ.
 10. SYS tạo ngay lập tức booking ở trạng thái **`Đã đặt` (`UPCOMING`)** và giữ chỗ 1 buổi tập trong gói mà không cần chờ PT duyệt.
 
-### Field-level specification — Màn hình Đặt lịch PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Sub-tab phân loại (`Lịch của tôi` / `Đặt lịch PT`) | `USER-INPUT` | required | `DYNAMIC`: chọn tab `Đặt lịch PT` | Segment control trên Mobile |
-| Combobox Chọn gói muốn sử dụng | `USER-INPUT` | required | `DYNAMIC`: chỉ load các gói PT/Combo còn hiệu lực, còn buổi và **đã có PT phụ trách**. Định dạng: `[Tên gói] - [Họ tên PT]` | Danh sách gói PT/Combo khả dụng của Hội viên |
-| Card Thông tin PT phụ trách | `AUTO-FILL` | READONLY | `DYNAMIC`: tự động nạp họ tên PT, chi nhánh và thời lượng buổi tập (2h) theo gói được chọn trong Combobox | PT phụ trách của gói được chọn |
-| DatePicker / Chọn ngày tập | `USER-INPUT` | required | `DYNAMIC`: nạp lịch làm việc của PT theo gói được chọn; cho phép Hội viên chọn ngày | Widget Calendar Mobile |
-| Khung giờ tập (Slots 2h) | `USER-INPUT` | required | `DYNAMIC`: hiển thị các khung giờ 2 tiếng trong ngày của PT; mờ/khóa các khung giờ đã có người đặt | Khung giờ làm việc của PT |
-| Nút CTA Đặt lịch | `USER-INPUT` | required | `CONDITIONAL`: chỉ cho phép bấm khi đã chọn đủ gói từ Combobox, ngày tập trên DatePicker và khung giờ trống | Nút bấm đặt lịch trên Mobile |
-
 - **Business rules / logic:**
   - **Không cần chờ duyệt**: Đặt lịch thành công là thành công ngay, hệ thống khởi tạo booking với trạng thái **`Đã đặt` (`UPCOMING`)** và giữ khung giờ đó cho Hội viên.
   - Combobox `Chọn gói muốn sử dụng` lọc loại trừ hoàn toàn các gói chưa được phân công PT. Nếu Hội viên có gói PT chưa chọn PT, ứng dụng hiển thị nút gợi ý điều hướng sang menu `HV03 · Gói của tôi` để chọn PT trước.

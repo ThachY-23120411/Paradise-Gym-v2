@@ -24,14 +24,6 @@
    - Thông báo Đặt lịch / Hủy lịch / Nhắc lịch $\rightarrow$ Điều hướng đến Lịch tập PT theo ngày (`PT01-US01`).
    - Thông báo Xác nhận hoàn thành $\rightarrow$ Điều hướng mở modal Ghi nhận kết quả buổi PT (`PT01-US02`).
 
-### Field-level specification — Màn hình Thông báo PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Tab lọc trạng thái | `USER-INPUT` | optional | `DYNAMIC`: chọn xem `Tất cả` hoặc `Chưa đọc` | Cấu hình lọc |
-| Danh sách thông báo | `READONLY` | required | `DYNAMIC`: danh sách 5 nhóm thông báo thuộc PT hiện hành | Database notification |
-| Thẻ thông báo (Tiêu đề, Nội dung, Thời gian) | `READONLY` | required | `DYNAMIC`: nạp tiêu đề, tóm tắt nội dung sự kiện và thời gian phát thông báo | Notification record |
-| Nút `[ Xem chi tiết / Điều hướng ]` | `USER-INPUT` | required | `DYNAMIC`: bấm dòng thông báo để đánh dấu Đã đọc và điều hướng đến màn hình tương ứng (PT01 / PT02) | Thao tác chọn thông báo |
-
 - **Business rules / logic:**
   - Hệ thống chỉ hiển thị thông báo của chính PT đó, tuyệt đối không gửi nhầm thông báo của PT khác.
   - Thao tác xem thông báo chỉ cập nhật trạng thái "Đã đọc", không tự động thay đổi kết quả buổi học hay trạng thái phân công.

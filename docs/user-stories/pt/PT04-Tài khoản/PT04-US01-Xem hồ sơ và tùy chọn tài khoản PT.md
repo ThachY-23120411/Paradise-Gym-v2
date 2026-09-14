@@ -15,17 +15,6 @@
 4. PT bấm `[ Lưu cài đặt ]` (hoặc hệ thống tự động lưu trạng thái switch khi PT thao tác).
 5. Hệ thống lưu cấu hình preference của PT và thông báo cập nhật thành công.
 
-### Field-level specification — Màn hình Tài khoản & Cài đặt PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Họ và tên PT | `READONLY` | required | `DYNAMIC`: nạp từ hồ sơ tài khoản PT | Profile PT |
-| Mã PT | `READONLY` | required | `DYNAMIC`: nạp mã định danh PT | Mã PT duy nhất |
-| Chi nhánh phụ trách | `READONLY` | required | `DYNAMIC`: nạp chi nhánh phân công của PT | Branch scope |
-| Nhận thông báo lịch mới | `USER-INPUT` + `PREFILL` | optional | `DYNAMIC`: Bật/Tắt | Preference PT |
-| Nhắc ghi kết quả buổi học | `USER-INPUT` + `PREFILL` | optional | `DYNAMIC`: Bật/Tắt | Preference PT |
-| Hiển thị SĐT cho học viên | `USER-INPUT` + `PREFILL` | optional | `DYNAMIC`: Bật/Tắt | Preference PT |
-| Nút `[ Đăng xuất ]` | `USER-INPUT` | optional | `DYNAMIC`: bấm để đăng xuất phiên làm việc | Thao tác session |
-
 - **Business rules / logic:**
   - PT chỉ được xem hồ sơ và chỉnh sửa tùy chọn cài đặt cá nhân của chính mình.
   - PT không có quyền tự thay đổi mã PT, chi nhánh làm việc, phân quyền hoặc mật khẩu tài khoản hệ thống trên màn hình này.

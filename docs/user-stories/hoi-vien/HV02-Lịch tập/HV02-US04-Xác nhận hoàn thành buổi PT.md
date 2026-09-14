@@ -17,13 +17,6 @@
 5. Khi đã đủ xác nhận kép 2 chiều (từ cả Hội viên và PT), SYS chuyển trạng thái booking sang **`DONE` (Hoàn thành)** và trừ chính xác 1 buổi khả dụng trong gói PT/Combo.
 6. SYS cập nhật lại trạng thái hiển thị trên màn hình Lịch của tôi và tiến độ sử dụng gói.
 
-### Field-level specification — Thao tác Xác nhận hoàn thành buổi PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Thẻ Card buổi tập mục tiêu | `READONLY` | required | `DYNAMIC`: hiển thị giờ tập, chi nhánh, tên PT và gói tập | Record booking của Hội viên |
-| Badge trạng thái `Chờ xác nhận hoàn thành` | `READONLY` | required | `CONDITIONAL`: chỉ hiển thị sau khi buổi tập diễn ra hoặc PT đã bấm xác nhận trước | Trạng thái booking trên hệ thống |
-| Nút CTA `[ Xác nhận hoàn thành ]` | `USER-INPUT` | required | `CONDITIONAL`: hiển thị nổi bật màu xanh trên Card | Nút bấm thao tác trên Mobile |
-
 - **Business rules / logic:**
   - **Xác nhận 2 chiều**: Buổi PT chỉ chuyển sang trạng thái `DONE` và trừ 1 buổi trong gói sau khi CẢ HỘI VIÊN VÀ PT đều đã bấm xác nhận hoàn thành.
   - **Check-in phòng Gym độc lập**: Việc Hội viên check-in vào cửa phòng Gym tại menu W07 không tự động chuyển buổi tập PT sang trạng thái hoàn thành.

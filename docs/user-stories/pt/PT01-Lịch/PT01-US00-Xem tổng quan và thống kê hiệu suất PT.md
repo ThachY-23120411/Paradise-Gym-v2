@@ -22,18 +22,6 @@
 5. PT có thể thay đổi mốc thời gian xem thống kê (Tuần này / Tháng này / Tháng trước).
 6. Hệ thống tự động nạp lại các con số thống kê theo mốc thời gian được chọn.
 
-### Field-level specification — Màn hình Tổng quan & Thống kê PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Bộ lọc mốc thời gian | `USER-INPUT` + `PREFILL` | required | `DYNAMIC`: chọn Tuần này / Tháng này / Tháng trước (mặc định: Tháng này) | Cấu hình thời gian |
-| Số lượng học viên phụ trách | `READONLY` | required | `DYNAMIC`: đếm tổng số học viên active do PT phụ trách | Database assignment |
-| Số buổi đã dạy hoàn thành | `READONLY` | required | `DYNAMIC`: đếm tổng số buổi ở trạng thái `DONE` trong kỳ | Database session |
-| Số buổi đã được book (sắp dạy) | `READONLY` | required | `DYNAMIC`: đếm tổng số buổi ở trạng thái `UPCOMING` | Database session |
-| Số buổi chờ xác nhận | `READONLY` | required | `DYNAMIC`: đếm tổng số buổi ở trạng thái `AWAITING_CONFIRMATION` | Database session |
-| Số yêu cầu phân công chờ xử lý | `READONLY` | required | `DYNAMIC`: đếm số yêu cầu chọn PT đang ở trạng thái `PENDING` | Database assignment request |
-| Thẻ Ca dạy tiếp theo gần nhất | `READONLY` | optional | `DYNAMIC`: nạp ca dạy gần nhất kèm Họ tên HV và Gói tập | Upcoming session |
-| Nút `[ Xác nhận hoàn thành nhanh ]` | `USER-INPUT` | optional | `CONDITIONAL`: chỉ hiển thị khi ca dạy gần nhất đã qua/đang diễn ra | Thao tác mở modal ghi nhận kết quả |
-
 - **Business rules / logic:**
   - Màn hình tổng quan cung cấp bức tranh toàn cảnh về khối lượng công việc và hiệu suất huấn luyện của PT trong kỳ.
   - Các con số thống kê tự động cập nhật ngay khi có buổi tập hoàn thành hoặc có lịch đặt mới.

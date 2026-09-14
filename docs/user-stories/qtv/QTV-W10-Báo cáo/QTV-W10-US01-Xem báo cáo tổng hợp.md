@@ -43,17 +43,6 @@
 4. QTV thay đổi các bộ lọc `[Tháng]`, `[Quý]`, `[Năm]` hoặc `[Chi nhánh ▼]`.
 5. SYS tự động truy vấn lại cơ sở dữ liệu và làm mới chỉ số hiển thị trên cả 4 nhóm báo cáo.
 
-### Field-level specification — Màn hình Báo cáo W10
-
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Bộ lọc kỳ báo cáo | `USER-INPUT` | required | `DYNAMIC`: Chọn xem theo `Tháng`, `Quý` hoặc `Năm` | Date period selector |
-| Bộ lọc chi nhánh | `USER-INPUT` | optional | `DYNAMIC`: Danh sách chi nhánh thuộc phạm vi phân quyền của QTV; mặc định `Tất cả chi nhánh` | Branch catalog scope |
-| Chỉ số Tài chính | `AUTO-FILL` | READONLY | `DYNAMIC`: Tổng tiền thực thu, số giao dịch, cơ cấu Tiền mặt & Chuyển khoản | Payment ledger |
-| Chỉ số Bán gói | `AUTO-FILL` | READONLY | `DYNAMIC`: Tổng gói bán, doanh số Gym/PT/Combo, Top gói bán chạy | Registration ledger |
-| Chỉ số Hội viên | `AUTO-FILL` | READONLY | `DYNAMIC`: Hội viên mới, Hội viên đang hoạt động, Tổng lượt check-in | Member & Check-in ledger |
-| Chỉ số PT | `AUTO-FILL` | READONLY | `DYNAMIC`: Tổng buổi PT hoàn thành, Buổi dạy từng PT, Số hội viên có PT | PT session & assignment ledger |
-
 - **Business rules / logic:**
   - Báo cáo tổng hợp W10 cung cấp bức tranh quản trị toàn diện 360 độ về Kinh doanh và Vận hành cho QTV.
   - Số liệu tài chính và bán gói phản ánh chính xác dòng tiền thực thu 100% (không có công nợ hay giảm giá).

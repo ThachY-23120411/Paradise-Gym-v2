@@ -34,15 +34,6 @@
      6. Người nhận đã đọc hay chưa?
    - Màn hình lịch sử phục vụ mục đích **Tra cứu và Kiểm tra nhật ký (Read-only)**. QTV không có quyền chỉnh sửa, thu hồi hoặc xóa log thông báo đã gửi.
 
-### Field-level specification — Màn hình Tra cứu lịch sử gửi thông báo
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Ô tìm kiếm người nhận | `USER-INPUT` | optional | `DYNAMIC`: tìm theo tên hoặc SĐT tài khoản nhận | Văn bản tự do |
-| Bộ lọc khoảng thời gian | `USER-INPUT` | optional | `DYNAMIC`: chọn Từ ngày - Đến ngày | Date range picker |
-| Bộ lọc loại Event | `USER-INPUT` | optional | `DYNAMIC`: lọc theo event code | Danh mục loại thông báo |
-| Bảng nhật ký lịch sử gửi | `READONLY` | required | `DYNAMIC`: 6 cột (Thời gian, Event, Người nhận, Nội dung, Nguồn, Đọc) | Database notification_log |
-| Deep-link Mã Nguồn chứng từ | `USER-INPUT` | optional | `DYNAMIC`: bấm mã nguồn (ví dụ `PAY001`, `BK001`) để điều hướng về giao dịch/booking tương ứng | Deep-link navigation |
-
 ## Alternate Flows
 
 ### AF-01 — Không có nhật ký trong khoảng thời gian lọc
