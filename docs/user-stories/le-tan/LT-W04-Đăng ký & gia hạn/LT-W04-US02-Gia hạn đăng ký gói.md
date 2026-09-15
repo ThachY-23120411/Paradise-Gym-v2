@@ -60,7 +60,6 @@ flowchart TB
       A02["Kiểm tra Gói gia hạn, Ngày bắt đầu mới và Giá gốc"]
       A03["Xác nhận lưu gia hạn"]
       F01((("Final — Registration gia hạn chờ thanh toán được tạo")))
-      F02((("Final — Hủy thao tác")))
       I01 --> A01
       A02 --> A03
     end

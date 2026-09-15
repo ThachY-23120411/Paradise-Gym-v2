@@ -64,7 +64,7 @@ flowchart TB
       A03["Xem lịch 5 khung giờ trong ngày hoặc chọn ngày khác"]
       F01((("Final — Lịch PT của HLV được hiển thị")))
       I01 --> A01
-      A02 --> A03 --> F01
+      A03 --> F01
     end
     subgraph L1["Swimlane — SYS"]
       S01["Hiển thị màn hình khởi tạo Empty State: 'Chưa có HLV được chọn'"]

@@ -58,6 +58,7 @@ flowchart TB
       A05["Xác nhận lưu đăng ký"]
       F01((("Final — Registration chờ thanh toán được tạo")))
       I01 --> A01
+      A02 --> A03
     end
     subgraph L1["Swimlane — Hội viên"]
       A11["Cung cấp SĐT/Họ tên và gói muốn đăng ký"]

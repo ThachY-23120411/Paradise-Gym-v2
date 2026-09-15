@@ -69,7 +69,7 @@ flowchart TB
       I01 --> A01
       A02 --> A03
       A03 -->|Lọc hoặc tìm kiếm| A04
-      A03 -->|Xem chi tiết| A05 --> F01
+      A03 -->|Xem chi tiết| A05
     end
 
     subgraph L1["Swimlane — SYS"]

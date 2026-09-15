@@ -60,16 +60,16 @@ flowchart TB
       A03["Chọn Gói PT sử dụng từ combobox (và nhập Ghi chú nếu có)"]
       A04["Bấm Xác nhận đặt lịch"]
       F01((("Final — Buổi PT được đặt thành công")))
-      F02((("Final — Hủy thao tác")))
       I01 --> A01
-      A02 --> A03 --> A04
+      A03 --> A04
     end
     subgraph L1["Swimlane — SYS"]
       S01["Mở modal & auto-fill PT phụ trách, Ngày tập, Khung giờ & Chi nhánh"]
       S02["Auto đổ các gói PT hợp lệ của hội viên (HLV phụ trách = PT đã chọn, còn hạn & số buổi > 0) vào combobox"]
       S03["Tạo booking Đã đặt (BOOKED) & cập nhật lịch PT"]
-      A01 --> S01 --> A02 --> S02
+      A01 --> S01 --> A02
       A04 --> S03 --> F01
+      A02 --> S02 --> A03
     end
   end
 ```

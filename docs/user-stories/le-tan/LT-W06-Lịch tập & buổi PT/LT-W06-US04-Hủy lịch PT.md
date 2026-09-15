@@ -39,9 +39,7 @@ flowchart TB
       A01["Chọn buổi tập và bấm Hủy lịch"]
       A02["Xác nhận hủy trên popup"]
       F01((("Final — Buổi tập chuyển trạng thái Đã hủy")))
-      F02((("Final — Hủy thao tác")))
       I01 --> A01
-      A02 --> F01
     end
     subgraph L1["Swimlane — SYS"]
       S01["Hiển thị popup xác nhận hủy lịch PT"]
