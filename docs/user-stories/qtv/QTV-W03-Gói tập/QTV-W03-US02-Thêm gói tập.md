@@ -10,32 +10,36 @@
 ## Main Flow
 
 1. QTV mở modal **Tạo mới danh mục gói tập**.
-2. QTV chọn **Loại gói** (Gym theo thời gian, Gym theo buổi, PT theo buổi, Combo Gym + PT).
-3. SYS tự động cập nhật **Cách giới hạn** và cấu trúc các trường nhập liệu tương ứng (Thời hạn, Số buổi PT/Gym).
-4. QTV nhập Tên gói, Giá bán, Chi nhánh áp dụng, Trạng thái bán, Mô tả quyền lợi (nếu có) và thông tin hạn định.
-5. QTV chọn **Tạo gói tập**.
-6. SYS kiểm tra các trường bắt buộc, giá bán lớn hơn 0 và dữ liệu hợp lệ.
-7. SYS tạo gói tập mới, tự động sinh mã duy nhất ngầm, lưu danh mục và ghi audit log.
+2. QTV chọn **Loại gói** (`GYM`, `PT`, `COMBO`).
+3. SYS tự động cập nhật danh sách tùy chọn của trường **Cách giới hạn** tương ứng theo Loại gói.
+4. QTV chọn **Cách giới hạn** (ví dụ: với GYM chọn `Theo ngày` hoặc `Theo buổi`).
+5. SYS tự động điều khiển hiển thị động các trường nhập hạn định (Thời hạn, Số lượt Gym, Số buổi PT) theo cặp Loại gói & Cách giới hạn.
+6. QTV nhập Tên gói (ví dụ: "Gói 1 tháng", "Gói PT 10 buổi"), Giá bán, Chi nhánh áp dụng, Trạng thái bán, Mô tả quyền lợi và thông tin hạn định.
+7. QTV chọn **Tạo gói tập**.
+8. SYS kiểm tra các trường bắt buộc, giá bán lớn hơn 0 và dữ liệu hợp lệ.
+9. SYS tạo gói tập mới, tự động sinh mã duy nhất ngầm, lưu danh mục và ghi audit log.
 
 ### Field-level specification — modal Tạo mới danh mục gói tập
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| --- | --- | --- | --- | --- |
-| Tên gói | `USER-INPUT` | required | Không | QTV nhập (ví dụ: "PT 10 buổi / 90 ngày"); hiển thị trên ứng dụng và hóa đơn |
-| Loại gói | `USER-INPUT` | required | `DYNAMIC`: điều khiển hiển thị Cách giới hạn và các trường quyền lợi | QTV chọn 1 trong 4 loại cơ sở chính thức (`Gym theo thời gian`, `Gym theo buổi`, `PT theo buổi`, `Combo Gym + PT`) |
-| Cách giới hạn | `USER-INPUT` | required | `DYNAMIC`: tự động thay đổi theo Loại gói chọn | QTV chọn hoặc SYS auto-fill (`Theo thời gian`, `Theo buổi/lượt`, `Theo buổi PT`, `Combo`) |
-| Thời hạn | `USER-INPUT` | optional | `CONDITIONAL`: bắt buộc nếu gói có giới hạn thời gian (ví dụ: "90 ngày") | QTV nhập số ngày hiệu lực |
-| Số buổi PT / Gym | `USER-INPUT` | optional | `CONDITIONAL`: bắt buộc với gói theo buổi hoặc Combo | QTV nhập số lượng buổi |
-| Giá bán | `USER-INPUT` | required | Không | QTV nhập (ví dụ: "2.000.000"); giá niêm yết chính thức, bắt buộc số > 0 |
-| Chi nhánh áp dụng | `USER-INPUT` | required | `DYNAMIC`: chọn chi nhánh áp dụng gói | QTV chọn chi nhánh thuộc branch scope (ví dụ: "Quận 1") |
-| Trạng thái bán | `USER-INPUT` | required | Mặc định `Đang bán` | QTV chọn trạng thái (`Đang bán` / `Ngừng bán`) |
-| Mô tả quyền lợi | `USER-INPUT` | optional | Không | QTV nhập mô tả ngắn hiển thị trên thẻ gói khi hội viên xem trên mobile app |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Loại gói | `Select Dropdown` | `USER-INPUT` | required | `TRIGGER`: Điều khiển danh sách tùy chọn của *Cách giới hạn* (`DYNAMIC`) và điều kiện ẩn/hiện các trường hạn định (`CONDITIONAL`) | QTV chọn 1 trong 3 nhóm dịch vụ: `GYM`, `PT`, `COMBO` |
+| Cách giới hạn | `Select Dropdown` | `USER-INPUT` | required | `DYNAMIC`: Luôn hiển thị, danh sách tùy chọn bên trong thay đổi theo *Loại gói* (`TRIGGER`) | • Khi chọn `GYM`: Cho phép chọn `Theo ngày` hoặc `Theo buổi`<br>• Khi chọn `PT`: Cố định `Theo buổi`<br>• Khi chọn `COMBO`: Cố định `Theo ngày + buổi` |
+| Tên gói | `Textbox` | `USER-INPUT` | required | Không | QTV nhập tên gói niêm yết (ví dụ: "Gói 1 tháng", "Gói Gym 10 lượt", "Gói PT 10 buổi", "Combo Gym 3 tháng + PT 10 buổi") |
+| Thời hạn (ngày) | `Number Input` | `USER-INPUT` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: Luôn hiển thị trên form<br>• **Bắt buộc khi**: Cách giới hạn là `Theo ngày`, `Theo buổi (PT)`, `Theo ngày + buổi`<br>• **Tùy chọn khi**: `Loại gói = GYM` và `Cách giới hạn = Theo buổi` | QTV nhập số ngày hiệu lực của gói (ví dụ: "30", "90", "365") |
+| Số lượt Gym | `Number Input` | `USER-INPUT` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: `Loại gói = GYM` và `Cách giới hạn = Theo buổi` (bắt buộc)<br>• **Ẩn khi**: `Loại gói = GYM` + `Theo ngày`; hoặc `Loại gói = PT` / `COMBO` | QTV nhập số lượt được check-in vào tập Gym (ví dụ: "10", "20") |
+| Số buổi PT | `Number Input` | `USER-INPUT` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: `Loại gói = PT` hoặc `COMBO` (bắt buộc)<br>• **Ẩn khi**: `Loại gói = GYM` (cả Theo ngày và Theo buổi) | QTV nhập số buổi tập cùng HLV cá nhân (ví dụ: "10", "20") |
+| Giá bán | `Currency Input (VND)` | `USER-INPUT` | required | Không | QTV nhập giá niêm yết (ví dụ: "2.000.000"); bắt buộc số > 0 |
+| Chi nhánh áp dụng | `Multi-select Dropdown` | `USER-INPUT` | required | Không | QTV chọn 1 hoặc nhiều chi nhánh được phép áp dụng gói thuộc branch scope (hỗ trợ tìm kiếm, tích chọn nhiều chi nhánh hoặc chọn "Tất cả chi nhánh"; các chi nhánh đã chọn hiển thị dạng tag/chip) |
+| Trạng thái bán | `Select Dropdown` | `USER-INPUT` | required | Không | QTV chọn trạng thái (`Đang bán` / `Ngừng bán`); mặc định `Đang bán` |
+| Mô tả quyền lợi | `Textarea` | `USER-INPUT` | optional | Không | QTV nhập mô tả ngắn hiển thị trên thẻ gói khi hội viên xem trên mobile app |
 
 - **Business rules / logic:**
-  - **Dynamic Form Fields**: Form tự động thay đổi các trường điều kiện dựa theo Loại gói:
-    - *Gym theo thời gian*: Hiện `Cách giới hạn = Theo thời gian`, `Thời hạn`. Ẩn số buổi PT/Gym (quyền vào Gym là mặc định không giới hạn trong thời hạn gói).
-    - *Gym theo buổi*: Hiện `Số lượt/buổi Gym` & `Thời hạn`. Ẩn quyền PT.
-    - *PT theo buổi*: Hiện `Số buổi PT` & `Thời hạn PT`.
-    - *Combo Gym + PT*: Hiện cả `Thời hạn Gym` và `Số buổi PT`.
+  - **Dynamic Form Fields theo Loại gói & Cách giới hạn**:
+    - **`GYM` + `Theo ngày`**: Form hiển thị trường `Thời hạn (ngày)` (bắt buộc). Ẩn các trường số buổi (quyền vào Gym là không giới hạn trong thời hạn gói).
+    - **`GYM` + `Theo buổi`**: Form hiển thị trường `Số lượt Gym` (bắt buộc) và `Thời hạn (ngày)` (tùy chọn thời hạn sử dụng các lượt này).
+    - **`PT` + `Theo buổi`**: Form hiển thị trường `Số buổi PT` (bắt buộc) và `Thời hạn (ngày)` (bắt buộc thời hạn hoàn thành các buổi PT).
+    - **`COMBO` + `Theo ngày + buổi`**: Form hiển thị cả 2 trường `Thời hạn (ngày)` (thời hạn tập Gym) và `Số buổi PT` (bắt buộc).
+  - Tên gói là tên gọi thương mại do QTV tự đặt, không phải là loại gói.
   - Mã gói tập do SYS tự động khởi tạo ngầm sau khi lưu, không xuất hiện trên Modal UI.
 
 ## Alternate Flows

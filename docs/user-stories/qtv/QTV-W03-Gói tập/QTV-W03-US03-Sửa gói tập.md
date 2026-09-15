@@ -9,28 +9,30 @@
 
 ## Main Flow
 
-1. QTV mở modal **Cập nhật danh mục gói tập** (Form prefill dữ liệu hiện tại).
-2. QTV cập nhật các thông tin được phép (Tên gói, Cách giới hạn, Thời hạn, Số buổi PT/Gym, Giá bán, Chi nhánh áp dụng, Trạng thái bán, Mô tả quyền lợi).
-3. QTV chọn **Lưu thay đổi**.
-4. SYS kiểm tra required field, định dạng dữ liệu và giá bán > 0.
-5. SYS lưu cập nhật gói tập và ghi audit log.
+1. QTV mở modal **Cập nhật danh mục gói tập** (Form prefill toàn bộ dữ liệu hiện tại của gói).
+2. SYS khóa cố định không cho sửa **Loại gói** và **Cách giới hạn** để đảm bảo toàn vẹn mô hình tính toán.
+3. QTV cập nhật các thông tin được phép (Tên gói, Thời hạn, Số buổi PT/Gym, Giá bán, Chi nhánh áp dụng, Trạng thái bán, Mô tả quyền lợi).
+4. QTV chọn **Lưu thay đổi**.
+5. SYS kiểm tra required field, định dạng dữ liệu và giá bán > 0.
+6. SYS lưu cập nhật gói tập và ghi audit log.
 
 ### Field-level specification — modal Cập nhật danh mục gói tập
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| --- | --- | --- | --- | --- |
-| Tên gói | `USER-INPUT` | required | Không | Giá trị hiện tại `PREFILL`, QTV cập nhật |
-| Loại gói | `READONLY (PREFILL)` | required | Không | Trường cố định: hiển thị loại gói hiện tại, không được phép sửa |
-| Cách giới hạn | `USER-INPUT` | required | `DYNAMIC`: khớp với loại gói | QTV cập nhật hoặc giữ nguyên |
-| Thời hạn | `USER-INPUT` | optional | `CONDITIONAL`: theo loại gói | QTV cập nhật số ngày hiệu lực |
-| Số buổi PT / Gym | `USER-INPUT` | optional | `CONDITIONAL`: chỉ hiển thị với gói theo buổi/Combo | QTV cập nhật số lượng buổi |
-| Giá bán | `USER-INPUT` | required | Không | Giá trị hiện tại `PREFILL`, kiểm tra số > 0 |
-| Chi nhánh áp dụng | `USER-INPUT` | required | `DYNAMIC`: chọn chi nhánh áp dụng | QTV chọn chi nhánh thuộc branch scope |
-| Trạng thái bán | `USER-INPUT` | required | Không | QTV chọn trạng thái (`Đang bán` / `Ngừng bán`) |
-| Mô tả quyền lợi | `USER-INPUT` | optional | Không | QTV cập nhật nội dung ngắn hiển thị trên thẻ gói mobile |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Loại gói | `Readonly Text` | `READONLY (PREFILL)` | required | `TRIGGER`: Căn cứ dữ liệu cố định của gói, điều khiển ẩn/hiện các trường hạn định (`CONDITIONAL`) | Hiển thị loại gói hiện tại (`GYM`, `PT`, `COMBO`), khóa cứng không được sửa |
+| Cách giới hạn | `Readonly Text` | `READONLY (PREFILL)` | required | Không | Hiển thị cách giới hạn hiện tại (`Theo ngày`, `Theo buổi`, `Theo ngày + buổi`), khóa cứng không được sửa |
+| Tên gói | `Textbox` | `USER-INPUT` | required | Không | Giá trị hiện tại `PREFILL`, QTV có thể cập nhật tên thương mại (ví dụ: "Gói 1 tháng", "Gói PT 10 buổi") |
+| Thời hạn (ngày) | `Number Input` | `USER-INPUT` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: Luôn hiển thị trên form<br>• **Bắt buộc khi**: Cách giới hạn của gói là `Theo ngày`, `Theo buổi (PT)`, `Theo ngày + buổi`<br>• **Tùy chọn khi**: `Loại gói = GYM` và `Cách giới hạn = Theo buổi` | Giá trị hiện tại `PREFILL`, QTV cập nhật số ngày hiệu lực |
+| Số lượt Gym | `Number Input` | `USER-INPUT` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: `Loại gói = GYM` và `Cách giới hạn = Theo buổi`<br>• **Ẩn khi**: `Loại gói = GYM` + `Theo ngày`; hoặc `Loại gói = PT` / `COMBO` | Giá trị hiện tại `PREFILL`, QTV cập nhật số lượt |
+| Số buổi PT | `Number Input` | `USER-INPUT` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: `Loại gói = PT` hoặc `COMBO`<br>• **Ẩn khi**: `Loại gói = GYM` (cả Theo ngày và Theo buổi) | Giá trị hiện tại `PREFILL`, QTV cập nhật số buổi PT |
+| Giá bán | `Currency Input (VND)` | `USER-INPUT` | required | Không | Giá trị hiện tại `PREFILL`, kiểm tra số > 0 |
+| Chi nhánh áp dụng | `Multi-select Dropdown` | `USER-INPUT` | required | Không | Prefill danh sách chi nhánh hiện tại; QTV có thể thêm/bớt các chi nhánh áp dụng trong branch scope (hiển thị dạng tag/chip) |
+| Trạng thái bán | `Select Dropdown` | `USER-INPUT` | required | Không | QTV chọn trạng thái (`Đang bán` / `Ngừng bán`) |
+| Mô tả quyền lợi | `Textarea` | `USER-INPUT` | optional | Không | QTV cập nhật nội dung ngắn hiển thị trên thẻ gói mobile |
 
 - **Business rules / logic:**
-  - Loại gói là cố định, không được phép sửa sau khi tạo.
-  - Gói Gym mặc định cấp quyền vào tập Gym không giới hạn trong thời hạn gói, không cần trường nhập riêng.
+  - `Loại gói` (`GYM`/`PT`/`COMBO`) và `Cách giới hạn` là cố định (`READONLY`), không được phép sửa sau khi tạo để bảo đảm tính toàn vẹn của mô hình dịch vụ.
+  - Các trường hạn định (Thời hạn, Số lượt Gym, Số buổi PT) tự động hiển thị tương ứng theo cặp Loại gói & Cách giới hạn của bản ghi.
   - Sửa giá/điều kiện gói chỉ có hiệu lực với các lần mua/gia hạn mới; các đăng ký cũ giữ nguyên dữ liệu đã snapshot.
 
 ## Alternate Flows

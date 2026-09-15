@@ -1,7 +1,8 @@
 # LT-W02-US04 - Xem danh sách hội viên
 
 ## Preconditions
-- Lễ tân đã đăng nhập, branch scope của Lễ tân đã được xác định.
+- Lễ tân đã đăng nhập hệ thống và có quyền tra cứu hồ sơ hội viên tại chi nhánh trực quầy.
+- Lễ tân thao tác trong phạm vi chi nhánh được phân công (branch scope: cố định theo chi nhánh trực quầy).
 
 ## Trigger
 - Lễ tân mở menu W02 hoặc chọn **Danh sách hội viên**.
@@ -9,16 +10,29 @@
 
 ## Main Flow
 
-1. Lễ tân mở danh sách hội viên.
-2. SYS xác định branch scope của Lễ tân.
-3. SYS hiển thị danh sách hội viên theo branch scope (Mã HV, Họ tên, SĐT, Email, Chi nhánh, Trạng thái hồ sơ).
+1. Lễ tân mở menu **Hội viên & khách hàng** (W02).
+2. SYS xác định branch scope của tài khoản Lễ tân theo chi nhánh đang làm việc.
+3. SYS truy vấn và hiển thị bảng danh sách hội viên thuộc chi nhánh đó.
+4. Lễ tân xem danh sách các trường thông tin hội viên trên từng dòng của bảng dữ liệu.
+
+### Field-level specification — Bảng danh sách hội viên
+| Field / control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- |
+| Mã HV | `READONLY` | required | Không | SYS sinh duy nhất từ `MEMBER_PROFILE.code` (ví dụ: "HV001"); hiển thị dạng text link |
+| Họ và tên | `READONLY` | required | Không | Lấy từ `MEMBER_PROFILE.full_name` (ví dụ: "Nguyễn Văn An"); hiển thị kèm avatar viết tắt tên |
+| Số điện thoại | `READONLY` | required | `DYNAMIC`: hiển thị định dạng chuẩn hóa 10 số | Lấy từ `MEMBER_PROFILE.phone` (ví dụ: "0901 234 567"); định danh liên hệ duy nhất |
+| Email | `READONLY` | optional | Không | Lấy từ `MEMBER_PROFILE.email` (ví dụ: "an.nguyen@example.vn"); hiển thị gạch ngang `-` nếu chưa có |
+| Chi nhánh | `READONLY` | required | `DYNAMIC`: theo branch scope | Lấy tên chi nhánh trực quầy từ `BRANCH.name` (ví dụ: "Quận 1") |
+| Trạng thái hồ sơ | `READONLY` | required | `DYNAMIC`: theo trạng thái record | Lấy từ `MEMBER_PROFILE.status`; hiển thị dạng status badge (ví dụ: badge xanh "Hồ sơ đang hoạt động") |
 
 - **Business rules / logic:**
-  - Chỉ trả dữ liệu thuộc role và branch scope của Lễ tân.
-  - Danh sách là read-only; thao tác thay đổi dùng các User Story thêm/sửa/đổi trạng thái tương ứng.
+  - Chỉ hiển thị hồ sơ hội viên thuộc chi nhánh tiếp nhận mà Lễ tân đang trực quầy.
+  - Dữ liệu trên bảng danh sách là chỉ đọc (`READONLY`); các thao tác thay đổi dùng các User Story thêm/sửa/đổi trạng thái tương ứng.
+  - Sắp xếp mặc định theo thời gian tạo mới nhất hoặc theo mã hội viên.
 
 ## Exception Flows
-- Lỗi tải dữ liệu: hiển thị thông báo lỗi.
+- Không có dữ liệu phù hợp: SYS hiển thị empty state "Không tìm thấy hội viên nào trong chi nhánh".
+- Lỗi kết nối / tải dữ liệu: SYS hiển thị thông báo lỗi và cho phép thử lại.
 
 ## Activity Diagram — Swimlane
 **Trigger:** Lễ tân mở Danh sách hội viên trong menu W02.
@@ -28,13 +42,13 @@ flowchart TB
   subgraph B["Boundary — Web Lễ tân / W02 Danh sách hội viên"]
     subgraph L0["Swimlane — Lễ tân"]
       I01(("Initial"))
-      A01["Mở danh sách hội viên"]
+      A01["Mở menu W02 Hội viên & khách hàng"]
       F01((("Final — Danh sách được hiển thị")))
       I01 --> A01
     end
     subgraph L1["Swimlane — SYS"]
-      S01["Xác định branch scope"]
-      S02["Hiển thị danh sách hội viên theo branch scope (Mã HV, Họ tên, SĐT, Email, Chi nhánh, Trạng thái hồ sơ)"]
+      S01["Xác định branch scope của Lễ tân"]
+      S02["Truy vấn và hiển thị danh sách hội viên trong chi nhánh (Mã HV, Họ tên, SĐT, Email, Chi nhánh, Trạng thái hồ sơ)"]
       A01 --> S01 --> S02 --> F01
     end
   end

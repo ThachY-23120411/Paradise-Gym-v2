@@ -17,12 +17,12 @@
 5. SYS cập nhật trạng thái mới, ghi audit log (bao gồm lý do nếu có) và hiển thị kết quả.
 
 ### Field-level specification — form Đổi trạng thái hội viên
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| --- | --- | --- | --- | --- |
-| Mã/tên hội viên | `READONLY` | required | Không | SYS lấy từ hồ sơ được chọn |
-| Trạng thái hiện tại | `READONLY` | required | `DYNAMIC`: lấy từ record hiện tại | SYS lấy từ `MEMBER_PROFILE` |
-| Trạng thái mới | `USER-INPUT` | required | Không | Lễ tân chọn trạng thái mới (ví dụ: `Ngừng hoạt động`, `Đã lưu trữ`, `Đang hoạt động`) |
-| Lý do đổi trạng thái | `USER-INPUT` | optional | Không | Lễ tân nhập tự do (nếu muốn) để ghi nhận vào audit log |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Mã/tên hội viên | `Readonly Text` | `READONLY (PREFILL)` | required | Không | SYS tự động prefill từ hồ sơ được chọn |
+| Trạng thái hiện tại | `Readonly Text / Badge` | `READONLY (PREFILL)` | required | Không | SYS tự động prefill từ `MEMBER_PROFILE.status` của hồ sơ được chọn |
+| Trạng thái mới | `Select Dropdown` | `USER-INPUT` | required | Không | Lễ tân chọn trạng thái mới (ví dụ: `Ngừng hoạt động`, `Đã lưu trữ`, `Đang hoạt động`) |
+| Lý do đổi trạng thái | `Textarea` | `USER-INPUT` | optional | Không | Lễ tân nhập tự do (nếu muốn) để ghi nhận vào audit log |
 
 - **Business rules / logic:**
   - Trạng thái hồ sơ độc lập với trạng thái của từng gói.

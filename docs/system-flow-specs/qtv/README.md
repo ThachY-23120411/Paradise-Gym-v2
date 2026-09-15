@@ -30,6 +30,8 @@ Epic/Menu → User Story → Preconditions → Main/Alternate/Exception Flow →
 - [QTV-W04-US01 — Tạo đăng ký gói mới](../../user-stories/qtv/QTV-W04-Đăng ký & gia hạn/QTV-W04-US01-Tạo đăng ký gói mới.md)
 - [QTV-W04-US02 — Gia hạn đăng ký gói](../../user-stories/qtv/QTV-W04-Đăng ký & gia hạn/QTV-W04-US02-Gia hạn đăng ký gói.md)
 - [QTV-W04-US03 — Xem danh sách các đăng ký](../../user-stories/qtv/QTV-W04-Đăng ký & gia hạn/QTV-W04-US03-Xem danh sách các đăng ký.md)
+- [QTV-W04-US04 — Xem chi tiết lượt đăng ký gói](../../user-stories/qtv/QTV-W04-Đăng ký & gia hạn/QTV-W04-US04-Xem chi tiết lượt đăng ký gói.md)
+- [QTV-W04-US05 — Gán PT phụ trách cho gói đăng ký](../../user-stories/qtv/QTV-W04-Đăng ký & gia hạn/QTV-W04-US05-Gán PT phụ trách cho gói đăng ký.md)
 
 ## QTV-W05 · Huấn luyện viên
 

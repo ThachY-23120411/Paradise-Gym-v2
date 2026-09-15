@@ -26,6 +26,18 @@
   - Màn hình tổng quan cung cấp bức tranh toàn cảnh về khối lượng công việc và hiệu suất huấn luyện của PT trong kỳ.
   - Các con số thống kê tự động cập nhật ngay khi có buổi tập hoàn thành hoặc có lịch đặt mới.
 
+### Field-level specification — Màn hình Tổng quan & Thống kê hiệu suất PT
+| Field / control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- |
+| **Bộ lọc mốc thời gian** | `USER-INPUT` + `PREFILL` | required | `TRIGGER`: Chọn mốc thời gian kích hoạt tính toán lại các ô chỉ số hiệu suất bên dưới | Segmented Control / Chips: `Tuần này`, `Tháng này` (mặc định), `Tháng trước` |
+| **Chỉ số: Học viên phụ trách** | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số lượng học viên theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số học viên có hợp đồng PT `ACTIVE` được phân công cho PT |
+| **Chỉ số: Buổi đã hoàn thành** | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số buổi hoàn thành theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số ca tập có trạng thái `DONE` (đã đủ xác nhận 2 chiều) trong kỳ |
+| **Chỉ số: Buổi đã được book** | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số buổi sắp dạy theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số ca tập có trạng thái `Đã đặt` (`UPCOMING`) trong tương lai |
+| **Chỉ số: Buổi chờ xác nhận** | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số buổi chờ xác nhận theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số ca tập có trạng thái `AWAITING_CONFIRMATION` |
+| **Chỉ số: Yêu cầu phân công** | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số yêu cầu chờ duyệt theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số yêu cầu ghép PT trạng thái `PENDING` |
+| **Thẻ ca dạy tiếp theo gần nhất** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** PT có ca tập tiếp theo đã lên lịch trong tương lai hoặc đang diễn ra; **Ẩn khi** không còn ca tập nào trong lịch dạy | Hiển thị: Giờ bắt đầu - Giờ kết thúc, Ngày, Họ tên học viên, Tên gói tập |
+| **Nút `[ Xác nhận hoàn thành ]`** | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** ca dạy tiếp theo đang trong khung giờ diễn ra hoặc đã qua giờ kết thúc; **Ẩn khi** ca dạy tiếp theo chưa đến giờ bắt đầu | Primary Action Button: Bấm để mở Modal / Bottom Sheet `Ghi nhận kết quả buổi PT` (`PT01-US02`) |
+
 ## Alternate Flows
 
 ### AF-01 — Đổi mốc thời gian thống kê

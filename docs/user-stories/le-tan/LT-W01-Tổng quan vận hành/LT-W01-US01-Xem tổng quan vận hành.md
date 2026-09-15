@@ -1,11 +1,8 @@
 # LT-W01-US01 - Xem tổng quan vận hành chi nhánh
 
 ## Preconditions
-- **Role / Platform / Epic:** Lễ tân / Quản lý quầy trên Web; Epic W01 · Tổng quan vận hành.
-- **Canonical story / operation / actors:** `LT-W01-US01`; `[R|Workflow]`; actors/swimlanes gồm Lễ tân, SYS.
 - Lễ tân có tài khoản hoạt động, phân quyền vận hành quầy và scope cố định tại chi nhánh phục vụ hiện tại.
 - Hệ thống áp dụng chính sách thanh toán 100% 1 lần duy nhất (bỏ hoàn toàn công nợ, nợ tồn, thanh toán một phần).
-- **Traceability:** shared-menu [E01-W01 — Tổng quan vận hành](../../shared-menu/E01-W01-Tong quan van hanh/E01-US01-Xem tổng quan vận hành.md); legacy source `docs/user-stories-legacy/E01-Dashboard & Operational Overview/E01-US01.md`.
 
 ## Trigger
 - Lễ tân truy cập menu sidebar `W01 · Tổng quan vận hành` trên Web Portal.
@@ -53,12 +50,6 @@
 ## Exception Flows
 
 - Thiết bị cổng ra vào bị offline/lỗi: SYS hiển thị card cảnh báo đỏ trong khối Việc cần xử lý kèm nút mở màn hình `LT-W07` để Lễ tân chuyển sang chế độ Ghi nhận Ra/Vào thủ công.
-
-## Result
-- Lễ tân dễ dàng nắm bắt các công việc cần xử lý ngay tại quầy trong ca làm việc và thao tác nhanh các nghiệp vụ phục vụ hội viên.
-- **Permission / branch scope:** Lễ tân thao tác trên Web theo vai trò và chi nhánh phục vụ.
-- **Related screens:** Web Lễ tân `screenshot/le-tan/light-web-W01-tong-quan-le-tan.png`.
-- **Mục tiêu nghiệp vụ:** Tối ưu tốc độ phục vụ quầy lễ tân và đảm bảo không bỏ sót công việc trong ca.
 
 ## Activity Diagram — Swimlane
 **Trigger:** Lễ tân mở màn hình W01 · Tổng quan vận hành trên Web Portal.

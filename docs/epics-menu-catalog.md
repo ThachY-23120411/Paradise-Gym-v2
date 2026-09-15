@@ -73,7 +73,7 @@ Quy ước chung:
 | Scope | Chọn hội viên và gói, tạo registration, xem chi tiết registration/quyền lợi, tạo registration gia hạn nối tiếp, snapshot giá/quyền lợi/phạm vi. Gói PT/Combo được xử lý tiếp qua luồng phân công PT. |
 | CRUD/workflow summary | `C/R` cho registration; `Workflow` cho chờ thanh toán; registration cũ không bị sửa để thay thế dữ liệu lịch sử. |
 | Related UI | Web W04 Đăng ký & gia hạn; danh sách/drawer registration; modal đăng ký/gia hạn. |
-| User Stories | `E04-US01` — Tạo đăng ký gói mới; `E04-US02` — Gia hạn đăng ký gói; `E04-US03` — Xem danh sách các đăng ký |
+| User Stories | `US01` — Tạo đăng ký gói mới; `US02` — Gia hạn đăng ký gói; `US03` — Xem danh sách các đăng ký; `US04` — Xem chi tiết lượt đăng ký gói; `US05` — Gán PT phụ trách cho gói đăng ký |
 
 ## E05 - W05 Huấn luyện viên
 
@@ -87,7 +87,7 @@ Quy ước chung:
 | Scope | Hồ sơ PT, trạng thái hoạt động; hội viên hoặc Lễ tân chọn PT; PT tiếp nhận, chấp nhận hoặc từ chối assignment request. Lịch làm việc cố định là system configuration dùng để tính slot W06, không phải User Story quản trị độc lập. |
 | CRUD/workflow summary | `CRUD/U` cho hồ sơ; `Workflow` cho request `PENDING → ACCEPTED/REJECTED`; assignment chỉ có hiệu lực sau khi PT chấp nhận. |
 | Related UI | Web W05 Huấn luyện viên; màn hình danh sách PT và yêu cầu phân công. |
-| User Stories | `E05-US01` — Thêm hồ sơ PT; `E05-US02` — Sửa hồ sơ PT; `E05-US03` — Cập nhật trạng thái hồ sơ PT; `E05-US04` — Xem danh sách PT |
+| User Stories | QTV: `QTV-W05-US01` (Thêm hồ sơ PT), `QTV-W05-US02` (Sửa hồ sơ PT), `QTV-W05-US03` (Cập nhật trạng thái hồ sơ PT), `QTV-W05-US04` (Xem danh sách PT); Lễ tân: `LT-W05-US01` (Xem danh sách PT - Read-only) |
 
 ## E06 - W06 Lịch tập & buổi PT
 
@@ -112,9 +112,9 @@ Quy ước chung:
 | Module name | Ra / Vào |
 | Goal | Màn hình kiểm soát check-in/check-out của hội viên tại phòng Gym, ghi nhận Vào/Ra thủ công và theo dõi trạng thái thiết bị cùng nhật ký ra vào. |
 | Actors | QTV / Quản lý, Lễ tân, SYS, Thiết bị nhận diện |
-| Scope | Kiểm tra 6 điều kiện tự động (Profile ACTIVE, Gói còn hạn, Thanh toán 100%, Đúng chi nhánh, Còn số buổi, Trong giờ); Ghi nhận Vào/Ra thủ công ở khu vực bên trái (Tìm hội viên ➔ Bắt buộc nhập lý do ➔ CTA `Ghi nhận Vào` / `Ghi nhận Ra` linh hoạt, không cho bypass); Khung Summary trạng thái thiết bị read-only (không có nút Cấu hình); Bảng Nhật ký Ra/Vào ở bên phải (Thời gian, Vào/Ra, Hội viên, Nguồn, Kết quả, Cảnh báo, Thao tác). |
-| CRUD/workflow summary | `C/Workflow` cho sự kiện Vào/Ra tự động & thủ công; `R` cho summary thiết bị & bảng nhật ký. |
-| Related UI | Web W07 Ra / Vào; khu vực Ghi nhận thủ công bên trái; khung Summary thiết bị; bảng Nhật ký Ra/Vào bên phải. |
+| Scope | Kiểm tra 6 điều kiện tự động (Profile ACTIVE, Gói còn hạn, Thanh toán 100%, Đúng chi nhánh, Còn số buổi, Trong giờ); Ghi nhận Vào/Ra thủ công (Card kiểm soát nhanh bên trái & Modal thủ công chuyên sâu 9 trường); Card trạng thái thiết bị (Online/Offline, Kiosk K01); Bảng Nhật ký Ra/Vào thời gian thực ở bên phải. |
+| CRUD/workflow summary | `C/Workflow` cho sự kiện Vào/Ra tự động & thủ công; `R` cho trạng thái thiết bị & nhật ký ra vào. |
+| Related UI | Web W07 Ra / Vào; Card Kiểm soát ra/vào; Card Thiết bị; Modal Ghi nhận ra/vào thủ công; Bảng Nhật ký ra/vào hôm nay. |
 | User Stories | `QTV-W07-US01` / `LT-W07-US01` — Xử lý check-in tự động qua thiết bị; `QTV-W07-US02` / `LT-W07-US02` — Ghi nhận Vào/Ra thủ công; `QTV-W07-US03` / `LT-W07-US03` — Xem nhật ký Ra/Vào và theo dõi trạng thái thiết bị |
 
 ## E08 - W08 Thu tiền & thanh toán

@@ -19,13 +19,13 @@
 7. SYS hiển thị hồ sơ vừa tạo.
 
 ### Field-level specification — modal Thêm mới hồ sơ hội viên
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| --- | --- | --- | --- | --- |
-| Họ và tên | `USER-INPUT` | required | Không | QTV nhập (ví dụ: "Nguyễn Hoài Nam"); hỗ trợ dấu tiếng Việt, bỏ khoảng trắng thừa trước khi lưu |
-| Số điện thoại | `USER-INPUT` | required | `DYNAMIC`: chuẩn hóa và kiểm tra trùng lặp realtime | QTV nhập (ví dụ: "0908 111 222"); khóa nghiệp vụ duy nhất của hội viên, giữ nguyên số 0 đầu, `UNIQUE` toàn hệ thống |
-| Email | `USER-INPUT` | optional | Không | QTV nhập nếu có (ví dụ: "name@example.vn"); chỉ kiểm tra định dạng khi có nhập |
-| Chi nhánh tiếp nhận | `PREFILL` + `READONLY` | required | Không | Trường cố định: tự động điền theo chi nhánh làm việc hiện tại của tài khoản thao tác (ví dụ: "Chi nhánh Quận 1") |
-| Ngày sinh | `USER-INPUT` | optional | Không | QTV nhập từ khách cung cấp (định dạng `DD/MM/YYYY`); không mặc định hôm nay, dùng cho nhắc sinh nhật nếu hội viên đồng ý |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Họ và tên | `Textbox` | `USER-INPUT` | required | Không | QTV nhập (ví dụ: "Nguyễn Hoài Nam"); hỗ trợ dấu tiếng Việt, bỏ khoảng trắng thừa trước khi lưu |
+| Số điện thoại | `Textbox (Phone Input)` | `USER-INPUT` | required | Không | QTV nhập (ví dụ: "0908 111 222"); khóa nghiệp vụ duy nhất của hội viên, chuẩn hóa và kiểm tra trùng lặp realtime, giữ nguyên số 0 đầu, `UNIQUE` toàn hệ thống |
+| Email | `Textbox (Email Input)` | `USER-INPUT` | optional | Không | QTV nhập nếu có (ví dụ: "name@example.vn"); chỉ kiểm tra định dạng khi có nhập |
+| Chi nhánh tiếp nhận | `Readonly Text` | `PREFILL` + `READONLY` | required | Không | Trường cố định: tự động điền theo chi nhánh làm việc hiện tại của tài khoản thao tác (ví dụ: "Chi nhánh Quận 1") |
+| Ngày sinh | `Date Picker / Textbox (Date)` | `USER-INPUT` | optional | Không | QTV nhập từ khách cung cấp (định dạng `DD/MM/YYYY`); không mặc định hôm nay, dùng cho nhắc sinh nhật nếu hội viên đồng ý |
 
 - **Business rules / logic:**
   - Hồ sơ mới bắt buộc có họ tên, số điện thoại và chi nhánh tiếp nhận.

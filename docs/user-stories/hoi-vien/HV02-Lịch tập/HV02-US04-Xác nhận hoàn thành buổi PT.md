@@ -22,6 +22,15 @@
   - **Check-in phòng Gym độc lập**: Việc Hội viên check-in vào cửa phòng Gym tại menu W07 không tự động chuyển buổi tập PT sang trạng thái hoàn thành.
   - Nếu Hội viên bấm xác nhận trước khi PT bấm, booking tiếp tục ở trạng thái chờ PT xác nhận (chưa trừ buổi cho tới khi PT bấm xác nhận).
 
+### Field-level specification — Dialog Xác nhận Hoàn thành buổi PT
+| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
+| :--- | :--- | :--- | :--- | :--- |
+| **Thông tin buổi tập** | `PREFILL` + `READONLY` | required | Không | Hiển thị thông tin buổi tập cần xác nhận: `Buổi tập với PT [Tên PT] lúc [Khung giờ - Ngày]` |
+| **Trạng thái xác nhận của PT** | `READONLY` | required | `DYNAMIC`: Lấy từ trạng thái xác nhận phía PT | Hiển thị badge/nhãn trạng thái: `PT đã xác nhận hoàn thành` (xanh) HOẶC `Đang chờ PT gửi xác nhận` (cam) |
+| **Thông báo khấu trừ** | `READONLY` | required | Không | Đoạn text giải thích: "Sau khi cả bạn và PT cùng xác nhận, hệ thống sẽ trừ chính xác 1 buổi trong gói tập của bạn." |
+| **Đánh giá mức độ hài lòng** | `USER-INPUT` | optional | Không | Bộ chọn Star Rating 5 sao (`1`–`5 sao`) để hội viên đánh giá chất lượng phục vụ của PT |
+| **Ghi chú đánh giá** | `USER-INPUT` | optional | Không | Text input ngắn cho phép nhập cảm nghĩ/nhận xét (tối đa 200 ký tự) |
+
 ## Alternate Flows
 
 ### AF-01 — PT chưa bấm xác nhận hoàn thành

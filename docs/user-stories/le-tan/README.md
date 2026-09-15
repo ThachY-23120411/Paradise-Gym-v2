@@ -28,6 +28,12 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 - [LT-W04-US01 — Tạo đăng ký gói mới](./LT-W04-Đăng ký & gia hạn/LT-W04-US01-Tạo đăng ký gói mới.md)
 - [LT-W04-US02 — Gia hạn đăng ký gói](./LT-W04-Đăng ký & gia hạn/LT-W04-US02-Gia hạn đăng ký gói.md)
 - [LT-W04-US03 — Xem danh sách các đăng ký](./LT-W04-Đăng ký & gia hạn/LT-W04-US03-Xem danh sách các đăng ký.md)
+- [LT-W04-US04 — Xem chi tiết lượt đăng ký gói](./LT-W04-Đăng ký & gia hạn/LT-W04-US04-Xem chi tiết lượt đăng ký gói.md)
+- [LT-W04-US05 — Gán PT phụ trách cho gói đăng ký](./LT-W04-Đăng ký & gia hạn/LT-W04-US05-Gán PT phụ trách cho gói đăng ký.md)
+
+## LT-W05 · Huấn luyện viên
+
+- [LT-W05-US01 — Xem danh sách PT](./LT-W05-Huấn luyện viên/LT-W05-US01-Xem danh sách PT.md)
 
 ## LT-W06 · Lịch tập & buổi PT
 
@@ -52,7 +58,7 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 
 - [LT-W09-US01 — Tra cứu lịch sử gửi thông báo chi nhánh](./LT-W09-Thông báo/LT-W09-US01-Tra cứu lịch sử gửi thông báo chi nhánh.md)
 
-**Tổng số:** 20 User Story canonical.
+**Tổng số:** 21 User Story canonical.
 
 ## Boundary
 

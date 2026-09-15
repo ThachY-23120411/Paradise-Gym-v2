@@ -38,7 +38,7 @@ Paradise Gym là hệ thống quản lý vận hành phòng gym trên Web và Mo
 | Danh mục gói tập | Web QTV; Mobile Hội viên xem gói đang bán | Web quản lý danh mục và xem chi tiết gói/quyền lợi Gym/PT/Combo; Mobile Hội viên xem trước khi mua; chi tiết registration thuộc W04 |
 | Đăng ký & gia hạn | Web QTV/Lễ tân; Mobile Hội viên self-service | Web tạo, xem chi tiết và gia hạn theo vận hành; Mobile Hội viên mua gói khi self-service được bật; gói PT/Combo không phân công PT ngay |
 | HV03 Gói của tôi | Mobile Hội viên only | Xem gói/tiến độ, mua gói, khởi tạo thanh toán, chọn PT và theo dõi request/payment |
-| Thanh toán & thu tiền | Web QTV/Lễ tân; Mobile Hội viên xem/tracking self-service | Web xử lý nghiệp vụ thu/đối soát/điều chỉnh thanh toán 100% 1 lần; Mobile Hội viên tạo yêu cầu thanh toán và xem trạng thái/phiếu của mình |
+| Thanh toán & thu tiền | Web QTV/Lễ tân; Mobile Hội viên xem/tracking self-service | Web xử lý nghiệp vụ thu tiền mặt, chuyển khoản và điều chỉnh thanh toán 100% 1 lần; Mobile Hội viên tạo yêu cầu thanh toán và xem trạng thái/phiếu của mình |
 | Quản lý PT | Web QTV; Mobile PT/Hội viên theo scope | Web QTV quản lý hồ sơ/trạng thái PT; lịch cố định là cấu hình hệ thống dùng để tính slot; PT dùng Mobile xem lịch/học viên/request; Hội viên dùng HV03 chọn PT |
 | HV02 Lịch tập | Mobile Hội viên only | Hội viên xem lịch, đặt/đổi/hủy và xác nhận buổi của mình |
 | PT01 Lịch / PT02 Học viên | Mobile PT only | PT xem lịch của mình và học viên được phân công, ghi nhận kết quả |
@@ -78,11 +78,11 @@ Paradise Gym là hệ thống quản lý vận hành phòng gym trên Web và Mo
 | Thanh toán | Báo cáo tài chính thanh toán gồm hai chỉ số chính: giá trị đăng ký và tiền thực thu (luôn bằng 100% giá trị đăng ký). Các chỉ số này phục vụ vận hành, không mặc định là doanh thu kế toán. |
 | Thanh toán | Đăng ký gói tập bắt buộc thanh toán đủ 100% trong 1 lần duy nhất khi tạo mới hoặc gia hạn. KHÔNG hỗ trợ thanh toán nhiều lần, trả góp hay ghi nhận lịch sử thanh toán. |
 | Thanh toán | Phương thức trong phạm vi hiện tại: tiền mặt và chuyển khoản ngân hàng bằng VND. Ảnh chứng từ chỉ là bằng chứng hỗ trợ, không tự xác nhận đã thu. |
-| Thanh toán | Tiền mặt do lễ tân/QTV có quyền ghi nhận. Chuyển khoản được xác nhận tự động thông qua IPN/Webhook từ ngân hàng/payment provider. Hệ thống chỉ xác nhận payment khi thông báo nhận được hợp lệ, đúng giao dịch, đúng số tiền và báo trạng thái thành công; việc xử lý phải chống ghi nhận trùng khi provider gửi lại. Giao dịch bất thường được chuyển sang luồng đối soát thủ công. |
+| Thanh toán | Tiền mặt do lễ tân/QTV có quyền ghi nhận. Chuyển khoản được xác nhận tự động thông qua IPN/Webhook từ ngân hàng/payment provider (hoặc nhân viên xác nhận khi đã nhận tiền vào tài khoản). Hệ thống chỉ xác nhận payment khi thông báo nhận được hợp lệ, đúng giao dịch, đúng số tiền 100% và báo trạng thái thành công; việc xử lý phải chống ghi nhận trùng khi provider gửi lại. |
 | Thanh toán | Thanh toán bắt buộc khớp đúng 100% giá trị gói. Chưa hỗ trợ hoàn tiền hoặc bù trừ tự động giữa các gói trong phạm vi hiện tại. |
-| Thanh toán | Payment đã xác nhận không sửa đè hoặc xóa; sai sót xử lý bằng bản ghi điều chỉnh có lý do, người thực hiện và người phê duyệt. |
+| Thanh toán | Payment đã xác nhận là chứng từ tài chính bất biến, không sửa đè, không xóa, không điều chỉnh hay hoàn/hủy trên phần mềm; lưu vết audit trail đầy đủ. |
 | Thanh toán | Mỗi lần thanh toán đã xác nhận có phiếu thu nội bộ. Phiếu thu không mặc định là hóa đơn điện tử. QTV/lễ tân xem/xuất/in trong phạm vi; hội viên xem/xuất phiếu của mình. |
-| Thanh toán | Mobile Hội viên có thể khởi tạo mua gói/thanh toán self-service khi capability được bật, theo dõi trạng thái và xem phiếu của chính mình. Thu tiền mặt, đối soát nhạy cảm và điều chỉnh payment đã xác nhận thực hiện trên Web QTV/Lễ tân được cấp quyền. |
+| Thanh toán | Mobile Hội viên có thể khởi tạo mua gói/thanh toán self-service khi capability được bật, theo dõi trạng thái và xem phiếu của chính mình. Ghi nhận thanh toán tiền mặt hoặc quét VietQR tại quầy thực hiện trên Web QTV/Lễ tân được cấp quyền. |
 | Check-in/ra vào | Hệ thống mô tả cả IN và OUT. Từng chi nhánh chỉ bật OUT nếu thiết bị/quy trình hỗ trợ. Nơi chỉ có IN không được suy ra chính xác số người đang ở phòng. |
 | Check-in/ra vào | Được vào tập khi hồ sơ được phục vụ, có quyền Gym còn hiệu lực, đã thanh toán đủ, đúng chi nhánh, còn buổi nếu áp dụng và trong giờ hoạt động. Gói PT không tự cấp quyền vào Gym. |
 | Check-in/ra vào | Nhận diện thành công chỉ xác định người; vẫn phải kiểm tra điều kiện sử dụng gói. Lễ tân thấy lý do chi tiết; K01 chỉ hiển thị thông báo trung tính cho hội viên. |

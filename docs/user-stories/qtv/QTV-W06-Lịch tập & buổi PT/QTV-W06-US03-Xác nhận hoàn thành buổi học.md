@@ -1,15 +1,17 @@
 # QTV-W06-US03 - Xác nhận hoàn thành buổi học
 
 ## Preconditions
-- QTV đã đăng nhập, buổi tập PT đang ở trạng thái `Đã đặt` (BOOKED) hoặc `Chờ xác nhận hoàn thành` (AWAITING_CONFIRMATION).
+- QTV đã đăng nhập hệ thống, trong phạm vi branch scope.
+- Buổi tập PT đang ở trạng thái `Đã đặt` (BOOKED) hoặc `Chờ xác nhận hoàn thành` (AWAITING_CONFIRMATION).
+- Khung giờ của buổi tập đã qua / thời gian buổi tập đã kết thúc (nút `[Xác nhận hoàn thành]` chuyển từ màu xám sang màu xanh lá và cho phép bấm thao tác; khi chưa qua khung giờ, nút hiển thị màu xám và ở trạng thái vô hiệu hóa).
 
 ## Trigger
-- QTV chọn nút **Xác nhận hoàn thành** tại buổi tập trên màn hình lịch PT (W06).
+- QTV chọn nút **Xác nhận hoàn thành** (màu xanh lá) tại buổi tập trên màn hình lịch PT (W06).
 - Màn hình liên quan: Web QTV — W06 Lịch tập PT.
 
 ## Main Flow
 
-1. QTV chọn buổi tập cần xác nhận trên màn hình lịch PT (W06).
+1. QTV chọn buổi tập cần xác nhận trên màn hình lịch PT (W06) khi khung giờ buổi tập đã kết thúc (nút `[Xác nhận hoàn thành]` có màu xanh lá).
 2. QTV bấm nút **Xác nhận hoàn thành**.
 3. SYS kiểm tra số lượng bên (PT và Hội viên) đã xác nhận cho buổi tập này.
 4. **Trường hợp 1 (Chỉ mới 1 bên xác nhận):**
@@ -23,9 +25,10 @@
 6. SYS cập nhật hiển thị trạng thái tương ứng (`Chờ xác nhận hoàn thành` hoặc `Hoàn thành`) trên màn hình lịch PT.
 
 - **Business rules / logic:**
-  - Quy tắc xác nhận kép: Buổi tập chỉ chính thức chuyển sang trạng thái `Hoàn thành` (COMPLETED) và bị trừ 1 buổi trong `remaining_sessions` của gói tập khi **cả 2 bên (PT và Hội viên) đều đã bấm xác nhận**.
-  - Nếu chỉ mới 1 bên xác nhận, trạng thái buổi tập được ghi nhận là `Chờ xác nhận hoàn thành` (AWAITING_CONFIRMATION) và chưa bị khấu trừ buổi.
-  - Thao tác ghi nhận hoàn thành được lưu vết thời điểm và tài khoản QTV thực hiện.
+   - Điều kiện kích hoạt: Nút `[Xác nhận hoàn thành]` chỉ khả dụng (màu xanh lá) khi thời gian thực tế đã vượt qua khung giờ kết thúc của ca tập (ví dụ: ca 08:00–10:00 chỉ cho phép xác nhận từ sau 10:00). Trước thời điểm này, nút luôn hiển thị màu xám và không thể tương tác.
+   - Quy tắc xác nhận kép: Buổi tập chỉ chính thức chuyển sang trạng thái `Hoàn thành` (COMPLETED) và bị trừ 1 buổi trong `remaining_sessions` của gói tập khi **cả 2 bên (PT và Hội viên) đều đã bấm xác nhận**.
+   - Nếu chỉ mới 1 bên xác nhận, trạng thái buổi tập được ghi nhận là `Chờ xác nhận hoàn thành` (AWAITING_CONFIRMATION) và chưa bị khấu trừ buổi.
+   - Thao tác ghi nhận hoàn thành được lưu vết thời điểm và tài khoản QTV thực hiện.
 
 ## Alternate Flows
 - **AF-01 - Đã có sẵn 1 bên xác nhận trước đó:** Khi QTV/PT/Hội viên bấm xác nhận bên còn lại, hệ thống đối soát đủ 2 bên -> Chuyển ngay sang `Hoàn thành` và trừ buổi.

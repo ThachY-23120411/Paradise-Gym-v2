@@ -16,17 +16,18 @@
 4. QTV chọn **Lưu thay đổi**.
 5. SYS cập nhật trạng thái mới, ghi audit log (bao gồm lý do nếu có) và hiển thị kết quả.
 
-### Field-level specification — form Đổi trạng thái hồ sơ PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| --- | --- | --- | --- | --- |
-| Mã/tên PT | `READONLY` | required | Không | SYS lấy từ hồ sơ PT được chọn |
-| Trạng thái hiện tại | `READONLY` | required | `DYNAMIC`: lấy từ record hiện tại | SYS lấy từ `PT_PROFILE` |
-| Trạng thái mới | `USER-INPUT` | required | Không | QTV chọn trạng thái mới (ví dụ: `Đang hoạt động`, `Ngừng hoạt động`, `Đã lưu trữ`) |
-| Lý do đổi trạng thái | `USER-INPUT` | optional | Không | QTV nhập tự do (nếu muốn) để ghi nhận vào audit log |
+### Field-level specification — modal Đổi trạng thái hồ sơ PT
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Huấn luyện viên | `Readonly Text` | `READONLY (PREFILL)` | required | Không | SYS nạp từ hồ sơ PT được chọn; hiển thị họ tên và mã PT định danh (ví dụ: "Nguyễn Văn Hùng (PT001)") |
+| Trạng thái hiện tại | `Status Badge` | `READONLY (PREFILL)` | required | Không | SYS nạp từ hồ sơ PT được chọn; hiển thị badge trực quan của trạng thái hiện tại (ví dụ: `Đang hoạt động`, `Ngừng hoạt động`) |
+| Trạng thái mới | `Select Dropdown` | `USER-INPUT` | required | Không | QTV chọn trạng thái mới mong muốn (`Đang hoạt động`, `Ngừng hoạt động`, `Đã lưu trữ`) |
+| Lý do đổi trạng thái | `Textarea` | `USER-INPUT` | optional | Không | QTV nhập tự do (nếu muốn) để ghi nhận lý do vào nhật ký kiểm toán (audit log) |
 
 - **Business rules / logic:**
-  - Trạng thái PT `Ngừng hoạt động` chỉ ngăn không cho gửi assignment request mới hoặc đặt lịch PT mới; không tự động xóa các booking đã hoàn thành trong lịch sử.
-  - Lý do đổi trạng thái là không bắt buộc, chỉ dùng để ghi vết audit nếu QTV nhập.
+  - Trạng thái PT `Ngừng hoạt động` chỉ ngăn không cho phân công mới hoặc đặt lịch PT mới; không làm mất lịch sử các buổi tập đã hoàn thành.
+  - Lý do đổi trạng thái là không bắt buộc, chỉ dùng để lưu vết audit log nếu QTV nhập.
+  - Sau khi lưu thay đổi, hệ thống cập nhật tức thì trạng thái hồ sơ PT và làm mới giao diện danh sách PT.
 
 ## Alternate Flows
 

@@ -21,7 +21,7 @@ Canonical rule:
 | Epic/Menu | Source UI | Canonical User Stories | Audit kết quả |
 | --- | --- | --- | --- |
 | HV01 · Trang chủ | `MemberMobile`, tab `HV01` | HV01-US01 | Hiển thị lời chào, trạng thái yêu cầu PT, lịch sắp tới và quick action tới HV02/HV03. Chỉ đọc/điều hướng, không chỉnh nghiệp vụ trực tiếp. |
-| HV02 · Lịch tập | `MobileSchedule`, tab `HV02` | HV02-US01, HV02-US02, HV02-US03 | Có tab `Lịch của tôi`/`Đặt lịch PT`, date picker, filter trạng thái, slot theo PT, hủy lịch và xác nhận hoàn thành. Booking chỉ hợp lệ khi payment/assignment/slot đủ điều kiện. |
+| HV02 · Lịch tập | `MemberSchedule`, tab `HV02` | HV02-US01 đến HV02-US04 | Gồm 2 sub-tab: Lịch của tôi (Lịch tháng trigger, chip filter, card buổi tập, modal hủy lịch, dialog xác nhận hoàn thành) và Đặt lịch PT (chọn gói, hiển thị PT, lịch làm việc, chọn slot giờ 2h). Booking chỉ hợp lệ khi payment/assignment/slot đủ điều kiện. |
 | HV03 · Gói của tôi | `MemberPackages`, tab `HV03` | HV03-US01 đến HV03-US05 | Có tab `Gói của tôi`/`Mua gói`/`Yêu cầu PT`, filter trạng thái gói, progress, chi tiết quyền lợi, thanh toán, chọn PT, request tracking và payment history. |
 | HV04 · Tài khoản | `MemberAccount`, `MemberAuthFlow`, tab `HV04` | HV04-US01 đến HV04-US04 | Có đăng nhập SĐT/mật khẩu, tạo/kích hoạt qua OTP theo 3 case, cập nhật hồ sơ/preference và đăng xuất. Không hiển thị Web admin permission. |
 | HV05 · Thông báo | `MemberNotifications`, tab `HV05` | HV05-US01 | Nhận thông báo tự động (Thanh toán, PT assignment, Lịch tập, Xác nhận buổi học, Nhắc hạn gói, Sinh nhật), lọc chưa đọc, mở rộng chi tiết nội dung và đánh dấu đã đọc (không tự động điều hướng). |
@@ -31,9 +31,10 @@ Canonical rule:
 | User Story | Related Screen | Quy tắc UI/flow |
 | --- | --- | --- |
 | HV01-US01 | `HV01 · Trang chủ` | Chỉ hiển thị dữ liệu của Hội viên hiện hành; action card điều hướng về HV02/HV03. |
-| HV02-US01 | `HV02 · Lịch tập` → `Lịch của tôi` | Lọc theo ngày và trạng thái `Chờ xác nhận`, `Đã đặt`, `Đã hủy`, `Hoàn thành`; ngày quá khứ chỉ xem lịch sử. |
-| HV02-US02 | `HV02 · Lịch tập` → `Đặt lịch PT` | Chỉ hiển thị gói PT/Combo đủ điều kiện (đã thanh toán 100%), PT đã ACCEPT và slot trống; không cho đặt khi chưa thanh toán/hết buổi/hết hạn. |
-| HV02-US03 | Session action trong HV02 | Hủy không xóa record; hoàn thành chỉ sau xác nhận kép PT + Hội viên; Hội viên không tự chỉnh số buổi. QTV điều chỉnh kết quả trên Web qua QTV-W06-US04 với lý do/audit. |
+| HV02-US01 | `HV02 · Lịch tập` | Lọc theo ngày và trạng thái `Chờ xác nhận`, `Đã đặt`, `Đã hủy`, `Hoàn thành`; ngày quá khứ chỉ xem lịch sử. |
+| HV02-US02 | `HV02 · Lịch tập` → Modal `Đặt lịch PT` | Chỉ hiển thị gói PT/Combo đủ điều kiện (đã thanh toán 100%), PT đã ACCEPT và slot trống; không cho đặt khi chưa thanh toán/hết buổi/hết hạn. |
+| HV02-US03 | `HV02 · Lịch tập` → Modal `Hủy lịch buổi PT` | Hủy không xóa record; kiểm soát mốc thời gian (hủy trước 4h bảo lưu buổi, hủy muộn trừ 1 buổi). |
+| HV02-US04 | `HV02 · Lịch tập` → Dialog `Xác nhận hoàn thành buổi PT` | Hoàn thành chỉ sau xác nhận kép 2 chiều PT + Hội viên mới trừ 1 buổi; Hội viên đánh giá sao và gửi nhận xét. |
 | HV03-US01 | `HV03 · Gói của tôi` | Hiển thị quyền lợi, thời hạn, tiến độ, số buổi và trạng thái PT/request/payment. |
 | HV03-US02 | `HV03` → `Mua gói` → `Xem chi tiết` | Package detail là read-only; giá/quyền lợi lấy từ danh mục được phép bán. |
 | HV03-US03 | `HV03` → `Thanh toán gói` | Payment pending không được coi là đã thu đủ; IPN/Webhook phải idempotent; adjustment thực hiện trên Web. |
@@ -59,7 +60,7 @@ Canonical rule:
 | Role | Menu Web | UI scope |
 | --- | --- | --- |
 | QTV | W01–W13 | Toàn bộ menu theo permission và branch scope; W07 xử lý check-in/ra vào, K01 chỉ là public/shared consumer |
-| Lễ tân | W01, W02, W04, W06, W07, W08, W09 | Chỉ menu vận hành được cấp trong chi nhánh |
+| Lễ tân | W01, W02, W04, W05, W06, W07, W08, W09 | Chỉ menu vận hành được cấp trong chi nhánh |
 
 Canonical User Story Web:
 

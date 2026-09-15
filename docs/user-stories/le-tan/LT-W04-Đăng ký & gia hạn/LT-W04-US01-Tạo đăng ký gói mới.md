@@ -20,13 +20,13 @@
 8. SYS tạo bản ghi đăng ký (`Registration` ở trạng thái `PENDING_PAYMENT`), snapshot giá/quyền lợi và tự động ghi nhận Chi nhánh bán ngầm.
 
 ### Field-level specification — modal Tạo đăng ký gói mới
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| --- | --- | --- | --- | --- |
-| Hội viên | `USER-INPUT` | required | `DYNAMIC`: tìm kiếm realtime theo SĐT hoặc Họ tên hội viên | `MEMBER_PROFILE` thuộc branch scope |
-| Gói đăng ký | `USER-INPUT` | required | `DYNAMIC`: danh sách gói hiện đang mở bán | Package catalog đang `ACTIVE` |
-| Ngày bắt đầu | `USER-INPUT` | required | Mặc định ngày hôm nay hoặc chọn ngày tùy chỉnh | Lễ tân chọn định dạng `DD/MM/YYYY` |
-| Ngày kết thúc dự kiến [AUTO] | `READONLY (AUTO-FILL)` | optional | `DYNAMIC`: tự động tính toán = Ngày bắt đầu + Thời hạn gói | SYS tự động tính toán |
-| Giá gốc hiện hành | `READONLY (PREFILL)` | optional | `DYNAMIC`: tự động lấy giá niêm yết của gói đăng ký được chọn | Snapshot từ Package catalog |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Hội viên | `Search Combobox (Autocomplete)` | `USER-INPUT` | required | Không | Lễ tân nhập SĐT (10 số) hoặc họ tên để tra cứu realtime trong `MEMBER_PROFILE` thuộc branch scope; chọn 1 hội viên |
+| Gói đăng ký | `Select Dropdown` | `USER-INPUT` | required | `TRIGGER`: Kích hoạt nạp giá niêm yết và tính Ngày kết thúc dự kiến | Lễ tân chọn 1 gói trong danh mục các gói đang mở bán (`ACTIVE`) |
+| Ngày bắt đầu | `Date Picker` | `USER-INPUT` | required | `TRIGGER`: Làm mốc thời gian để hệ thống tính toán Ngày kết thúc dự kiến | Lễ tân chọn ngày hiệu lực (định dạng `DD/MM/YYYY`), mặc định là ngày hôm nay |
+| Ngày kết thúc dự kiến [AUTO] | `Readonly Text / Date` | `READONLY (AUTO-FILL)` | required | `DYNAMIC`: Luôn hiển thị; tự động tính toán = `Ngày bắt đầu` + `Thời hạn gói` | SYS tự động tính toán dựa trên Gói đăng ký và Ngày bắt đầu đã chọn |
+| Giá gốc hiện hành | `Currency Readonly Text (VND)` | `READONLY (PREFILL)` | required | `DYNAMIC`: Luôn hiển thị; tự động lấy giá niêm yết theo *Gói đăng ký* (`TRIGGER`) đã chọn | Snapshot từ `PACKAGE.price` của gói đăng ký được chọn (ví dụ: "2.000.000 đ") |
 
 - **Business rules / logic:**
   - **Chi nhánh bán**: Được tự động ghi nhận ngầm trong dữ liệu đăng ký và audit log theo chi nhánh của tài khoản Lễ tân đang thao tác, không hiển thị trên Modal UI.

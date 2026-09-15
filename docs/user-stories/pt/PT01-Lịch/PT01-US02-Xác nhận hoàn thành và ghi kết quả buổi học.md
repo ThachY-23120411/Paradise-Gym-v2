@@ -24,13 +24,13 @@
 
 ### Field-level specification — Modal Ghi nhận kết quả buổi PT
 | Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Buổi tập / học viên | `READONLY (PREFILL)` | required | `DYNAMIC`: prefill mã buổi, khung giờ, tên học viên và gói tập | Session được chọn |
-| Kết quả buổi | `USER-INPUT` + `PREFILL` | required | `DYNAMIC`: mặc định chọn `Hoàn thành` | Danh sách kết quả (`Hoàn thành`) |
-| Ghi chú buổi tập | `USER-INPUT` | optional | `DYNAMIC`: nhập ghi chú đánh giá kết quả buổi học | Văn bản tự do |
-| Tác động số buổi | `READONLY` | optional | `DYNAMIC`: hiển thị thông báo "Hoàn thành: trừ 1 buổi sau khi lưu thành công" | Trừ 1 buổi khi hoàn thành |
-| Lý do sửa kết quả | `USER-INPUT` | optional | `CONDITIONAL`: chỉ bắt buộc khi PT chỉnh sửa kết quả đã lưu trước đó | Lý do điều chỉnh |
-| Nút `[ Lưu kết quả ]` | `USER-INPUT` | required | `CONDITIONAL`: bấm để gửi xác nhận hoàn thành | Thao tác lưu form |
+| :--- | :--- | :--- | :--- | :--- |
+| **Thông tin ca tập (Mã buổi & Khung giờ)** | `READONLY (PREFILL)` | required | Không | Tự động prefill từ ca tập được chọn (ví dụ: `SES00452 · 08:00 - 10:00, 15/09/2026`) |
+| **Học viên & Gói tập** | `READONLY (PREFILL)` | required | Không | Tự động prefill từ ca tập được chọn (ví dụ: `Bùi Thị Hoa · PT 10 buổi`) |
+| **Kết quả buổi tập** | `USER-INPUT` + `PREFILL` | required | Không | Mặc định prefill `Hoàn thành` (Radio / Select cố định: `Hoàn thành`) |
+| **Ghi chú buổi tập** | `USER-INPUT` | optional | Không | PT nhập nội dung bài tập, đánh giá thể trạng hoặc dặn dò học viên (hỗ trợ tiếng Việt) |
+| **Thông báo tác động số buổi** | `READONLY` | required | Không | Hiển thị thông báo giải thích: *"Hoàn thành: trừ 1 buổi khả dụng sau khi đủ xác nhận 2 chiều"* |
+| **Lý do sửa kết quả** | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện và bắt buộc khi** PT mở lại modal để chỉnh sửa kết quả/ghi chú của ca tập đã lưu trước đó; **Ẩn khi** PT thực hiện ghi nhận kết quả lần đầu | Textarea nhập lý do điều chỉnh để ghi audit log; tối thiểu 10 ký tự nếu hiển thị |
 
 - **Business rules / logic:**
   - PT **không có quyền hủy lịch tập**. Nút `[ Xác nhận hoàn thành ]` là nút thao tác duy nhất của PT để ghi nhận kết quả và xác nhận hoàn thành buổi học.

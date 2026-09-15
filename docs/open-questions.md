@@ -1,4 +1,4 @@
-﻿# Open Questions - Paradise Gym
+# Open Questions - Paradise Gym
 
 Tài liệu này liệt kê các vấn đề nghiệp vụ cần được quyết định trước khi viết Product Spec. Các mục dưới đây chỉ là câu hỏi mở, không bao gồm phương án trả lời hoặc giả định triển khai.
 
@@ -52,9 +52,9 @@ Tài liệu này liệt kê các vấn đề nghiệp vụ cần được quyế
 - ~~PAY-02: Hệ thống có cho phép lịch sử thanh toán hoặc thu một phần không?~~ → **Đã chốt: Không. Hệ thống bắt buộc thanh toán 100% 1 lần duy nhất, không cho phép đóng tiền nhiều lần hay ghi nợ.**
 - ~~PAY-03: Nếu còn nợ, hội viên có được kích hoạt gói, vào tập hoặc đặt lịch PT không?~~ → **Đã chốt: Đăng ký gói phải được thanh toán 100% 1 lần mới được kích hoạt/sử dụng dịch vụ. Không có trạng thái còn nợ.**
 - PAY-04: Các phương thức thanh toán chính thức cần quản lý là gì?
-- PAY-05: Chuyển khoản được xác nhận bằng thông tin nào: mã tham chiếu, ảnh chứng từ, đối soát thủ công hay cách khác?
+- ~~PAY-05: Chuyển khoản được xác nhận bằng thông tin nào: mã tham chiếu, ảnh chứng từ, đối soát thủ công hay cách khác?~~ → **Đã chốt: Chuyển khoản được xác nhận tự động qua Webhook/IPN hoặc nhân viên xác nhận khi đã nhận đủ 100% tiền vào tài khoản. Không có quy trình đối soát phức tạp.**
 - PAY-06: Ảnh chứng từ có giá trị như bằng chứng hỗ trợ hay được coi là xác nhận đã thu?
-- PAY-07: Ai được ghi nhận thu tiền, xác nhận đã thu, lưu chờ đối soát hoặc hủy/điều chỉnh giao dịch?
+- ~~PAY-07: Ai được ghi nhận thu tiền, xác nhận đã thu, lưu chờ đối soát hoặc hủy/điều chỉnh giao dịch?~~ → **Đã chốt: QTV và Lễ tân có quyền tài chính được ghi nhận thu tiền 100%. Hệ thống không có trạng thái chờ đối soát.**
 - PAY-08: Có cho phép thu vượt số còn phải thu, hoàn tiền hoặc bù trừ sang gói khác không?
 - PAY-09: Khi thao tác thu tiền bị mất mạng hoặc chưa rõ kết quả, quy trình kiểm tra tránh thu trùng là gì?
 - PAY-10: Phiếu thu là chứng từ nội bộ hay cần đáp ứng quy định hóa đơn/chứng từ khác?

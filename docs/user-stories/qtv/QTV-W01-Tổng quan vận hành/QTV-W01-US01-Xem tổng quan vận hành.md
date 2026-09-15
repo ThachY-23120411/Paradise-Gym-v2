@@ -1,11 +1,8 @@
 # QTV-W01-US01 - Xem tổng quan vận hành
 
 ## Preconditions
-- **Role / Platform / Epic:** QTV / Quản lý trên Web; Epic W01 · Tổng quan vận hành.
-- **Canonical story / operation / actors:** `QTV-W01-US01`; `[R|Workflow]`; actors/swimlanes gồm QTV, SYS.
 - QTV có tài khoản hoạt động, phân quyền quản trị và branch scope (Toàn hệ thống hoặc danh sách chi nhánh được cấp).
 - Hệ thống áp dụng chính sách thanh toán 100% 1 lần duy nhất để kích hoạt gói (bỏ hoàn toàn công nợ, nợ tồn, thanh toán một phần).
-- **Traceability:** shared-menu [E01-W01 — Tổng quan vận hành](../../shared-menu/E01-W01-Tong quan van hanh/E01-US01-Xem tổng quan vận hành.md); legacy source `docs/user-stories-legacy/E01-Dashboard & Operational Overview/E01-US01.md`.
 
 ## Trigger
 - QTV truy cập menu sidebar `W01 · Tổng quan vận hành` trên Web Portal.
@@ -56,12 +53,6 @@
 
 - Tài khoản thiếu quyền xem dữ liệu tài chính: SYS ẩn nhóm KPI `Tổng tiền đã thu` và `Số Payment thành công`, chỉ hiển thị các KPI vận hành còn lại.
 - Chi nhánh không có dữ liệu/công việc trong kỳ: SYS hiển thị trạng thái `0` hoặc thẻ trống với thông điệp "Không có dữ liệu trong kỳ".
-
-## Result
-- QTV nắm bắt toàn bộ bức tranh vận hành, hiệu suất tài chính thanh toán 100%, lịch tập PT và các sự cố/công việc cần can thiệp xử lý.
-- **Permission / branch scope:** QTV thao tác trên Web theo vai trò, branch scope và quyền được cấp.
-- **Related screens:** Web QTV `screenshot/qtv/light-web-W01-tong-quan.png`.
-- **Mục tiêu nghiệp vụ:** Cung cấp trung tâm điều hành vận hành trực quan, chính xác cho quản trị viên.
 
 ## Activity Diagram — Swimlane
 **Trigger:** QTV mở màn hình W01 · Tổng quan vận hành trên Web Portal.

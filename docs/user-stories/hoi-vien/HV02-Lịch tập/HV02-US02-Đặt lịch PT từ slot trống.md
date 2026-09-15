@@ -16,12 +16,12 @@
    - Gói còn trong hạn sử dụng và còn số buổi tập chưa sử dụng.
    - **Đã có PT phụ trách** (đã hoàn tất phân công PT).
    - *Lưu ý: Các gói PT/Combo chưa được phân công PT sẽ không hiển thị trong Combobox này.*
-3. Định dạng hiển thị mỗi lựa chọn trong Combobox: `[Tên gói] - [Họ tên PT phụ trách]` (ví dụ: `Gói PT 10 buổi / 90 ngày - Nguyễn Văn A`).
+3. Định dạng hiển thị mỗi lựa chọn trong Combobox: `[Tên gói] · [Mã đăng ký]` (ví dụ: `Gói PT 20 buổi · DK002`).
 4. Hội viên chọn một gói trong Combobox.
-5. SYS hiển thị **Card thông tin PT phụ trách** và nạp lịch làm việc của PT đó lên **Widget DatePicker / Lịch tháng**.
-6. Hội viên chọn ngày/tháng/năm muốn đăng ký tập trên DatePicker.
-7. SYS nạp và hiển thị danh sách các **Khung giờ làm việc (Slots 2 tiếng)** trong ngày đã chọn của PT; các khung giờ đã có booking hoặc trùng lịch bị mờ/khóa.
-8. Hội viên chọn một khung giờ trống và bấm nút `[ Đặt lịch ]`.
+5. SYS hiển thị **Card thông tin PT phụ trách** (Avatar viết tắt, Họ tên PT, Chi nhánh phục vụ, thời lượng buổi tập) và nạp lịch làm việc của PT đó lên **Widget Lịch tháng**.
+6. Hội viên chọn ngày muốn đăng ký tập trên Lịch tháng (mặc định highlight ngày được chọn với vòng tròn xanh dương).
+7. SYS nạp và hiển thị danh sách các **Khung giờ làm việc (Slots 2 tiếng)** trong ngày đã chọn của PT dưới tiêu đề nhóm `KHUNG GIỜ · DD/MM/YYYY`; mỗi slot trống hiển thị nhãn `Khung giờ trống · Chọn để đặt` kèm nút icon `[ + ]`. Các khung giờ đã có người đặt hoặc PT bận bị mờ/khóa.
+8. Hội viên bấm nút icon `[ + ]` tại một khung giờ trống.
 9. SYS kiểm tra thanh toán 100%, hiệu lực gói, số buổi khả dụng và xác nhận không có xung đột khung giờ.
 10. SYS tạo ngay lập tức booking ở trạng thái **`Đã đặt` (`UPCOMING`)** và giữ chỗ 1 buổi tập trong gói mà không cần chờ PT duyệt.
 
@@ -31,11 +31,21 @@
   - Mỗi buổi tập PT có thời lượng chuẩn **2 tiếng** nằm trong 5 khung giờ làm việc cố định của PT.
   - Booking xuất hiện ngay ở sub-tab `Lịch của tôi` dưới danh mục `Đã đặt`.
 
+### Field-level specification — Sub-tab Đặt lịch PT (HV02-US02)
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Chọn gói muốn sử dụng** | `Select Dropdown (Combobox)` | `USER-INPUT` | required | `TRIGGER` | Đóng vai trò TRIGGER điều khiển toàn bộ màn hình: lọc danh sách các gói PT hoặc Combo (PT + Gym) của Hội viên thỏa mãn đồng thời: (1) Đã thanh toán 100%, (2) Gói còn trong hạn sử dụng, (3) Còn số buổi tập chưa sử dụng, (4) Đã có PT phụ trách (loại trừ các gói chưa phân công PT). Định dạng hiển thị: `[Tên gói] · [Mã đăng ký]` (ví dụ: `Gói PT 20 buổi · DK002`) |
+| **Card thông tin PT phụ trách** | `Card Component` | `AUTO-FILL + READONLY` | required | `DYNAMIC`: Tự động hiển thị theo gói được chọn ở trường TRIGGER *Chọn gói muốn sử dụng* | Hiển thị Avatar viết tắt (ví dụ: `TL`), Họ tên PT phụ trách (ví dụ: `Nguyễn Thành Long`), Tên chi nhánh và thời lượng buổi tập (ví dụ: `Quận 1 · Mỗi buổi 2 giờ`) |
+| **Ngày xem lịch / Lịch tháng** | `Calendar Picker (Month Grid)` | `USER-INPUT` | required | `TRIGGER`: Chọn 1 ngày cụ thể trên lịch sẽ kích hoạt nạp các khung giờ làm việc của ngày đó bên dưới | Widget lưới lịch tháng dạng bảng 7 cột (`T2`–`CN`), tiêu đề `< Tháng X Năm YYYY >` kèm 2 nút chuyển tháng `< >`. Nạp lịch làm việc của PT phụ trách; ngày được chọn highlight vòng tròn màu xanh |
+| **Lưới 5 khung giờ làm việc** | `Grid Container` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** đã chọn gói hợp lệ trên combobox; **Ẩn khi** chưa chọn gói (Empty State) | Khung bố cục cố định 5 slot 2 tiếng (08:00–10:00, 10:00–12:00, 12:00–14:00, 14:00–16:00, 16:00–18:00) theo ngày được chọn trên Widget Lịch tháng |
+| **Thẻ khung giờ trống** | `Slot Card Component (Available)` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có khung giờ chưa có lịch đặt; **Ẩn khi** tất cả các khung giờ trong ngày đều đã kín lịch hoặc PT bận | Thẻ card viền nét liền bo tròn màu xanh ngọc nhạt hiển thị giờ bắt đầu/kết thúc, nhãn `Khung giờ trống · Chọn để đặt` kèm nút CTA icon màu xanh lá **`[ + ]`** (nhấn để xác nhận tạo booking đặt lịch ngay lập tức) |
+| **Thẻ khung giờ đã có lịch / Bận** | `Slot Card Component (Disabled / Booked)` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có khung giờ đã bị đặt hoặc PT bận; **Ẩn khi** tất cả các khung giờ trong ngày đều còn trống | Thẻ card hiển thị khung giờ bị làm mờ (opacity thấp) và khóa tương tác (disabled), không hiển thị nút `[ + ]` và không cho phép nhấn đặt |
+
 ## Alternate Flows
 
 ### AF-01 — Chưa có gói nào đã chọn PT
 1. Hội viên mở sub-tab `Đặt lịch PT` nhưng không có gói PT/Combo nào đã có PT phụ trách.
-2. SYS hiển thị thông báo rỗng: `Bạn chưa có gói PT nào sẵn sàng để đặt lịch` kèm nút bấm `[ Đến Gói của tôi để chọn PT ]`.
+2. SYS hiển thị thông báo rỗng: `Bạn chưa có gói PT nào sẵn sàng để đặt lịch`.
 
 ### AF-02 — Khung giờ vừa bị người khác đặt trước khi xác nhận
 1. Khung giờ được chọn bị tài khoản khác đặt trước trong lúc Hội viên thao tác.
@@ -55,9 +65,9 @@ flowchart TB
     subgraph L0["Swimlane — Hội viên"]
       I01(("Initial"))
       A01["Mở tab HV02 và chọn sub-tab Đặt lịch PT"]
-      A02["Chọn gói từ Combobox (Tên gói - Tên PT)"]
-      A03["Chọn ngày muốn tập trên DatePicker"]
-      A04["Chọn khung giờ (Slot 2h) còn trống và bấm Đặt lịch"]
+      A02["Chọn gói từ Combobox [Tên gói] · [Mã đăng ký]"]
+      A03["Chọn ngày muốn tập trên Widget Lịch tháng"]
+      A04["Bấm nút [+] trên khung giờ trống còn khả dụng"]
       F01((("Final — Booking thành công trạng thái Đã đặt (UPCOMING)")))
 
       I01 --> A01
@@ -66,10 +76,10 @@ flowchart TB
     subgraph L1["Swimlane — SYS"]
       S01["Lọc danh sách gói PT/Combo còn hiệu lực, còn buổi VÀ ĐÃ CÓ PT phụ trách"]
       D01{"Có gói hợp lệ đã có PT?"}
-      E01["Hiển thị màn hình rỗng & Gợi ý sang HV03 chọn PT"]
-      S02["Hiển thị Combobox định dạng [Tên gói] - [Tên PT]"]
-      S03["Nạp Card PT phụ trách và nạp lịch làm việc lên Widget DatePicker"]
-      S04["Hiển thị các khung giờ làm việc 2h trong ngày của PT (mờ khung giờ đã bị đặt)"]
+      E01["Hiển thị màn hình rỗng: Bạn chưa có gói PT nào sẵn sàng để đặt lịch"]
+      S02["Hiển thị Combobox định dạng [Tên gói] · [Mã đăng ký]"]
+      S03["Nạp Card PT phụ trách và nạp lịch làm việc lên Widget Lịch tháng"]
+      S04["Hiển thị danh sách Khung giờ làm việc 2h trong ngày (mờ slot bận, hiện nút [+] trên slot trống)"]
       S05["Validate 100% thanh toán, hiệu lực gói, số buổi khả dụng và không xung đột slot"]
       S06["Tạo ngay booking trạng thái Đã đặt (UPCOMING) và giữ chỗ 1 buổi"]
       F02((("Final — Chưa thể đặt lịch")))

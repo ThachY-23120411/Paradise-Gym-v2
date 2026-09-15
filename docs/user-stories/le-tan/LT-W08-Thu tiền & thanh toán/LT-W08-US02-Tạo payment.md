@@ -5,71 +5,77 @@
 - Đã tồn tại bản ghi Đăng ký gói tập (`Registration`) ở trạng thái **`PENDING_PAYMENT` (Chờ thanh toán)** trong chi nhánh.
 
 ## Trigger
-- Lễ tân bấm nút **Tạo payment** trên màn hình W08 (hoặc được hệ thống tự động chuyển tiếp sau khi tạo đăng ký mới tại W04).
-- Màn hình liên quan: Web Lễ tân — W08 Thu tiền & thanh toán, modal **Tạo payment** (`payment-form`).
+- Lễ tân bấm nút **[ + Ghi nhận thanh toán ]** trên màn hình W08 (hoặc được hệ thống tự động chuyển tiếp sau khi tạo đăng ký mới tại W04).
+- Màn hình liên quan: Web Lễ tân — W08 Thu tiền & thanh toán, modal **Ghi nhận thanh toán** (`payment-form`).
 
 ## Main Flow
 
-1. Lễ tân bấm nút **Tạo payment**.
-2. SYS mở modal **Tạo payment**.
-3. Tại ô nhập liệu/combobox **Đơn đăng ký**, Lễ tân nhập SĐT người dùng, Họ tên người dùng hoặc Mã đơn đăng ký.
-4. SYS tự động lọc và hiển thị danh sách các Đơn đăng ký (`Registration`) thỏa mãn điều kiện tìm kiếm và đang ở trạng thái **`PENDING_PAYMENT` (Chờ thanh toán)** thuộc chi nhánh.
-5. Lễ tân chọn Đơn đăng ký cần thu tiền từ danh sách gợi ý.
-6. SYS tự động nạp và prefill toàn bộ thông tin đơn đăng ký lên form:
-   - Thông tin hội viên (Họ tên, SĐT).
-   - Mã đăng ký và Tên gói tập tương ứng.
+1. Lễ tân bấm nút **[ + Ghi nhận thanh toán ]**.
+2. SYS mở modal **Ghi nhận thanh toán**.
+3. Tại trường **Đơn đăng ký chờ thanh toán**, Lễ tân gõ tìm kiếm theo SĐT, Họ tên hội viên hoặc Mã đơn đăng ký.
+4. SYS hiển thị danh sách gợi ý các đơn đăng ký (`Registration`) đang ở trạng thái **`PENDING_PAYMENT`** thuộc chi nhánh.
+5. Lễ tân chọn đơn đăng ký cần thu tiền từ danh sách.
+6. SYS tự động nạp và hiển thị toàn bộ thông tin liên quan:
+   - Thông tin Hội viên (Họ tên, SĐT).
+   - Mã đăng ký và Tên gói tập.
    - Số tiền thanh toán 100% (Giá niêm yết của gói đăng ký, thanh toán 1 lần duy nhất).
-7. Lễ tân chọn **Phương thức thanh toán**: `Tiền mặt` (`CASH`) hoặc `Chuyển khoản` (`BANK_TRANSFER`).
-8. Lễ tân bấm nút **Xác nhận tạo payment**.
-9. SYS kiểm tra tính hợp lệ và ghi nhận giao dịch Payment thành công (100% số tiền đã thu, tuyệt đối không có trạng thái Pending cho bản ghi Payment).
-10. SYS tự động chuyển trạng thái Đơn đăng ký (`Registration`) từ `PENDING_PAYMENT` sang **`ACTIVE`** (hoặc **`SCHEDULED`** nếu ngày bắt đầu gói ở tương lai).
-11. SYS đóng modal, làm mới danh sách payment W08 và cho phép Lễ tân xem/in phiếu thu cho hội viên tại quầy.
+7. Lễ tân chọn **Phương thức thanh toán**: `Tiền mặt` (`CASH`) hoặc `Chuyển khoản` (`BANK_TRANSFER`):
+   - **Nếu chọn Tiền mặt**: Lễ tân nhận tiền mặt đủ 100% tại quầy từ hội viên.
+   - **Nếu chọn Chuyển khoản**: SYS tự động sinh và hiển thị **Mã QR VietQR động** chứa chính xác số tiền 100% và cú pháp nội dung chuyển khoản để hội viên quét mã bằng ứng dụng ngân hàng ngay tại quầy.
+8. Lễ tân (nếu cần) nhập ghi chú giao dịch.
+9. Lễ tân bấm nút xác nhận thanh toán trên modal (hoặc hệ thống tự động ghi nhận khi nhận tín hiệu chuyển khoản thành công).
+10. SYS kiểm tra tính hợp lệ và ghi nhận giao dịch Payment thành công (100% số tiền đã thu, tuyệt đối không có trạng thái Pending cho bản ghi Payment).
+11. SYS tự động kích hoạt Đơn đăng ký (`Registration`) từ `PENDING_PAYMENT` sang **`ACTIVE`** (hoặc **`SCHEDULED`** nếu ngày bắt đầu gói ở tương lai).
+12. SYS đóng modal, làm mới danh sách payment W08 và cho phép Lễ tân xem/in phiếu thu cho hội viên tại quầy.
 
-### Field-level specification — Modal Tạo payment
-
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Ô tìm kiếm Đơn đăng ký | `USER-INPUT` | required | `DYNAMIC`: Hỗ trợ gõ SĐT, Họ tên người dùng hoặc Mã đơn đăng ký để lọc danh sách các đơn đang ở trạng thái `PENDING_PAYMENT` | Tra cứu từ danh sách Registration chi nhánh |
-| Đơn đăng ký chọn | `USER-INPUT` | required | `DYNAMIC`: Lễ tân chọn 1 đơn đăng ký `PENDING_PAYMENT` từ dropdown danh sách gợi ý | Combobox đơn đăng ký |
-| Thông tin Hội viên & Gói tập | `READONLY` | required | `DYNAMIC`: Prefill Họ tên, SĐT hội viên, Mã đăng ký và Tên gói tập từ đơn được chọn | Registration được chọn |
-| Số tiền thanh toán | `READONLY (PREFILL)` | required | `DYNAMIC`: Prefill 100% giá trị gói đăng ký; thanh toán 1 lần duy nhất | Bảng giá gói đăng ký |
-| Phương thức thanh toán | `USER-INPUT` | required | `DYNAMIC`: Chọn `Tiền mặt` (`CASH`) hoặc `Chuyển khoản` (`BANK_TRANSFER`) | Select dropdown hình thức |
-| Ghi chú thanh toán | `USER-INPUT` | optional | `DYNAMIC`: Lễ tân nhập ghi chú cho giao dịch nếu có | Lễ tân nhập |
+### Field-level specification — Modal Ghi nhận thanh toán
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Tra cứu Đơn đăng ký / Hội viên | `Combobox (Search & Select)` | `USER-INPUT` | required | `TRIGGER` | Ô tìm kiếm theo SĐT, Họ tên hội viên hoặc Mã đơn; danh sách chỉ hiển thị các đơn đang ở trạng thái `PENDING_PAYMENT` tại chi nhánh. Khi người dùng chọn 1 đơn, kích hoạt nạp dữ liệu cho các trường bên dưới |
+| Thông tin Hội viên | `Readonly Text` | `READONLY` | required | `DYNAMIC` | Hiển thị Họ tên, Mã HV và SĐT của hội viên (ví dụ: `Nguyễn Văn A · HV00123 · 0901 234 567`) từ đơn đăng ký được chọn ở trường trên; chỉ đọc, không cho sửa |
+| Gói tập đăng ký | `Readonly Text` | `READONLY` | required | `DYNAMIC` | Hiển thị Mã đơn và Tên gói tập tương ứng từ đơn đăng ký được chọn ở trường trên; chỉ đọc, không cho sửa |
+| Số tiền thanh toán 100% | `Readonly Text (Green)` | `READONLY` | required | `DYNAMIC` | Hiển thị 100% giá niêm yết của gói đăng ký (chữ xanh lá nổi bật, ví dụ: `1.350.000 đ`); chỉ đọc, cố định thanh toán 1 lần duy nhất, không chỉnh sửa |
+| Phương thức thanh toán | `Radio Group` | `USER-INPUT (PREFILL)` | required | `TRIGGER` | Mặc định chọn `Tiền mặt` (`CASH`); tùy chọn: `Tiền mặt` hoặc `Chuyển khoản` (`BANK_TRANSFER`). Đóng vai trò kích hoạt hiển thị mã VietQR động |
+| Khối Mã QR VietQR | `QR Code Display` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** Phương thức thanh toán là `Chuyển khoản`; **Ẩn khi** Phương thức thanh toán là `Tiền mặt`. Mã VietQR động chứa số tài khoản gym, số tiền 100% và cú pháp `{Mã ĐK} {Mã HV} PARADISE` |
+| Ghi chú giao dịch | `Text Area` | `USER-INPUT` | optional | Không | Ghi chú thêm cho giao dịch thu tiền (tối đa 255 ký tự) |
 
 - **Business rules / logic:**
   - **Quy trình kích hoạt gói**: `Registration (PENDING_PAYMENT)` ➔ **Tạo Payment (100% thành công)** ➔ `Registration (ACTIVE / SCHEDULED)`.
   - Payment được tạo ra luôn ở trạng thái đã hoàn tất (100% đã thu tiền). Tuyệt đối không tồn tại trạng thái Pending đối với bản ghi Payment.
-  - Hệ thống hoàn toàn không có module giảm giá hay tính toán trừ giảm giá.
+  - Lễ tân chỉ thu tiền các đơn đăng ký thuộc phạm vi chi nhánh phục vụ (`branch scope`).
+  - Hệ thống hoàn toàn không có module giảm giá, không có thanh toán nhiều lần và không ghi nhận công nợ.
 
 ## Exception Flows
 - Không tìm thấy đơn đăng ký nào ở trạng thái `PENDING_PAYMENT` theo thông tin nhập: SYS hiển thị thông báo "Không tìm thấy đơn đăng ký chờ thanh toán phù hợp".
 
 ## Activity Diagram — Swimlane
-**Trigger:** Lễ tân bấm nút Tạo payment tại menu W08.
+**Trigger:** Lễ tân bấm nút Ghi nhận thanh toán tại menu W08.
 
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — Web Lễ tân W08 / Modal Tạo payment"]
+  subgraph B["Boundary — Web Lễ tân W08 / Modal Ghi nhận thanh toán"]
     subgraph L0["Swimlane — Lễ tân"]
       I01(("Initial"))
-      A01["Bấm nút Tạo payment"]
-      A02["Nhập SĐT, Họ tên hoặc Mã đơn tại combobox Đơn đăng ký"]
-      A03["Chọn đơn đăng ký PENDING_PAYMENT từ danh sách gợi ý"]
-      A04["Chọn Phương thức thanh toán Tiền mặt / Chuyển khoản & bấm Xác nhận tạo payment"]
+      A01["Bấm nút Ghi nhận thanh toán"]
+      A02["Tìm và chọn Đơn đăng ký PENDING_PAYMENT chi nhánh từ combobox"]
+      A03["Chọn Phương thức: Tiền mặt hoặc Chuyển khoản (quét VietQR) & Xác nhận"]
       F01((("Final — Tạo payment 100% & Kích hoạt gói thành công")))
+
       I01 --> A01
     end
     subgraph L1["Swimlane — SYS"]
-      S01["Mở modal Tạo payment"]
-      S02["Lọc danh sách các đơn Registration có trạng thái PENDING_PAYMENT thuộc chi nhánh"]
-      S03["Prefill thông tin Hội viên, Đơn đăng ký & Số tiền 100% giá trị gói"]
-      S04["Ghi nhận bản ghi Payment thành công (100% đã thu)"]
-      S05["Cập nhật trạng thái Registration từ PENDING_PAYMENT sang ACTIVE / SCHEDULED"]
-      S06["Đóng modal & làm mới danh sách payment W08"]
+      S01["Mở modal Ghi nhận thanh toán"]
+      S02["Lọc danh sách Registration PENDING_PAYMENT thuộc chi nhánh"]
+      S03["Prefill thông tin Hội viên, Gói tập & Số tiền 100% giá gói"]
+      S04["Hiển thị mã VietQR động nếu chọn Chuyển khoản"]
+      S05["Ghi nhận bản ghi Payment thành công 100%"]
+      S06["Cập nhật trạng thái Registration sang ACTIVE / SCHEDULED"]
+      S07["Đóng modal & làm mới danh sách payment W08"]
 
       A01 --> S01
-      A02 --> S02 --> A03 --> S03
-      A04 --> S04 --> S05 --> S06 --> F01
+      S01 --> A02
+      A02 --> S02 --> S03 --> A03
+      A03 --> S04 --> S05 --> S06 --> S07 --> F01
     end
   end
 ```

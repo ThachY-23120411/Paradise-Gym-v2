@@ -25,6 +25,12 @@ Epic/Menu → User Story → Preconditions → Main/Alternate/Exception Flow →
 - [LT-W04-US01 — Tạo đăng ký gói mới](../../user-stories/le-tan/LT-W04-Đăng ký & gia hạn/LT-W04-US01-Tạo đăng ký gói mới.md)
 - [LT-W04-US02 — Gia hạn đăng ký gói](../../user-stories/le-tan/LT-W04-Đăng ký & gia hạn/LT-W04-US02-Gia hạn đăng ký gói.md)
 - [LT-W04-US03 — Xem danh sách các đăng ký](../../user-stories/le-tan/LT-W04-Đăng ký & gia hạn/LT-W04-US03-Xem danh sách các đăng ký.md)
+- [LT-W04-US04 — Xem chi tiết lượt đăng ký gói](../../user-stories/le-tan/LT-W04-Đăng ký & gia hạn/LT-W04-US04-Xem chi tiết lượt đăng ký gói.md)
+- [LT-W04-US05 — Gán PT phụ trách cho gói đăng ký](../../user-stories/le-tan/LT-W04-Đăng ký & gia hạn/LT-W04-US05-Gán PT phụ trách cho gói đăng ký.md)
+
+## LT-W05 · Huấn luyện viên
+
+- [LT-W05-US01 — Xem danh sách PT](../../user-stories/le-tan/LT-W05-Huấn luyện viên/LT-W05-US01-Xem danh sách PT.md)
 
 ## LT-W06 · Lịch tập & buổi PT
 

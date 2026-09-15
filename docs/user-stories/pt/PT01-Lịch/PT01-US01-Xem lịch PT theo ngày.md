@@ -22,6 +22,16 @@
    - PT **không có quyền hủy lịch tập** (nút/thao tác Hủy lịch không xuất hiện đối với vai trò PT; chỉ có Hội viên hoặc Lễ tân/QTV thực hiện hủy lịch).
    - Khi PT bấm `[ Xác nhận hoàn thành ]` tại khung giờ đã đặt, hệ thống chuyển sang modal ghi nhận kết quả buổi học (`PT01-US02`).
 
+### Field-level specification — Màn hình Lịch PT theo ngày
+| Field / control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- |
+| **Thanh chọn ngày (Calendar Strip / DatePicker)** | `USER-INPUT` + `PREFILL` | required | `TRIGGER`: Chạm chọn ngày để nạp lại danh sách 5 ca tập của ngày tương ứng | Dải lịch cuộn ngang / Lịch tháng, mặc định chọn ngày hiện tại (`DD/MM/YYYY`) |
+| **Tiêu đề ngày & Khung giờ cố định** | `READONLY` | required | `DYNAMIC`: Cập nhật ngày theo giá trị chọn ở TRIGGER | Hiển thị: `DD/MM/YYYY - Khung làm việc cố định: 08:00 - 18:00` |
+| **Danh sách 5 Khung giờ (Slots)** | `READONLY` | required | Không | 5 khung giờ 2 tiếng cố định: `08:00-10:00`, `10:00-12:00`, `12:00-14:00`, `14:00-16:00`, `16:00-18:00` |
+| **Thẻ ca tập (Slot có lịch)** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** khung giờ đã được hội viên đặt lịch; **Ẩn khi** khung giờ chưa có người đặt | Hiển thị: Họ tên học viên, Tên gói PT, Badge trạng thái (`Đã đặt`, `Chờ xác nhận`, `Đã ghi nhận`, `Đã hủy`) |
+| **Nhãn Khung giờ trống** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** khung giờ chưa có người đặt lịch; **Ẩn khi** khung giờ đã có lịch đặt | Nhãn hiển thị màu xám mờ: `Khung giờ trống` |
+| **Nút `[ Xác nhận hoàn thành ]`** | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** ca tập tại khung giờ đó đang diễn ra hoặc đã kết thúc và trạng thái chưa phải `Đã ghi nhận`/`Đã hủy`; **Ẩn khi** ca tập chưa đến giờ bắt đầu hoặc đã hủy | Nút màu xanh trên thẻ ca tập: Bấm để mở Modal / Bottom Sheet `Ghi nhận kết quả buổi PT` (`PT01-US02`) |
+
 ## Alternate Flows
 
 ### AF-01 — PT xem lịch dạy của ngày khác trên Calendar

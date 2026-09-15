@@ -10,22 +10,24 @@
 ## Main Flow
 
 1. QTV mở modal **Sửa hồ sơ PT**.
-2. SYS nạp dữ liệu hiện tại và khóa các field không thuộc phạm vi sửa (Số điện thoại, Chi nhánh phục vụ).
-3. QTV cập nhật các trường được phép (Họ tên, Chuyên môn/Ghi chú).
+2. SYS nạp dữ liệu hiện tại và khóa trường **Số điện thoại** (khóa nghiệp vụ định danh, không được phép sửa).
+3. QTV cập nhật các trường được phép (Họ tên, Email, Chi nhánh phục vụ, Chuyên môn/Ghi chú).
 4. QTV chọn **Lưu thay đổi**.
-5. SYS kiểm tra required field và định dạng dữ liệu.
+5. SYS kiểm tra required field, định dạng email (nếu có nhập) và lưu dữ liệu.
 6. SYS cập nhật hồ sơ PT, ghi lịch sử thay đổi và hiển thị kết quả.
 
-### Field-level specification — modal Cập nhật hồ sơ PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| --- | --- | --- | --- | --- |
-| Họ và tên | `USER-INPUT` | required | Không | Giá trị hiện tại `PREFILL`, QTV cập nhật |
-| Số điện thoại | `READONLY (PREFILL)` | required | Không | Giá trị hiện tại hiển thị cố định; SĐT là khóa định danh, không được phép sửa |
-| Chi nhánh phục vụ | `READONLY (PREFILL)` | required | Không | Trường cố định: lấy từ hồ sơ khởi tạo, không thể thay đổi |
-| Chuyên môn / Ghi chú | `USER-INPUT` | optional | Không | QTV cập nhật mô tả chuyên môn hoặc ghi chú của PT |
+### Field-level specification — modal Sửa hồ sơ PT
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Họ và tên | `Textbox` | `USER-INPUT (PREFILL)` | required | Không | Giá trị hiện tại nạp sẵn; QTV cập nhật họ và tên |
+| Số điện thoại | `Readonly Text` | `READONLY (PREFILL)` | required | Không | Giá trị hiện tại hiển thị cố định; SĐT là khóa nghiệp vụ định danh, không được phép sửa |
+| Email | `Textbox (Email Input)` | `USER-INPUT (PREFILL)` | optional | Không | Giá trị hiện tại nạp sẵn; QTV cập nhật địa chỉ email (validate đúng định dạng email RFC nếu có nhập) |
+| Chi nhánh phục vụ | `Select Dropdown` | `USER-INPUT (PREFILL)` | required | Không | Giá trị hiện tại nạp sẵn; QTV có thể chọn điều chuyển PT sang chi nhánh khác trong phạm vi phân quyền (`branch scope`) của tài khoản QTV |
+| Chuyên môn / Ghi chú | `Textarea` | `USER-INPUT (PREFILL)` | optional | Không | Giá trị hiện tại nạp sẵn; QTV cập nhật mô tả chuyên môn, chứng chỉ hoặc ghi chú |
 
 - **Business rules / logic:**
   - Không cho phép sửa đổi số điện thoại để đảm bảo tính toàn vẹn của dữ liệu định danh và tài khoản.
+  - Cho phép điều chuyển chi nhánh phục vụ của PT sang chi nhánh khác thuộc phạm vi `branch scope` của QTV.
   - Sửa hồ sơ không đồng nghĩa đổi trạng thái; đổi trạng thái dùng `QTV-W05-US03`.
 
 ## Alternate Flows

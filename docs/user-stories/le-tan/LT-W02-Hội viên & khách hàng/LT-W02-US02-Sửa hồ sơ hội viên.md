@@ -18,13 +18,13 @@
 6. SYS cập nhật hồ sơ, ghi lịch sử thay đổi và hiển thị kết quả.
 
 ### Field-level specification — modal Cập nhật hồ sơ hội viên
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| --- | --- | --- | --- | --- |
-| Họ và tên | `USER-INPUT` | required | Không | Giá trị hiện tại `PREFILL` (ví dụ: "Nguyễn Hoài Nam"); hỗ trợ dấu tiếng Việt, bỏ khoảng trắng thừa trước khi lưu |
-| Số điện thoại | `READONLY (PREFILL)` | required | Không | Giá trị hiện tại hiển thị cố định (ví dụ: "0901 234 567"); không cho phép chỉnh sửa SĐT vì là khóa định danh |
-| Email | `USER-INPUT` | optional | Không | Giá trị hiện tại `PREFILL` (ví dụ: "nam.nguyen@example.vn"); chỉ kiểm tra định dạng khi có nhập |
-| Chi nhánh tiếp nhận | `READONLY (PREFILL)` | required | Không | Trường cố định: lấy từ hồ sơ khởi tạo (ví dụ: "Chi nhánh Quận 1"), không thể thay đổi |
-| Ngày sinh | `USER-INPUT` | optional | Không | Giá trị hiện tại `PREFILL` (ví dụ: "15/05/1990"); dùng cho nhắc sinh nhật nếu hội viên đồng ý |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Họ và tên | `Textbox` | `USER-INPUT` | required | Không | Giá trị hiện tại `PREFILL` (ví dụ: "Nguyễn Hoài Nam"); hỗ trợ dấu tiếng Việt, bỏ khoảng trắng thừa trước khi lưu |
+| Số điện thoại | `Readonly Text` | `READONLY (PREFILL)` | required | Không | Giá trị hiện tại hiển thị cố định (ví dụ: "0901 234 567"); không cho phép chỉnh sửa SĐT vì là khóa định danh |
+| Email | `Textbox (Email Input)` | `USER-INPUT` | optional | Không | Giá trị hiện tại `PREFILL` (ví dụ: "nam.nguyen@example.vn"); chỉ kiểm tra định dạng khi có nhập |
+| Chi nhánh tiếp nhận | `Readonly Text` | `READONLY (PREFILL)` | required | Không | Trường cố định: lấy từ hồ sơ khởi tạo (ví dụ: "Chi nhánh Quận 1"), không thể thay đổi |
+| Ngày sinh | `Date Picker / Textbox (Date)` | `USER-INPUT` | optional | Không | Giá trị hiện tại `PREFILL` (ví dụ: "15/05/1990"); dùng cho nhắc sinh nhật nếu hội viên đồng ý |
 
 - **Business rules / logic:**
   - Không cho phép sửa đổi số điện thoại để đảm bảo tính toàn vẹn của dữ liệu định danh và tài khoản.

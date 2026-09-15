@@ -11,11 +11,36 @@
 
 1. Lễ tân mở danh sách các đăng ký.
 2. SYS xác định branch scope của Lễ tân.
-3. SYS hiển thị danh sách các đăng ký gói theo branch scope (Mã đăng ký, Tên hội viên, SĐT, Tên gói, Ngày bắt đầu, Ngày kết thúc, Trạng thái đăng ký).
+3. SYS hiển thị thanh Search & Filter Bar và danh sách các đăng ký gói trong chi nhánh thỏa mãn các tiêu chí lọc.
+4. Lễ tân có thể sử dụng bộ lọc **Tình trạng gán PT** để lọc nhanh các gói PT/COMBO chưa có PT phụ trách.
+5. Lễ tân xem các thông tin chi tiết trên từng dòng đăng ký hoặc thực hiện các thao tác nhanh (`[Chi tiết]`, `[Gán PT]`, `[Gia hạn]`, `[Thu tiền]`).
+
+### Field-level specification — Bảng danh sách đăng ký gói (Data Grid View & Filter Bar)
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Ô tìm kiếm đăng ký | `Textbox (Search Input)` | `USER-INPUT` | optional | Không | Lễ tân gõ từ khóa: mã ĐK, họ tên HV, SĐT, tên gói để lọc nhanh danh sách thời gian thực |
+| Bộ lọc trạng thái đăng ký | `Select Dropdown` | `USER-INPUT` | optional | Không | Mặc định `Tất cả`; các tùy chọn: `Tất cả`, `Chờ thanh toán`, `Đang hiệu lực`, `Sắp hết hạn`, `Đã hết hạn`, `Đã hủy` |
+| Bộ lọc tình trạng gán PT | `Select Dropdown` | `USER-INPUT` | optional | Không | Mặc định `Tất cả`; các tùy chọn: `Tất cả`, `Chưa gán PT` (lọc các đơn gói PT/COMBO chưa có HLV phụ trách), `Đã gán PT` (lọc các đơn đã phân công PT) |
+| Mã | `Readonly Text` | `READONLY` | required | Không | SYS tự động sinh duy nhất từ `REGISTRATION.code` (ví dụ: "DK001", "DK002"); hiển thị văn bản mã đăng ký |
+| Hội viên | `Readonly Text` | `READONLY` | required | Không | Tên hội viên chữ đậm, dòng phụ bên dưới hiển thị `{Mã HV} · {Chi nhánh}` (ví dụ: "Nguyễn Văn An"<br>"HV001 · Quận 1") |
+| Gói đăng ký | `Readonly Text` | `READONLY` | required | Không | Tên gói đăng ký niêm yết từ `PACKAGE.name` (ví dụ: "Gói 3 tháng", "Gói PT 20 buổi") |
+| Kỳ hiệu lực | `Readonly Text / Date` | `READONLY` | required | Không | Khoảng ngày hiệu lực `{start_date} → {end_date}` theo định dạng `DD/MM/YYYY` (ví dụ: "15/07/2026 → 15/10/2026") |
+| Số tiền | `Currency Readonly Text (VND)` | `READONLY` | required | Không | Tổng giá trị thanh toán 100% của gói từ `REGISTRATION.price` (ví dụ: "1.350.000 đ", "3.800.000 đ"); hệ thống thanh toán 100% 1 lần duy nhất, không có công nợ |
+| PT phụ trách | `Readonly Text` | `READONLY` | required | `DYNAMIC`: theo loại gói và trạng thái phân công | • Nếu là gói GYM: Hiển thị dấu gạch ngang `--`<br>• Nếu là gói có PT (gói PT hoặc COMBO):<br>  + Đã phân công PT: Hiển thị `{Tên PT} ({Mã PT})` (ví dụ: "Nguyễn Thành Long (PT001)")<br>  + Chưa phân công PT: Hiển thị `Chưa có PT phụ trách` |
+| Trạng thái | `Status Badge` | `READONLY` | required | `DYNAMIC`: theo trạng thái record | Hiển thị badge viền màu trực quan: `Đang hiệu lực` (viền xanh lá), `Chờ thanh toán` (viền vàng cam), `Đã hết hạn` (viền xám), `Đã hủy` (đỏ) |
+| Thao tác | `Action Buttons` | `USER-INPUT` | required | `DYNAMIC`: hiển thị nút theo loại gói và trạng thái | • Với gói PT/COMBO chưa có HLV phụ trách: Bổ sung nút nổi bật **`[Gán PT]`** (`LT-W04-US05`) để mở nhanh modal Gán PT phụ trách<br>• Khi `Đang hiệu lực`: Nút `Chi tiết` (mở sidebar drawer `LT-W04-US04`) và Nút viền xanh `Gia hạn` (`LT-W04-US02`)<br>• Khi `Chờ thanh toán`: Nút nền vàng nổi bật `Thu tiền` (mở nhanh modal thanh toán 100% W08) và Nút `Chi tiết`<br>• Khi `Đã hết hạn`: Nút `Chi tiết` và Nút `Gia hạn` |
+
+- **Thông tin khi bấm nút [Chi tiết] (Sidebar Drawer chi tiết lượt đăng ký gói):**
+  - Mở sidebar drawer xem chi tiết lượt đăng ký gói (`LT-W04-US04`) gồm 4 khối: Thông tin hội viên, Chi tiết gói tập, Trạng thái thanh toán 100% và **Tiến độ / Số buổi sử dụng** (kèm 2 thanh Progress bar Gym & PT trực quan).
+  - Bảng danh sách Data Grid View không hiển thị cột tiến độ số buổi hay các cột công nợ để giữ giao diện bảng luôn thoáng và đồng nhất.
 
 - **Business rules / logic:**
-  - Chỉ trả dữ liệu thuộc role và branch scope của Lễ tân.
-  - Danh sách là read-only; các thao tác Tạo đăng ký gói mới hay Gia hạn sử dụng các User Story tương ứng.
+  - Hệ thống áp dụng nguyên tắc **thanh toán 100% 1 lần duy nhất**, không tồn tại khái niệm công nợ hay ghi nhận thanh toán thiếu.
+  - Chỉ trả dữ liệu thuộc chi nhánh của Lễ tân.
+  - Dữ liệu trên bảng danh sách là chỉ đọc (`READONLY`); các thao tác tạo mới hay gia hạn mở modal tương ứng.
+  - Bộ lọc "Tình trạng gán PT" giúp Lễ tân nhanh chóng rà soát các hợp đồng PT/Combo vừa bán để phân công PT kịp thời cho hội viên.
+  - Bấm nút **[Gán PT]** mở modal phân công HLV phụ trách trực tiếp (`LT-W04-US05`).
+  - Bấm nút **[Chi tiết]** tại từng dòng để xem thông tin chi tiết và tiến độ sử dụng dịch vụ của hội viên.
 
 ## Exception Flows
 - Lỗi tải dữ liệu: hiển thị thông báo lỗi.
