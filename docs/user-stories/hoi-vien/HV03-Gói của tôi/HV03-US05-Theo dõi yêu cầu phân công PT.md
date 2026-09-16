@@ -27,6 +27,14 @@
   - Khi PT bấm Chấp nhận (`ACCEPTED`), HLV đó được gắn làm PT phụ trách chính thức và mở quyền đặt lịch cho Hội viên ở menu HV02.
   - Khi PT bấm Từ chối (`REJECTED`), hệ thống cho phép Hội viên chọn HLV mới.
 
+### Field-level specification — Sub-tab Yêu cầu PT
+| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
+| :--- | :--- | :--- | :--- | :--- |
+| **Tiêu đề khối Yêu cầu PT** | `READONLY` | required | Không | Nhãn tiêu đề cố định: `Yêu cầu PT` kèm phụ đề `Theo dõi các yêu cầu chọn PT đang chờ phản hồi.` |
+| **Hộp trạng thái rỗng (Empty State)** | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào số lượng yêu cầu của hội viên | - **Hiện khi:** Hội viên chưa có yêu cầu chọn PT nào. Hiển thị hộp bo góc viền xám: `Chưa có yêu cầu PT nào.`<br>- **Ẩn khi:** Đã có ít nhất 1 yêu cầu phân công PT. |
+| **Thẻ yêu cầu phân công PT (PT Request Card)** | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào số lượng yêu cầu của hội viên | - **Hiện khi:** Có ít nhất 1 yêu cầu phân công PT.<br>- **Ẩn khi:** Chưa có yêu cầu nào.<br>Mỗi thẻ bao gồm: Tên gói tập (chữ đậm), Tên PT được chọn (`PT: [Tên PT]`), Thời gian gửi yêu cầu (`[hh:mm · dd/mm/yyyy]`), Badge trạng thái (`Đang chờ phản hồi` - cam, `Đã chấp nhận` - xanh lá, `Đã từ chối` - đỏ). |
+| **Nút CTA [ Chọn PT khác ] trên thẻ** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc vào trạng thái yêu cầu trên thẻ | - **Hiện khi:** Thẻ yêu cầu có trạng thái `Đã từ chối` (`REJECTED`). Nút màu đen bo góc chữ trắng; bấm để chuyển sang màn hình Chọn PT (`HV03-US04`) chọn lại HLV khác.<br>- **Ẩn khi:** Yêu cầu đang ở trạng thái `Đang chờ phản hồi` (`PENDING`) hoặc `Đã chấp nhận` (`ACCEPTED`). |
+
 ## Alternate Flows
 
 ### AF-01 — Không có yêu cầu PT nào

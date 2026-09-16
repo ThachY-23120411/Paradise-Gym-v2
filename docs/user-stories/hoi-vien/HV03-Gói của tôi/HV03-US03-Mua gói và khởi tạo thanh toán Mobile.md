@@ -29,6 +29,20 @@
   - Thanh toán **100% giá trị gói trong 1 lần chuyển khoản duy nhất**.
   - Đơn đăng ký gói được tự động kích hoạt (`ACTIVE` / `SCHEDULED`) ngay sau khi hệ thống xác thực thành công chữ ký giao dịch IPN/Webhook từ Ngân hàng.
 
+### Field-level specification — Màn hình Thanh toán VietQR
+| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
+| :--- | :--- | :--- | :--- | :--- |
+| **Tên gói tập** | `PREFILL` + `READONLY` | required | Không | Tên gói tập đã chọn mua ở màn hình trước (ví dụ: `Gói PT 20 buổi`, `Combo Gym 3 tháng + PT 10 buổi`) |
+| **Số tiền cần thanh toán** | `PREFILL` + `READONLY` | required | Không | Giá tiền chính xác 100% của gói tập (ví dụ: `5.000.000 đ`) |
+| **Phương thức thanh toán** | `READONLY` | required | Không | Cố định: `Chuyển khoản Ngân hàng (VietQR)` |
+| **Mã QR chuyển khoản (VietQR Image)** | `READONLY` | required | `DYNAMIC`: Sinh theo đơn đăng ký | Ảnh mã VietQR động chứa đầy đủ thông tin: STK, Số tiền 100% và Nội dung chuyển khoản duy nhất |
+| **Tên ngân hàng thụ hưởng** | `READONLY` | required | Không | Tên ngân hàng của hệ thống phòng gym (ví dụ: `MB Bank - Ngân hàng Quân Đội`) |
+| **Số tài khoản thụ hưởng** | `READONLY` | required | Không | Dãy số tài khoản ngân hàng chính thức của trung tâm; kèm nút thao tác `[ Sao chép ]` |
+| **Chủ tài khoản** | `READONLY` | required | Không | Tên pháp nhân: `CONG TY TNHH PARADISE GYM` |
+| **Nội dung chuyển khoản** | `READONLY` | required | `DYNAMIC`: Sinh theo mã đơn đăng ký | Mã cú pháp chuyển khoản duy nhất (ví dụ: `PGYMPAY 10425`); kèm nút thao tác `[ Sao chép ]` |
+| **Nút thao tác [ Lưu mã QR ]** | `USER-INPUT` | optional | Không | Nút cho phép lưu ảnh mã VietQR về bộ nhớ điện thoại |
+| **Nút thao tác [ Tôi đã chuyển khoản ]** | `USER-INPUT` | required | Không | Nút kiểm tra trạng thái giao dịch hoặc hoàn tất quay về màn hình Gói của tôi |
+
 ## Alternate Flows
 
 ### AF-01 — Giao dịch IPN trùng lặp

@@ -24,6 +24,26 @@
 - **Business rules / logic:**
   - Tab `Mua gói` mặc định chỉ hiển thị các gói tập đang ở trạng thái mở bán (`Active`), hệ thống không hiển thị các gói đã ngưng bán hoặc bị ẩn.
   - Giá tiền và quyền lợi hiển thị là giá cố định (100%), không có bớt giá hay giảm giá.
+  - Bấm nút `[ Xem chi tiết ]` sẽ mở Modal/Bottom sheet hiển thị toàn diện quyền lợi gói.
+  - Bấm nút `[ Mua gói ]` sẽ chuyển trực tiếp sang Màn hình Khởi tạo thanh toán VietQR (`HV03-US03`).
+
+### Field-level specification — Sub-tab Mua gói
+| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
+| :--- | :--- | :--- | :--- | :--- |
+| **Tiêu đề khối Mua gói tập** | `READONLY` | required | Không | Nhãn tiêu đề cố định: `Mua gói tập` kèm phụ đề `Chọn gói phù hợp, sau đó thanh toán trực tuyến.` |
+| **Thẻ gói đang bán (Package Sale Card)** | `READONLY` | required | `DYNAMIC`: Danh sách các gói tập đang mở bán (`Active`) | Mỗi thẻ bao gồm: Tên gói tập (chữ đậm), Giá niêm yết 100% (màu xanh lục, ví dụ `500.000 đ`), Dòng thông tin tóm tắt thời hạn / số lượt (ví dụ `30 ngày · Không giới hạn lượt`) |
+| **Nút [ Xem chi tiết ] trên thẻ** | `USER-INPUT` | required | Không | Nút nền xám đậm bo góc chữ trắng trên từng Card gói; bấm để mở Modal/Bottom Sheet Chi tiết gói |
+| **Nút CTA [ Mua gói ] trên thẻ** | `USER-INPUT` | required | Không | Nút nền xanh lá bo góc chữ trắng trên từng Card gói; bấm để chuyển trực tiếp sang Màn hình Thanh toán VietQR (`HV03-US03`) |
+
+### Field-level specification — Modal Chi tiết gói tập
+| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
+| :--- | :--- | :--- | :--- | :--- |
+| **Tên gói tập** | `PREFILL` + `READONLY` | required | Không | Tên gói tập được chọn (ví dụ: `Gói PT 20 buổi`, `Combo Gym 6 tháng + PT 20 buổi`) |
+| **Giá niêm yết (100%)** | `PREFILL` + `READONLY` | required | Không | Giá tiền chính xác 100% của gói (ví dụ: `5.000.000 đ`) |
+| **Thời hạn / Số buổi tập** | `PREFILL` + `READONLY` | required | `DYNAMIC`: Theo loại gói | Hiển thị thời hạn sử dụng (ví dụ `90 ngày`) hoặc tổng số buổi tập PT khả dụng (ví dụ `20 buổi`) |
+| **Phạm vi chi nhánh áp dụng** | `PREFILL` + `READONLY` | required | Không | Danh sách chi nhánh áp dụng: `Toàn hệ thống` HOẶC chi nhánh cụ thể |
+| **Quyền lợi phân công PT** | `PREFILL` + `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc loại gói | - **Hiện khi:** Gói là `PT` hoặc `Combo`, hiển thị: `Được tự chọn HLV cá nhân sau khi thanh toán`.<br>- **Ẩn khi:** Gói là `Gym` thuần. |
+| **Mô tả chi tiết quyền lợi** | `PREFILL` + `READONLY` | optional | Không | Đoạn văn bản mô tả các tiện ích đi kèm (tủ locker, phòng tắm, khăn tập, đo InBody miễn phí...) |
 
 ## Alternate Flows
 

@@ -1,42 +1,75 @@
 # HV01-US01 - Xem tổng quan và thao tác nhanh
 
 ## Preconditions
-- Hội viên đã đăng nhập Mobile bằng tài khoản hợp lệ.
-- Hệ thống xác định đúng hồ sơ hội viên hiện hành.
+- Hội viên đã đăng nhập ứng dụng Mobile bằng tài khoản hợp lệ.
+- Hệ thống xác định đúng hồ sơ hội viên hiện hành và nạp dữ liệu snapshot cá nhân.
 
 ## Trigger
-
-- Hội viên mở tab `HV01 · Trang chủ`.
+- Hội viên mở ứng dụng Mobile hoặc chọn tab footer `HV01 · Trang chủ`.
+- Màn hình liên quan: Mobile App — Tab footer `HV01 · Trang chủ`.
 
 ## Main Flow
 
-1. Hội viên mở trang chủ.
-2. Hệ thống tải snapshot gói, yêu cầu PT và session sắp tới của chính Hội viên.
-3. Hệ thống hiển thị lời chào và trạng thái cần xử lý.
-4. Hệ thống hiển thị lịch sắp tới nếu có.
-5. Hội viên chọn `Xem lịch của tôi`, `Mua gói`, `Gói của tôi` hoặc `Xem yêu cầu PT` để chuyển sang tab tương ứng.
-6. **Quy tắc nghiệp vụ:** Trang chủ chỉ đọc và điều hướng; không chỉnh sửa trực tiếp gói, thanh toán hoặc booking. Thông báo nghiệp vụ có thể được mở từ biểu tượng thông báo trên header, nhưng không tạo thêm menu footer.
+1. Hội viên mở tab **HV01 · Trang chủ**.
+2. Hệ thống tải dữ liệu tổng hợp cá nhân của chính Hội viên:
+   - Hồ sơ cá nhân (Họ và tên).
+   - Yêu cầu chọn PT đang chờ phản hồi (nếu có).
+   - Buổi tập sắp diễn ra gần nhất (nếu có).
+3. Hệ thống hiển thị giao diện Trang chủ gồm 4 khối thẻ trực quan:
+   - **Khối 1 — Lời chào:** Lời chào thân thiện kèm họ tên Hội viên.
+   - **Khối 2 — Trạng thái việc cần xử lý:**
+     - Nếu có yêu cầu PT đang chờ phản hồi (`PENDING`): Hiển thị thẻ màu vàng cam (amber) kèm tên HLV và nút `[ Xem yêu cầu PT ]`.
+     - Nếu không có: Hiển thị thẻ màu xanh lá (green) thông báo không có việc tồn đọng.
+   - **Khối 3 — Lịch sắp tới:**
+     - Nếu có buổi tập sắp tới: Hiển thị thời gian (ngày, giờ), tên HLV, tên gói tập kèm nút `[ Xem lịch của tôi ]`.
+     - Nếu chưa có: Hiển thị dòng chữ *"Chưa có lịch sắp tới"* kèm nút `[ Xem lịch của tôi ]`.
+   - **Khối 4 — Thao tác nhanh quản lý gói tập:** Hiển thị 2 nút điều hướng `[ Mua gói ]` và `[ Gói của tôi ]`.
+4. Hội viên bấm chọn một trong các nút thao tác nhanh để chuyển sang chức năng chuyên sâu tương ứng:
+   - Bấm `[ Xem yêu cầu PT ]`: Điều hướng sang `HV03 · Gói của tôi` (sub-tab Yêu cầu PT).
+   - Bấm `[ Xem lịch của tôi ]`: Điều hướng sang `HV02 · Lịch tập` (sub-tab Lịch của tôi).
+   - Bấm `[ Mua gói ]`: Điều hướng sang `HV03 · Gói của tôi` (sub-tab Mua gói).
+   - Bấm `[ Gói của tôi ]`: Điều hướng sang `HV03 · Gói của tôi` (sub-tab Gói của tôi).
+
+- **Business rules / logic:**
+  - Trang chủ chỉ đọc dữ liệu tổng hợp và đóng vai trò điều hướng nhanh; tuyệt đối không hỗ trợ đặt lịch, hủy lịch, thanh toán hoặc chỉnh sửa thông tin trực tiếp trên màn hình này.
+  - Toàn bộ dữ liệu hiển thị (yêu cầu PT, lịch tập, gói) bắt buộc phải thuộc quyền sở hữu của Hội viên đang đăng nhập; tuyệt đối không hiển thị nhầm dữ liệu của hội viên khác.
+
+### Field-level specification — Màn hình HV01 · Trang chủ
+| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
+| :--- | :--- | :--- | :--- | :--- |
+| **Lời chào hội viên** | `READONLY` | required | Không | Hiển thị: *"Xin chào, [Họ và tên Hội viên]"* (ví dụ: *Xin chào, Trần Thị Bình*) |
+| **Tiêu đề câu hỏi tương tác** | `READONLY` | required | Không | Dòng chữ tiêu đề: *"Hôm nay bạn muốn làm gì?"* (font size 20px, bold) |
+| **Mô tả định hướng** | `READONLY` | required | Không | Dòng chữ mô tả: *"Trang tổng quan để bạn biết việc cần làm và đi nhanh đến đúng chức năng."* |
+| **Icon trạng thái việc cần làm** | `READONLY` | required | `DYNAMIC`: Đổi màu và icon theo trạng thái | Icon đồng hồ `clock` màu vàng amber (khi có yêu cầu chờ) hoặc icon tích `check` màu xanh green (khi rảnh) |
+| **Tiêu đề việc cần xử lý** | `READONLY` | required | `DYNAMIC`: Đổi nội dung theo trạng thái | - Khi có yêu cầu PT chờ: *"Yêu cầu PT đang chờ phản hồi"*<br>- Khi không có việc: *"Không có việc cần xử lý"* |
+| **Mô tả chi tiết việc cần xử lý** | `READONLY` | required | `DYNAMIC`: Đổi nội dung theo trạng thái | - Khi có yêu cầu PT chờ: *"[Tên HLV] đang xem yêu cầu chọn PT của bạn."*<br>- Khi không có: *"Bạn có thể mua gói mới hoặc đặt một buổi trong lịch PT."* |
+| **Nút [ Xem yêu cầu PT ]** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc có yêu cầu chọn PT đang chờ duyệt hay không | - **Hiện khi:** Hội viên có yêu cầu chọn PT ở trạng thái `PENDING`.<br>- **Ẩn khi:** Không có yêu cầu PT nào đang chờ duyệt.<br>- Thao tác: Bấm để điều hướng sang `HV03` (sub-tab Yêu cầu PT). |
+| **Nhãn Thẻ Lịch sắp tới** | `READONLY` | required | Không | Đoạn text nhãn khối: *"Lịch sắp tới"* |
+| **Thời gian buổi tập sắp tới** | `READONLY` | required | `DYNAMIC`: Đổi nội dung theo dữ liệu lịch | - Khi có buổi tập sắp diễn ra: Hiển thị *"[Ngày] · [Khung giờ]"* (ví dụ: *18/10/2026 · 08:00 - 10:00*)<br>- Khi không có: Hiển thị *"Chưa có lịch sắp tới"* |
+| **Thông tin chi tiết buổi tập** | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc có buổi tập sắp diễn ra hay không | - **Hiện khi:** Có buổi tập sắp diễn ra (hiển thị *"[Tên HLV] · [Tên gói tập]"*).<br>- **Ẩn khi:** Chưa có lịch sắp tới. |
+| **Nút [ Xem lịch của tôi ]** | `USER-INPUT` | required | Không | Nút secondary bo góc viền; bấm để điều hướng sang `HV02 · Lịch tập` |
+| **Tiêu đề Thẻ Quản lý gói tập** | `READONLY` | required | Không | Đoạn text: *"Quản lý gói tập"* |
+| **Mô tả Thẻ Quản lý gói tập** | `READONLY` | required | Không | Đoạn text: *"Mua gói, xem tiến độ sử dụng và quản lý PT phụ trách."* |
+| **Nút [ Mua gói ]** | `USER-INPUT` | required | Không | Nút primary màu xanh lá; bấm để điều hướng sang `HV03 · Gói của tôi` (sub-tab Mua gói) |
+| **Nút [ Gói của tôi ]** | `USER-INPUT` | required | Không | Nút secondary bo góc; bấm để điều hướng sang `HV03 · Gói của tôi` (sub-tab Gói của tôi) |
 
 ## Alternate Flows
 
-### AF-01
+### AF-01 — Không có việc cần xử lý
+1. Hội viên không có yêu cầu chọn PT nào đang chờ phản hồi.
+2. SYS hiển thị thẻ tích xanh trạng thái rảnh rỗi và ẩn nút `[ Xem yêu cầu PT ]`.
 
-- Nếu không có việc cần xử lý, hệ thống hiển thị trạng thái rỗng và gợi ý mua gói hoặc đặt lịch.
-
-### AF-02
-
-- Nếu có yêu cầu PT đang chờ, thẻ cảnh báo hiển thị PT được yêu cầu và nút mở `HV03 · Gói của tôi`.
-
-### AF-03
-
-- Nếu chưa có session sắp tới, hệ thống hiển thị `Chưa có lịch sắp tới`.
+### AF-02 — Chưa có lịch tập sắp tới
+1. Hội viên chưa có buổi tập nào được đặt trong tương lai.
+2. SYS hiển thị dòng chữ *"Chưa có lịch sắp tới"*, ẩn dòng chi tiết HLV/gói tập và giữ nguyên nút `[ Xem lịch của tôi ]`.
 
 ## Exception Flows
 
-- Không tải được dữ liệu: hiển thị trạng thái lỗi và không hiển thị dữ liệu cũ như dữ liệu mới.
-- Dữ liệu không thuộc Hội viên hiện hành không được đưa vào dashboard.
+- **Lỗi không tải được dữ liệu:** Mất kết nối máy chủ $ightarrow$ SYS hiển thị thông báo lỗi mạng và không hiển thị dữ liệu cũ dạng sai lệch.
+- **Không tìm thấy hồ sơ hội viên:** Phiên làm việc hết hạn $ightarrow$ SYS tự động chuyển hướng về màn hình Đăng nhập (`HV06-US01`).
 
 ## Activity Diagram — Swimlane
+**Trigger:** Hội viên mở tab HV01 · Trang chủ.
 
 ```mermaid
 flowchart TB
@@ -44,70 +77,47 @@ flowchart TB
     subgraph L0["Swimlane — Hội viên"]
       I01(("Initial"))
       A01["Mở tab HV01 · Trang chủ"]
-      A02["Xem dashboard đã tổng hợp"]
-      D03{"Hội viên chọn thao tác nào?"}
-      N01["Điều hướng HV02 · Lịch tập"]
-      N02["Điều hướng HV03 · Gói của tôi"]
-      N03["Mở HV03 · Yêu cầu PT"]
-      N04["Tiếp tục ở HV01"]
-      M03(("Merge — đã chọn hoặc giữ nguyên màn hình"))
+      A02["Xem các khối thông tin tổng quan trên Dashboard"]
+      D01{"Hội viên bấm nút điều hướng nào?"}
+      
+      A03["Bấm nút [ Xem yêu cầu PT ]"]
+      A04["Bấm nút [ Xem lịch của tôi ]"]
+      A05["Bấm nút [ Mua gói ]"]
+      A06["Bấm nút [ Gói của tôi ]"]
+      A07["Tiếp tục xem trang chủ, không bấm nút"]
+
+      F01((("Final — Điều hướng sang HV03 · Yêu cầu PT")))
+      F02((("Final — Điều hướng sang HV02 · Lịch tập")))
+      F03((("Final — Điều hướng sang HV03 · Mua gói")))
+      F04((("Final — Điều hướng sang HV03 · Gói của tôi")))
+      F05((("Final — Duy trì tại màn hình HV01")))
 
       I01 --> A01
-      A10 --> A02
-      A02 --> D03
-      D03 -->|Xem lịch của tôi| N01
-      D03 -->|Mua gói hoặc Gói của tôi| N02
-      D03 -->|Xem yêu cầu PT| N03
-      D03 -->|Không thao tác| N04
-      N01 --> M03
-      N02 --> M03
-      N03 --> M03
-      N04 --> M03
+      A02 --> D01
+      D01 -->|Xem yêu cầu PT| A03 --> F01
+      D01 -->|Xem lịch của tôi| A04 --> F02
+      D01 -->|Mua gói| A05 --> F03
+      D01 -->|Gói của tôi| A06 --> F04
+      D01 -->|Không thao tác| A07 --> F05
     end
 
     subgraph L1["Swimlane — SYS"]
-      S01["Xác định session và hồ sơ Hội viên hiện hành"]
-      D01{"Tải snapshot thành công?"}
-      E01["Hiển thị trạng thái lỗi; không dùng dữ liệu cũ như dữ liệu mới"]
-      S02["Tải snapshot gói"]
-      S03["Tải yêu cầu PT"]
-      S04["Tải session sắp tới"]
-      J01{{"Join — đủ 3 snapshot"}}
-      S05["Hiển thị lời chào và trạng thái cần xử lý"]
-      D02{"Có việc cần xử lý?"}
-      S06["Hiển thị thẻ cảnh báo và việc cần làm"]
-      S07["Hiển thị trạng thái rỗng; gợi ý mua gói hoặc đặt lịch"]
-      M01(("Merge — trạng thái xử lý đã hiển thị"))
-      D04{"Có session sắp tới?"}
-      S08["Hiển thị lịch sắp tới"]
-      S09["Hiển thị Chưa có lịch sắp tới"]
-      M02(("Merge — lịch sắp tới đã hiển thị"))
-      A10["Hiển thị dashboard cho Hội viên"]
-      F01((("Final")))
+      S01["Xác thực phiên làm việc và tra cứu hồ sơ Hội viên"]
+      D02{"Tải snapshot dữ liệu thành công?"}
+      E01["Báo lỗi kết nối; giữ an toàn dữ liệu"]
+      
+      S02["Nạp thông tin lời chào hội viên"]
+      S03["Kiểm tra trạng thái yêu cầu PT đang chờ"]
+      S04["Tra cứu buổi tập sắp diễn ra gần nhất"]
+      
+      S05["Hiển thị thẻ Việc cần làm (có/không yêu cầu chờ)"]
+      S06["Hiển thị thẻ Lịch sắp tới (có/chưa có lịch)"]
+      S07["Hiển thị thẻ Thao tác nhanh quản lý gói tập"]
 
-      A01 --> S01
-      S01 --> D01
-      D01 -->|Không| E01
-      E01 --> F01
-      D01 -->|Có| S02
-      D01 -->|Có| S03
-      D01 -->|Có| S04
-      S02 --> J01
-      S03 --> J01
-      S04 --> J01
-      J01 --> S05
-      S05 --> D02
-      D02 -->|Có| S06
-      D02 -->|Không| S07
-      S06 --> M01
-      S07 --> M01
-      M01 --> D04
-      D04 -->|Có| S08
-      D04 -->|Không| S09
-      S08 --> M02
-      S09 --> M02
-      M02 --> A10
-      M03 --> F01
+      A01 --> S01 --> D02
+      D02 -- "Thất bại" --> E01
+      D02 -- "Thành công" --> S02
+      S02 --> S03 --> S04 --> S05 --> S06 --> S07 --> A02
     end
   end
-```
+```\n

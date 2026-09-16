@@ -34,16 +34,21 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 
 ## HV04 · Tài khoản
 
-- [HV04-US01 — Đăng nhập tài khoản Hội viên](./HV04-Tài khoản/HV04-US01-Đăng nhập tài khoản Hội viên.md)
-- [HV04-US02 — Tạo hoặc kích hoạt tài khoản bằng OTP](./HV04-Tài khoản/HV04-US02-Tạo hoặc kích hoạt tài khoản bằng OTP.md)
-- [HV04-US03 — Cập nhật hồ sơ và tùy chọn thông báo](./HV04-Tài khoản/HV04-US03-Cập nhật hồ sơ và tùy chọn thông báo.md)
-- [HV04-US04 — Đăng xuất tài khoản Mobile](./HV04-Tài khoản/HV04-US04-Đăng xuất tài khoản Mobile.md)
+- [HV04-US01 — Cập nhật hồ sơ cá nhân](./HV04-Tài%20khoản/HV04-US01-Cập%20nhật%20hồ%20sơ%20cá%20nhân.md)
+- [HV04-US02 — Cài đặt thông báo và bảo mật tài khoản](./HV04-Tài%20khoản/HV04-US02-Cài%20đặt%20thông%20báo%20và%20bảo%20mật%20tài%20khoản.md)
 
 ## HV05 · Thông báo
 
-- [HV05-US01 — Xem và xử lý thông báo Hội viên](./HV05-Thông báo/HV05-US01-Xem và xử lý thông báo Hội viên.md)
+- [HV05-US01 — Xem và xử lý thông báo Hội viên](./HV05-Thông%20báo/HV05-US01-Xem%20và%20xử%20lý%20thông%20báo%20Hội%20viên.md)
 
-**Tổng số:** 5 Epic, 16 User Story canonical.
+## HV06 · Đăng nhập
+
+- [HV06-US01 — Đăng nhập đa phương thức và xác thực 2 lớp](./HV06-Đăng%20nhập/HV06-US01-Đăng%20nhập%20đa%20phương%20thức%20và%20xác%20thực%202%20lớp.md)
+- [HV06-US02 — Kích hoạt tài khoản Hội viên bằng OTP](./HV06-Đăng%20nhập/HV06-US02-Kích%20hoạt%20tài%20khoản%20Hội%20viên%20bằng%20OTP.md)
+- [HV06-US03 — Tạo tài khoản và đăng ký hồ sơ mới](./HV06-Đăng%20nhập/HV06-US03-Tạo%20tài%20khoản%20và%20đăng%20ký%20hồ%20sơ%20mới.md)
+- [HV06-US04 — Đăng xuất tài khoản Mobile](./HV06-Đăng%20nhập/HV06-US04-Đăng%20xuất%20tài%20khoản%20Mobile.md)
+
+**Tổng số:** 6 Epic, 17 User Story canonical.
 
 ## Boundary
 

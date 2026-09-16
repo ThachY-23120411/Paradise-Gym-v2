@@ -10,27 +10,32 @@
 
 ## Main Flow
 
-1. PT mở tab **PT01 · Lịch**.
+1. PT mở tab **PT01 · Lịch** trên footer navigation.
 2. Hệ thống nạp bộ chọn ngày Calendar / DatePicker (dạng lịch tháng, ví dụ `< Tháng 9 Năm 2026 >`), mặc định chọn ngày hiện tại.
-3. Hệ thống hiển thị tiêu đề ngày được chọn (ví dụ: `07/09/2026 - Khung làm việc cố định: 08:00 - 18:00`) cùng danh sách 5 khung giờ 2 tiếng cố định trong ngày (`08:00-10:00`, `10:00-12:00`, `12:00-14:00`, `14:00-16:00`, `16:00-18:00`).
+3. Hệ thống hiển thị tiêu đề ngày được chọn (ví dụ: `07/09/2026 - Khung làm việc cố định: 08:00 - 18:00`) cùng **Lưới 5 khung giờ làm việc cố định** (Slots 2 tiếng: `08:00-10:00`, `10:00-12:00`, `12:00-14:00`, `14:00-16:00`, `16:00-18:00`).
 4. Tại từng khung giờ trong ngày:
-   - **Khung giờ đã có lịch đặt:** Hiển thị Họ tên Học viên (ví dụ: `Bùi Thị Hoa`), Tên gói PT (`PT 10 buổi`), Trạng thái buổi tập (`Đã đặt`, `Chờ xác nhận`, `Đã ghi nhận`, `Đã hủy`). Đối với các khung giờ đã qua hoặc đang diễn ra, hiển thị nút màu xanh `[ Xác nhận hoàn thành ]`.
-   - **Khung giờ chưa có lịch:** Hiển thị nhãn `Khung giờ trống`.
+   - **Khung giờ trống:** Hiển thị thẻ `Khung giờ trống` viền nét đứt màu xám nhạt (chỉ đọc, tuyệt đối không có nút đặt lịch hay icon `[ + ]` vì PT không tự đặt lịch).
+   - **Khung giờ có lịch đặt — Trạng thái `Đã đặt` (`UPCOMING`):** Thẻ viền xanh dương, hiển thị Họ tên học viên, Gói tập, Chi nhánh, Badge `Đã đặt`. Đến giờ hoặc qua giờ tập, hiển thị nút màu xanh `[ Xác nhận hoàn thành ]`.
+   - **Khung giờ có lịch đặt — Trạng thái `Chờ xác nhận hoàn thành` (`AWAITING_CONFIRMATION`):** Thẻ viền vàng cam, Badge `Chờ xác nhận`. Hiển thị nút màu xanh `[ Xác nhận hoàn thành ]` nếu PT chưa ghi nhận kết quả (hoặc nhãn `Chờ Hội viên xác nhận` nếu PT đã ghi nhận).
+   - **Khung giờ có lịch đặt — Trạng thái `Hoàn thành` (`DONE` / Đã ghi nhận):** Thẻ viền xanh lá, Badge `Đã ghi nhận` (đã đủ xác nhận 2 chiều và trừ 1 buổi; không có nút thao tác).
+   - **Khung giờ có lịch đặt — Trạng thái `Đã hủy` (`CANCELLED`):** Thẻ làm mờ màu xám, Badge `Đã hủy` (không có nút thao tác).
 5. PT có thể chọn bất kỳ ngày nào khác trên Calendar / DatePicker để chuyển sang xem lịch tập của ngày đó.
 6. **Quy tắc nghiệp vụ:**
    - PT chỉ xem được các buổi tập nằm trong phạm vi phân công (assignment scope) của chính mình.
    - PT **không có quyền hủy lịch tập** (nút/thao tác Hủy lịch không xuất hiện đối với vai trò PT; chỉ có Hội viên hoặc Lễ tân/QTV thực hiện hủy lịch).
-   - Khi PT bấm `[ Xác nhận hoàn thành ]` tại khung giờ đã đặt, hệ thống chuyển sang modal ghi nhận kết quả buổi học (`PT01-US02`).
+   - Khi PT bấm `[ Xác nhận hoàn thành ]` tại ca tập `Đã đặt` (đến giờ) hoặc `Chờ xác nhận hoàn thành`, hệ thống chuyển sang modal ghi nhận kết quả buổi học (`PT01-US02`).
 
 ### Field-level specification — Màn hình Lịch PT theo ngày
 | Field / control | State | Required | Conditional / dynamic | Source / validation |
 | :--- | :--- | :--- | :--- | :--- |
 | **Thanh chọn ngày (Calendar Strip / DatePicker)** | `USER-INPUT` + `PREFILL` | required | `TRIGGER`: Chạm chọn ngày để nạp lại danh sách 5 ca tập của ngày tương ứng | Dải lịch cuộn ngang / Lịch tháng, mặc định chọn ngày hiện tại (`DD/MM/YYYY`) |
 | **Tiêu đề ngày & Khung giờ cố định** | `READONLY` | required | `DYNAMIC`: Cập nhật ngày theo giá trị chọn ở TRIGGER | Hiển thị: `DD/MM/YYYY - Khung làm việc cố định: 08:00 - 18:00` |
-| **Danh sách 5 Khung giờ (Slots)** | `READONLY` | required | Không | 5 khung giờ 2 tiếng cố định: `08:00-10:00`, `10:00-12:00`, `12:00-14:00`, `14:00-16:00`, `16:00-18:00` |
-| **Thẻ ca tập (Slot có lịch)** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** khung giờ đã được hội viên đặt lịch; **Ẩn khi** khung giờ chưa có người đặt | Hiển thị: Họ tên học viên, Tên gói PT, Badge trạng thái (`Đã đặt`, `Chờ xác nhận`, `Đã ghi nhận`, `Đã hủy`) |
-| **Nhãn Khung giờ trống** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** khung giờ chưa có người đặt lịch; **Ẩn khi** khung giờ đã có lịch đặt | Nhãn hiển thị màu xám mờ: `Khung giờ trống` |
-| **Nút `[ Xác nhận hoàn thành ]`** | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** ca tập tại khung giờ đó đang diễn ra hoặc đã kết thúc và trạng thái chưa phải `Đã ghi nhận`/`Đã hủy`; **Ẩn khi** ca tập chưa đến giờ bắt đầu hoặc đã hủy | Nút màu xanh trên thẻ ca tập: Bấm để mở Modal / Bottom Sheet `Ghi nhận kết quả buổi PT` (`PT01-US02`) |
+| **Lưới 5 khung giờ làm việc** | `READONLY` | required | Không | Khung bố cục lưới (Grid Container) gồm 5 khung giờ 2 tiếng cố định: `08:00-10:00`, `10:00-12:00`, `12:00-14:00`, `14:00-16:00`, `16:00-18:00` |
+| **Thẻ khung giờ trống** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có khung giờ chưa có học viên đặt lịch; **Ẩn khi** tất cả các khung giờ trong ngày đều đã có lịch đặt | Thẻ card viền nét đứt màu xám nhạt, hiển thị Khung giờ và nhãn `Khung giờ trống` (**chỉ đọc, tuyệt đối không có nút đặt lịch hay nút icon `[ + ]`** vì PT không tự đặt lịch) |
+| **Thẻ ca tập — Trạng thái `Đã đặt` (`UPCOMING`)** | `USER-INPUT / READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có ca tập ở trạng thái `Đã đặt` (`UPCOMING`); **Ẩn khi** trong ngày không có ca tập nào ở trạng thái này | Thẻ card viền bo bên trái màu xanh dương; hiển thị Khung giờ, Họ tên học viên, Tên gói PT, Chi nhánh, Badge trạng thái `Đã đặt` (xanh dương). Đến giờ hoặc qua giờ tập, hiển thị nút màu xanh `[ Xác nhận hoàn thành ]` (mở Bottom Sheet `PT01-US02`) |
+| **Thẻ ca tập — Trạng thái `Chờ xác nhận hoàn thành` (`AWAITING_CONFIRMATION`)** | `USER-INPUT / READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có ca tập đang ở trạng thái `Chờ xác nhận hoàn thành` (`AWAITING_CONFIRMATION`); **Ẩn khi** không có ca tập nào ở trạng thái này | Thẻ card viền bo bên trái màu vàng cam; hiển thị Khung giờ, Họ tên học viên, Tên gói PT, Chi nhánh, Badge trạng thái `Chờ xác nhận` (vàng cam) kèm nút bấm màu xanh `[ Xác nhận hoàn thành ]` nếu PT chưa ghi nhận kết quả vế của mình (hoặc hiển thị nhãn `Chờ Hội viên xác nhận`) |
+| **Thẻ ca tập — Trạng thái `Hoàn thành` (`DONE`)** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có ca tập đã hoàn tất xác nhận 2 chiều và chuyển sang trạng thái `DONE` (`Đã ghi nhận`); **Ẩn khi** không có ca tập nào ở trạng thái này | Thẻ card viền bo bên trái màu xanh lá; hiển thị Khung giờ, Họ tên học viên, Tên gói PT, Chi nhánh, Badge trạng thái `Đã ghi nhận` (xanh lá); hiển thị thông tin đã trừ 1 buổi; không có nút thao tác |
+| **Thẻ ca tập — Trạng thái `Đã hủy` (`CANCELLED`)** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có ca tập đã bị Hội viên hoặc Quản trị viên/Lễ tân hủy (`CANCELLED`); **Ẩn khi** không có ca tập nào bị hủy | Thẻ card làm mờ (opacity thấp), gạch ngang khung giờ hoặc hiển thị màu xám; hiển thị Họ tên học viên, Tên gói PT, Badge trạng thái `Đã hủy` (xám); khóa hoàn toàn tương tác, không có nút xác nhận |
 
 ## Alternate Flows
 
