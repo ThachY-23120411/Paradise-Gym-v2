@@ -25,9 +25,9 @@ Không gian nghiệp vụ bên trong Menu **`HV02 · Lịch tập`** (nằm gi�
 | User Story | Phân loại giao diện | Thành phần giao diện tương ứng | Phạm vi đặc tả UI |
 | :--- | :--- | :--- | :--- |
 | [HV02-US01 — Xem lịch tập và lọc trạng thái buổi PT](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US01-Xem lịch tập và lọc trạng thái buổi PT.md) | Màn hình Sub-tab | **Sub-tab `Lịch của tôi`** | Bảng Field-level spec toàn diện cho tab: Widget Lịch tháng (Trigger), chip lọc trạng thái, thẻ buổi tập cá nhân và các nút thao tác trên thẻ |
-| [HV02-US02 — Đặt lịch PT từ slot trống](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US02-Đặt lịch PT từ slot trống.md) | Màn hình Sub-tab | **Sub-tab `Đặt lịch PT`** | Bảng Field-level spec toàn diện cho tab: Combobox chọn gói (Trigger), Card thông tin PT phụ trách, Widget Lịch tháng (Trigger), danh sách Khung giờ làm việc và nút Đặt lịch [+] trên slot |
+| [HV02-US02 — Đặt lịch PT từ slot trống](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US02-Đặt lịch PT từ slot trống.md) | Màn hình Sub-tab | **Sub-tab `Đặt lịch PT`** | Bảng Field-level spec toàn diện cho tab: Combobox chọn gói (Trigger), Card thông tin PT phụ trách, Widget Lịch tháng (Trigger), Lưới 5 khung giờ (Thẻ slot trống [+], Thẻ slot đã bận, Thẻ buổi tập của chính Hội viên theo trạng thái Đã đặt/Chờ xác nhận/Hoàn thành) |
 | [HV02-US03 — Hủy lịch buổi PT](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US03-Hủy lịch buổi PT.md) | Modal xác nhận | **Modal Xác nhận Hủy lịch buổi PT** | Bảng Field-level spec 6 trường nhập/hiển thị của modal (mở từ nút Hủy lịch tại tab Lịch của tôi) |
-| [HV02-US04 — Xác nhận hoàn thành buổi PT](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US04-Xác nhận hoàn thành buổi PT.md) | Dialog xác nhận | **Dialog Xác nhận Hoàn thành buổi PT** | Bảng Field-level spec 5 trường hiển thị/đánh giá của dialog (mở từ nút Xác nhận hoàn thành tại tab Lịch của tôi) |
+| [HV02-US04 — Xác nhận hoàn thành buổi PT](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US04-Xác nhận hoàn thành buổi PT.md) | Dialog xác nhận | **Dialog Xác nhận Hoàn thành buổi PT** | Bảng Field-level spec 3 trường hiển thị thông tin & trạng thái của dialog (mở từ nút Xác nhận hoàn thành tại tab Lịch của tôi) |
 
 ---
 

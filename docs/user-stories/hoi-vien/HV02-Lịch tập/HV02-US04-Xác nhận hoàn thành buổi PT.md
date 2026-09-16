@@ -26,10 +26,8 @@
 | Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
 | :--- | :--- | :--- | :--- | :--- |
 | **Thông tin buổi tập** | `PREFILL` + `READONLY` | required | Không | Hiển thị thông tin buổi tập cần xác nhận: `Buổi tập với PT [Tên PT] lúc [Khung giờ - Ngày]` |
-| **Trạng thái xác nhận của PT** | `READONLY` | required | `DYNAMIC`: Lấy từ trạng thái xác nhận phía PT | Hiển thị badge/nhãn trạng thái: `PT đã xác nhận hoàn thành` (xanh) HOẶC `Đang chờ PT gửi xác nhận` (cam) |
-| **Thông báo khấu trừ** | `READONLY` | required | Không | Đoạn text giải thích: "Sau khi cả bạn và PT cùng xác nhận, hệ thống sẽ trừ chính xác 1 buổi trong gói tập của bạn." |
-| **Đánh giá mức độ hài lòng** | `USER-INPUT` | optional | Không | Bộ chọn Star Rating 5 sao (`1`–`5 sao`) để hội viên đánh giá chất lượng phục vụ của PT |
-| **Ghi chú đánh giá** | `USER-INPUT` | optional | Không | Text input ngắn cho phép nhập cảm nghĩ/nhận xét (tối đa 200 ký tự) |
+| **Trạng thái xác nhận của PT** | `READONLY` | required | `DYNAMIC`: Lấy từ trạng thái xác nhận phía PT | Hiển thị badge/nhãn trạng thái: `PT đã xác nhận hoàn thành` (xanh lá) HOẶC `Đang chờ PT xác nhận` (vàng cam) |
+| **Thông báo khấu trừ** | `READONLY` | required | Không | Đoạn text lưu ý: *"Hệ thống sẽ trừ chính xác 1 buổi trong gói tập của bạn sau khi cả bạn và PT cùng hoàn tất xác nhận."* |
 
 ## Alternate Flows
 

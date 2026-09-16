@@ -1,148 +1,197 @@
 # 1. Overview & Goals
 
-Paradise Gym là hệ thống quản lý vận hành phòng gym trên Web và Mobile, phục vụ QTV, lễ tân, PT và hội viên.
+Paradise Gym là hệ thống quản trị và vận hành chuỗi phòng gym đa chi nhánh trên hai nền tảng Web và Mobile, phục vụ đồng bộ 4 nhóm đối tượng: Quản trị viên (QTV), Lễ tân, Huấn luyện viên (PT) và Hội viên.
 
 | Mục | Nội dung |
 | --- | --- |
-| Nguồn đầu vào | Requirement PDF, screenshot phác thảo, PDF quyết định Open Questions v1.0, `docs/open-questions.md` |
-| Nguyên tắc | Screenshot chỉ là UI tham khảo, không tự biến mọi chi tiết trong ảnh thành business rule |
-| Phạm vi mô tả | WHAT của sản phẩm: actor, permission, feature, rule nghiệp vụ, out of scope và câu hỏi còn mở |
-| Không thuộc tài liệu này | Thiết kế kỹ thuật, lựa chọn công nghệ, kiến trúc triển khai, code |
+| Nguồn đầu vào | Yêu cầu nghiệp vụ chuỗi phòng gym, hồ sơ thiết kế UI/UX, catalog phân hệ và danh mục quyết định nghiệp vụ đã thống nhất |
+| Nguyên tắc cốt lõi | Tài liệu mô tả bản chất nghiệp vụ (WHAT); giao diện là công cụ trực quan hóa luồng vận hành, không tự suy diễn chi tiết đồ họa thành quy tắc nghiệp vụ khi chưa chuẩn hóa |
+| Phạm vi mô tả | Định nghĩa vai trò (Actors), ma trận phân quyền, danh mục tính năng cốt lõi (Core Features), quy tắc nghiệp vụ chi tiết (Business Rules), phạm vi loại trừ (Out of Scope) và các vấn đề mở |
+| Không thuộc tài liệu này | Thiết kế kỹ thuật chi tiết, lựa chọn framework/cơ sở dữ liệu, kiến trúc hạ tầng triển khai và mã nguồn ứng dụng |
 
-**Goals**
+**Mục tiêu hệ thống (Goals):**
 
-- Quản lý xuyên suốt hội viên, gói tập, đăng ký/gia hạn, lịch PT, thanh toán, check-in và chăm sóc.
-- Phân quyền theo vai trò, phạm vi chi nhánh và permission nhạy cảm.
-- Tách rõ hồ sơ hội viên, hiệu lực gói, quyền vào tập và quyền đặt lịch PT.
-- Hỗ trợ vận hành nhiều chi nhánh trong cùng một đơn vị.
-- Lưu lịch sử, trạng thái và audit cho các nghiệp vụ ảnh hưởng tiền, quyền tập, dữ liệu cá nhân và quyền truy cập.
+- **Quản lý vận hành xuyên suốt:** Kết nối liền mạch toàn bộ vòng đời hội viên từ tiếp nhận, đăng ký/gia hạn gói tập, phân công PT, đặt và xác nhận lịch tập, thanh toán 100%, kiểm soát ra vào/check-in, thông báo tự động đến báo cáo kinh doanh.
+- **Phân quyền chặt chẽ theo 3 lớp:** Vai trò người dùng (Role), phạm vi chi nhánh làm việc (Branch Scope) và quyền hạn tác vụ chi tiết (Permission).
+- **Tách bạch 4 thực thể nghiệp vụ cốt lõi:** Hồ sơ hội viên (Profile) $\neq$ Hiệu lực đăng ký gói (Registration) $\neq$ Quyền vào cửa (Access Right) $\neq$ Quyền đặt lịch PT (Booking Right).
+- **Vận hành chuỗi đa chi nhánh:** Hỗ trợ mô hình một trụ sở chính và nhiều chi nhánh thành viên; phân định rành mạch quyền dữ liệu nội bộ từng chi nhánh và quyền điều hành toàn chuỗi.
+- **Tính toàn vẹn và Audit Trail:** Lưu vết kiểm toán bất biến (Audit Log) cho toàn bộ các thao tác tài chính, kích hoạt quyền tập, quản trị tài khoản, consent dữ liệu cá nhân và can thiệp nghiệp vụ nhạy cảm.
+
+---
 
 # 2. Actors & Permissions
 
-| Actor | Surface | Được làm | Giới hạn chính |
+| Actor | Nền tảng | Quyền hạn và phạm vi thao tác | Giới hạn nghiệp vụ chính |
 | --- | --- | --- | --- |
-| QTV / Quản lý | Web only | Quản trị theo phạm vi được cấp; xem tổng quan, báo cáo, hội viên, gói, PT, lịch, thanh toán, chi nhánh, tài khoản, thiết bị, chính sách, audit | Không có Mobile canonical; quyền Web phụ thuộc role + branch scope + permission; không mặc định mọi QTV đều toàn chuỗi |
-| Lễ tân | Web only | Tiếp nhận hội viên, đăng ký/gia hạn, điều phối lịch, ghi nhận tiền mặt, hỗ trợ check-in, chăm sóc, xem/xuất phiếu trong chi nhánh | Không có Mobile canonical; không tự sửa giá/gói, không xem tài chính toàn hệ thống, không quản trị permission/chi nhánh/toàn bộ thiết bị |
-| PT | Mobile only | Xem lịch của mình, học viên được phân công, xem và xử lý yêu cầu phân công (assignment request), xác nhận buổi tập đã diễn ra | Không có Web canonical; không xem lịch sử thanh toán/payment; không xem học viên ngoài phân công; không tự cấp quyền hoặc sửa hồ sơ gốc; không tự cấu hình giờ rảnh/availability |
-| Hội viên | Mobile only | Dùng footer HV01 Trang chủ, HV02 Lịch tập, HV03 Gói của tôi và HV04 Tài khoản; xem hồ sơ/gói/phiếu của mình, đặt/đổi/hủy lịch PT, mua/gia hạn khi self-service được cho phép, cập nhật thông tin cá nhân được phép | Không có Web canonical; không tự sửa gói, số buổi, trạng thái thanh toán, ghi chú nội bộ hoặc dữ liệu người khác |
-| K01 / Màn hình công cộng | Public screen | Hiển thị kết quả check-in và hướng dẫn tối thiểu | Không phải role tài khoản; không hiển thị dữ liệu riêng tư như lịch sử thanh toán, số điện thoại, email, giá gói, ghi chú |
+| **QTV / Quản lý** | Web only | - Quản trị hệ thống theo phạm vi chi nhánh được phân công (Toàn chuỗi hoặc Chi nhánh phụ trách).<br>- Giám sát Dashboard (W01), quản lý hồ sơ Hội viên (W02), danh mục Gói tập (W03), Đăng ký & gia hạn (W04), hồ sơ PT (W05), điều phối Lịch PT (W06), giám sát Check-in (W07), Thu tiền & thanh toán 100% (W08), quản lý mẫu Thông báo (W09), xem Báo cáo gom dòng (W10), cấu hình Thiết bị (W12), quản lý Tài khoản & phân quyền (W13).<br>- Riêng QTV toàn chuỗi: độc quyền quản trị Chi nhánh (W11). | - Không có ứng dụng Mobile canonical.<br>- Quyền hạn trên Web tuân thủ nghiêm ngặt theo `Role + Branch Scope + Permission`; không mặc định mọi QTV đều có quyền toàn chuỗi.<br>- Không được phép tự khóa hoặc hạ quyền tài khoản QTV tối cao của chính mình. |
+| **Lễ tân** | Web only | - Tiếp nhận và tạo hồ sơ hội viên tại quầy (W02).<br>- Tạo đăng ký gói mới và gia hạn gói tập (W04).<br>- Đặt lịch tập PT thay cho hội viên theo PT phụ trách hợp lệ (W06).<br>- Ghi nhận thanh toán tiền mặt 100% hoặc xác nhận chuyển khoản VietQR tại quầy, xuất phiếu thu (W08).<br>- Hỗ trợ check-in tại quầy và ghi nhận lượt ra vào thủ công khi có sự cố thiết bị (W07).<br>- Tra cứu thông báo và lịch sử chăm sóc hội viên trong chi nhánh (W09). | - Không có ứng dụng Mobile canonical.<br>- Phạm vi dữ liệu gắn cứng với chi nhánh đang làm việc (Active Branch).<br>- Không được chỉnh sửa giá gói hoặc tạo gói tập mới (W03).<br>- Không được quản trị chi nhánh (W11), cấu hình thiết bị (W12) hoặc quản lý tài khoản/phân quyền (W13).<br>- Không xem báo cáo doanh thu quản trị cấp cao (W10). |
+| **Huấn luyện viên (PT)** | Mobile only | - Quản lý lịch dạy cá nhân theo khung giờ làm việc cố định (PT01).<br>- Xem danh sách học viên được phân công chính thức (PT02).<br>- Tiếp nhận và xử lý yêu cầu phân công học viên (`PT_ASSIGNMENT_REQUEST`: Đồng ý / Từ chối) (PT03 / HV01).<br>- Ghi nhận và xác nhận hoàn thành buổi tập đã diễn ra (PT01). | - Không có giao diện Web canonical.<br>- Làm việc theo khung giờ cố định do trung tâm ban hành (Thứ 2 - Thứ 6, 08:00 - 18:00); PT **không** tự cấu hình giờ rảnh (availability).<br>- Không được xem doanh thu, lịch sử thanh toán hay chi tiết tiền gói của học viên.<br>- Không xem được học viên ngoài danh sách phân công; không tự cấp quyền hay can thiệp hồ sơ gốc. |
+| **Hội viên** | Mobile only | - Sử dụng ứng dụng Mobile 4 tab chính: Trang chủ (HV01), Lịch tập (HV02), Gói của tôi (HV03), Tài khoản (HV04).<br>- Xem thông tin gói tập, tiến độ buổi dạy; chủ động chọn PT mong muốn tại chi nhánh cho gói PT/Combo (HV03).<br>- Đặt, đổi, hủy lịch tập PT theo slot khả dụng (HV02 - hủy trước ít nhất 12 giờ).<br>- Xác nhận hoàn thành buổi tập (xác nhận 2 chiều cùng PT) (HV02).<br>- Xem lịch sử thanh toán 100% và tra cứu phiếu thu của chính mình (HV03).<br>- Tự kích hoạt tài khoản bằng OTP qua SĐT đã đăng ký tại quầy (HV04/HV05). | - Không có giao diện Web canonical.<br>- Không tự chỉnh sửa số buổi, thời hạn gói, trạng thái thanh toán hoặc ghi chú nội bộ của nhân viên.<br>- Không thể xem dữ liệu của hội viên khác. |
+| **K01 / Màn hình công cộng** | Public Screen | - Hiển thị phản hồi tức thì trạng thái quẹt thẻ/nhận diện ra vào tại cửa (Hợp lệ / Không hợp lệ) cùng thông điệp hướng dẫn trung tính. | - Không phải là role tài khoản người dùng.<br>- Tuyệt đối không hiển thị thông tin nhạy cảm: Số điện thoại, email, giá tiền gói, công nợ, ghi chú vận hành.<br>- Chỉ hiển thị họ tên, ảnh đại diện và lời chúc sinh nhật khi hội viên đã cấp Consent công khai. |
+
+---
 
 # 3. Scope & Core Features
 
-| Feature | Surface | Nội dung chính |
-| --- | --- | --- |
-| Tổng quan QTV/Lễ tân | Web only | Chỉ số theo quyền, việc cần xử lý, lịch hôm nay, cảnh báo gói/lịch/check-in/thanh toán |
-| HV01 Trang chủ | Mobile Hội viên only | Lời chào, yêu cầu PT đang chờ, lịch sắp tới và lối tắt tới HV02/HV03 |
-| Hội viên & khách hàng | Web QTV/Lễ tân | Tìm, thêm, sửa hồ sơ, đổi trạng thái và xem danh sách hội viên; mở dữ liệu gói/lịch/ra-vào/thanh toán theo quyền |
-| HV04 Tài khoản | Mobile Hội viên only | Đăng nhập/kích hoạt, hồ sơ cá nhân được phép, preference và đăng xuất |
-| Danh mục gói tập | Web QTV; Mobile Hội viên xem gói đang bán | Web quản lý danh mục và xem chi tiết gói/quyền lợi Gym/PT/Combo; Mobile Hội viên xem trước khi mua; chi tiết registration thuộc W04 |
-| Đăng ký & gia hạn | Web QTV/Lễ tân; Mobile Hội viên self-service | Web tạo, xem chi tiết và gia hạn theo vận hành; Mobile Hội viên mua gói khi self-service được bật; gói PT/Combo không phân công PT ngay |
-| HV03 Gói của tôi | Mobile Hội viên only | Xem gói/tiến độ, mua gói, khởi tạo thanh toán, chọn PT và theo dõi request/payment |
-| Thanh toán & thu tiền | Web QTV/Lễ tân; Mobile Hội viên xem/tracking self-service | Web xử lý nghiệp vụ thu tiền mặt, chuyển khoản và điều chỉnh thanh toán 100% 1 lần; Mobile Hội viên tạo yêu cầu thanh toán và xem trạng thái/phiếu của mình |
-| Quản lý PT | Web QTV; Mobile PT/Hội viên theo scope | Web QTV quản lý hồ sơ/trạng thái PT; lịch cố định là cấu hình hệ thống dùng để tính slot; PT dùng Mobile xem lịch/học viên/request; Hội viên dùng HV03 chọn PT |
-| HV02 Lịch tập | Mobile Hội viên only | Hội viên xem lịch, đặt/đổi/hủy và xác nhận buổi của mình |
-| PT01 Lịch / PT02 Học viên | Mobile PT only | PT xem lịch của mình và học viên được phân công, ghi nhận kết quả |
-| Check-in / ra vào | Web QTV/Lễ tân, K01, thiết bị | Web xử lý event IN/OUT và ghi nhận thủ công; điều kiện gói, chống trùng và trừ buổi là rules trong flow; K01 chỉ hiển thị kết quả public |
-| Quản lý thông báo | Web QTV/Lễ tân; Mobile Hội viên/PT nhận thông báo | Web quản lý quy tắc loại thông báo, mẫu in-app template và tra cứu nhật ký gửi; Hệ thống (SYS) tự động phát in-app theo sự kiện nghiệp vụ |
-| Báo cáo | Web QTV/Lễ tân được cấp quyền | Xem số liệu theo kỳ/chi nhánh/quyền; không có Mobile canonical |
-| Chi nhánh | Web QTV only | Quản lý chi nhánh, giờ hoạt động, trạng thái, phạm vi quyền và phạm vi gói; chuyển context làm việc thuộc W13 |
-| Tài khoản & phân quyền | Web QTV only; Mobile HV/PT cho login/kích hoạt/tài khoản cá nhân | W13 quản trị account/role/scope/permission và tra cứu audit trên Web; Mobile chỉ phục vụ credential activation và self-account của đúng role |
-| Thiết bị & nhận diện | Web QTV/Lễ tân theo quyền, K01 | Quản lý thiết bị, trạng thái kết nối, dữ liệu nhận diện và consent |
+### Phân hệ Quản trị Web (QTV & Lễ tân: W01 - W13)
+
+| Mã Menu | Tên Phân hệ | Đối tượng | Phạm vi và chức năng chính |
+| --- | --- | --- | --- |
+| **W01** | Tổng quan | QTV, Lễ tân | Dashboard số liệu vận hành thời gian thực theo chi nhánh/toàn chuỗi: hội viên đang tập, lịch PT hôm nay, cảnh báo gói sắp hết hạn, công việc cần xử lý. |
+| **W02** | Hội viên & khách hàng | QTV, Lễ tân | Quản lý hồ sơ hội viên; chuẩn hóa và kiểm tra trùng lặp Số điện thoại (SĐT) theo thời gian thực (real-time); cập nhật trạng thái hồ sơ (Hoạt động, Ngừng hoạt động, Đã lưu trữ); xem 360° hồ sơ gói, lịch tập, ra vào. |
+| **W03** | Gói tập | QTV Web | Quản lý danh mục 4 loại gói cơ sở (Gym thời gian, Gym buổi, PT buổi, Combo Gym+PT); thiết lập quyền lợi, giá niêm yết, thời hạn, số buổi; cơ chế snapshot đóng băng thông tin gói tại thời điểm bán. |
+| **W04** | Đăng ký & gia hạn | QTV, Lễ tân | Tạo mới đăng ký gói tập tại quầy; gia hạn gói tập nối tiếp quyền lợi đang có; quản lý trạng thái đăng ký (`PENDING_PAYMENT`, `SCHEDULED`, `ACTIVE`, `EXPIRED`, `CANCELLED`); không tự ý gán cứng PT khi tạo gói PT/Combo. |
+| **W05** | Huấn luyện viên | QTV Web | Quản lý danh sách hồ sơ PT, chi nhánh công tác, trạng thái làm việc; giám sát số lượng học viên đang phụ trách; khung giờ làm việc cố định tính slot. |
+| **W06** | Lịch tập & buổi PT | QTV, Lễ tân | Giám sát lịch tập PT toàn chi nhánh; hỗ trợ Lễ tân đặt lịch thay cho hội viên theo đúng PT đã nhận phân công; cơ chế hủy lịch trước 12h; ghi nhận xác nhận hoàn thành 2 chiều (PT + Hội viên); điều chỉnh kết quả buổi tập kèm audit log. |
+| **W07** | Ra vào & check-in | QTV, Lễ tân | Giám sát luồng quẹt thẻ/nhận diện IN/OUT; tự động kiểm tra điều kiện vào tập; thuật toán chống quét trùng trong 60 giây; ghi nhận lượt ra vào thủ công có lý do; đồng bộ hiển thị lên K01. |
+| **W08** | Thu tiền & thanh toán | QTV, Lễ tân | Thu tiền mặt 100% 1 lần duy nhất tại quầy; tích hợp VietQR chuyển khoản tự động xác nhận qua IPN/Webhook; xóa bỏ hoàn toàn công nợ/trả góp; sinh phiếu thu bất biến; xử lý điều chỉnh sai sót có kiểm soát và audit. |
+| **W09** | Quản lý thông báo | QTV, Lễ tân | Quản lý danh mục loại thông báo và mẫu nội dung in-app template có biến động tiếng Việt `{{variable_key}}`; hệ thống (SYS) tự động gửi in-app theo System Event Schema; tra cứu nhật ký gửi; quản lý consent hội viên. |
+| **W10** | Báo cáo | QTV Web | Báo cáo thanh toán & doanh thu theo kỳ (Tháng, Quý, Năm); bảng dữ liệu gom dòng thông minh 1 dòng duy nhất / mốc thời gian (Tháng: theo ngày; Quý/Năm: theo tháng) với 4 cột chuẩn; Giá trị đăng ký luôn bằng Tiền thực thu 100%. |
+| **W11** | Chi nhánh | QTV toàn chuỗi | Độc quyền QTV toàn chuỗi; giao diện lưới Card chi nhánh với 3 mini stats (Hội viên, HLV, Đang tập); modal thêm/sửa chi nhánh (mã CN khóa READONLY); Drawer xem nhanh số liệu; quy trình ngừng hoạt động chi nhánh an toàn. |
+| **W12** | Hệ thống & thiết bị | QTV, Lễ tân | Quản lý thiết bị nhận diện, đầu đọc thẻ và màn hình K01; theo dõi trạng thái kết nối (Online/Offline/Error/Pending Sync); quy trình thu thập và rút Consent dữ liệu nhận diện khuôn mặt. |
+| **W13** | Tài khoản & phân quyền | QTV Web | 4 thẻ KPI tài khoản; bộ lọc vai trò `Role (count)` và trạng thái combobox; quản lý 3 trạng thái tài khoản (`ACTIVE`, `PENDING_ACTIVATION`, `LOCKED`); modal phân quyền 4 trường; bảo vệ tài khoản QTV tối cao; tra cứu audit log. |
+
+### Phân hệ Ứng dụng Mobile
+
+| Mã Menu | Tên Màn hình | Đối tượng | Phạm vi và chức năng chính |
+| --- | --- | --- | --- |
+| **HV01** | Trang chủ Hội viên | Hội viên | Hiển thị lời chào cá nhân hóa, thẻ gói tập hiện tại, thông báo nhắc lịch tập sắp tới, trạng thái yêu cầu phân công PT đang chờ duyệt và lối tắt tiện ích. |
+| **HV02** | Lịch tập Hội viên | Hội viên | Xem lịch tập cá nhân dạng Calendar/Timeline; chủ động đặt lịch PT từ slot khả dụng của PT phụ trách; đổi/hủy lịch trước 12h; xác nhận buổi tập đã hoàn thành. |
+| **HV03** | Gói của tôi | Hội viên | Xem chi tiết các gói tập đang sở hữu, số buổi PT còn lại, thời hạn sử dụng; danh sách PT tại chi nhánh để gửi yêu cầu phân công (`PT_ASSIGNMENT_REQUEST`); theo dõi lịch sử thanh toán 100% và xem phiếu thu. |
+| **HV04** | Tài khoản Hội viên | Hội viên | Quản lý thông tin cá nhân cơ bản; cài đặt Consent nhận diện và thông báo; quản lý đăng nhập/đổi mật khẩu; đăng xuất ứng dụng. |
+| **HV05** | Kích hoạt tài khoản | Hội viên | Xác thực OTP qua SĐT đã đăng ký tại quầy để kích hoạt tài khoản lần đầu (`PENDING_ACTIVATION` $\rightarrow$ `ACTIVE`) và thiết lập mật khẩu cá nhân. |
+| **PT01** | Lịch dạy PT | Huấn luyện viên | Xem lịch dạy theo ngày/tuần trong khung giờ làm việc cố định (08:00 - 18:00); xác nhận buổi tập đã diễn ra thành công để chờ Hội viên xác nhận đối ứng. |
+| **PT02** | Học viên PT | Huấn luyện viên | Xem danh sách học viên đang chính thức phụ trách; tra cứu tiến độ buổi tập và lịch sử các buổi đã dạy của từng học viên. |
+| **PT03** | Yêu cầu phân công | Huấn luyện viên | Tiếp nhận danh sách `PT_ASSIGNMENT_REQUEST` gửi từ hội viên; thực hiện `ACCEPT` (nhận phụ trách) hoặc `REJECT` (từ chối do quá tải). |
+| **PT04** | Tài khoản PT | Huấn luyện viên | Xem thông tin hồ sơ PT, chi nhánh làm việc, ca làm việc cố định; đổi mật khẩu và quản lý phiên đăng nhập. |
+
+---
 
 # 4. Business Rules
 
-| Nhóm | Rules |
-| --- | --- |
-| --- | --- |
-| Hội viên | Bắt buộc khi tạo hồ sơ: họ tên, số điện thoại, chi nhánh tiếp nhận. Email, ngày sinh, ảnh, ghi chú là tùy chọn. Mã hội viên, trạng thái, thời điểm tạo và người tạo do hệ thống ghi nhận. |
-| Hội viên | Mỗi MEMBER_PROFILE bắt buộc có đúng 1 số điện thoại và SĐT phải UNIQUE trên toàn hệ thống. SĐT là khóa định danh (không được phép chỉnh sửa sau khi tạo). Khi nhập SĐT (tạo mới), hệ thống phải chuẩn hoá (normalize) và kiểm tra trùng lặp ngay lập tức (real-time). Nếu SĐT đã tồn tại: BLOCK không cho lưu hồ sơ mới, hiển thị thông báo lỗi "SĐT đã tồn tại" và cung cấp liên kết/nút bấm mở hồ sơ hiện có. |
-| Hội viên | Bỏ toàn bộ logic cũ về nghi trùng, cảnh báo nghi trùng, cho phép nhiều hội viên dùng chung số điện thoại, nhập lý do dùng chung, guardian/shared contact và các luồng resolve duplicate. Không dùng tên hay mã hội viên để phát hiện duplicate; SĐT là khóa nghiệp vụ chính duy nhất. |
-| Hội viên | Form tạo hội viên check duplicate SĐT realtime, tuyệt đối không cho lưu nếu trùng. |
-| Hội viên | Trạng thái hồ sơ gồm Đang hoạt động, Ngừng hoạt động, Đã lưu trữ. Trạng thái hồ sơ độc lập với trạng thái từng gói. Hồ sơ có lịch sử không bị xóa bằng thao tác thông thường. |
-| Hội viên | QTV/lễ tân sửa hồ sơ trong phạm vi phục vụ. PT chỉ ghi thông tin huấn luyện cho học viên được phân công. Hội viên chỉ sửa thông tin cá nhân được phép, không sửa gói, số buổi hoặc ghi chú nội bộ. |
-| Gói tập | Phạm vi cơ sở gồm 4 loại chính thức: Gym theo thời gian; Gym theo buổi có hạn sử dụng; PT theo buổi có hạn sử dụng; Combo Gym + PT. |
-| Gói tập | Gói chỉ có hiệu lực khi đã xác nhận thanh toán đủ 100% trong 1 lần duy nhất và đã tới ngày bắt đầu. Nếu thanh toán muộn, thời hạn ban đầu không được cộng bù. Nếu quá ngày kết thúc mới thanh toán đủ, đăng ký cũ không được kích hoạt. |
-| Gói tập | Với gói N ngày, ngày cuối được dùng là ngày bắt đầu + N - 1 ngày. Với gói theo tháng/năm, tính tới ngày trước mốc cùng ngày kỳ sau; nếu ngày đó không tồn tại thì dùng ngày cuối tháng đích. |
-| Gói tập | Một hội viên có thể có nhiều đăng ký. Quyền Gym tương đương không chồng thời gian; gói Gym/gia hạn mới nối tiếp quyền Gym hiện tại. Gói PT có thể tồn tại độc lập; khi đặt lịch phải xác định gói PT được sử dụng. Combo là một registration chứa quyền Gym và quyền PT độc lập. Khi gia hạn, Combo mới nối tiếp Combo hiện tại; số buổi PT của Combo mới không được cộng gộp vào quyền PT của Combo cũ và chỉ có hiệu lực từ ngày bắt đầu của Combo mới. Nếu PT của Combo hiện tại hết trước Gym, hội viên có thể mua thêm gói PT riêng để sử dụng ngay. |
-| Gói tập | Registration gia hạn phải liên kết với registration trước đó để giữ lịch sử; không sửa trực tiếp đăng ký cũ hoặc làm mất lịch sử thanh toán/quyền lợi của lần mua trước. |
-| Gói tập | Registration gia hạn được tạo theo danh mục, giá, quyền lợi và phạm vi chi nhánh đang áp dụng tại thời điểm gia hạn; không mặc định kế thừa điều kiện của lần mua trước. Các giá trị áp dụng cho lần gia hạn được snapshot vào registration mới. |
-| Gói tập | Gói đã bán giữ snapshot tại thời điểm bán: tên gói, giá gốc, số tiền phải thu, thời hạn, số buổi/quyền lợi và phạm vi chi nhánh. Sửa giá hoặc ngừng bán chỉ ảnh hưởng đăng ký mới. |
-| PT/lịch tập | Khi tạo đăng ký gói PT hoặc Combo, hệ thống KHÔNG phân công PT ngay. Thuộc tính PT phụ trách ban đầu để trống. Sau khi đăng ký đủ điều kiện sử dụng (đã thanh toán đủ 100%), hội viên xem danh sách PT đang hoạt động tại chi nhánh và chọn PT mong muốn. Hệ thống gửi PT_ASSIGNMENT_REQUEST (status = PENDING) tới PT được chọn. PT xem xét yêu cầu: nếu quá tải có thể từ chối (REJECT), hội viên chọn PT khác và gửi request mới; nếu đồng ý (ACCEPT), PT trở thành PT phụ trách cố định (assigned_pt_id) của registration đó. Mỗi registration chỉ gắn 1 PT phụ trách duy nhất. |
-| PT/lịch tập | Với quyền PT theo buổi, hệ thống quản lý tối thiểu `tổng buổi`, `đã sử dụng/khấu trừ`, `đang giữ chỗ` và `còn có thể đặt`; số buổi còn có thể đặt = tổng buổi - đã sử dụng/khấu trừ - đang giữ chỗ và chỉ có giá trị khi quyền PT còn hiệu lực. |
-| PT/lịch tập | Công thức tính Slot Khả Dụng: Slot Khả Dụng = (Giờ làm việc cố định của PT: Thứ 2 → Thứ 6, 08:00 → 18:00) - (Booking đang giữ chỗ của PT). PT là nhân viên với giờ làm việc cố định, PT KHÔNG tự cấu hình/cập nhật giờ rảnh hay availability. Booking CANCELLED không chiếm slot nhưng vẫn giữ record lịch sử và audit. Ngày quá khứ chỉ được xem lịch sử, không được tạo booking mới. |
-| PT/lịch tập | Hội viên chỉ được đặt lịch PT sau khi PT đã ACCEPT assignment request. Lịch PT xác nhận ngay khi đủ điều kiện; xem/chọn giờ chưa giữ chỗ; đặt thành công mới giữ một quyền buổi PT. |
-| PT/lịch tập | Hủy/đổi miễn khấu trừ khi tiếp nhận trước giờ bắt đầu ít nhất 12 giờ. Hủy lịch chuyển trạng thái CANCELLED, ghi audit, không xóa record và release slot ngay. Hủy muộn hoặc hội viên vắng khấu trừ 1 buổi; lỗi từ PT/phòng tập không khấu trừ và cần sắp xếp bù. |
-| PT/lịch tập | Khi booking thành công chỉ giữ buổi, chưa tính đã dùng. W06 hiển thị rõ các trạng thái Đã đặt, Chờ xác nhận hoàn thành, Hoàn thành và Đã hủy. Buổi chỉ chuyển sang COMPLETED/Hoàn thành và trừ đúng 1 buổi trong gói khi CẢ PT VÀ HỘI VIÊN đều xác nhận buổi tập đã diễn ra (xác nhận kép); mọi thay đổi trạng thái phải ghi audit. Hủy muộn hoặc hội viên vắng khấu trừ 1 buổi theo quy định. Check-in vào gym không tự hoàn tất buổi PT. |
-| PT/lịch tập | Sau buổi tập kết thúc, PT xác nhận buổi tập đã diễn ra và hội viên xác nhận buổi tập đã diễn ra. Khi cả hai bên đã xác nhận, hệ thống tự động chuyển buổi sang COMPLETED. QTV được phép sửa kết quả sau đó với lý do và audit. |
-| PT/lịch tập | Lễ tân được phép đặt lịch PT thay cho hội viên (kể cả hội viên chưa tạo tài khoản self-service trên mobile app). Trong modal, Lễ tân tìm hội viên bằng Searchable Dropdown theo SĐT; hệ thống chỉ hiển thị hội viên dạng `<Mã HV> - <Tên>`, tự lọc registration PT/Combo đã thanh toán đủ, còn hiệu lực và còn buổi. Chi nhánh lấy theo branch active của Lễ tân; PT phụ trách lấy theo assignment đã ACCEPT và không cho đổi trong lúc booking. Khi mở từ slot trống, ngày/giờ/PT/chi nhánh auto-fill và khóa. Nếu hội viên không thuộc PT đang xem, hệ thống block booking. Scope hiện tại là một hội viên - một PT - một buổi; chưa hỗ trợ đặt buổi định kỳ hoặc lớp nhóm. |
-| Thanh toán | Báo cáo tài chính thanh toán gồm hai chỉ số chính: giá trị đăng ký và tiền thực thu (luôn bằng 100% giá trị đăng ký). Các chỉ số này phục vụ vận hành, không mặc định là doanh thu kế toán. |
-| Thanh toán | Đăng ký gói tập bắt buộc thanh toán đủ 100% trong 1 lần duy nhất khi tạo mới hoặc gia hạn. KHÔNG hỗ trợ thanh toán nhiều lần, trả góp hay ghi nhận lịch sử thanh toán. |
-| Thanh toán | Phương thức trong phạm vi hiện tại: tiền mặt và chuyển khoản ngân hàng bằng VND. Ảnh chứng từ chỉ là bằng chứng hỗ trợ, không tự xác nhận đã thu. |
-| Thanh toán | Tiền mặt do lễ tân/QTV có quyền ghi nhận. Chuyển khoản được xác nhận tự động thông qua IPN/Webhook từ ngân hàng/payment provider (hoặc nhân viên xác nhận khi đã nhận tiền vào tài khoản). Hệ thống chỉ xác nhận payment khi thông báo nhận được hợp lệ, đúng giao dịch, đúng số tiền 100% và báo trạng thái thành công; việc xử lý phải chống ghi nhận trùng khi provider gửi lại. |
-| Thanh toán | Thanh toán bắt buộc khớp đúng 100% giá trị gói. Chưa hỗ trợ hoàn tiền hoặc bù trừ tự động giữa các gói trong phạm vi hiện tại. |
-| Thanh toán | Payment đã xác nhận là chứng từ tài chính bất biến, không sửa đè, không xóa, không điều chỉnh hay hoàn/hủy trên phần mềm; lưu vết audit trail đầy đủ. |
-| Thanh toán | Mỗi lần thanh toán đã xác nhận có phiếu thu nội bộ. Phiếu thu không mặc định là hóa đơn điện tử. QTV/lễ tân xem/xuất/in trong phạm vi; hội viên xem/xuất phiếu của mình. |
-| Thanh toán | Mobile Hội viên có thể khởi tạo mua gói/thanh toán self-service khi capability được bật, theo dõi trạng thái và xem phiếu của chính mình. Ghi nhận thanh toán tiền mặt hoặc quét VietQR tại quầy thực hiện trên Web QTV/Lễ tân được cấp quyền. |
-| Check-in/ra vào | Hệ thống mô tả cả IN và OUT. Từng chi nhánh chỉ bật OUT nếu thiết bị/quy trình hỗ trợ. Nơi chỉ có IN không được suy ra chính xác số người đang ở phòng. |
-| Check-in/ra vào | Được vào tập khi hồ sơ được phục vụ, có quyền Gym còn hiệu lực, đã thanh toán đủ, đúng chi nhánh, còn buổi nếu áp dụng và trong giờ hoạt động. Gói PT không tự cấp quyền vào Gym. |
-| Check-in/ra vào | Nhận diện thành công chỉ xác định người; vẫn phải kiểm tra điều kiện sử dụng gói. Lễ tân thấy lý do chi tiết; K01 chỉ hiển thị thông báo trung tính cho hội viên. |
-| Check-in/ra vào | Sự kiện lặp từ cùng thiết bị không được tính hai lần. Cùng người/điểm/chiều trong 60 giây được đánh dấu nghi lặp để tránh sai thống kê. |
-| Check-in/ra vào | QTV/lễ tân có quyền được ghi nhận thủ công tại chi nhánh, bắt buộc có người ghi, hội viên, điểm vào/ra, thời điểm, lý do và tham chiếu sự kiện nếu có. Ghi thủ công không được dùng để vượt điều kiện gói. |
-| Check-in/ra vào | Với Gym theo buổi, trừ tối đa một buổi/ngày cho cùng hội viên; vào lại trong ngày không trừ lặp. Ra/vào có thể hiển thị khách đã đến nhưng không tự hoàn tất buổi PT. |
-| Check-in/ra vào | K01 mặc định chỉ hiển thị kết quả và hướng dẫn. Tên/ảnh/sinh nhật chỉ hiển thị khi có consent phù hợp; không hiển thị điện thoại, email, ngày sinh đầy đủ, giá gói, ghi chú. |
-| Chi nhánh | Hỗ trợ một chi nhánh chính và nhiều chi nhánh trực thuộc. Quyền truy cập xác định theo role + branch scope + permission. Chi nhánh con không mặc định thấy dữ liệu của nhau. |
-| Chi nhánh | Mỗi hội viên có một mã/hồ sơ duy nhất trên toàn hệ thống; quyền xem dữ liệu vẫn phụ thuộc vai trò và chi nhánh. |
-| Chi nhánh | Gói có danh sách chi nhánh được sử dụng, lưu snapshot khi bán. Chi nhánh bán và chi nhánh sử dụng là hai thuộc tính khác nhau. Chi nhánh mới không tự được thêm vào gói đã bán. |
-| Chi nhánh | Tài khoản chỉ chuyển chi nhánh khi được cấp quyền nhiều chi nhánh. Khi chuyển, phải xử lý nội dung chưa lưu và tải lại dữ liệu theo chi nhánh mới. |
-| Chi nhánh | Chi nhánh quản lý lịch tuần, ngày nghỉ/ngoại lệ và múi giờ. Mặc định Asia/Ho_Chi_Minh. Ngày nghỉ cụ thể ưu tiên hơn lịch tuần. Chưa hỗ trợ ca qua đêm. |
-| Chi nhánh | Chi nhánh ngừng hoạt động thì dừng bán/lịch mới, rà soát gói/lịch/thiết bị, không tự chuyển khách hoặc lịch. Dữ liệu lịch sử vẫn thuộc chi nhánh cũ. |
-| Tài khoản/phân quyền | Role chính thức: QTV, Lễ tân, PT, Hội viên/Khách hàng. Chủ phòng/quản lý gom vào QTV; khác biệt thể hiện bằng phạm vi chi nhánh và permission nhạy cảm. |
-| Tài khoản/phân quyền | Chưa làm khu vực desktop riêng cho PT/hội viên; tác vụ của họ ưu tiên Mobile. |
-| Tài khoản/phân quyền | Định danh đăng nhập chính là ACCOUNT.login_phone đã xác minh và mật khẩu. SĐT đăng nhập phải duy nhất cho một tài khoản. Giao diện Mobile Hội viên hiển thị màn hình Đăng nhập (SĐT + Mật khẩu) và liên kết [Tạo tài khoản]. Khi chọn [Tạo tài khoản], nhập SĐT và hệ thống tự động xử lý theo 3 trường hợp: (1) SĐT đã có Account: thông báo SĐT đã có tài khoản và yêu cầu quay lại Đăng nhập; (2) SĐT đã có Profile tại quầy nhưng CHƯA có Account: hiển thị thẻ nhận diện hồ sơ hiện có -> gửi & xác nhận OTP -> đặt Password -> tạo Account (ROLE_MEMBER) & liên kết với Profile có sẵn; (3) SĐT CHƯA có Profile: mở modal điền thông tin cá nhân (Họ tên, Email, Ngày sinh) -> gửi & xác nhận OTP -> đặt Password -> tự động tạo đồng thời Account + Profile mới. |
-| Tài khoản/phân quyền | Với PT: Hồ sơ PT (PT_PROFILE) và Tài khoản (ACCOUNT) tách biệt. Tạo PT_PROFILE không tự động sinh ACCOUNT. PT dùng ứng dụng Mobile để đăng ký/kích hoạt tài khoản bằng OTP trên SĐT đã lưu và thiết lập mật khẩu lần đầu. QTV không cấp hoặc tạo tài khoản PT từ W13. |
-| Tài khoản/phân quyền | Tài khoản đăng nhập tách biệt với hồ sơ nghiệp vụ. Role hội viên liên kết đúng một hồ sơ hội viên; role PT liên kết đúng một hồ sơ PT. Một tài khoản có thể có nhiều role nhưng không cộng gộp quyền giữa các role. |
-| Tài khoản/phân quyền | Khi chuyển role/chi nhánh phải xử lý thay đổi chưa lưu, bỏ dữ liệu không còn thuộc quyền khỏi giao diện và áp quyền theo ngữ cảnh mới. |
-| Tài khoản/phân quyền | Thao tác nhạy cảm gồm đổi role/permission/branch scope, khóa/mở tài khoản, xử lý payment nhạy cảm, miễn/điều chỉnh buổi PT, sửa kết quả PT, ngừng hồ sơ/PT/chi nhánh, quản lý dữ liệu nhận diện. Các thao tác này cần permission riêng, xác nhận/lý do và audit. |
-| Tài khoản/phân quyền | Màn hình riêng W13 "Tài khoản & phân quyền" trên Web Sidebar cung cấp 4 thẻ KPI tổng quan (Tổng số tài khoản, Hoạt động, Khóa, Chờ kích hoạt/Ngừng sử dụng), bộ lọc theo Role có kèm số lượng `Role (count)` (ví dụ `QTV (1)`, `Lễ tân (1)`), bộ lọc theo Trạng thái dạng Combobox (không đếm số lượng), và danh sách tài khoản hiện có. Form tài khoản tập trung vào thông tin credential (SĐT đăng nhập, vai trò, phạm vi chi nhánh, trạng thái, lý do khóa), loại bỏ các trường hồ sơ cá nhân/tùy chọn riêng tư không thuộc scope tài khoản; không có thao tác QTV tạo/cấp tài khoản PT hoặc hội viên. |
-| Tài khoản/phân quyền | Tài khoản có trạng thái Chờ kích hoạt, Hoạt động, Khóa, Ngừng sử dụng. Chỉ QTV có permission phù hợp được quản lý tài khoản trong phạm vi được cấp. |
-| Tài khoản/phân quyền | Audit lưu hành động quan trọng, người thực hiện, role/chi nhánh, đối tượng, giá trị trước/sau khi phù hợp, lý do và thời điểm. Chỉ QTV có permission audit được xem trong phạm vi. |
-| Thông báo | Kênh bắt buộc hiện tại là in-app. Push, SMS chăm sóc, Zalo, email tiếp thị chưa là tích hợp bắt buộc. |
-| Thông báo | Nhóm thông báo: đăng ký/gia hạn, thanh toán, phân công PT, lịch PT, quyền lợi gói, sinh nhật, thiết bị/hệ thống. |
-| Thông báo | Người nhận xác định theo đối tượng liên quan, người phụ trách, chi nhánh và quyền truy cập. Không broadcast mọi sự kiện cho toàn bộ role. |
-| Thông báo | Mốc nhắc đề xuất: gói 7 ngày, 3 ngày và ngày hết hạn; PT 24 giờ và 2 giờ trước buổi; sinh nhật nội bộ đúng ngày. Cho bật/tắt từng mốc. |
-| Thông báo | Trạng thái đã đọc/chưa đọc, trạng thái gửi và trạng thái xử lý công việc là ba nhóm độc lập. Đọc thông báo không tự đổi trạng thái nghiệp vụ liên quan. |
-| Thông báo | Không tạo trùng thông báo cho cùng sự kiện/mốc/người nhận. Lễ tân chỉ dùng mẫu đã duyệt; PT/hội viên không gửi hàng loạt. |
-| Thông báo | Tách đồng ý cho thông báo giao dịch, chăm sóc tùy chọn, tiếp thị và sinh nhật công khai. Đồng ý nhận nhắc lịch không đồng nghĩa đồng ý quảng cáo hoặc công khai sinh nhật. |
-| Thiết bị/nhận diện | Phạm vi cơ sở gồm thiết bị nhận diện/đầu đọc ra-vào và màn hình K01. Khóa cửa/cổng xoay là mở rộng, chưa mặc định có. |
-| Thiết bị/nhận diện | Product Spec mô tả dữ liệu vào/ra, trạng thái, quyền và xử lý lỗi. Tích hợp thiết bị thật chỉ chốt sau khi có thiết bị và tài liệu kết nối. |
-| Thiết bị/nhận diện | Mỗi thiết bị có mã duy nhất, chi nhánh hiện hành, điểm lắp và mục đích IN/OUT/BOTH nếu hỗ trợ. Chuyển nơi lắp phải giữ lịch sử; event cũ giữ bối cảnh phát sinh. |
-| Thiết bị/nhận diện | Trạng thái thiết bị gồm Online, Offline, Error, Pending Sync và lần đồng bộ cuối. Không hiển thị dữ liệu cũ như realtime; sự kiện gửi bù không phát lại lời chào cũ. |
-| Thiết bị/nhận diện | QTV có permission thiết bị được thêm/sửa/test/ngừng hoạt động. Lễ tân chỉ xem trạng thái và báo sự cố. |
-| Thiết bị/nhận diện | Dữ liệu nhận diện là quy trình riêng: giải thích mục đích, lấy consent, xác minh đúng hồ sơ, đăng ký, thử nhận diện, xác nhận sẵn sàng. Rút consent phải ngừng sử dụng và theo dõi yêu cầu xóa đến khi hoàn tất. |
-| Thiết bị/nhận diện | Ảnh hồ sơ không tự trở thành dữ liệu nhận diện. Hệ thống không lưu mật khẩu, OTP, secret hoặc dữ liệu sinh trắc thô trong nhật ký/audit nghiệp vụ. |
-| Thiết bị/nhận diện | Phạm vi hiện tại chỉ kiểm tra điều kiện, ghi sự kiện và hiển thị kết quả; chưa điều khiển khóa/cổng. |
-| Thiết bị/nhận diện | Log kỹ thuật thiết bị lưu 90 ngày; lịch sử vào/ra định danh lưu 12 tháng. QTV xem theo phạm vi, lễ tân xem để phục vụ, hội viên xem lịch sử của mình, PT không mặc định xem đầy đủ. |
+### 4.1. Hồ sơ Hội viên & Khách hàng
+- **Định danh duy nhất:** Mỗi hội viên bắt buộc có đúng một Số điện thoại (SĐT) duy nhất trên toàn hệ thống chuỗi. SĐT đóng vai trò là khóa định danh nghiệp vụ chính, không được phép thay đổi sau khi tạo hồ sơ.
+- **Kiểm tra trùng lặp thời gian thực:** Khi nhập SĐT tại màn hình tạo mới (W02), hệ thống tự động chuẩn hóa định dạng và kiểm tra trùng lặp ngay lập tức (real-time). Nếu SĐT đã tồn tại, hệ thống chặn lưu (BLOCK) và hiển thị thông báo kèm liên kết trực tiếp mở hồ sơ hiện có.
+- **Loại bỏ hoàn toàn cơ chế cũ:** Xóa bỏ toàn bộ logic về nghi trùng, cảnh báo nghi trùng, dùng chung SĐT, người giám hộ hoặc giải quyết trùng lặp thủ công.
+- **Thông tin hồ sơ:** Bắt buộc có Họ tên, Số điện thoại, Chi nhánh tiếp nhận. Email, Ngày sinh, Ảnh chân dung và Ghi chú là tùy chọn. Mã hội viên do hệ thống tự sinh định dạng chuẩn.
+- **Trạng thái hồ sơ:** Gồm 3 trạng thái độc lập: `Đang hoạt động` (`ACTIVE`), `Ngừng hoạt động` (`INACTIVE`), `Đã lưu trữ` (`ARCHIVED`). Trạng thái hồ sơ độc lập hoàn toàn với trạng thái từng gói tập. Hồ sơ đã phát sinh giao dịch tài chính hoặc lịch tập không bị xóa vĩnh viễn khỏi CSDL.
+
+### 4.2. Gói tập & Đăng ký sử dụng
+- **4 loại gói cơ sở:**
+  1. *Gym theo thời gian:* Tập không giới hạn số lượt trong khoảng thời hạn (ngày/tháng/năm).
+  2. *Gym theo buổi:* Số lượt tập cố định có thời hạn sử dụng tối đa.
+  3. *PT theo buổi:* Số buổi tập cùng huấn luyện viên có thời hạn sử dụng tối đa.
+  4. *Combo Gym + PT:* Tích hợp quyền tập Gym và số buổi tập PT với hạn sử dụng độc lập trong cùng một đăng ký.
+- **Cơ chế Snapshot:** Khi tạo đăng ký bán gói, toàn bộ thông số tại thời điểm bán (tên gói, giá niêm yết, số tiền thanh toán, thời hạn, số buổi, danh sách chi nhánh được phép sử dụng) được đóng băng (snapshot) vào bản ghi đăng ký. Mọi thao tác sửa đổi danh mục gói sau đó không làm thay đổi các gói đã bán.
+- **Quy tắc kích hoạt:** Gói tập chỉ chính thức chuyển sang trạng thái có hiệu lực (`ACTIVE`) khi đã thanh toán đủ 100% trong một lần duy nhất và đã tới ngày bắt đầu hiệu lực. Nếu chưa tới ngày bắt đầu, gói ở trạng thái `SCHEDULED`.
+- **Gia hạn nối tiếp:** Hội viên gia hạn gói cùng loại, thời hạn gói mới sẽ tự động nối tiếp ngày kết thúc của gói hiện tại; không cộng dồn chồng chéo làm sai lệch thời hạn. Với gói Combo, số buổi PT mới chỉ có hiệu lực từ ngày bắt đầu của kỳ Combo mới.
+
+### 4.3. Huấn luyện viên (PT) & Điều phối Lịch tập
+- **Khung giờ làm việc cố định:** PT là nhân viên trực thuộc phòng gym với thời gian làm việc tiêu chuẩn: **Thứ 2 đến Thứ 6, từ 08:00 đến 18:00**. PT không tự cấu hình hay chỉnh sửa khung giờ rảnh (availability).
+- **Công thức tính Slot Khả Dụng:**
+  $$\text{Slot Khả Dụng} = \text{Khung giờ làm việc cố định} - \text{Các Booking đang giữ chỗ}$$
+  Các lịch tập đã hủy (`CANCELLED`) lập tức giải phóng slot cho người khác đặt.
+- **Quy trình phân công PT 2 bước:**
+  1. Khi đăng ký gói PT hoặc Combo, hệ thống **không** gán cứng PT. Trường PT phụ trách ban đầu để trống.
+  2. Sau khi gói thanh toán đủ 100%, Hội viên mở ứng dụng Mobile (HV03), xem danh sách PT đang hoạt động tại chi nhánh và gửi yêu cầu phân công (`PT_ASSIGNMENT_REQUEST` ở trạng thái `PENDING`).
+  3. PT nhận yêu cầu trên Mobile (PT03): Nếu quá tải, PT bấm `REJECT` (Hội viên sẽ chọn PT khác); nếu đồng ý, PT bấm `ACCEPT`. Lúc này PT chính thức trở thành PT phụ trách duy nhất gắn với gói tập đó.
+- **Quản lý số buổi PT:** Hệ thống quản lý chặt chẽ 4 chỉ số: `Tổng buổi`, `Đã tập`, `Đang giữ chỗ` và `Còn lại có thể đặt`.
+  $$\text{Còn lại có thể đặt} = \text{Tổng buổi} - \text{Đã tập} - \text{Đang giữ chỗ}$$
+- **Xác nhận hoàn thành 2 chiều (Xác nhận kép):** Buổi tập sau khi diễn ra phải được CẢ PT VÀ HỘI VIÊN cùng bấm xác nhận trên ứng dụng Mobile thì mới chính thức chuyển trạng thái `COMPLETED` và trừ đúng 1 buổi vào gói tập.
+- **Quy tắc hủy/đổi lịch:**
+  - Hội viên hủy/đổi lịch trước giờ bắt đầu ít nhất **12 giờ**: Được hoàn lại 1 quyền đặt chỗ, không bị trừ buổi.
+  - Hủy muộn dưới 12 giờ hoặc Hội viên vắng mặt (No-show): Hệ thống tự động ghi nhận vắng và khấu trừ 1 buổi của gói.
+  - Sự cố phát sinh từ phía PT hoặc cơ sở vật chất: Không khấu trừ buổi của hội viên và xếp lịch bù.
+- **Lễ tân đặt lịch hộ:** Lễ tân tại quầy (W06) được phép đặt lịch thay cho hội viên bằng Searchable Dropdown theo SĐT dạng `<Mã HV> - <Họ tên>`, hệ thống tự động lọc gói PT/Combo hợp lệ và tự động khóa đúng PT đã `ACCEPT`, ngăn chặn việc đặt sai huấn luyện viên.
+
+### 4.4. Thu tiền & Thanh toán (Nguyên tắc 100%)
+- **Thanh toán 100% 1 lần duy nhất:** Mọi giao dịch mua mới hoặc gia hạn gói tập bắt buộc phải thanh toán đủ 100% giá trị trong một lần duy nhất để kích hoạt gói.
+- **Tuyệt đối không công nợ:** Hệ thống không hỗ trợ thanh toán nhiều lần, không hỗ trợ trả góp và không quản lý công nợ.
+- **Phương thức thanh toán:**
+  1. *Tiền mặt:* Nhân viên thu ngân/Lễ tân tiếp nhận tại quầy và xác nhận trên Web (W08).
+  2. *Chuyển khoản VietQR:* Hệ thống sinh mã VietQR động chứa chính xác số tiền 100% và mã đơn hàng; giao dịch được xác nhận tự động thông qua IPN/Webhook từ ngân hàng đối tác hoặc nhân viên đối soát xác nhận.
+- **Chứng từ tài chính bất biến:** Bản ghi thanh toán khi đã ở trạng thái `COMPLETED` là chứng từ bất biến, tuyệt đối không bị sửa đè hoặc xóa. Mọi xử lý sai sót phải thông qua quy trình điều chỉnh/hoàn tiền có lý do và lưu vết audit nghiêm ngặt.
+- **Phiếu thu nội bộ:** Mỗi giao dịch thanh toán thành công tự động sinh một Phiếu thu nội bộ có mã duy nhất phục vụ in ấn và đối soát.
+
+### 4.5. Kiểm soát Ra vào & Check-in
+- **Điều kiện vào tập hợp lệ:** Hội viên chỉ được hệ thống chấp thuận check-in IN khi thỏa mãn đồng thời:
+  1. Hồ sơ hội viên đang ở trạng thái `ACTIVE`.
+  2. Sở hữu gói Gym (thời gian hoặc theo buổi) đang trong thời hạn hiệu lực (`ACTIVE`). Gói PT đơn lẻ không cấp quyền vào tập Gym tự do.
+  3. Đăng ký đã thanh toán đủ 100%.
+  4. Chi nhánh check-in nằm trong danh sách chi nhánh được phép sử dụng của gói.
+  5. Thời điểm quẹt thẻ nằm trong khung giờ mở cửa của chi nhánh.
+  6. Còn số buổi khả dụng (đối với gói Gym theo buổi).
+- **Chống quét lặp (Anti-passback & Anti-duplicate):** Mọi sự kiện quẹt thẻ/nhận diện cùng một hội viên tại cùng một chiều trong vòng **60 giây** sẽ bị hệ thống đánh dấu trùng lặp và không tính thêm lượt.
+- **Trừ buổi Gym hợp lý:** Đối với gói Gym theo buổi, hệ thống trừ tối đa 1 buổi trong một ngày; hội viên ra vào nhiều lần trong cùng ngày không bị trừ lặp.
+- **Màn hình công cộng K01:** Chỉ hiển thị thông điệp chấp thuận/từ chối trung tính. Tuyệt đối không để lộ dữ liệu cá nhân, tài chính hay ghi chú nghiệp vụ.
+
+### 4.6. Quản lý Thông báo In-App
+- **Kênh thông báo chuẩn:** Toàn bộ thông báo hệ thống được gửi tự động qua kênh In-App trên ứng dụng Mobile và Web.
+- **Mẫu thông báo chuẩn hóa:** Nội dung thông báo được định nghĩa theo các Template mẫu, sử dụng các biến động tiếng Việt chuẩn: `{{ten_hoi_vien}}`, `{{ten_goi}}`, `{{ngay_het_han}}`, `{{ten_pt}}`, `{{thoi_gian_tap}}`.
+- **Phát tin tự động theo sự kiện (System Event Schema):** Hệ thống tự động kích hoạt thông báo khi phát sinh sự kiện: Đăng ký/gia hạn thành công, Xác nhận thanh toán 100%, Nhận yêu cầu phân công PT, Đặt/đổi/hủy lịch tập, Nhắc lịch tập trước 24h và 2h, Cảnh báo gói sắp hết hạn trước 7 ngày và 3 ngày.
+- **Chống gửi trùng:** Hệ thống kiểm soát không gửi lặp thông báo cho cùng một đối tượng tại cùng một sự kiện/mốc thời gian.
+- **Tách biệt Consent:** Quyền gửi thông báo nhắc việc vận hành tách biệt hoàn toàn với Consent chúc mừng sinh nhật trên màn hình K01 hoặc các tin tức quảng bá.
+
+### 4.7. Báo cáo Vận hành & Doanh thu
+- **Kỳ báo cáo chuẩn:** Hỗ trợ 3 mốc kỳ báo cáo: `Tháng`, `Quý`, `Năm`.
+- **Cơ chế gom dòng thông minh (Smart Aggregation):** Bảng dữ liệu hiển thị duy nhất 1 dòng cho mỗi mốc thời gian:
+  - Kỳ `Tháng`: Gom dòng theo từng ngày trong tháng (từ ngày 01 đến ngày cuối tháng).
+  - Kỳ `Quý` hoặc `Năm`: Gom dòng theo từng tháng trong kỳ (Tháng 01 đến Tháng 12).
+- **4 cột dữ liệu chuẩn:**
+  1. *Mốc thời gian:* Ngày (đối với tháng) hoặc Tháng (đối với quý/năm).
+  2. *Tổng gói bán:* Tổng số lượng đăng ký gói phát sinh trong mốc.
+  3. *Phân rã dịch vụ:* Chi tiết số lượng theo từng loại hình: `Gym: X | PT: Y | Combo: Z`.
+  4. *Doanh thu thực thu 100%:* Tổng số tiền thực thu về tài khoản (luôn bằng 100% giá trị đăng ký).
+
+### 4.8. Chi nhánh & Phạm vi Vận hành
+- **Độc quyền QTV toàn chuỗi:** Chỉ tài khoản QTV có phạm vi Toàn chuỗi mới có quyền truy cập menu Chi nhánh (W11) để tạo mới, cấu hình hoặc ngừng hoạt động chi nhánh.
+- **Giao diện lưới Card:** Hiển thị trực quan toàn bộ chi nhánh dưới dạng Card với 3 chỉ số mini stats thời gian thực: *Hội viên trực thuộc*, *HLV đang làm việc*, *Khách đang tập hiện tại*.
+- **Quy trình đóng cửa/ngừng hoạt động chi nhánh:** Khi một chi nhánh chuyển sang trạng thái ngừng hoạt động, hệ thống lập tức khóa chức năng bán gói mới và đặt lịch mới tại chi nhánh đó; giữ nguyên toàn bộ lịch sử dữ liệu cũ, không tự động điều chuyển hội viên nếu chưa có lệnh can thiệp của QTV.
+
+### 4.9. Hệ thống, Thiết bị & Dữ liệu Nhận diện
+- **Quản lý thiết bị:** Quản lý danh mục đầu đọc thẻ, camera nhận diện khuôn mặt và màn hình K01 gắn với từng điểm kiểm soát (Turnstile/Door) tại chi nhánh. Giám sát trạng thái kết nối thời gian thực: `Online`, `Offline`, `Error`, `Pending Sync`.
+- **Consent dữ liệu sinh trắc học:** Việc thu thập ảnh nhận diện khuôn mặt là hoàn toàn tự nguyện và bắt buộc phải có Consent của hội viên. Ảnh hồ sơ thông thường không tự động chuyển thành dữ liệu nhận diện.
+- **Rút Consent:** Khi hội viên yêu cầu rút Consent, hệ thống lập tức vô hiệu hóa tính năng nhận diện tại cửa và đưa vào hàng đợi xóa an toàn dữ liệu sinh trắc học.
+
+### 4.10. Tài khoản & Phân quyền Truy cập
+- **3 trạng thái tài khoản chuẩn:** Hệ thống chuẩn hóa duy nhất 3 trạng thái tài khoản:
+  1. `Hoạt động` (`ACTIVE`): Tài khoản đang được phép đăng nhập và thao tác bình thường.
+  2. `Chờ kích hoạt` (`PENDING_ACTIVATION`): Hồ sơ hội viên hoặc PT đã được tạo tại quầy/hệ thống, nhưng người dùng chưa kích hoạt tài khoản trên ứng dụng Mobile.
+  3. `Đã khóa` (`LOCKED`): Tài khoản bị tạm khóa hoặc ngừng sử dụng vĩnh viễn do vi phạm chính sách hoặc nghỉ việc. (Gom trạng thái Đã khóa và Ngừng sử dụng làm một).
+- **Bản chất trạng thái Chờ kích hoạt:**
+  $$\text{Số tài khoản Chờ kích hoạt} = \text{Số hồ sơ đã tạo} - \text{Số người đã kích hoạt tài khoản App}$$
+  Khi tạo hồ sơ nhân viên hoặc hội viên tại quầy, hệ thống tự động sinh bản ghi tài khoản liên kết theo SĐT ở trạng thái `PENDING_ACTIVATION`. Người dùng tải app Mobile, nhập SĐT, xác thực mã OTP gửi về máy và thiết lập mật khẩu lần đầu thì tài khoản tự động chuyển sang `ACTIVE`.
+- **Giao diện quản trị W13:**
+  - 4 thẻ KPI tổng quan: *Tổng số tài khoản*, *Đang hoạt động*, *Chờ kích hoạt*, *Đã khóa*.
+  - Bộ lọc Vai trò hiển thị kèm số lượng: `Role (count)` (ví dụ: `QTV (2)`, `Lễ tân (5)`, `PT (12)`, `Hội viên (350)`).
+  - Bộ lọc Trạng thái tài khoản dạng Combobox chuẩn.
+  - Modal chỉnh sửa tài khoản gồm đúng 4 trường: SĐT đăng nhập (`READONLY`), Trạng thái tài khoản, Vai trò (Role), Chi nhánh phụ trách (Branch Scope).
+- **Nguyên tắc bảo vệ tài khoản tối cao:** Hệ thống ngăn chặn tuyệt đối việc QTV tự khóa tài khoản của chính mình hoặc tự tước quyền QTV tối cao khi đang đăng nhập phiên làm việc.
+
+---
 
 # 5. Out of Scope
 
-- Thiết kế kỹ thuật, lựa chọn công nghệ, kiến trúc triển khai, code.
-- Hoàn thiện sản phẩm production, phát hành ứng dụng hoặc vận hành hạ tầng.
-- Tích hợp thiết bị thật, điều khiển khóa/cửa/cổng xoay trong phạm vi cơ sở.
-- Thanh toán thẻ, ví điện tử, auto-debit, recurring payment.
-- Hóa đơn điện tử, kế toán, quyết toán thuế.
-- Bảo lưu, chuyển nhượng, nâng/hạ cấp, chuyển quyền lợi giữa gói sau khi đã thu/đã dùng.
-- Hoàn tiền hoặc bù trừ tự động giữa các gói.
-- Đặt lịch PT định kỳ, đặt hàng loạt, nhiều hội viên cùng buổi, lớp nhóm.
-- Quản lý kho/bán hàng đầy đủ, bảo trì máy tập, dinh dưỡng, lương/hoa hồng PT.
-- Push, SMS chăm sóc, Zalo, email tiếp thị nếu chưa được duyệt thành tích hợp bắt buộc.
+Các hạng mục và nghiệp vụ sau đây **không** thuộc phạm vi của phiên bản hiện tại:
+
+1. **Thiết kế kỹ thuật & mã nguồn:** Không bao gồm kiến trúc hạ tầng cloud chi tiết, benchmark hiệu năng, mã nguồn backend/frontend hoặc script triển khai CI/CD.
+2. **Triển khai Production vật lý:** Không bao gồm việc cấu hình mạng LAN thực tế, bấm dây mạng hoặc lắp ráp cơ học thiết bị tại phòng gym.
+3. **Điều khiển cổng khóa cơ điện trực tiếp:** Hệ thống dừng lại ở mức xác thực phần mềm và gửi tín hiệu logic đóng/mở chuẩn; không can thiệp sâu vào vi điều khiển phần cứng của các loại barrier/cổng xoay chưa được chứng nhận.
+4. **Công nợ và thanh toán trả góp:** Tuyệt đối không xây dựng module theo dõi nợ đọng, nhắc nợ, tính lãi suất trả góp hay thu tiền nhiều đợt.
+5. **Cổng thanh toán phức tạp:** Không bao gồm thanh toán quốc tế qua thẻ tín dụng tự động trừ định kỳ (auto-debit recurring), ví điện tử trả sau.
+6. **Kế toán thuế chuyên sâu:** Không xuất hóa đơn điện tử GTGT có mã của cơ quan thuế; hệ thống chỉ xuất Phiếu thu nội bộ phục vụ kiểm soát vận hành.
+7. **Nghiệp vụ hội viên nâng cao:** Không hỗ trợ bảo lưu gói, chuyển nhượng gói tập cho người khác, nâng cấp/hạ cấp gói đang dùng hoặc hoàn tiền tự động trên phần mềm.
+8. **Lịch tập phức tạp:** Không hỗ trợ đặt lịch PT định kỳ hàng tuần, không đặt lịch cho nhóm nhiều người tập cùng 1 PT trong 1 buổi; không quản lý lớp học nhóm (Group X / Yoga theo lớp).
+9. **Bán lẻ & kho vận:** Không quản lý kho bán thực phẩm bổ sung, nước uống, phụ kiện tập luyện hoặc tính khấu hao thiết bị máy móc phòng gym.
+10. **Kênh truyền thông bên ngoài:** Không tích hợp SMS Brandname trả phí, Zalo ZNS hoặc chiến dịch Email Marketing trong phạm vi chuẩn.
+
+---
 
 # 6. Open Questions còn lại
 
-| ID | Trạng thái | Câu hỏi |
-| --- | --- | --- |
-| OPEN-04 | OPEN | Quy trình xử lý đăng ký đã thu/đã dùng nhưng cần hủy, điều chỉnh hoặc tranh chấp sẽ được đưa vào phiên bản nào? |
-| OPEN-05 | OPEN | Quy trình xóa dữ liệu cá nhân theo yêu cầu hội viên ngoài thao tác lưu trữ/ngừng phục vụ cần được chốt riêng. |
-| OPEN-06 | OPEN | Nếu đơn vị vận hành muốn push/SMS/Zalo/email chăm sóc ngay trong phiên bản đầu, cần chốt kênh, consent, mẫu nội dung và trách nhiệm vận hành. |
-| OPEN-07 | OPEN | Nếu muốn điều khiển khóa/cổng xoay thật, cần chốt phạm vi nghiệp vụ, trách nhiệm khi mở thủ công và trạng thái xác nhận từ thiết bị. |
-| OPEN-08 | OPEN | Nếu gói PT đã thanh toán đủ nhưng đến ngày bắt đầu vẫn chưa được phân công PT do phía phòng Gym, kỳ hiệu lực có tiếp tục chạy hay phải điều chỉnh ngày bắt đầu/ngày hết hạn? |
-| OPEN-09 | OPEN | Hội viên được tự tạo registration và thanh toán gói trên mobile hay chỉ xem gói/gửi nhu cầu để Lễ tân xử lý? |
+| ID | Trạng thái | Nội dung câu hỏi | Hướng xử lý đề xuất |
+| --- | --- | --- | --- |
+| **OPEN-04** | OPEN | Quy trình xử lý đối với các đăng ký gói tập đã thanh toán 100% nhưng phát sinh khiếu nại, tranh chấp đặc biệt cần hủy bỏ và hoàn tiền thủ công ngoài hệ thống sẽ được ghi nhận audit như thế nào trên phần mềm? | Đề xuất bổ sung quyền hạn QTV tối cao được phép thực hiện thao tác `Hủy giao dịch đặc biệt` kèm lý do bắt buộc và biên bản đối soát đính kèm. |
+| **OPEN-05** | OPEN | Quy trình tuân thủ quyền được lãng quên (Right to be Forgotten) theo Nghị định bảo vệ dữ liệu cá nhân khi hội viên yêu cầu xóa vĩnh viễn dữ liệu cá nhân khỏi CSDL nhưng vẫn phải lưu vết hóa đơn/thanh toán theo luật kế toán? | Đề xuất giải pháp ẩn danh hóa (Anonymization): Thay thế tên, SĐT, email thành chuỗi hash vô danh nhưng vẫn giữ nguyên giá trị giao dịch tài chính phục vụ báo cáo. |
+| **OPEN-06** | OPEN | Nếu phòng gym muốn triển khai thêm kênh gửi mã OTP qua Zalo ZNS để tiết kiệm chi phí so với SMS truyền thống khi kích hoạt tài khoản thì quy trình fallback khi không có Zalo sẽ xử lý ra sao? | Mặc định ưu tiên SMS OTP tiêu chuẩn cho lần kích hoạt đầu tiên; kênh ZNS sẽ được cân nhắc bổ sung khi có thông tin Official Account của đơn vị vận hành. |
+| **OPEN-07** | OPEN | Đối với gói tập PT/Combo, nếu hội viên đã thanh toán 100% nhưng quá 14 ngày vẫn không chủ động chọn PT phụ trách trên ứng dụng thì hệ thống có tự động gán PT ngẫu nhiên hoặc cảnh báo cho Lễ tân gọi điện hỗ trợ không? | Đề xuất đưa vào cảnh báo trên Dashboard W01 của Lễ tân để nhân viên chủ động liên hệ hỗ trợ hội viên chọn PT tại quầy. |
