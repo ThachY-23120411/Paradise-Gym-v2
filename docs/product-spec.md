@@ -129,6 +129,7 @@ Paradise Gym là hệ thống quản trị và vận hành chuỗi phòng gym đ
 - **Kênh thông báo chuẩn:** Toàn bộ thông báo hệ thống được gửi tự động qua kênh In-App trên ứng dụng Mobile và Web.
 - **Mẫu thông báo chuẩn hóa:** Nội dung thông báo được định nghĩa theo các Template mẫu, sử dụng các biến động tiếng Việt chuẩn: `{{ten_hoi_vien}}`, `{{ten_goi}}`, `{{ngay_het_han}}`, `{{ten_pt}}`, `{{thoi_gian_tap}}`.
 - **Phát tin tự động theo sự kiện (System Event Schema):** Hệ thống tự động kích hoạt thông báo khi phát sinh sự kiện: Đăng ký/gia hạn thành công, Xác nhận thanh toán 100%, Nhận yêu cầu phân công PT, Đặt/đổi/hủy lịch tập, Nhắc lịch tập trước 24h và 2h, Cảnh báo gói sắp hết hạn trước 7 ngày và 3 ngày.
+- **Điều kiện phát tin do QTV kiểm soát:** Chỉ gửi khi QTV đã lưu quy tắc sự kiện tại chi nhánh ở trạng thái `ON` và mẫu được gán đang sử dụng. Chưa có quy tắc, quy tắc `OFF` hoặc mẫu ngừng sử dụng thì không gửi; không có cơ chế tự gửi bằng mẫu mặc định để bỏ qua cấu hình này.
 - **Chống gửi trùng:** Hệ thống kiểm soát không gửi lặp thông báo cho cùng một đối tượng tại cùng một sự kiện/mốc thời gian.
 - **Tách biệt Consent:** Quyền gửi thông báo nhắc việc vận hành tách biệt hoàn toàn với Consent chúc mừng sinh nhật trên màn hình K01 hoặc các tin tức quảng bá.
 
@@ -150,6 +151,7 @@ Paradise Gym là hệ thống quản trị và vận hành chuỗi phòng gym đ
 
 ### 4.9. Hệ thống, Thiết bị & Dữ liệu Nhận diện
 - **Quản lý thiết bị:** Quản lý danh mục đầu đọc thẻ, camera nhận diện khuôn mặt và màn hình K01 gắn với từng điểm kiểm soát (Turnstile/Door) tại chi nhánh. Giám sát trạng thái kết nối thời gian thực: `Online`, `Offline`, `Error`, `Pending Sync`.
+- **Cấu hình và kết nối thiết bị:** Lưu riêng ý nghĩa trạng thái cấu hình do QTV chọn và trạng thái hiệu lực được hiển thị từ cấu hình/heartbeat. Thao tác lưu cấu hình không tạo tín hiệu kết nối; thiết bị thiếu hoặc quá hạn heartbeat không được báo `Online`.
 - **Consent dữ liệu sinh trắc học:** Việc thu thập ảnh nhận diện khuôn mặt là hoàn toàn tự nguyện và bắt buộc phải có Consent của hội viên. Ảnh hồ sơ thông thường không tự động chuyển thành dữ liệu nhận diện.
 - **Rút Consent:** Khi hội viên yêu cầu rút Consent, hệ thống lập tức vô hiệu hóa tính năng nhận diện tại cửa và đưa vào hàng đợi xóa an toàn dữ liệu sinh trắc học.
 

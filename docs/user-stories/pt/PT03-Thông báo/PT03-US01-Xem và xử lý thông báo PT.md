@@ -28,6 +28,18 @@
   - Hệ thống chỉ hiển thị thông báo của chính PT đó, tuyệt đối không gửi nhầm thông báo của PT khác.
   - Thao tác xem thông báo chỉ cập nhật trạng thái "Đã đọc", không tự động thay đổi kết quả buổi học hay trạng thái phân công.
 
+### Field-level specification — Màn hình Thông báo PT
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Bộ lọc Tất cả / Chưa đọc** | `Tab Segmented Control` | `USER-INPUT` | required | `TRIGGER`: Điều khiển tập thông báo hiển thị | Lọc `notifications.is_read` từ API `GET /notifications`, chỉ thuộc tài khoản PT hiện hành |
+| **Tiêu đề thông báo** | `Text Label (Bold)` | `READONLY` | required | Không | `notifications.title` qua API; không sinh thông báo tại frontend từ danh sách lịch hoặc yêu cầu phân công |
+| **Nội dung thông báo** | `Text Paragraph` | `READONLY` | required | Không | `notifications.body` qua API; hiển thị nguyên nội dung đã lưu, không chèn tên/gói/khung giờ mẫu |
+| **Thời điểm gửi** | `Timestamp Text` | `READONLY` | required | Không | `notifications.created_at` qua API, định dạng ngày/giờ địa phương |
+| **Trạng thái đã đọc** | `Status Dot / Badge` | `READONLY` | required | Không | `notifications.is_read` và `read_at`; đồng bộ sau khi API xác nhận, không chỉ lưu localStorage |
+| **Thao tác mở thông báo** | `Notification Item Row` | `USER-INPUT` | required | Không | Gọi `PUT /notifications/:id/read`, dùng `event_type`, `reference_type`, `reference_id` thật để mở màn hình PT01/PT02 theo Main Flow. API đích vẫn kiểm tra quyền; tham chiếu không còn hợp lệ thì báo lỗi, không tự tạo kết quả buổi học/phân công |
+| **Trạng thái trống / lỗi tải** | `Empty State Box / Error State Box` | `READONLY` | conditional | `CONDITIONAL`: Hiện khi danh sách lọc rỗng hoặc API tải lỗi; ẩn khi có dữ liệu hợp lệ | Phân biệt chưa có thông báo và lỗi kết nối; không thay bằng lịch nhắc giả |
+| **Nút thử lại** | `Action Button` | `USER-INPUT` | conditional | `CONDITIONAL`: Hiện khi API tải lỗi; ẩn khi đang tải hoặc đã tải thành công | Gọi lại API danh sách |
+
 ## Alternate Flows
 
 ### AF-01 — Lọc xem thông báo chưa đọc

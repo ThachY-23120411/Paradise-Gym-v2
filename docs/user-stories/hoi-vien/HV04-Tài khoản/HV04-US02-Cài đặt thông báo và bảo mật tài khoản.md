@@ -22,13 +22,13 @@
   - Cấu hình Xác thực 2 lớp (2FA) khi được kích hoạt sẽ áp dụng ngay cho tất cả các lần đăng nhập tiếp theo của tài khoản.
 
 ### Field-level specification — Màn hình Cài đặt thông báo và bảo mật
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Nhận thông báo in-app** | `USER-INPUT` + `PREFILL` | optional | Không | Toggle Switch (`Bật` / `Tắt`); nhận các thông báo hệ thống, tin tức, lịch tập |
-| **Nhắc lịch PT tự động** | `USER-INPUT` + `PREFILL` | optional | Không | Toggle Switch (`Bật` / `Tắt`); nhận thông báo nhắc trước ca tập PT 2 tiếng |
-| **Xác thực 2 lớp (2FA khi đăng nhập)** | `USER-INPUT` + `PREFILL` | optional | Không | Toggle Switch (`Bật` / `Tắt`); bắt buộc xác thực mã OTP gửi về SĐT khi đăng nhập mật khẩu |
-| **Nút thao tác [ Đổi mật khẩu tài khoản ]** | `USER-INPUT` | optional | Không | Nút điều hướng; bấm để mở Modal Đổi mật khẩu tài khoản |
-| **Nút CTA [ Lưu cài đặt ]** | `USER-INPUT` | required | `DYNAMIC`: Enable khi có ít nhất một tùy chọn thay đổi | Nút màu xanh lá bo góc; bấm để lưu cấu hình tùy chọn và bảo mật |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Nhận thông báo in-app** | `Switch / Toggle` | `USER-INPUT` + `PREFILL` | optional | Không | Toggle Switch (`Bật` / `Tắt`); nhận các thông báo hệ thống, tin tức, lịch tập |
+| **Nhắc lịch PT tự động** | `Switch / Toggle` | `USER-INPUT` + `PREFILL` | optional | Không | Toggle Switch (`Bật` / `Tắt`); nhận thông báo nhắc trước ca tập PT 2 tiếng |
+| **Xác thực 2 lớp (2FA khi đăng nhập)** | `Switch / Toggle` | `USER-INPUT` + `PREFILL` | optional | Không | Toggle Switch (`Bật` / `Tắt`); bắt buộc xác thực mã OTP gửi về SĐT khi đăng nhập mật khẩu |
+| **Nút thao tác [ Đổi mật khẩu tài khoản ]** | `Button / Secondary` | `USER-INPUT` | optional | Không | Nút điều hướng; bấm để mở Modal Đổi mật khẩu tài khoản |
+| **Nút CTA [ Lưu cài đặt ]** | `Button / Primary CTA` | `USER-INPUT` | required | `DYNAMIC`: Enable khi có ít nhất một tùy chọn thay đổi | Nút màu xanh lá bo góc; bấm để lưu cấu hình tùy chọn và bảo mật |
 
 ## Alternate Flows
 

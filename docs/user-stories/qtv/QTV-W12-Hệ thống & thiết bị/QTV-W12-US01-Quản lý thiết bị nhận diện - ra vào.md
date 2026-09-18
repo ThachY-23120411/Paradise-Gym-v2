@@ -18,20 +18,29 @@
 7. Hệ thống cập nhật danh sách thiết bị và trạng thái để lễ tân theo dõi sự cố.
 
 ### Field-level specification — Form quản lý thiết bị nhận diện
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Mã thiết bị | `USER-INPUT` | required | `DYNAMIC`: nhập khi tạo mới, `READONLY (PREFILL)` khi chỉnh sửa; phải là duy nhất (`UNIQUE`) | QTV nhập / Registry thiết bị |
-| Chi nhánh / điểm lắp | `USER-INPUT` | required | `DYNAMIC`: chỉ hiển thị các chi nhánh trong branch scope của QTV | Danh mục chi nhánh / Phân quyền |
-| Mục đích (IN / OUT / BOTH) | `USER-INPUT` | required | `DYNAMIC`: phụ thuộc vào năng lực thiết bị hỗ trợ chiều ra/vào | Danh mục năng lực thiết bị |
-| Trạng thái thiết bị | `USER-INPUT` | required | `DYNAMIC`: chọn trạng thái vận hành (`Online`, `Offline`, `Error`, `Pending Sync`) | QTV chọn / Tín hiệu heartbeat từ thiết bị |
-| Kết quả test / Heartbeat gần nhất | `AUTO-FILL` | READONLY | `CONDITIONAL`: chỉ hiển thị khi thiết bị trả về tín hiệu telemetry hoặc sau khi bấm test | Log phản hồi từ thiết bị |
-| Thông số kết nối | `USER-INPUT` | optional | `CONDITIONAL`: cấu hình thông số IP/Endpoint/Credential theo loại thiết bị | QTV cung cấp |
-| Mã / người / thời điểm cập nhật | `AUTO-FILL` | READONLY | `DYNAMIC`: hệ thống tự ghi nhận sau khi commit | Hệ thống tự động ghi audit |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Mã thiết bị | `dxTextBox` | `USER-INPUT`; `PREFILL`, `READONLY` khi sửa | required | Không: nhập khi tạo mới; không được đổi sau khi lưu | QTV nhập / Registry thiết bị; tối đa 50 ký tự, duy nhất (`UNIQUE`) |
+| Tên thiết bị | `dxTextBox` | `USER-INPUT`; `PREFILL` khi sửa | required | Không | QTV nhập / Registry thiết bị; tối đa 150 ký tự |
+| Loại thiết bị | `dxSelectBox` | `USER-INPUT`; `PREFILL` khi sửa | required | `TRIGGER`: điều khiển danh sách chiều ra/vào và các thông số kết nối hiện trên form | Catalog năng lực thiết bị từ API; camera, đầu đọc thẻ hoặc màn hình K01 |
+| Chi nhánh | `dxSelectBox` | `USER-INPUT`; `PREFILL` từ chi nhánh đang làm việc hoặc registry khi sửa | required | `DYNAMIC`: luôn hiện, danh sách chỉ gồm chi nhánh trong branch scope của QTV | Danh mục chi nhánh / Phân quyền; phạm vi toàn chuỗi chưa chọn chi nhánh thì không tự chọn thay QTV |
+| Điểm lắp | `dxTextBox` | `USER-INPUT`; `PREFILL` khi sửa | required | Không | QTV nhập / Registry thiết bị; tối đa 250 ký tự |
+| Mục đích (IN / OUT / BOTH) | `dxRadioGroup` | `USER-INPUT` | required | `DYNAMIC`: phụ thuộc vào năng lực thiết bị hỗ trợ chiều ra/vào | Danh mục năng lực thiết bị |
+| Trạng thái cấu hình | `dxSelectBox` | `USER-INPUT` | required | Không: chọn `Online`, `Offline`, `Error`, `Pending Sync` hoặc `Inactive`; chỉnh sửa được `PREFILL` từ giá trị cấu hình đã lưu | Catalog trạng thái thiết bị; lựa chọn của QTV được lưu vào registry và audit, không tạo heartbeat |
+| Kết nối hiện tại | `Badge / Status indicator` | `READONLY` | conditional | `CONDITIONAL`: hiện khi chỉnh sửa thiết bị đã có trong registry; ẩn khi thêm mới | Kết nối do hệ thống xác định từ heartbeat, lỗi telemetry và trạng thái ngừng hoạt động; thiếu hoặc quá hạn heartbeat không được hiển thị `Online`; không thay thế trạng thái cấu hình đã lưu |
+| Heartbeat gần nhất | `dxTextBox (Date/Time)` | `AUTO-FILL`, `READONLY` | conditional | `CONDITIONAL`: hiện khi API có heartbeat đã nhận; ẩn khi chưa có heartbeat | Telemetry thiết bị; ô ngày giờ chỉ đọc, không cập nhật khi chỉ lưu cấu hình |
+| Kết quả test gần nhất | `Badge / Status indicator` | `AUTO-FILL`, `READONLY` | conditional | `CONDITIONAL`: hiện khi API có kết quả test thật; ẩn khi chưa có kết quả | Phản hồi adapter thiết bị; không sinh kết quả thành công giả |
+| Địa chỉ IP | `dxTextBox` | `USER-INPUT`; `PREFILL` khi sửa | conditional | `CONDITIONAL`: hiện khi loại thiết bị có năng lực kết nối `ip_address`; ẩn khi chưa chọn loại hoặc loại không hỗ trợ; tùy chọn khi hiện | QTV nhập / Registry; IPv4 hoặc IPv6 hợp lệ; xóa giá trị thì lưu rỗng |
+| Địa chỉ kết nối (Endpoint) | `dxTextBox` | `USER-INPUT`; `PREFILL` khi sửa | conditional | `CONDITIONAL`: hiện khi catalog loại thiết bị khai báo `endpoint`; ẩn khi chưa chọn loại hoặc không khai báo; tùy chọn khi hiện | Catalog adapter và registry; catalog hiện tại chưa bật trường này |
+| Thông tin xác thực | `dxTextBox (Password)` | `USER-INPUT` | conditional | `CONDITIONAL`: hiện khi catalog loại thiết bị khai báo `credential`; ẩn khi chưa chọn loại hoặc không khai báo; tùy chọn khi hiện | QTV cung cấp qua ô mật khẩu, không tự điền bí mật đã lưu; catalog hiện tại chưa bật trường này |
+| Cập nhật lúc | `dxTextBox (Date/Time)` | `AUTO-FILL`, `READONLY` | conditional | `CONDITIONAL`: hiện khi chỉnh sửa bản ghi có sẵn; ẩn khi tạo mới | Thời điểm cập nhật từ API; ô ngày giờ chỉ đọc |
+| Người cập nhật | `dxTextBox` | `AUTO-FILL`, `READONLY` | conditional | `CONDITIONAL`: hiện khi chỉnh sửa bản ghi có sẵn; ẩn khi tạo mới | Tên tác nhân từ audit API; hiển thị `--` khi dữ liệu cũ chưa có, không suy đoán người thao tác |
 
 - **Business rules / logic:**
   - Mỗi thiết bị sở hữu mã định danh duy nhất, gắn với một chi nhánh hiện hành, vị trí lắp đặt và mục đích chiều ra/vào.
   - Xóa vật lý thiết bị không áp dụng; sử dụng trạng thái ngừng hoạt động (`Inactive`) khi ngừng sử dụng.
   - Trạng thái thiết bị phản ánh trung thực kết quả đồng bộ và tín hiệu nhịp tim (heartbeat) gần nhất.
+  - Lưu trạng thái cấu hình không đồng nghĩa thiết bị đã kết nối. Danh sách và màn hình theo dõi dùng trạng thái hiệu lực; form/chi tiết tách riêng cấu hình đã lưu và kết nối hiện tại.
 
 ## Alternate Flows
 ### AF-01 — Chuyển nơi lắp thiết bị

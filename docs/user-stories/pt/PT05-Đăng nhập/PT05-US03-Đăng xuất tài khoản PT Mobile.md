@@ -21,10 +21,10 @@
   - Không lưu thông tin phiên nhạy cảm trong bộ nhớ đệm sau khi đã đăng xuất.
 
 ### Field-level specification — Popup Xác nhận Đăng xuất
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tiêu đề Popup** | `READONLY` | required | Không | Tiêu đề hộp thoại: `Xác nhận đăng xuất` |
-| **Thông báo xác nhận** | `READONLY` | required | Không | Đoạn text: *"Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng PT Paradise Gym không? Phiên làm việc hiện tại trên thiết bị này sẽ kết thúc."* |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tiêu đề Popup** | `Popup Title` | `READONLY` | required | Không | Tiêu đề hộp thoại: `Xác nhận đăng xuất` |
+| **Thông báo xác nhận** | `Text Paragraph (Message)` | `READONLY` | required | Không | Đoạn text: *"Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng PT Paradise Gym không? Phiên làm việc hiện tại trên thiết bị này sẽ kết thúc."* |
 
 ## Alternate Flows
 

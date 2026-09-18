@@ -1,4 +1,4 @@
-﻿# QTV-W12-US03 - Rút consent nhận diện
+# QTV-W12-US03 - Rút consent nhận diện
 
 ## Preconditions
 - Người thực hiện đã đăng nhập hoặc ở ngữ cảnh self-service của Hội viên; dữ liệu nhận diện hoặc consent nhận diện của Hội viên đã tồn tại.
@@ -18,15 +18,15 @@
 7. Nhân sự hỗ trợ hội viên bằng phương án check-in khác trong phạm vi chi nhánh.
 
 ### Field-level specification — Form/Modal rút consent nhận diện
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Hội viên | `READONLY (PREFILL)` | required | `DYNAMIC`: nạp thông tin chủ thể consent từ hồ sơ hội viên | Hồ sơ hội viên |
-| Loại consent cần rút | `USER-INPUT` | required | `DYNAMIC`: chọn loại consent nhận diện / hiển thị công khai từ danh mục | Danh mục consent |
-| Cảnh báo tác động | `AUTO-FILL` | READONLY | `DYNAMIC`: hệ thống tự động hiển thị thông báo ngừng tính năng nhận diện tự động | Quy tắc consent & recognition |
-| Yêu cầu xóa dữ liệu nhận diện | `USER-INPUT` | optional | `CONDITIONAL`: tùy chọn gửi yêu cầu xóa triệt để dữ liệu đã lưu trữ | Hội viên / QTV chọn |
-| Xác nhận rút consent | `USER-INPUT` | required | `CONDITIONAL`: chỉ cho phép bấm khi người thực hiện có đủ quyền hoặc đúng chính chủ | Thao tác người thực hiện |
-| Trạng thái consent & audit trail | `AUTO-FILL` | READONLY | `DYNAMIC`: hệ thống tự ghi nhận trạng thái `REVOKED`, người thực hiện và thời gian | Hệ thống lưu nhật ký audit |
-| Lịch sử vào / ra định danh | `READONLY` | optional | `CONDITIONAL`: giữ lại bản ghi theo thời hạn quy định (12 tháng), không tự động xóa cùng consent | Nhật ký sự kiện vào/ra |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Hội viên | `Card / Summary info` | `READONLY (PREFILL)` | required | `DYNAMIC`: nạp thông tin chủ thể consent từ hồ sơ hội viên | Hồ sơ hội viên |
+| Loại consent cần rút | `dxSelectBox` | `USER-INPUT` | required | `DYNAMIC`: chọn loại consent nhận diện / hiển thị công khai từ danh mục | Danh mục consent |
+| Cảnh báo tác động | `Alert banner` | `AUTO-FILL` + `READONLY` | required | `DYNAMIC`: hệ thống tự động hiển thị thông báo ngừng tính năng nhận diện tự động | Quy tắc consent & recognition |
+| Yêu cầu xóa dữ liệu nhận diện | `dxCheckBox` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** hội viên đã có dữ liệu nhận diện được lưu trữ; **Ẩn khi** chưa từng đăng ký dữ liệu nhận diện | Hội viên / QTV chọn |
+| Xác nhận rút consent | `dxCheckBox` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** người thực hiện có quyền quản trị hoặc đúng chính chủ; **Ẩn khi** không đủ thẩm quyền | Thao tác người thực hiện |
+| Trạng thái consent & audit trail | `Badge / Status indicator` | `AUTO-FILL` + `READONLY` | required | `DYNAMIC`: hệ thống tự ghi nhận trạng thái `REVOKED`, người thực hiện và thời gian | Hệ thống lưu nhật ký audit |
+| Lịch sử vào / ra định danh | `dxDataGrid (Readonly)` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** tài khoản đã có lịch sử ra/vào lưu vết trong 12 tháng; **Ẩn khi** chưa có lượt check-in nào | Nhật ký sự kiện vào/ra |
 
 - **Business rules / logic:**
   - Thao tác rút consent lập tức vô hiệu hóa tính năng nhận diện tự động của hội viên trên các thiết bị.

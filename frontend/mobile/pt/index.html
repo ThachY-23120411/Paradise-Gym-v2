@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Paradise Gym - Mobile HLV (PT)</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- DevExtreme v23.2.5 Stylesheet -->
+  <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.2.5/css/dx.light.css">
+  
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+  <!-- Mobile Web App Wrapper (Không viền điện thoại) -->
+  <div class="simulator-container">
+    <div class="device-frame" id="deviceFrame">
+      
+      <!-- App Header -->
+      <header class="app-header" id="appHeader" style="display:none">
+        <div class="header-left">
+          <img style="display:none" 
+               alt="Avatar HLV" 
+               class="header-pt-avatar" 
+               id="headerAvatar">
+          <div class="header-info">
+            <h2 id="headerCoachName"></h2>
+            <div class="header-subtitle" id="headerBranchName">
+              <i class="fa-solid fa-location-dot"></i>
+              <span id="headerBranchText"></span>
+              <span class="header-dot-separator">•</span>
+              <span class="header-pt-code-badge" id="headerPtCodeBadge"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon-circle" id="btnNotification" title="Thông báo">
+            <i class="fa-solid fa-bell"></i>
+            <span class="badge-dot-count" id="notifBadge" style="display: none;">0</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- App Toast Container -->
+      <div class="toast-container" id="toastContainer"></div>
+
+      <!-- Main Views Container -->
+      <main class="app-content" id="mainContent">
+
+        <!-- ==================================================== -->
+        <!-- TAB 1: TỔNG QUAN (PT06)                              -->
+        <!-- ==================================================== -->
+        <section class="view-section" id="view-overview">
+          <!-- Được render động 100% từ Database qua overview.js (PT06-US01) -->
+        </section>
+
+        <!-- ==================================================== -->
+        <!-- TAB 2: LỊCH TẬP & BUỔI DẠY (PT01)                   -->
+        <!-- ==================================================== -->
+        <section class="view-section" id="view-schedule"></section>
+
+        <!-- ==================================================== -->
+        <!-- ==================================================== -->
+        <!-- TAB 3: HỌC VIÊN PHỤ TRÁCH (PT02)                     -->
+        <!-- ==================================================== -->
+        <section class="view-section" id="view-members">
+          <div id="clientsViewContainer" style="height: 100%; display: flex; flex-direction: column;"></div>
+        </section>
+
+        <!-- ==================================================== -->
+        <!-- TAB 4: TÀI KHOẢN & HỒ SƠ NĂNG LỰC (PT04)            -->
+        <!-- ==================================================== -->
+        <section class="view-section" id="view-profile">
+          <div id="profileLoadError" role="alert" style="display:none; margin-bottom:16px;">
+            Không thể tải hồ sơ PT.
+            <button type="button" class="btn btn-secondary btn-sm" id="btnRetryProfile" title="Thử lại"><i class="fa-solid fa-rotate-right"></i></button>
+          </div>
+          
+          <!-- Coach Hero Profile Card -->
+          <div class="gym-card coach-hero-card">
+            <div class="coach-profile-row">
+              <div class="coach-avatar-wrap">
+                <img style="display:none" 
+                     alt="HLV Avatar" 
+                     class="coach-avatar-lg" 
+                     id="profileAvatarImg">
+                <span id="profileAvatarFallback" class="coach-avatar-lg"><i class="fa-solid fa-user"></i></span>
+              </div>
+              <div class="coach-profile-details">
+                <h3 id="profileFullName">Huấn luyện viên</h3>
+                <div class="coach-code-pill" id="profilePtCode">
+                  <i class="fa-solid fa-id-badge"></i> HLV
+                </div>
+                <div class="coach-branch-text" id="profileBranch">
+                  <i class="fa-solid fa-building"></i> Paradise Gym
+                </div>
+              </div>
+            </div>
+
+            <!-- Micro KPI Stats Row -->
+            <div class="coach-kpi-grid">
+              <div class="kpi-item">
+                <div class="kpi-num" id="profileMembersKpi">--</div>
+                <div class="kpi-label">Học viên</div>
+              </div>
+            </div>
+
+            <button class="btn btn-secondary btn-sm" id="btnOpenEditProfile" style="margin-top: 12px; width: 100%;">
+              <i class="fa-solid fa-user-pen"></i> Chỉnh sửa hồ sơ cá nhân
+            </button>
+          </div>
+
+          <!-- Contact Information Card -->
+          <div class="gym-card">
+            <div class="gym-card-header">
+              <span class="gym-card-title">
+                <i class="fa-solid fa-address-card"></i> Thông tin liên hệ nhân sự
+              </span>
+            </div>
+            
+            <div class="pref-row">
+              <span style="font-size: 12px; color: var(--text-muted);"><i class="fa-solid fa-phone" style="width: 18px;"></i> Số điện thoại:</span>
+              <span style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="profilePhone">--</span>
+            </div>
+
+            <div class="pref-row">
+              <span style="font-size: 12px; color: var(--text-muted);"><i class="fa-solid fa-envelope" style="width: 18px;"></i> Email làm việc:</span>
+              <span style="font-size: 12px; font-weight: 600; color: var(--text-main);" id="profileEmail">--</span>
+            </div>
+
+            <div class="pref-row">
+              <span style="font-size: 12px; color: var(--text-muted);"><i class="fa-solid fa-clock" style="width: 18px;"></i> Ca trực cố định:</span>
+              <span style="font-size: 12px; font-weight: 600; color: var(--primary-light);" id="profileWorkShift">Chưa cập nhật</span>
+            </div>
+          </div>
+
+          <!-- Specialization & Competencies Card -->
+          <div class="gym-card">
+            <div class="gym-card-header">
+              <span class="gym-card-title">
+                <i class="fa-solid fa-medal"></i> Chuyên môn đào tạo
+              </span>
+            </div>
+            <div class="tag-list" id="profileSpecialtiesList">
+              <span class="gym-tag"><i class="fa-solid fa-dumbbell"></i> Đang tải chuyên môn...</span>
+            </div>
+          </div>
+
+          <!-- Preferences & Security Settings (PT04-US01) -->
+          <div class="gym-card">
+            <div class="gym-card-header">
+              <span class="gym-card-title">
+                <i class="fa-solid fa-sliders"></i> Cài đặt thông báo & Ứng dụng
+              </span>
+            </div>
+
+            <div class="pref-row">
+              <div class="pref-label-wrap">
+                <div class="pref-title">Nhận thông báo lịch mới</div>
+                <div class="pref-desc">Thông báo khi có ca tập mới hoặc học viên đổi lịch</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleNotifSchedule" disabled>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="pref-row">
+              <div class="pref-label-wrap">
+                <div class="pref-title">Nhắc ghi kết quả buổi học</div>
+                <div class="pref-desc">Nhắc nhở cập nhật bài tập và chỉ số sau ca dạy</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleNotifResult" disabled>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="pref-row">
+              <div class="pref-label-wrap">
+                <div class="pref-title">Hiển thị SĐT cho học viên</div>
+                <div class="pref-desc">Cho phép học viên nhìn thấy số khi được phân công</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleShowPhone" disabled>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="pref-row">
+              <div class="pref-label-wrap">
+                <div class="pref-title">Xác thực 2 lớp (2FA khi đăng nhập)</div>
+                <div class="pref-desc">Yêu cầu mã OTP SMS gửi về điện thoại mỗi khi đăng nhập</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggle2FA">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div style="margin-top: 14px;">
+              <button class="btn btn-secondary btn-sm" id="btnSavePreferences" disabled style="opacity: 0.5; cursor: not-allowed;">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu cài đặt
+              </button>
+            </div>
+          </div>
+
+          <!-- Account Actions & Security -->
+          <div class="gym-card">
+            <div class="gym-card-header">
+              <span class="gym-card-title">
+                <i class="fa-solid fa-shield-halved"></i> Bảo mật tài khoản
+              </span>
+            </div>
+
+            <button class="btn btn-secondary" id="btnOpenChangePassword" style="margin-bottom: 12px;">
+              <i class="fa-solid fa-key"></i> Đổi mật khẩu đăng nhập
+            </button>
+
+            <button class="btn btn-danger-outline" id="btnLogoutTrigger">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất an toàn
+            </button>
+          </div>
+
+        </section>
+
+      </main>
+
+      <!-- Bottom Navigation Bar (Exactly 4 Tabs) -->
+      <nav class="bottom-nav" id="bottomNav">
+        <div class="nav-item active" data-tab="overview">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Tổng quan</span>
+          <div class="nav-indicator"></div>
+        </div>
+
+        <div class="nav-item" data-tab="schedule">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Lịch</span>
+          <div class="nav-indicator"></div>
+        </div>
+
+        <div class="nav-item" data-tab="members" style="position: relative;">
+          <i class="fa-solid fa-user-group"></i>
+          <span>Học viên</span>
+          <span class="badge-dot-count" id="bottomNavClientsBadge" style="display: none; position: absolute; top: 4px; right: calc(50% - 22px);">0</span>
+          <div class="nav-indicator"></div>
+        </div>
+
+        <div class="nav-item" data-tab="notifications" role="button" tabindex="0" aria-label="Thông báo">
+          <i class="fa-solid fa-bell"></i>
+          <span>Thông báo</span>
+        </div>
+        <div class="nav-item" data-tab="profile">
+          <i class="fa-solid fa-circle-user"></i>
+          <span>Tài khoản</span>
+          <div class="nav-indicator"></div>
+        </div>
+      </nav>
+
+      <!-- ==================================================== -->
+      <!-- AUTH OVERLAY CONTAINER (PT05 - ĐĂNG NHẬP HLV)        -->
+      <!-- ==================================================== -->
+      <div class="auth-overlay" id="authScreen" style="display: none;">
+        <div class="auth-header">
+          <div class="gym-logo-badge">
+            <i class="fa-solid fa-dumbbell"></i>
+          </div>
+          <h1>PARADISE GYM PT</h1>
+          <p>Cổng Huấn Luyện Viên Cá Nhân Chuyên Nghiệp</p>
+        </div>
+
+        <!-- Account Lockout Banner (Chống dò quét 15 phút) -->
+        <div class="auth-lockout-banner" id="lockoutBanner">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <div class="lockout-text">
+            <h4>Tài khoản bị tạm khóa</h4>
+            <p>Nhập sai thông tin quá 5 lần liên tiếp. Vui lòng thử lại sau: <span class="lockout-countdown" id="lockoutTimer">15:00</span></p>
+          </div>
+        </div>
+
+        <!-- Segmented Navigation for Login Methods -->
+        <div class="segmented-nav" id="loginMethodNav">
+          <div class="segmented-tab active" data-login-mode="password">
+            <i class="fa-solid fa-lock" style="font-size: 11px;"></i> Bằng Mật khẩu
+          </div>
+          <div class="segmented-tab" data-login-mode="otp">
+            <i class="fa-solid fa-mobile-screen-button" style="font-size: 11px;"></i> Bằng mã OTP
+          </div>
+        </div>
+
+        <!-- FORM 1: LOGIN WITH PASSWORD (PT05-US01 Trường hợp 1) -->
+        <form id="formLoginPassword">
+          <div class="form-group">
+            <label class="form-label" for="loginPhoneOrCode">Số điện thoại / Mã nhân viên PT</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-user input-icon-left"></i>
+              <input type="text" 
+                     class="form-control" 
+                     id="loginPhoneOrCode" 
+                     placeholder="Số điện thoại hoặc Mã PT" 
+                     
+                     required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Mật khẩu</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-lock input-icon-left"></i>
+              <input type="password" 
+                     class="form-control" 
+                     id="loginPassword" 
+                     placeholder="Nhập mật khẩu" autocomplete="current-password"
+                     
+                     required>
+              <button type="button" class="btn-toggle-eye" id="togglePasswordEye">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <button type="submit" class="btn btn-primary" id="btnLoginPasswordSubmit">
+              <i class="fa-solid fa-right-to-bracket"></i> ĐĂNG NHẬP
+            </button>
+          </div>
+        </form>
+
+        <!-- FORM 2: LOGIN WITH OTP (PT05-US01 Trường hợp 2) -->
+        <form id="formLoginOtp" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="loginOtpPhone">Số điện thoại HLV</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-phone input-icon-left"></i>
+              <input type="tel" 
+                     class="form-control" 
+                     id="loginOtpPhone" 
+                     placeholder="Nhập 10 số điện thoại" 
+                     
+                     required>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnRequestLoginOtp" style="flex: 1;">
+              <i class="fa-solid fa-paper-plane"></i> Nhận mã OTP SMS
+            </button>
+            <div id="otpCountdownText" style="display: none; align-items: center; font-size: 12px; color: var(--accent-gold); font-weight: 700;">
+              60s
+            </div>
+          </div>
+
+          <div class="form-group" id="groupOtpInput" style="display: none;">
+            <label class="form-label" for="loginOtpCode">Nhập mã OTP (6 chữ số)</label>
+            <input type="text" 
+                   class="form-control no-icon" 
+                   id="loginOtpCode" 
+                   placeholder="Nhập 6 số OTP SMS" 
+                   maxlength="6"
+                   style="letter-spacing: 4px; font-weight: 700; text-align: center;">
+          </div>
+
+          <div style="margin-top: 16px;">
+            <button type="submit" class="btn btn-primary" id="btnLoginOtpSubmit" disabled>
+              <i class="fa-solid fa-check"></i> Xác nhận đăng nhập
+            </button>
+          </div>
+        </form>
+
+        <!-- Activation Text Link (PT05-US02) -->
+        <div style="text-align: center; margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+          <span style="font-size: 12px; color: var(--text-muted);">HLV mới nhận việc lần đầu? </span>
+          <a href="javascript:void(0)" id="linkOpenActivation" style="font-size: 13px; font-weight: 700; color: var(--primary-light); text-decoration: none;">
+            Kích hoạt tài khoản PT
+          </a>
+        </div>
+      </div>
+
+      <!-- ==================================================== -->
+      <!-- 2FA VERIFICATION SCREEN (PT05-US03 / US01 2FA STEP) -->
+      <!-- ==================================================== -->
+      <div class="auth-overlay" id="twoFaScreen" style="display: none;">
+        <div class="auth-header">
+          <div class="gym-logo-badge" style="background: var(--gold-gradient); color: #000;">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <h1>Xác thực 2 bước (2FA) - PT</h1>
+          <p id="twoFaSentNotice" style="font-size: 12px; margin-top: 6px;">
+            Mã xác thực gồm 6 chữ số đã được gửi tới số điện thoại HLV <strong style="color: var(--accent-gold);" id="twoFaMaskedPhone"></strong>
+          </p>
+        </div>
+
+        <div class="otp-container" id="twoFaInputContainer">
+          <input type="tel" class="otp-box" maxlength="1" data-index="0" autofocus>
+          <input type="tel" class="otp-box" maxlength="1" data-index="1">
+          <input type="tel" class="otp-box" maxlength="1" data-index="2">
+          <input type="tel" class="otp-box" maxlength="1" data-index="3">
+          <input type="tel" class="otp-box" maxlength="1" data-index="4">
+          <input type="tel" class="otp-box" maxlength="1" data-index="5">
+        </div>
+
+        <div style="text-align: center; margin: 12px 0 20px;">
+          <span style="font-size: 12px; color: var(--text-muted);">
+            Gửi lại mã sau <span id="twoFaCountdown" style="color: var(--accent-warning); font-weight: 700;">(60s)</span>
+          </span>
+          <div style="margin-top: 8px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnResend2FaOtp" disabled style="width: auto; margin: 0 auto;">
+              <i class="fa-solid fa-rotate-right"></i> Gửi lại mã OTP (<span id="resendAttemptsLeft">3</span> lần còn lại)
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btnVerify2FaSubmit" disabled>
+          <i class="fa-solid fa-lock-open"></i> Xác nhận 2FA
+        </button>
+
+        <div style="text-align: center; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnBackToLoginFrom2Fa" style="background: transparent; border: none; color: var(--text-muted);">
+            <i class="fa-solid fa-arrow-left"></i> Quay lại màn hình đăng nhập
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================================================== -->
+      <!-- FIRST-TIME ACTIVATION SCREEN (PT05-US02)             -->
+      <!-- ==================================================== -->
+      <div class="auth-overlay" id="activationScreen" style="display: none;">
+        <div class="auth-header">
+          <div class="gym-logo-badge">
+            <i class="fa-solid fa-user-check"></i>
+          </div>
+          <h1>Kích hoạt tài khoản PT</h1>
+          <p>Thiết lập mật khẩu lần đầu cho HLV mới gia nhập</p>
+        </div>
+
+        <!-- Step 1: Tra cứu hồ sơ nhân sự -->
+        <div class="form-group">
+          <label class="form-label" for="actPhoneOrCode">Số điện thoại hoặc Mã PT</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-control" id="actPhoneOrCode" placeholder="Số điện thoại hoặc Mã PT" style="flex: 1;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnActLookup" style="width: auto;">
+              <i class="fa-solid fa-magnifying-glass"></i> Kiểm tra
+            </button>
+          </div>
+        </div>
+
+        <!-- Card thông tin xác nhận HLV (Conditional) -->
+        <div class="gym-card" id="actProfilePreviewCard" style="display: none; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 12px; margin-bottom: 14px;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--primary-light); margin-bottom: 6px;">
+            <i class="fa-solid fa-circle-check"></i> Hồ sơ nhân sự hợp lệ
+          </div>
+          <div style="font-size: 13px; font-weight: 700; color: #fff;" id="actPreviewName">HLV</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+            Mã: <span id="actPreviewCode" style="color: var(--accent-gold); font-weight: 700;">-</span> • Chi nhánh: <span id="actPreviewBranch">-</span>
+          </div>
+        </div>
+
+        <!-- Card cảnh báo tài khoản đã kích hoạt (AF-01: Conditional) -->
+        <div class="gym-card" id="actAlreadyActiveCard" style="display: none; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35); padding: 14px; margin-bottom: 14px; text-align: center;">
+          <div style="font-size: 24px; color: var(--accent-warning); margin-bottom: 8px;">
+            <i class="fa-solid fa-circle-info"></i>
+          </div>
+          <div style="font-size: 13px; font-weight: 700; color: #fff; line-height: 1.5;" id="actAlreadyActiveMsg">
+            Tài khoản HLV đã được kích hoạt. Vui lòng quay lại màn hình Đăng nhập để truy cập ứng dụng.
+          </div>
+          <div style="margin-top: 14px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnActBackToLoginNotice" style="width: auto; margin: 0 auto;">
+              <i class="fa-solid fa-right-to-bracket"></i> Quay lại màn hình Đăng nhập
+            </button>
+          </div>
+        </div>
+
+        <!-- Form nhập OTP và Thiết lập mật khẩu -->
+        <div id="actStepTwoContainer" style="display: none;">
+          <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnActRequestOtp" style="flex: 1;">
+              <i class="fa-solid fa-paper-plane"></i> Nhận mã OTP Kích hoạt
+            </button>
+            <div id="actOtpCountdownText" style="display: none; align-items: center; font-size: 12px; color: var(--accent-gold); font-weight: 700;">
+              60s
+            </div>
+          </div>
+
+          <div class="form-group" id="actGroupOtp" style="display: none;">
+            <label class="form-label" for="actOtpCode">Mã xác thực OTP (6 chữ số)</label>
+            <input type="text" class="form-control no-icon" id="actOtpCode" placeholder="Nhập 6 số OTP SMS" maxlength="6" style="letter-spacing: 4px; text-align: center; font-weight: 700;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="actNewPassword">Mật khẩu mới</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-key input-icon-left"></i>
+              <input type="password" class="form-control" id="actNewPassword" placeholder="Tối thiểu 8 ký tự (chữ hoa, thường, số/ký tự đặc biệt)" required>
+              <button type="button" class="btn-toggle-eye" id="toggleActNewPasswordEye">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="actConfirmPassword">Xác nhận mật khẩu mới</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-check-double input-icon-left"></i>
+              <input type="password" class="form-control" id="actConfirmPassword" placeholder="Nhập lại chính xác mật khẩu" required>
+              <button type="button" class="btn-toggle-eye" id="toggleActConfirmPasswordEye">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div style="margin-top: 18px;">
+            <button type="button" class="btn btn-primary" id="btnActSubmit">
+              <i class="fa-solid fa-user-shield"></i> Kích hoạt & Đăng nhập
+            </button>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnBackToLoginFromAct" style="background: transparent; border: none; color: var(--text-muted);">
+            <i class="fa-solid fa-arrow-left"></i> Đã có tài khoản? Quay về Đăng nhập
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================================================== -->
+      <!-- NOTIFICATION BOTTOM SHEET                            -->
+      <!-- ==================================================== -->
+      <div class="modal-backdrop" id="notificationSheetBackdrop">
+        <div class="bottom-sheet" id="notificationSheet">
+          <div class="sheet-handle"></div>
+          <div class="modal-header">
+            <div class="modal-title">
+              <i class="fa-solid fa-bell" style="color: var(--primary-light);"></i> Thông báo của HLV
+            </div>
+            <button class="modal-close-btn" id="btnCloseNotificationSheet">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <div class="notification-list" id="notificationListContainer"></div>
+
+          <div style="margin-top: 14px;">
+            <button class="btn btn-secondary btn-sm" id="btnMarkAllNotifsRead" style="width: 100%;">
+              <i class="fa-solid fa-check-double"></i> Đánh dấu đã đọc tất cả
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================================================== -->
+      <!-- CHANGE PASSWORD MODAL (PT04-US01)                   -->
+      <!-- ==================================================== -->
+      <div class="modal-backdrop center-mode" id="changePasswordModalBackdrop">
+        <div class="center-modal-box">
+          <div class="modal-header">
+            <div class="modal-title">
+              <i class="fa-solid fa-key" style="color: var(--accent-gold);"></i> Đổi mật khẩu HLV
+            </div>
+            <button class="modal-close-btn" id="btnCloseChangePasswordModal">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <form id="formChangePassword">
+            <div class="form-group">
+              <label class="form-label" for="cpCurrentPassword">Mật khẩu hiện tại</label>
+              <input type="password" class="form-control no-icon" id="cpCurrentPassword" required placeholder="Nhập mật khẩu đang dùng">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="cpNewPassword">Mật khẩu mới</label>
+              <input type="password" class="form-control no-icon" id="cpNewPassword" required placeholder="Tối thiểu 8 ký tự">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="cpConfirmPassword">Xác nhận mật khẩu mới</label>
+              <input type="password" class="form-control no-icon" id="cpConfirmPassword" required placeholder="Nhập lại mật khẩu mới">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+              <button type="button" class="btn btn-secondary" id="btnCancelChangePassword" style="flex: 1;">Hủy</button>
+              <button type="submit" class="btn btn-primary" style="flex: 1;">Cập nhật</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ==================================================== -->
+      <!-- LOGOUT CONFIRMATION MODAL (PT05-US03)               -->
+      <!-- ==================================================== -->
+      <div class="modal-backdrop center-mode" id="logoutModalBackdrop">
+        <div class="center-modal-box">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <div style="width: 54px; height: 54px; border-radius: 50%; background: var(--accent-danger-bg); color: var(--accent-danger); display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 12px;">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </div>
+            <h3 style="font-size: 17px; font-weight: 800; color: #fff;">Xác nhận đăng xuất</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.5;">
+              Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng PT Paradise Gym không? Phiên làm việc hiện tại trên thiết bị này sẽ kết thúc.
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="button" class="btn btn-secondary" id="btnCancelLogout" style="flex: 1;">Hủy</button>
+            <button type="button" class="btn btn-danger" id="btnConfirmLogout" style="flex: 1;">Xác nhận đăng xuất</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================================================== -->
+      <!-- EDIT PROFILE MODAL (PT04-US02)                      -->
+      <!-- ==================================================== -->
+      <div class="modal-backdrop center-mode" id="editProfileModalBackdrop">
+        <div class="center-modal-box" style="max-height: 85vh; overflow-y: auto;">
+          <div class="modal-header">
+            <div class="modal-title">
+              <i class="fa-solid fa-user-pen" style="color: var(--primary-light);"></i> Chỉnh sửa hồ sơ HLV
+            </div>
+            <button class="modal-close-btn" id="btnCloseEditProfileModal">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <form id="formEditProfile">
+            <!-- Avatar Picker -->
+            <div style="text-align: center; margin-bottom: 18px;">
+              <div style="position: relative; display: inline-block; cursor: pointer;" id="btnPickAvatar">
+                <img id="editAvatarPreview" style="display:none; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light);" alt="Avatar preview">
+                <div id="editAvatarFallback" class="coach-avatar-lg" style="width: 80px; height: 80px; font-size: 28px; margin: 0 auto;">
+                  <i class="fa-solid fa-user"></i>
+                </div>
+                <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-light); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.4);">
+                  <i class="fa-solid fa-camera"></i>
+                </div>
+              </div>
+              <input type="file" id="inputAvatarFile" accept="image/png,image/jpeg,image/webp" style="display: none;">
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Chạm vào ảnh để đổi avatar (PNG, JPG, WebP &le; 5MB)</div>
+            </div>
+
+            <!-- Readonly info -->
+            <div class="form-group">
+              <label class="form-label">Họ và tên HLV (Cố định)</label>
+              <input type="text" class="form-control no-icon" id="editFullName" readonly style="opacity: 0.7; background: rgba(255,255,255,0.05);">
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Mã PT</label>
+                <input type="text" class="form-control no-icon" id="editPtCode" readonly style="opacity: 0.7; background: rgba(255,255,255,0.05);">
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Chi nhánh</label>
+                <input type="text" class="form-control no-icon" id="editBranch" readonly style="opacity: 0.7; background: rgba(255,255,255,0.05);">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Số điện thoại (Cố định)</label>
+              <input type="text" class="form-control no-icon" id="editPhone" readonly style="opacity: 0.7; background: rgba(255,255,255,0.05);">
+            </div>
+
+            <!-- Editable fields -->
+            <div class="form-group">
+              <label class="form-label" for="editEmail">Email liên hệ cá nhân</label>
+              <input type="email" class="form-control no-icon" id="editEmail" placeholder="Nhập email liên hệ">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="editSpecialties">Chuyên môn huấn luyện</label>
+              <input type="text" class="form-control no-icon" id="editSpecialties" placeholder="Ví dụ: Tăng cơ giảm mỡ, Siết cơ, Boxing...">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="editBio">Giới thiệu bản thân (Bio - Tối đa 1.000 ký tự)</label>
+              <textarea class="form-control no-icon" id="editBio" rows="3" maxlength="1000" placeholder="Mô tả kinh nghiệm, thế mạnh huấn luyện..." style="resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 18px;">
+              <button type="button" class="btn btn-secondary" id="btnCancelEditProfile" style="flex: 1;">Hủy</button>
+              <button type="submit" class="btn btn-primary" id="btnSubmitEditProfile" style="flex: 1;">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- DevExtreme v23.2.5 Libraries & Vietnamese Localization -->
+  <script src="https://cdn3.devexpress.com/jslib/23.2.5/js/dx.all.js"></script>
+  <script src="https://cdn3.devexpress.com/jslib/23.2.5/js/localization/dx.messages.vi.js"></script>
+  <!-- Shared SDK -->
+  <script src="../../shared/apiClient.js"></script>
+  <!-- PT Module Scripts -->
+  <script src="js/auth.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/overview.js"></script>
+  <script src="js/schedule.js"></script>
+  <script src="js/clients.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

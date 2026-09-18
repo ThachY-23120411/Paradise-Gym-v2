@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#185740">
+  <title>Paradise Gym | Quản lý phòng tập</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/css/dx.light.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/web.css?v=4">
+</head>
+<body class="dx-viewport is-booting">
+  <div id="bootState" role="status">Đang kết nối Paradise Gym...</div>
+  <div id="authView" hidden></div>
+  <div id="appShell" hidden>
+    <header id="topbar">
+      <div class="topbar-left">
+        <button class="icon-button" id="btnDrawerToggle" title="Đóng / mở điều hướng" aria-label="Đóng / mở điều hướng" aria-expanded="true"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
+        <a href="#dashboard" class="brand-logo" aria-label="Paradise Gym - Tổng quan"><i class="fa-solid fa-dumbbell brand-mark" aria-hidden="true"></i><span>Paradise<span class="brand-gym">Gym</span><small>QUẢN LÝ PHÒNG TẬP</small></span></a>
+      </div>
+      <nav class="top-shortcuts" aria-label="Thao tác thường dùng">
+        <button class="icon-button" data-route="dashboard" title="Tổng quan" aria-label="Tổng quan"><i class="fa-solid fa-table-cells-large"></i></button>
+        <button class="icon-button" data-route="members" title="Hội viên" aria-label="Hội viên"><i class="fa-solid fa-address-card"></i></button>
+        <button class="icon-button" data-route="registrations" title="Đăng ký & gia hạn" aria-label="Đăng ký & gia hạn"><i class="fa-solid fa-file-signature"></i></button>
+        <button class="icon-button" data-route="pt-schedule" title="Lịch tập PT" aria-label="Lịch tập PT"><i class="fa-regular fa-calendar-days"></i></button>
+        <button class="icon-button" data-route="access-gate" title="Ra vào & check-in" aria-label="Ra vào & check-in"><i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+      </nav>
+      <div class="topbar-right">
+        <div class="branch-control"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><div id="globalBranchSelector"></div></div>
+        <button class="icon-button" data-route="notifications" title="Thông báo" aria-label="Thông báo"><i class="fa-regular fa-bell"></i></button>
+        <div class="user-profile-badge"><span class="user-avatar" id="userAvatar"></span><span class="user-info"><strong id="userName"></strong><small id="userRole"></small></span></div>
+        <button class="icon-button" id="btnLogout" title="Đăng xuất" aria-label="Đăng xuất"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+      </div>
+    </header>
+    <div id="workspace">
+      <aside id="sidebar" aria-label="Điều hướng chính"><div class="sidebar-caption"><span>KHÔNG GIAN LÀM VIỆC</span><span id="sidebarRoleIndicator"></span></div><nav id="sidebarList"></nav><div class="sidebar-footer"><i class="fa-solid fa-dumbbell"></i><div><strong>Paradise Gym</strong><span id="scopeLabel"></span></div></div></aside>
+      <div class="workspace-main"><div id="workspaceTabs" role="tablist" aria-label="Màn hình đang mở"></div><main id="mainViewport" tabindex="-1"></main><footer class="workspace-footer"><span>Paradise Gym</span><span id="workspaceScope"></span></footer></div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/localization/dx.messages.vi.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <script src="../shared/apiClient.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/modules/dashboard.js"></script>
+  <script src="js/modules/reports.js"></script>
+  <script src="js/modules/members.js"></script>
+  <script src="js/modules/packages.js"></script>
+  <script src="js/modules/sales.js"></script>
+  <script src="js/modules/ptScheduler.js"></script>
+  <script src="js/modules/checkin.js"></script>
+  <script src="js/modules/system.js"></script>
+  <script src="js/app.js?v=4"></script>
+</body>
+</html>

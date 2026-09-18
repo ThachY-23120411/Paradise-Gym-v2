@@ -28,7 +28,7 @@ Màn hình `W05 · Huấn luyện viên` trên nền tảng Web của QTV đư�
 - **Số điện thoại:** Số điện thoại định danh duy nhất của PT (ví dụ: `0909 888 777`).
 - **Email:** Địa chỉ email liên hệ của PT (ví dụ: `pt.hung@paradise.vn`), hiển thị `--` nếu chưa cập nhật.
 - **Chi nhánh phục vụ:** Tên chi nhánh nơi PT đang trực tiếp công tác (ví dụ: `Quận 1`, `Quận 3`).
-- **Chuyên môn / Ghi chú:** Mô tả tóm tắt kỹ năng chuyên môn, chứng chỉ thể hình (ví dụ: `Cardio & Thể hình, Chứng chỉ NASM`).
+- **Chuyên môn / Ghi chú:** Mô tả tóm tắt kỹ năng chuyên môn huấn luyện (ví dụ: `Cardio & Thể hình, Boxing, Tăng cơ giảm mỡ`).
 - **Trạng thái:** Badge trực quan theo trạng thái (`Đang hoạt động` - xanh lá, `Ngừng hoạt động` - vàng/xám, `Đã lưu trữ` - đỏ).
 - **Thao tác:**
   - Nút **[Sửa]**: Mở modal **Sửa hồ sơ PT** (`QTV-W05-US02`).

@@ -1,0 +1,143 @@
+{
+  "0900000004_RECEPTIONIST": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTkzIiwicGhvbmUiOiIwOTAwMDAwMDA0IiwibG9naW5fcGhvbmUiOiIwOTAwMDAwMDA0IiwiZnVsbF9uYW1lIjoiTMOqIFbEg24gSMO5bmciLCJhdmF0YXJfdXJsIjpudWxsLCJpc190d29fZmFjdG9yX2VuYWJsZWQiOmZhbHNlLCJyb2xlcyI6WyJQVCIsIlJFQ0VQVElPTklTVCJdLCJyb2xlIjoiUkVDRVBUSU9OSVNUIiwiYWN0aXZlX3JvbGUiOiJSRUNFUFRJT05JU1QiLCJicmFuY2hfaWRzIjpbIjIyMjIyMjIyLTIyMjItMjIyMi0yMjIyLTIyMjIyMjIyMjIyMiJdLCJpc19hbGxfYnJhbmNoZXMiOmZhbHNlLCJtZW1iZXJfcHJvZmlsZV9pZCI6bnVsbCwicHRfcHJvZmlsZV9pZCI6IjUwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMiIsInNlc3Npb25fdmVyc2lvbiI6MSwicGVybWlzc2lvbnMiOnsidmlld19maW5hbmNpYWwiOnRydWUsIm1hbmFnZV9kZXZpY2VzIjpmYWxzZSwibWFuYWdlX2FjY291bnRzIjpmYWxzZX0sInNlc3Npb25faWQiOiJjOGI5NjY1Zi1lOTM1LTRjMmItYTJkMC01NmQwNWI5NjRhY2EiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzg5Njk0NjUzLCJleHAiOjE3ODk3ODEwNTN9.Y_pPMgOKNNfdLYn4Q3fTHwbXqHf_uxN3uU6zE6V0oHU",
+    "user": {
+      "account_id": "99999999-9999-9999-9999-999999999993",
+      "phone": "0900000004",
+      "login_phone": "0900000004",
+      "full_name": "Lê Văn Hùng",
+      "avatar_url": null,
+      "is_two_factor_enabled": false,
+      "roles": [
+        "PT",
+        "RECEPTIONIST"
+      ],
+      "role": "RECEPTIONIST",
+      "active_role": "RECEPTIONIST",
+      "branch_ids": [
+        "22222222-2222-2222-2222-222222222222"
+      ],
+      "is_all_branches": false,
+      "member_profile_id": null,
+      "pt_profile_id": "50000000-0000-0000-0000-000000000002",
+      "session_version": 1,
+      "permissions": {
+        "view_financial": true,
+        "manage_devices": false,
+        "manage_accounts": false
+      }
+    }
+  },
+  "0987654321_MEMBER": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTk2IiwicGhvbmUiOiIwOTg3NjU0MzIxIiwibG9naW5fcGhvbmUiOiIwOTg3NjU0MzIxIiwiZnVsbF9uYW1lIjoiTMOqIEhvw6BuZyBOYW0iLCJhdmF0YXJfdXJsIjpudWxsLCJpc190d29fZmFjdG9yX2VuYWJsZWQiOmZhbHNlLCJyb2xlcyI6WyJNRU1CRVIiXSwicm9sZSI6Ik1FTUJFUiIsImFjdGl2ZV9yb2xlIjoiTUVNQkVSIiwiYnJhbmNoX2lkcyI6WyIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiXSwiaXNfYWxsX2JyYW5jaGVzIjpmYWxzZSwibWVtYmVyX3Byb2ZpbGVfaWQiOiI0MDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDEiLCJwdF9wcm9maWxlX2lkIjpudWxsLCJzZXNzaW9uX3ZlcnNpb24iOjIsInBlcm1pc3Npb25zIjp7InZpZXdfZmluYW5jaWFsIjpmYWxzZSwibWFuYWdlX2RldmljZXMiOmZhbHNlLCJtYW5hZ2VfYWNjb3VudHMiOmZhbHNlfSwic2Vzc2lvbl9pZCI6IjM2NDE1Y2FiLTg4NGMtNGFjYS1hZGNlLWU2YTExOTMzYzdkMCIsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3ODk2OTcwMTMsImV4cCI6MTc4OTc4MzQxM30.4Q5yIqcaiq_X4MKtOif4IiVFSIQMaAdCOOQHcih4RJw",
+    "user": {
+      "account_id": "99999999-9999-9999-9999-999999999996",
+      "phone": "0987654321",
+      "login_phone": "0987654321",
+      "full_name": "Lê Hoàng Nam",
+      "avatar_url": null,
+      "is_two_factor_enabled": false,
+      "roles": [
+        "MEMBER"
+      ],
+      "role": "MEMBER",
+      "active_role": "MEMBER",
+      "branch_ids": [
+        "11111111-1111-1111-1111-111111111111"
+      ],
+      "is_all_branches": false,
+      "member_profile_id": "40000000-0000-0000-0000-000000000001",
+      "pt_profile_id": null,
+      "session_version": 2,
+      "permissions": {
+        "view_financial": false,
+        "manage_devices": false,
+        "manage_accounts": false
+      }
+    }
+  },
+  "0900000001_QTV": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTkxIiwicGhvbmUiOiIwOTAwMDAwMDAxIiwibG9naW5fcGhvbmUiOiIwOTAwMDAwMDAxIiwiZnVsbF9uYW1lIjoiMDkwMDAwMDAwMSIsImF2YXRhcl91cmwiOm51bGwsImlzX3R3b19mYWN0b3JfZW5hYmxlZCI6dHJ1ZSwicm9sZXMiOlsiUVRWIl0sInJvbGUiOiJRVFYiLCJhY3RpdmVfcm9sZSI6IlFUViIsImJyYW5jaF9pZHMiOlsiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIl0sImlzX2FsbF9icmFuY2hlcyI6dHJ1ZSwibWVtYmVyX3Byb2ZpbGVfaWQiOm51bGwsInB0X3Byb2ZpbGVfaWQiOm51bGwsInNlc3Npb25fdmVyc2lvbiI6MywicGVybWlzc2lvbnMiOnsidmlld19maW5hbmNpYWwiOnRydWUsIm1hbmFnZV9kZXZpY2VzIjp0cnVlLCJtYW5hZ2VfYWNjb3VudHMiOnRydWV9LCJzZXNzaW9uX2lkIjoiOTBhOTU2NjItZDlmNC00ZTQ1LWIzZDgtYmY4MjNjOTViNzYzIiwidG9rZW5fdHlwZSI6ImFjY2VzcyIsImlhdCI6MTc4OTY5NDY1OCwiZXhwIjoxNzg5NzgxMDU4fQ.f4M0MI1G6Zq9x3sy_r2UaKLoa2NmRmQwTe5D0HkNdPY",
+    "user": {
+      "account_id": "99999999-9999-9999-9999-999999999991",
+      "phone": "0900000001",
+      "login_phone": "0900000001",
+      "full_name": "0900000001",
+      "avatar_url": null,
+      "is_two_factor_enabled": true,
+      "roles": [
+        "QTV"
+      ],
+      "role": "QTV",
+      "active_role": "QTV",
+      "branch_ids": [
+        "11111111-1111-1111-1111-111111111111"
+      ],
+      "is_all_branches": true,
+      "member_profile_id": null,
+      "pt_profile_id": null,
+      "session_version": 3,
+      "permissions": {
+        "view_financial": true,
+        "manage_devices": true,
+        "manage_accounts": true
+      }
+    }
+  },
+  "0900000002_RECEPTIONIST": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTkyIiwicGhvbmUiOiIwOTAwMDAwMDAyIiwibG9naW5fcGhvbmUiOiIwOTAwMDAwMDAyIiwiZnVsbF9uYW1lIjoiMDkwMDAwMDAwMiIsImF2YXRhcl91cmwiOm51bGwsImlzX3R3b19mYWN0b3JfZW5hYmxlZCI6ZmFsc2UsInJvbGVzIjpbIlJFQ0VQVElPTklTVCJdLCJyb2xlIjoiUkVDRVBUSU9OSVNUIiwiYWN0aXZlX3JvbGUiOiJSRUNFUFRJT05JU1QiLCJicmFuY2hfaWRzIjpbIjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJdLCJpc19hbGxfYnJhbmNoZXMiOmZhbHNlLCJtZW1iZXJfcHJvZmlsZV9pZCI6bnVsbCwicHRfcHJvZmlsZV9pZCI6bnVsbCwic2Vzc2lvbl92ZXJzaW9uIjozLCJwZXJtaXNzaW9ucyI6eyJ2aWV3X2ZpbmFuY2lhbCI6dHJ1ZSwibWFuYWdlX2RldmljZXMiOmZhbHNlLCJtYW5hZ2VfYWNjb3VudHMiOmZhbHNlfSwic2Vzc2lvbl9pZCI6IjZhZDFhOTNiLTk1NTItNDM3Yi1iMjk4LTc0ODM4Y2VmZDU2ZSIsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3ODk2OTQ2ODUsImV4cCI6MTc4OTc4MTA4NX0.OQPi3XJlUlG1tv4VjVZ1xi-auPKGPLM-zm4pWOGLLTI",
+    "user": {
+      "account_id": "99999999-9999-9999-9999-999999999992",
+      "phone": "0900000002",
+      "login_phone": "0900000002",
+      "full_name": "0900000002",
+      "avatar_url": null,
+      "is_two_factor_enabled": false,
+      "roles": [
+        "RECEPTIONIST"
+      ],
+      "role": "RECEPTIONIST",
+      "active_role": "RECEPTIONIST",
+      "branch_ids": [
+        "11111111-1111-1111-1111-111111111111"
+      ],
+      "is_all_branches": false,
+      "member_profile_id": null,
+      "pt_profile_id": null,
+      "session_version": 3,
+      "permissions": {
+        "view_financial": true,
+        "manage_devices": false,
+        "manage_accounts": false
+      }
+    }
+  },
+  "0900000003_PT": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTk0IiwicGhvbmUiOiIwOTAwMDAwMDAzIiwibG9naW5fcGhvbmUiOiIwOTAwMDAwMDAzIiwiZnVsbF9uYW1lIjoiTmd1eeG7hW4gVsSDbiBUaOG7gyIsImF2YXRhcl91cmwiOm51bGwsImlzX3R3b19mYWN0b3JfZW5hYmxlZCI6ZmFsc2UsInJvbGVzIjpbIlBUIl0sInJvbGUiOiJQVCIsImFjdGl2ZV9yb2xlIjoiUFQiLCJicmFuY2hfaWRzIjpbIjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJdLCJpc19hbGxfYnJhbmNoZXMiOmZhbHNlLCJtZW1iZXJfcHJvZmlsZV9pZCI6bnVsbCwicHRfcHJvZmlsZV9pZCI6IjUwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlc3Npb25fdmVyc2lvbiI6NCwicGVybWlzc2lvbnMiOnsidmlld19maW5hbmNpYWwiOmZhbHNlLCJtYW5hZ2VfZGV2aWNlcyI6ZmFsc2UsIm1hbmFnZV9hY2NvdW50cyI6ZmFsc2V9LCJzZXNzaW9uX2lkIjoiNjY1NDBhMmUtYTJhNS00ZTM1LThiOGUtZTNjZTg1ZGQzMTYwIiwidG9rZW5fdHlwZSI6ImFjY2VzcyIsImlhdCI6MTc4OTY5NzE5MywiZXhwIjoxNzg5NzgzNTkzfQ.BI-AXMfvQgyFnIldcgttQ94q_15GveWF50nakpB3KIM",
+    "user": {
+      "account_id": "99999999-9999-9999-9999-999999999994",
+      "phone": "0900000003",
+      "login_phone": "0900000003",
+      "full_name": "Nguyễn Văn Thể",
+      "avatar_url": null,
+      "is_two_factor_enabled": false,
+      "roles": [
+        "PT"
+      ],
+      "role": "PT",
+      "active_role": "PT",
+      "branch_ids": [
+        "11111111-1111-1111-1111-111111111111"
+      ],
+      "is_all_branches": false,
+      "member_profile_id": null,
+      "pt_profile_id": "50000000-0000-0000-0000-000000000001",
+      "session_version": 4,
+      "permissions": {
+        "view_financial": false,
+        "manage_devices": false,
+        "manage_accounts": false
+      }
+    }
+  }
+}

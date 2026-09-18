@@ -27,11 +27,11 @@
   - Thông tin lịch sử thanh toán là dữ liệu cố định (Read-only), không chỉnh sửa hoặc xóa từ giao diện Mobile.
 
 ### Field-level specification — Khối / Màn hình Lịch sử thanh toán
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tiêu đề khối Lịch sử thanh toán** | `READONLY` | required | Không | Nhãn tiêu đề cố định: `Lịch sử thanh toán` kèm phụ đề `Các giao dịch mua và thanh toán gói của bạn.` và icon phiếu thu ở góc phải |
-| **Hộp trạng thái rỗng (Empty State)** | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào lịch sử giao dịch | - **Hiện khi:** Hội viên chưa có giao dịch mua/thanh toán gói nào. Hiển thị hộp bo góc: `Bạn chưa có giao dịch thanh toán nào.`<br>- **Ẩn khi:** Đã có ít nhất 1 giao dịch thanh toán. |
-| **Thẻ giao dịch thanh toán (Payment Card)** | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào lịch sử giao dịch | - **Hiện khi:** Có ít nhất 1 giao dịch thanh toán.<br>- **Ẩn khi:** Chưa có giao dịch nào.<br>Mỗi thẻ bao gồm: Mã phiếu thu (`PT00125` - chữ đậm), Số tiền thanh toán (`3.200.000 đ` - chữ đậm màu xanh lục), Tên gói tập & ngày thanh toán, Phương thức (`Chuyển khoản`), Badge trạng thái (`Đã xác nhận` - xanh lá). |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tiêu đề khối Lịch sử thanh toán** | `Typography / Heading` | `READONLY` | required | Không | Nhãn tiêu đề cố định: `Lịch sử thanh toán` kèm phụ đề `Các giao dịch mua và thanh toán gói của bạn.` và icon phiếu thu ở góc phải |
+| **Hộp trạng thái rỗng (Empty State)** | `Empty state container` | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào lịch sử giao dịch | - **Hiện khi:** Hội viên chưa có giao dịch mua/thanh toán gói nào. Hiển thị hộp bo góc: `Bạn chưa có giao dịch thanh toán nào.`<br>- **Ẩn khi:** Đã có ít nhất 1 giao dịch thanh toán. |
+| **Thẻ giao dịch thanh toán (Payment Card)** | `Card list item` | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào lịch sử giao dịch | - **Hiện khi:** Có ít nhất 1 giao dịch thanh toán.<br>- **Ẩn khi:** Chưa có giao dịch nào.<br>Mỗi thẻ bao gồm: Mã phiếu thu (`PT00125` - chữ đậm), Số tiền thanh toán (`3.200.000 đ` - chữ đậm màu xanh lục), Tên gói tập & ngày thanh toán, Phương thức (`Chuyển khoản`), Badge trạng thái (`Đã xác nhận` - xanh lá). |
 
 ## Alternate Flows
 

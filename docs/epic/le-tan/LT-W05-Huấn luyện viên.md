@@ -25,7 +25,7 @@ Màn hình `W05 · Huấn luyện viên` trên nền tảng Web của Lễ tân 
 - **Số điện thoại:** Số điện thoại liên hệ của PT (ví dụ: `0909 888 777`).
 - **Email:** Địa chỉ email của PT (ví dụ: `pt.hung@paradise.vn`), hiển thị `--` nếu chưa có.
 - **Chi nhánh phục vụ:** Chi nhánh nơi Lễ tân và PT đang công tác (ví dụ: `Quận 1`).
-- **Chuyên môn / Ghi chú:** Mô tả chuyên môn, chứng chỉ thể hình (ví dụ: `Cardio & Thể hình, Chứng chỉ NASM`).
+- **Chuyên môn / Ghi chú:** Mô tả chuyên môn huấn luyện (ví dụ: `Cardio & Thể hình, Boxing, Tăng cơ giảm mỡ`).
 - **Trạng thái:** Badge trực quan (`Đang hoạt động` - xanh lá, `Ngừng hoạt động` - vàng/xám, `Đã lưu trữ` - đỏ).
 - **Phân quyền thao tác:** **Không có cột nút thao tác `[Sửa]` hay `[Đổi trạng thái]`**.
 

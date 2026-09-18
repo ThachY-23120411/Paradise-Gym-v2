@@ -31,15 +31,15 @@
   - Sau khi kích hoạt thành công, hệ thống tự động đăng nhập và lưu thiết bị tin cậy đầu tiên.
 
 ### Field-level specification — Màn hình Kích hoạt tài khoản PT
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Số điện thoại / Mã PT** | `USER-INPUT` | required | `TRIGGER`: Nhập thông tin để hệ thống kiểm tra hồ sơ nhân sự | Nhập số điện thoại đăng ký nhân sự (10 số) hoặc Mã PT được cấp (ví dụ `PT001`) |
-| **Thông tin xác nhận HLV** | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc kết quả tra cứu hồ sơ nhân sự | - **Hiện khi:** Hệ thống tìm thấy hồ sơ PT hợp lệ ở trạng thái chờ kích hoạt (hiển thị Họ tên PT, Mã PT, Chi nhánh làm việc).<br>- **Ẩn khi:** Chưa nhập thông tin hoặc tài khoản không tồn tại. |
-| **Nút [ Nhận mã OTP ]** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc trạng thái tra cứu | - **Hiện khi:** Hồ sơ PT hợp lệ và sẵn sàng nhận OTP.<br>- **Ẩn khi:** Chưa nhập SĐT/Mã PT hoặc hồ sơ không hợp lệ. |
-| **Mã xác thực OTP** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc trạng thái gửi mã OTP | - **Hiện khi:** Hệ thống đã gửi mã OTP thành công (nhập 6 chữ số).<br>- **Ẩn khi:** Chưa bấm nhận mã OTP. |
-| **Mật khẩu mới** | `USER-INPUT` | required | Không | Nhập mật khẩu mới (tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số/ký tự đặc biệt); hỗ trợ icon ẩn/hiện |
-| **Xác nhận mật khẩu** | `USER-INPUT` | required | Không | Nhập lại mật khẩu mới; yêu cầu trùng khớp 100% với ô Mật khẩu mới |
-| **Nút CTA [ Kích hoạt & Đăng nhập ]** | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã nhập đủ SĐT/Mã PT, OTP 6 số và 2 ô mật khẩu trùng khớp | Nút màu xanh lá bo góc; bấm để hoàn tất kích hoạt tài khoản và mở giao diện ứng dụng PT |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Số điện thoại / Mã PT** | `Textbox (Phone/Code Input)` | `USER-INPUT` | required | `TRIGGER`: Nhập thông tin để hệ thống kiểm tra hồ sơ nhân sự | Nhập số điện thoại đăng ký nhân sự (10 số) hoặc Mã PT được cấp (ví dụ `PT001`) |
+| **Thông tin xác nhận HLV** | `Profile Preview Card` | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc kết quả tra cứu hồ sơ nhân sự | - **Hiện khi:** Hệ thống tìm thấy hồ sơ PT hợp lệ ở trạng thái chờ kích hoạt (hiển thị Họ tên PT, Mã PT, Chi nhánh làm việc).<br>- **Ẩn khi:** Chưa nhập thông tin hoặc tài khoản không tồn tại. |
+| **Nút [ Nhận mã OTP ]** | `Action Button` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc trạng thái tra cứu | - **Hiện khi:** Hồ sơ PT hợp lệ và sẵn sàng nhận OTP.<br>- **Ẩn khi:** Chưa nhập SĐT/Mã PT hoặc hồ sơ không hợp lệ. |
+| **Mã xác thực OTP** | `OTP Input (6 Digits)` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc trạng thái gửi mã OTP | - **Hiện khi:** Hệ thống đã gửi mã OTP thành công (nhập 6 chữ số).<br>- **Ẩn khi:** Chưa bấm nhận mã OTP. |
+| **Mật khẩu mới** | `Password Input (with Toggle Eye)` | `USER-INPUT` | required | Không | Nhập mật khẩu mới (tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số/ký tự đặc biệt); hỗ trợ icon ẩn/hiện |
+| **Xác nhận mật khẩu** | `Password Input (with Toggle Eye)` | `USER-INPUT` | required | Không | Nhập lại mật khẩu mới; yêu cầu trùng khớp 100% với ô Mật khẩu mới |
+| **Nút CTA [ Kích hoạt & Đăng nhập ]** | `Action Button (CTA)` | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã nhập đủ SĐT/Mã PT, OTP 6 số và 2 ô mật khẩu trùng khớp | Nút màu xanh lá bo góc; bấm để hoàn tất kích hoạt tài khoản và mở giao diện ứng dụng PT |
 
 ## Alternate Flows
 

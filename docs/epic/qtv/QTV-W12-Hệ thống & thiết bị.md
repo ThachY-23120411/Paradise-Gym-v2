@@ -5,6 +5,7 @@
 - **Menu:** `W12`
 - **Goal:** Quản lý thiết bị nhận diện/ra vào, consent nhận diện và xử lý sự cố thiết bị.
 - **Scope:** Thiết bị, điểm lắp, mục đích IN/OUT, trạng thái kết nối, consent và theo dõi sự cố/event gửi bù.
+- **Trạng thái:** Cấu hình QTV chọn được lưu và audit; trạng thái kết nối hiệu lực vẫn phụ thuộc heartbeat. Form/chi tiết phân biệt hai giá trị, không coi lưu cấu hình là kết nối thành công.
 
 ## User Stories trong Epic
 

@@ -25,15 +25,16 @@
   - Không cho phép tự sửa đổi các trường liên quan đến phân quyền, trạng thái gói tập hay lịch sử giao dịch tại màn hình này.
 
 ### Field-level specification — Màn hình Cập nhật hồ sơ cá nhân
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Ảnh đại diện (Avatar)** | `USER-INPUT` + `PREFILL` | optional | Không | Cho phép tải ảnh đại diện mới từ thư viện thiết bị hoặc chụp từ camera |
-| **Họ và tên** | `USER-INPUT` + `PREFILL` | required | Không | Prefill họ tên hiện tại; cho phép chỉnh sửa họ và tên cá nhân |
-| **Số điện thoại** | `USER-INPUT` + `PREFILL` | required | `TRIGGER`: Sửa đổi SĐT kích hoạt gửi và hiển thị ô nhập mã OTP | Prefill SĐT tài khoản hiện tại; kiểm tra không trùng lặp khi đổi số mới |
-| **Mã xác thực OTP đổi SĐT** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc vào việc thay đổi SĐT | - **Hiện khi:** Hội viên thay đổi SĐT khác với SĐT tài khoản hiện tại (nhập 6 chữ số OTP gửi về SĐT mới).<br>- **Ẩn khi:** Giữ nguyên SĐT tài khoản hiện tại. |
-| **Email** | `USER-INPUT` + `PREFILL` | optional | Không | Prefill email hiện tại; kiểm tra định dạng email hợp lệ |
-| **Ngày sinh** | `USER-INPUT` + `PREFILL` | optional | Không | Bộ chọn ngày (Date Picker); prefill ngày sinh đã đăng ký |
-| **Nút CTA [ Lưu thay đổi ]** | `USER-INPUT` | required | `DYNAMIC`: Enable khi có ít nhất một trường thay đổi hợp lệ | Nút màu xanh lá bo góc; bấm để lưu cập nhật thông tin hồ sơ |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Ảnh đại diện (Avatar)** | `Avatar image picker / Upload` | `USER-INPUT` + `PREFILL` | optional | Không | Cho phép tải ảnh đại diện mới từ thư viện thiết bị hoặc chụp từ camera (PNG, JPG, WebP $\le$ 5MB) |
+| **Họ và tên** | `Text input` | `USER-INPUT` + `PREFILL` | required | Không | Prefill họ tên hiện tại; cho phép chỉnh sửa họ và tên cá nhân |
+| **Số điện thoại** | `Text input` | `USER-INPUT` + `PREFILL` | required | `TRIGGER`: Sửa đổi SĐT kích hoạt gửi và hiển thị ô nhập mã OTP | Prefill SĐT tài khoản hiện tại; kiểm tra không trùng lặp khi đổi số mới |
+| **Mã xác thực OTP đổi SĐT** | `Text input / OTP input` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc vào việc thay đổi SĐT | - **Hiện khi:** Hội viên thay đổi SĐT khác với SĐT tài khoản hiện tại (nhập 6 chữ số OTP gửi về SĐT mới).<br>- **Ẩn khi:** Giữ nguyên SĐT tài khoản hiện tại. |
+| **Email** | `Text input / Email` | `USER-INPUT` + `PREFILL` | optional | Không | Prefill email hiện tại; kiểm tra định dạng email hợp lệ |
+| **Ngày sinh** | `Date picker` | `USER-INPUT` + `PREFILL` | optional | Không | Bộ chọn ngày (Date Picker); prefill ngày sinh đã đăng ký |
+| **Giới tính** | `Select / Radio group` | `USER-INPUT` + `PREFILL` | optional | Không | Nạp từ `member_profiles.gender` qua API hồ sơ của hội viên hiện tại; lựa chọn theo enum hợp lệ của API hoặc để trống; không mặc định giới tính khi dữ liệu chưa có. Lưu cùng hồ sơ qua API, theo phạm vi HV04 Epic |
+| **Nút CTA [ Lưu thay đổi ]** | `Button / Primary CTA` | `USER-INPUT` | required | `DYNAMIC`: Enable khi có ít nhất một trường thay đổi hợp lệ | Nút màu xanh lá bo góc; bấm để lưu cập nhật thông tin hồ sơ |
 
 ## Alternate Flows
 

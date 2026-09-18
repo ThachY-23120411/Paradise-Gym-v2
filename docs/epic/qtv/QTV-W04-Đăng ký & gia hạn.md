@@ -47,7 +47,7 @@ Menu `W04 · Đăng ký & gia hạn` là màn hình quản lý hợp đồng đ�
   5. `Số tiền`: Tổng giá trị thanh toán 100% của gói (ví dụ: `1.350.000 đ`, `3.800.000 đ`); hệ thống áp dụng thanh toán 100% 1 lần duy nhất, không áp dụng công nợ.
   6. `PT phụ trách`: Huấn luyện viên phụ trách gói:
      - Gói GYM: Hiển thị dấu gạch ngang `--`.
-     - Gói có PT (PT / COMBO): Hiển thị `{Tên PT} ({Mã PT})` nếu đã phân công (ví dụ: `Nguyễn Thành Long (PT001)`), hoặc hiển thị `Chưa có PT phụ trách` nếu chưa phân công.
+     - Gói có PT (PT / COMBO): Hiển thị `{Tên PT} ({Mã PT})` nếu đã phân công (ví dụ: `Nguyễn Văn Thể (PT001)`), hoặc hiển thị `Chưa có PT phụ trách` nếu chưa phân công.
   7. `Trạng thái`: Status badge viền màu trực quan:
      - Badge viền xanh lá: `Đang hiệu lực`
      - Badge viền vàng cam: `Chờ thanh toán`

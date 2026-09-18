@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Paradise Gym - Đăng nhập Mobile</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+
+  <div class="mobile-login-wrapper">
+    <!-- Brand Header -->
+    <header class="brand-header">
+      <div class="brand-logo">
+        <i class="fa-solid fa-dumbbell"></i>
+      </div>
+      <h1 class="brand-title">PARADISE <span>GYM</span></h1>
+      <p class="brand-subtitle">Hệ Thống Quản Trị Chuỗi Phòng Tập Thể Hình</p>
+      <div class="role-badge-row">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Đăng nhập Hội viên & Huấn luyện viên (PT)</span>
+      </div>
+    </header>
+
+    <!-- Account Lockout Banner (15 mins) -->
+    <div id="lockoutBanner" class="notice-banner error" style="display: none; margin-bottom: 16px;">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <div>
+        <strong>Tài khoản bị khóa tạm thời 15 phút!</strong><br>
+        Bạn đã nhập sai thông tin quá 5 lần. Vui lòng thử lại sau: <span id="lockoutCountdown" style="font-weight: 700;">15:00</span>
+      </div>
+    </div>
+
+    <!-- Segmented Navigation (Mật khẩu vs OTP) -->
+    <nav class="tab-navigation" id="tabNav">
+      <button type="button" class="tab-btn active" id="tabBtnPassword" data-view="password">
+        <i class="fa-solid fa-key"></i> Bằng Mật Khẩu
+      </button>
+      <button type="button" class="tab-btn" id="tabBtnOtp" data-view="otp">
+        <i class="fa-solid fa-comment-sms"></i> Bằng Mã OTP
+      </button>
+    </nav>
+
+    <!-- ======================================================== -->
+    <!-- 1. VIEW: PASSWORD LOGIN                                  -->
+    <!-- ======================================================== -->
+    <section class="form-panel" id="panelPassword">
+      <form id="formLoginPassword">
+        <div class="field-group">
+          <label class="field-label" for="loginIdentifier">
+            <span>Số điện thoại hoặc Mã PT <span class="required">*</span></span>
+          </label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-user prefix-icon"></i>
+            <input type="text" id="loginIdentifier" class="input-control" placeholder="Ví dụ: 0987654321 hoặc PT001" required autocomplete="username">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="loginPassword">
+            <span>Mật khẩu <span class="required">*</span></span>
+          </label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock prefix-icon"></i>
+            <input type="password" id="loginPassword" class="input-control" placeholder="Nhập mật khẩu..." required autocomplete="current-password">
+            <button type="button" class="btn-toggle-eye" data-target="loginPassword" title="Ẩn/Hiện mật khẩu">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="btnLoginPasswordSubmit">
+          <i class="fa-solid fa-right-to-bracket"></i> ĐĂNG NHẬP NGAY
+        </button>
+      </form>
+
+      <div class="footer-nav-row">
+        <div>
+          <span>Chưa có mật khẩu? </span>
+          <a href="#" class="btn-link" id="linkGoActivate">Kích hoạt tài khoản</a>
+        </div>
+        <div>
+          <span>Hội viên mới? </span>
+          <a href="#" class="btn-link" id="linkGoRegister">Đăng ký tham gia ngay</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- 2. VIEW: OTP PASSWORDLESS LOGIN                          -->
+    <!-- ======================================================== -->
+    <section class="form-panel" id="panelOtp" style="display: none;">
+      <div class="notice-banner info">
+        <i class="fa-solid fa-circle-info"></i>
+        <div>Đăng nhập nhanh không cần mật khẩu dành cho Hội viên và HLV. Mã OTP 6 số sẽ được gửi tới SĐT của bạn.</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="loginOtpPhone">
+          <span>Số điện thoại đăng ký <span class="required">*</span></span>
+        </label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-mobile-screen prefix-icon"></i>
+          <input type="tel" id="loginOtpPhone" class="input-control" placeholder="Nhập số điện thoại 10 số..." maxlength="10" required>
+        </div>
+      </div>
+
+      <button type="button" class="btn-secondary" id="btnRequestLoginOtp">
+        <i class="fa-regular fa-paper-plane"></i> <span id="btnRequestLoginOtpText">Nhận mã OTP</span>
+        <span id="loginOtpTimer" class="countdown-timer" style="display:none"></span>
+      </button>
+
+      <div id="otpDevHint" class="notice-banner warning" style="display:none; font-size:12px; padding:8px 12px;"></div>
+
+      <form id="formLoginOtp">
+        <div class="field-group" id="otpBoxesGroup" style="display: none;">
+          <label class="field-label">
+            <span>Nhập 6 chữ số mã OTP <span class="required">*</span></span>
+          </label>
+          <div class="otp-boxes-grid" id="otpBoxesLogin">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          </div>
+          <input type="hidden" id="loginOtpCodeHidden">
+        </div>
+
+        <button type="submit" class="btn-primary" id="btnLoginOtpSubmit" disabled>
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> ĐĂNG NHẬP VỚI OTP
+        </button>
+      </form>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- 3. VIEW: 2FA VERIFICATION (TWO-FACTOR AUTHENTICATION)    -->
+    <!-- ======================================================== -->
+    <section class="form-panel" id="panel2Fa" style="display: none;">
+      <div style="text-align: center; margin-bottom: 12px;">
+        <div style="font-size: 36px; color: var(--primary); margin-bottom: 8px;"><i class="fa-solid fa-shield-halved"></i></div>
+        <h2>Xác thực 2 bước (2FA)</h2>
+        <p class="brand-subtitle" style="margin-top: 4px;">Tài khoản được bảo vệ lớp 2. Mã OTP 6 số đã được phát tới <strong id="twoFaMaskedPhone" style="color:#fff;"></strong></p>
+      </div>
+
+      <div id="twoFaDevHint" class="notice-banner warning" style="display:none; font-size:12px; padding:8px 12px;"></div>
+
+      <form id="form2Fa">
+        <div class="field-group">
+          <div class="otp-boxes-grid" id="otpBoxes2Fa">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          </div>
+          <input type="hidden" id="twoFaCodeHidden">
+        </div>
+
+        <div class="otp-countdown-wrap">
+          <span>Thời hạn mã: 60s</span>
+          <button type="button" class="btn-link" id="btnResend2FaOtp">Gửi lại mã OTP <span id="twoFaTimer" class="countdown-timer"></span></button>
+        </div>
+
+        <button type="submit" class="btn-primary" id="btnVerify2FaSubmit">
+          <i class="fa-solid fa-shield-check"></i> XÁC THỰC HOÀN TẤT
+        </button>
+      </form>
+
+      <button type="button" class="btn-secondary btn-back-login" style="margin-top: 8px;">
+        <i class="fa-solid fa-arrow-left"></i> Quay lại đăng nhập
+      </button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- 4. VIEW: ACCOUNT ACTIVATION (MEMBER & PT)                -->
+    <!-- ======================================================== -->
+    <section class="form-panel" id="panelActivate" style="display: none;">
+      <div>
+        <h2>Kích hoạt tài khoản</h2>
+        <p class="brand-subtitle">Dành cho Hội viên hoặc HLV nhận tài khoản lần đầu.</p>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="actIdentifier">
+          <span>Số điện thoại hoặc Mã PT <span class="required">*</span></span>
+        </label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-address-card prefix-icon"></i>
+          <input type="text" id="actIdentifier" class="input-control" placeholder="Nhập SĐT hoặc Mã PT..." required>
+        </div>
+      </div>
+
+      <button type="button" class="btn-secondary" id="btnActLookup">
+        <i class="fa-solid fa-magnifying-glass"></i> Tra cứu hồ sơ
+      </button>
+
+      <!-- Profile Preview Card -->
+      <div id="actProfilePreview" class="notice-banner info" style="display: none;">
+        <i class="fa-solid fa-user-check"></i>
+        <div>
+          Hồ sơ tìm thấy: <strong id="actProfileName" style="color:#fff;"></strong><br>
+          <span id="actProfileBranch" style="color:var(--text-muted); font-size:12px;"></span>
+        </div>
+      </div>
+
+      <div id="actStepOtp" style="display: none;" class="field-group">
+        <button type="button" class="btn-secondary" id="btnActRequestOtp">
+          <i class="fa-regular fa-paper-plane"></i> Nhận mã kích hoạt (OTP) <span id="actTimer" class="countdown-timer"></span>
+        </button>
+      </div>
+
+      <div id="actDevHint" class="notice-banner warning" style="display:none; font-size:12px; padding:8px 12px;"></div>
+
+      <form id="formActivate">
+        <div class="field-group" id="actOtpInputGroup" style="display: none;">
+          <label class="field-label"><span>Nhập mã OTP 6 số <span class="required">*</span></span></label>
+          <div class="otp-boxes-grid" id="otpBoxesAct">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          </div>
+          <input type="hidden" id="actOtpCodeHidden">
+        </div>
+
+        <div id="actPasswordGroup" style="display: none;" class="field-group">
+          <div class="field-group">
+            <label class="field-label" for="actPassword"><span>Tạo mật khẩu mới <span class="required">*</span></span></label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-lock prefix-icon"></i>
+              <input type="password" id="actPassword" class="input-control" placeholder="Tối thiểu 6 ký tự..." required>
+              <button type="button" class="btn-toggle-eye" data-target="actPassword"><i class="fa-regular fa-eye"></i></button>
+            </div>
+          </div>
+          <div class="field-group" style="margin-top: 8px;">
+            <label class="field-label" for="actConfirmPassword"><span>Xác nhận mật khẩu mới <span class="required">*</span></span></label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-lock-open prefix-icon"></i>
+              <input type="password" id="actConfirmPassword" class="input-control" placeholder="Nhập lại mật khẩu..." required>
+              <button type="button" class="btn-toggle-eye" data-target="actConfirmPassword"><i class="fa-regular fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="btnActSubmit" disabled>
+          <i class="fa-solid fa-check"></i> HOÀN TẤT KÍCH HOẠT
+        </button>
+      </form>
+
+      <button type="button" class="btn-secondary btn-back-login" style="margin-top: 8px;">
+        <i class="fa-solid fa-arrow-left"></i> Quay lại đăng nhập
+      </button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- 5. VIEW: MEMBER REGISTRATION                             -->
+    <!-- ======================================================== -->
+    <section class="form-panel" id="panelRegister" style="display: none;">
+      <div>
+        <h2>Đăng ký Hội viên mới</h2>
+        <p class="brand-subtitle">Trở thành thành viên của gia đình Paradise Gym ngay hôm nay.</p>
+      </div>
+
+      <form id="formRegister">
+        <div class="field-group">
+          <label class="field-label" for="regFullName">
+            <span>Họ và tên <span class="required">*</span></span>
+          </label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-signature prefix-icon"></i>
+            <input type="text" id="regFullName" class="input-control" placeholder="Nhập họ và tên đầy đủ..." required>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="regPhone">
+            <span>Số điện thoại <span class="required">*</span></span>
+          </label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-phone prefix-icon"></i>
+            <input type="tel" id="regPhone" class="input-control" placeholder="09xxxxxxxx..." maxlength="10" required>
+          </div>
+        </div>
+
+        <!-- Mandatory Branch Selection (Decision 1) -->
+        <div class="field-group">
+          <label class="field-label" for="regHomeBranch">
+            <span>Chi nhánh đăng ký sinh hoạt <span class="required">*</span></span>
+          </label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-location-dot prefix-icon"></i>
+            <select id="regHomeBranch" class="input-control" required>
+              <option value="" disabled selected>-- Chọn chi nhánh phòng tập * --</option>
+            </select>
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+            * Bắt buộc chọn cơ sở tập luyện chính, không tự động chọn mặc định.
+          </span>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="regEmail">
+            <span>Email</span>
+          </label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-envelope prefix-icon"></i>
+            <input type="email" id="regEmail" class="input-control" placeholder="email@example.com...">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="regPassword">
+            <span>Mật khẩu <span class="required">*</span></span>
+          </label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock prefix-icon"></i>
+            <input type="password" id="regPassword" class="input-control" placeholder="Tối thiểu 6 ký tự..." required>
+            <button type="button" class="btn-toggle-eye" data-target="regPassword"><i class="fa-regular fa-eye"></i></button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="regConfirmPassword">
+            <span>Xác nhận mật khẩu <span class="required">*</span></span>
+          </label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock-open prefix-icon"></i>
+            <input type="password" id="regConfirmPassword" class="input-control" placeholder="Nhập lại mật khẩu..." required>
+            <button type="button" class="btn-toggle-eye" data-target="regConfirmPassword"><i class="fa-regular fa-eye"></i></button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-secondary" id="btnRequestRegOtp">
+          <i class="fa-regular fa-paper-plane"></i> <span id="btnRequestRegOtpText">Nhận mã OTP</span>
+          <span id="regOtpTimer" class="countdown-timer" style="display:none"></span>
+        </button>
+
+        <div id="regOtpDevHint" class="notice-banner warning" style="display:none; font-size:12px; padding:8px 12px;"></div>
+
+        <div class="field-group" id="regOtpBoxesGroup" style="display: none;">
+          <label class="field-label">
+            <span>Nhập 6 chữ số mã OTP <span class="required">*</span></span>
+          </label>
+          <div class="otp-boxes-grid" id="otpBoxesReg">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          </div>
+          <input type="hidden" id="regOtpCodeHidden">
+        </div>
+
+        <button type="submit" class="btn-primary" id="btnRegisterSubmit" disabled>
+          <i class="fa-solid fa-user-plus"></i> HOÀN TẤT TẠO TÀI KHOẢN
+        </button>
+      </form>
+
+      <button type="button" class="btn-secondary btn-back-login" style="margin-top: 8px;">
+        <i class="fa-solid fa-arrow-left"></i> Đã có tài khoản? Đăng nhập
+      </button>
+    </section>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="../shared/apiClient.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

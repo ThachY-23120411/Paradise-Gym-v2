@@ -32,26 +32,26 @@
   - **Bảo mật dữ liệu:** Tuyệt đối không lưu mật khẩu hoặc mã OTP dạng rõ (plaintext) trong bộ nhớ tạm hoặc nhật ký audit hệ thống.
 
 ### Field-level specification — Màn hình Đăng nhập đa phương thức
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tab chọn phương thức đăng nhập** | `USER-INPUT` | required | `TRIGGER`: Chuyển đổi giữa 2 form nhập | 2 tab lựa chọn: `Bằng Mật khẩu` (mặc định) và `Bằng mã OTP` |
-| **Số điện thoại** | `USER-INPUT` | required | Không | Nhập số điện thoại đăng nhập (10 chữ số, định dạng SĐT Việt Nam) |
-| **Mật khẩu** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập | - **Hiện khi:** Chọn tab `Bằng Mật khẩu`.<br>- **Ẩn khi:** Chọn tab `Bằng mã OTP`. |
-| **Nút [ Nhận mã OTP ]** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập | - **Hiện khi:** Chọn tab `Bằng mã OTP` (nút kích hoạt gửi mã SMS).<br>- **Ẩn khi:** Chọn tab `Bằng Mật khẩu`. |
-| **Mã OTP đăng nhập** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập và trạng thái gửi mã | - **Hiện khi:** Chọn tab `Bằng mã OTP` và hệ thống đã gửi OTP (nhập 6 chữ số).<br>- **Ẩn khi:** Chọn tab `Bằng Mật khẩu` hoặc chưa bấm nhận mã. |
-| **Nút CTA [ ĐĂNG NHẬP ]** | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã điền đủ thông tin theo phương thức tương ứng | Nút màu xanh lá bo góc; bấm để gửi thông tin xác thực |
-| **Text link [ Kích hoạt tài khoản ]** | `USER-INPUT` | optional | Không | Text link điều hướng bên dưới; bấm để mở Màn hình Kích hoạt tài khoản (`HV06-US02`) cho hội viên đã có hồ sơ tại quầy |
-| **Text link [ Tạo tài khoản mới ]** | `USER-INPUT` | optional | Không | Text link điều hướng bên dưới; bấm để mở Màn hình Tạo tài khoản mới (`HV06-US03`) cho khách hàng mới |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tab chọn phương thức đăng nhập** | `Tabs / Segmented control` | `USER-INPUT` | required | `TRIGGER`: Chuyển đổi giữa 2 form nhập | 2 tab lựa chọn: `Bằng Mật khẩu` (mặc định) và `Bằng mã OTP` |
+| **Số điện thoại** | `Text input` | `USER-INPUT` | required | Không | Nhập số điện thoại đăng nhập (10 chữ số, định dạng SĐT Việt Nam) |
+| **Mật khẩu** | `Password input` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập | - **Hiện khi:** Chọn tab `Bằng Mật khẩu`.<br>- **Ẩn khi:** Chọn tab `Bằng mã OTP`. |
+| **Nút [ Nhận mã OTP ]** | `Button / Secondary` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập | - **Hiện khi:** Chọn tab `Bằng mã OTP` (nút kích hoạt gửi mã SMS).<br>- **Ẩn khi:** Chọn tab `Bằng Mật khẩu`. |
+| **Mã OTP đăng nhập** | `Text input / OTP input` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập và trạng thái gửi mã | - **Hiện khi:** Chọn tab `Bằng mã OTP` và hệ thống đã gửi OTP (nhập 6 chữ số).<br>- **Ẩn khi:** Chọn tab `Bằng Mật khẩu` hoặc chưa bấm nhận mã. |
+| **Nút CTA [ ĐĂNG NHẬP ]** | `Button / Primary CTA` | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã điền đủ thông tin theo phương thức tương ứng | Nút màu xanh lá bo góc; bấm để gửi thông tin xác thực |
+| **Text link [ Kích hoạt tài khoản ]** | `Text link / Action` | `USER-INPUT` | optional | Không | Text link điều hướng bên dưới; bấm để mở Màn hình Kích hoạt tài khoản (`HV06-US02`) cho hội viên đã có hồ sơ tại quầy |
+| **Text link [ Tạo tài khoản mới ]** | `Text link / Action` | `USER-INPUT` | optional | Không | Text link điều hướng bên dưới; bấm để mở Màn hình Tạo tài khoản mới (`HV06-US03`) cho khách hàng mới |
 
 ### Field-level specification — Bước Xác thực 2 lớp (2FA Verification)
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tiêu đề màn hình 2FA** | `READONLY` | required | Không | Tiêu đề: `Xác thực 2 bước (2FA)` |
-| **Thông báo gửi mã 2FA** | `READONLY` | required | Không | Hiển thị: *"Mã xác thực gồm 6 chữ số đã được gửi tới số điện thoại [0909 *** 456]"* |
-| **Ô nhập mã OTP 2FA** | `USER-INPUT` | required | Không | 6 ô nhập chữ số OTP (tự động nhảy sang ô tiếp theo khi nhập) |
-| **Đếm ngược thời gian (Countdown)** | `READONLY` | required | Không | Đếm ngược hiệu lực mã: `Gửi lại mã sau (60s)` |
-| **Nút [ Gửi lại mã OTP ]** | `USER-INPUT` | optional | `DYNAMIC`: Enable khi bộ đếm về 0s, Disable khi đang đếm ngược | Bấm để gửi lại mã OTP mới (tối đa 3 lần) |
-| **Nút CTA [ Xác nhận 2FA ]** | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã nhập đủ 6 chữ số OTP | Nút màu xanh lá bo góc; bấm để hoàn tất xác thực 2 lớp và vào ứng dụng |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tiêu đề màn hình 2FA** | `Typography / Heading` | `READONLY` | required | Không | Tiêu đề: `Xác thực 2 bước (2FA)` |
+| **Thông báo gửi mã 2FA** | `Typography / Paragraph` | `READONLY` | required | Không | Hiển thị: *"Mã xác thực gồm 6 chữ số đã được gửi tới số điện thoại [0909 *** 456]"* |
+| **Ô nhập mã OTP 2FA** | `OTP input group (6 boxes)` | `USER-INPUT` | required | Không | 6 ô nhập chữ số OTP (tự động nhảy sang ô tiếp theo khi nhập) |
+| **Đếm ngược thời gian (Countdown)** | `Typography / Countdown text` | `READONLY` | required | Không | Đếm ngược hiệu lực mã: `Gửi lại mã sau (60s)` |
+| **Nút [ Gửi lại mã OTP ]** | `Button / Secondary` | `USER-INPUT` | optional | `DYNAMIC`: Enable khi bộ đếm về 0s, Disable khi đang đếm ngược | Bấm để gửi lại mã OTP mới (tối đa 3 lần) |
+| **Nút CTA [ Xác nhận 2FA ]** | `Button / Primary CTA` | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã nhập đủ 6 chữ số OTP | Nút màu xanh lá bo góc; bấm để hoàn tất xác thực 2 lớp và vào ứng dụng |
 
 ## Alternate Flows
 

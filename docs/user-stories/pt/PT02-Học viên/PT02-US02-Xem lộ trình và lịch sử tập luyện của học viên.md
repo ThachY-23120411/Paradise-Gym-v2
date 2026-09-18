@@ -22,14 +22,14 @@
    - PT chỉ xem được lộ trình tập luyện của các học viên do chính mình phụ trách.
 
 ### Field-level specification — Màn hình Chi tiết lộ trình & Lịch sử tập luyện của học viên
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Nút quay lại (Back Button `[←]`)** | `USER-INPUT` | required | Không | Icon mũi tên quay lại góc trên bên trái màn hình; chạm để đóng màn hình chi tiết và quay về danh sách học viên `PT02-US01` |
-| **Khối thông tin hồ sơ học viên** | `READONLY` | required | Không | Hiển thị thông tin định danh: Avatar chữ cái đầu họ tên, Họ và tên học viên (in đậm), Mã học viên, Số điện thoại và Chi nhánh đăng ký sinh hoạt |
-| **Khối thông tin gói PT & Thời hạn** | `READONLY` | required | Không | Hiển thị: Tên gói PT (ví dụ: `Gói PT 20 buổi`), Tổng số buổi theo hợp đồng và Ngày hết hạn gói (`DD/MM/YYYY`) |
-| **Thanh tiến độ lộ trình tập luyện (Progress Bar)** | `READONLY` | required | Không | Thanh tiến trình trực quan thể hiện tiến độ hoàn thành gói dạng `Đã tập X / Y buổi` kèm tỷ lệ phần trăm (`%`) và nhãn số buổi còn lại `Còn lại Z buổi` |
-| **Thẻ lịch sử buổi tập đã hoàn thành (Session History Item)** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** học viên đã có ít nhất 1 buổi tập đạt xác nhận hoàn thành (`DONE`); **Ẩn khi** học viên là người mới chưa có buổi tập nào hoàn thành | Thẻ lịch sử theo dòng thời gian (timeline), hiển thị: Thứ tự buổi tập (`Buổi 1`, `Buổi 2`...), Ngày tập (`DD/MM/YYYY`), Khung giờ (`HH:mm - HH:mm`), Badge trạng thái `Hoàn thành` (xanh lá), và Khối nội dung ghi chú kết quả/đánh giá thể lực do PT đã ghi nhận sau buổi |
-| **Thông báo chưa có buổi tập nào (Empty State)** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** học viên mới đăng ký gói và chưa hoàn thành buổi tập nào (`0 / Y buổi`); **Ẩn khi** học viên đã hoàn thành ít nhất 1 buổi tập | Khối thông báo rỗng kèm icon minh họa và nhãn: `Học viên chưa có buổi tập hoàn thành nào trong lộ trình` |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Nút quay lại (Back Button `[←]`)** | `Action Button (Back Icon)` | `USER-INPUT` | required | Không | Icon mũi tên quay lại góc trên bên trái màn hình; chạm để đóng màn hình chi tiết và quay về danh sách học viên `PT02-US01` |
+| **Khối thông tin hồ sơ học viên** | `Profile Info Card` | `READONLY` | required | Không | Hiển thị thông tin định danh: Avatar chữ cái đầu họ tên, Họ và tên học viên (in đậm), Mã học viên, Số điện thoại và Chi nhánh đăng ký sinh hoạt |
+| **Khối thông tin gói PT & Thời hạn** | `Package Info Card` | `READONLY` | required | Không | Hiển thị: Tên gói PT (ví dụ: `Gói PT 20 buổi`), Tổng số buổi theo hợp đồng và Ngày hết hạn gói (`DD/MM/YYYY`) |
+| **Thanh tiến độ lộ trình tập luyện (Progress Bar)** | `Progress Bar (Graphic)` | `READONLY` | required | Không | Thanh tiến trình trực quan thể hiện tiến độ hoàn thành gói dạng `Đã tập X / Y buổi` kèm tỷ lệ phần trăm (`%`) và nhãn số buổi còn lại `Còn lại Z buổi` |
+| **Thẻ lịch sử buổi tập đã hoàn thành (Session History Item)** | `Timeline Session Card` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** học viên đã có ít nhất 1 buổi tập đạt xác nhận hoàn thành (`DONE`); **Ẩn khi** học viên là người mới chưa có buổi tập nào hoàn thành | Thẻ lịch sử theo dòng thời gian (timeline), hiển thị: Thứ tự buổi tập (`Buổi 1`, `Buổi 2`...), Ngày tập (`DD/MM/YYYY`), Khung giờ (`HH:mm - HH:mm`), Badge trạng thái `Hoàn thành` (xanh lá), và Khối nội dung ghi chú kết quả/đánh giá thể lực do PT đã ghi nhận sau buổi |
+| **Thông báo chưa có buổi tập nào (Empty State)** | `Empty State Box` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** học viên mới đăng ký gói và chưa hoàn thành buổi tập nào (`0 / Y buổi`); **Ẩn khi** học viên đã hoàn thành ít nhất 1 buổi tập | Khối thông báo rỗng kèm icon minh họa và nhãn: `Học viên chưa có buổi tập hoàn thành nào trong lộ trình` |
 
 ## Alternate Flows
 

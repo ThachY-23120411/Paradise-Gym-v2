@@ -30,16 +30,16 @@
   - Không lưu mã OTP hoặc mật khẩu dạng rõ (plaintext) trong nhật ký audit hệ thống.
 
 ### Field-level specification — Màn hình Kích hoạt tài khoản Hội viên
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Số điện thoại đã đăng ký tại quầy** | `USER-INPUT` | required | `TRIGGER`: Nhập SĐT để hệ thống kiểm tra hồ sơ quầy | Nhập số điện thoại đã khai báo tại quầy lễ tân (10 chữ số, định dạng Việt Nam) |
-| **Thông tin xác nhận hồ sơ hội viên** | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc kết quả tra cứu SĐT | - **Hiện khi:** SĐT khớp với hồ sơ hội viên tại quầy chưa kích hoạt tài khoản (hiển thị Họ tên, Mã HV, Chi nhánh).<br>- **Ẩn khi:** Chưa nhập thông tin hoặc SĐT không tồn tại. |
-| **Nút [ Nhận mã OTP ]** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc trạng thái tra cứu | - **Hiện khi:** SĐT khớp hồ sơ hợp lệ và sẵn sàng nhận OTP.<br>- **Ẩn khi:** Chưa nhập SĐT hoặc SĐT không tồn tại. |
-| **Mã xác thực OTP** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc trạng thái gửi mã OTP | - **Hiện khi:** Hệ thống đã gửi mã OTP SMS thành công (nhập 6 chữ số).<br>- **Ẩn khi:** Chưa bấm nhận mã OTP. |
-| **Mật khẩu mới** | `USER-INPUT` | required | Không | Nhập mật khẩu mới cho tài khoản (tối thiểu 6 ký tự); hỗ trợ icon ẩn/hiện |
-| **Xác nhận mật khẩu** | `USER-INPUT` | required | Không | Nhập lại mật khẩu mới; yêu cầu trùng khớp 100% với ô Mật khẩu mới |
-| **Nút CTA [ Kích hoạt & Đăng nhập ]** | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã có thông tin hồ sơ, nhập đủ OTP 6 số và 2 ô mật khẩu trùng khớp | Nút màu xanh lá bo góc; bấm để hoàn tất kích hoạt tài khoản và mở giao diện ứng dụng `HV01` |
-| **Text link [ Chưa có hồ sơ? Tạo tài khoản mới ]** | `USER-INPUT` | optional | Không | Text link điều hướng bên dưới; bấm để chuyển sang Màn hình Tạo tài khoản mới (`HV06-US03`) |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Số điện thoại đã đăng ký tại quầy** | `Text input` | `USER-INPUT` | required | `TRIGGER`: Nhập SĐT để hệ thống kiểm tra hồ sơ quầy | Nhập số điện thoại đã khai báo tại quầy lễ tân (10 chữ số, định dạng Việt Nam) |
+| **Thông tin xác nhận hồ sơ hội viên** | `Card / Summary info` | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc kết quả tra cứu SĐT | - **Hiện khi:** SĐT khớp với hồ sơ hội viên tại quầy chưa kích hoạt tài khoản (hiển thị Họ tên, Mã HV, Chi nhánh).<br>- **Ẩn khi:** Chưa nhập thông tin hoặc SĐT không tồn tại. |
+| **Nút [ Nhận mã OTP ]** | `Button / Secondary` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc trạng thái tra cứu | - **Hiện khi:** SĐT khớp hồ sơ hợp lệ và sẵn sàng nhận OTP.<br>- **Ẩn khi:** Chưa nhập SĐT hoặc SĐT không tồn tại. |
+| **Mã xác thực OTP** | `Text input / OTP input` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc trạng thái gửi mã OTP | - **Hiện khi:** Hệ thống đã gửi mã OTP SMS thành công (nhập 6 chữ số).<br>- **Ẩn khi:** Chưa bấm nhận mã OTP. |
+| **Mật khẩu mới** | `Password input` | `USER-INPUT` | required | Không | Nhập mật khẩu mới cho tài khoản (tối thiểu 6 ký tự); hỗ trợ icon ẩn/hiện |
+| **Xác nhận mật khẩu** | `Password input` | `USER-INPUT` | required | Không | Nhập lại mật khẩu mới; yêu cầu trùng khớp 100% với ô Mật khẩu mới |
+| **Nút CTA [ Kích hoạt & Đăng nhập ]** | `Button / Primary CTA` | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã có thông tin hồ sơ, nhập đủ OTP 6 số và 2 ô mật khẩu trùng khớp | Nút màu xanh lá bo góc; bấm để hoàn tất kích hoạt tài khoản và mở giao diện ứng dụng `HV01` |
+| **Text link [ Chưa có hồ sơ? Tạo tài khoản mới ]** | `Text link / Action` | `USER-INPUT` | optional | Không | Text link điều hướng bên dưới; bấm để chuyển sang Màn hình Tạo tài khoản mới (`HV06-US03`) |
 
 ## Alternate Flows
 

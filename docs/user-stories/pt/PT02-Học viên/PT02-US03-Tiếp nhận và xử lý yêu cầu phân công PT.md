@@ -23,19 +23,19 @@
    - Khi PT từ chối, gói tập của học viên trở về trạng thái chưa phân công PT để QTV/Lễ tân hoặc Học viên chọn PT khác.
 
 ### Field-level specification — Danh sách Thẻ yêu cầu phân công (Sub-tab Yêu cầu phân công)
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Thẻ yêu cầu phân công PT** | `USER-INPUT / READONLY` | conditional | `CONDITIONAL`: **Hiện khi** có yêu cầu phân công PT đang ở trạng thái `Chờ tiếp nhận` (`PENDING`); **Ẩn khi** không có yêu cầu nào chờ xử lý | Thẻ card hiển thị: Avatar chữ cái viết tắt, Họ và tên học viên, Mã HV, Số điện thoại, Chi nhánh đăng ký, Tên gói PT yêu cầu, Thời gian gửi yêu cầu (`DD/MM/YYYY HH:mm`) và Ghi chú mong muốn của học viên (nếu có) |
-| **Nút Đồng ý tiếp nhận** | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** thẻ yêu cầu ở trạng thái `PENDING`; **Ẩn khi** yêu cầu đã được chấp nhận hoặc từ chối | Nút Primary màu xanh lá trên thẻ yêu cầu; chạm để chấp nhận tiếp nhận học viên vào danh sách phụ trách chính thức |
-| **Nút Từ chối** | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** thẻ yêu cầu ở trạng thái `PENDING`; **Ẩn khi** yêu cầu đã được xử lý | Nút Secondary màu viền xám/đỏ nhạt trên thẻ yêu cầu; chạm để mở Bottom Sheet `Xác nhận từ chối yêu cầu phân công` |
-| **Thông báo không có yêu cầu chờ xử lý (Empty State)** | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** không có yêu cầu phân công nào đang chờ xử lý; **Ẩn khi** có ít nhất 1 yêu cầu ở trạng thái `PENDING` | Khối thông báo rỗng kèm icon minh họa và nhãn: `Không có yêu cầu phân công nào đang chờ xử lý` |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Thẻ yêu cầu phân công PT** | `Request Card` | `USER-INPUT / READONLY` | conditional | `CONDITIONAL`: **Hiện khi** có yêu cầu phân công PT đang ở trạng thái `Chờ tiếp nhận` (`PENDING`); **Ẩn khi** không có yêu cầu nào chờ xử lý | Thẻ card hiển thị: Avatar chữ cái viết tắt, Họ và tên học viên, Mã HV, Số điện thoại, Chi nhánh đăng ký, Tên gói PT yêu cầu, Thời gian gửi yêu cầu (`DD/MM/YYYY HH:mm`) và Ghi chú mong muốn của học viên (nếu có) |
+| **Nút Đồng ý tiếp nhận** | `Action Button (Success)` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** thẻ yêu cầu ở trạng thái `PENDING`; **Ẩn khi** yêu cầu đã được chấp nhận hoặc từ chối | Nút Primary màu xanh lá trên thẻ yêu cầu; chạm để chấp nhận tiếp nhận học viên vào danh sách phụ trách chính thức |
+| **Nút Từ chối** | `Action Button (Danger Outline)` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** thẻ yêu cầu ở trạng thái `PENDING`; **Ẩn khi** yêu cầu đã được xử lý | Nút Secondary màu viền xám/đỏ nhạt trên thẻ yêu cầu; chạm để mở Bottom Sheet `Xác nhận từ chối yêu cầu phân công` |
+| **Thông báo không có yêu cầu chờ xử lý (Empty State)** | `Empty State Box` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** không có yêu cầu phân công nào đang chờ xử lý; **Ẩn khi** có ít nhất 1 yêu cầu ở trạng thái `PENDING` | Khối thông báo rỗng kèm icon minh họa và nhãn: `Không có yêu cầu phân công nào đang chờ xử lý` |
 
 ### Field-level specification — Modal / Bottom Sheet Xác nhận từ chối yêu cầu phân công
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Thông tin yêu cầu tóm tắt** | `READONLY` | required | Không | Hiển thị tóm tắt Họ và tên học viên cùng Tên gói PT bị từ chối tiếp nhận |
-| **Lý do từ chối** | `USER-INPUT` | required | `TRIGGER`: Chọn lý do để điều khiển hiển thị trường nhập chi tiết bổ sung | Dropdown / Radio selection chọn lý do định sẵn: `Trùng ca làm việc`, `Đã kín ca phụ trách`, `Không phù hợp mục tiêu tập luyện`, `Khác` |
-| **Chi tiết lý do khác** | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** trường `Lý do từ chối` nhận giá trị `Khác`; **Ẩn khi** trường `Lý do từ chối` nhận bất kỳ giá trị định sẵn nào khác | Ô nhập văn bản nhiều dòng (textarea), tối đa 255 ký tự; giải thích cụ thể lý do từ chối để chuyển tiếp cho ban quản trị / học viên |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Thông tin yêu cầu tóm tắt** | `Readonly Summary Box` | `READONLY` | required | Không | Hiển thị tóm tắt Họ và tên học viên cùng Tên gói PT bị từ chối tiếp nhận |
+| **Lý do từ chối** | `Select Dropdown / Radio Group` | `USER-INPUT` | required | `TRIGGER`: Chọn lý do để điều khiển hiển thị trường nhập chi tiết bổ sung | Dropdown / Radio selection chọn lý do định sẵn: `Trùng ca làm việc`, `Đã kín ca phụ trách`, `Không phù hợp mục tiêu tập luyện`, `Khác` |
+| **Chi tiết lý do khác** | `Textarea` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** trường `Lý do từ chối` nhận giá trị `Khác`; **Ẩn khi** trường `Lý do từ chối` nhận bất kỳ giá trị định sẵn nào khác | Ô nhập văn bản nhiều dòng (textarea), tối đa 255 ký tự; giải thích cụ thể lý do từ chối để chuyển tiếp cho ban quản trị / học viên |
 
 ## Alternate Flows
 

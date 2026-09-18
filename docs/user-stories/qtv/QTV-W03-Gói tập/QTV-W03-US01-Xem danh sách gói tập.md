@@ -21,19 +21,18 @@
   - **Số hàng:** Tự động mở rộng theo tổng số gói tập (ví dụ 9 gói = 3 hàng × 3 cột).
   - **Cách bố trí card:** Các card hình chữ nhật bo góc được xếp đều cân đối từ trái sang phải, từ trên xuống dưới. Mỗi card là một khung độc lập chứa đầy đủ thông tin định danh, giá, quyền lợi, chi nhánh và các nút thao tác.
 
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- |
-| Tên gói | `READONLY` | required | Không | Lấy từ `PACKAGE.name` (ví dụ: "Gói 1 tháng", "Combo Gym 3 tháng + PT 10 buổi"); tiêu đề đậm trên thẻ |
-| Trạng thái gói | `READONLY` | required | `DYNAMIC`: theo trạng thái bán | Lấy từ `PACKAGE.status`; hiển thị badge màu (ví dụ: badge xanh `Đang bán`, badge xám `Ngừng bán`) |
-| Mã gói & Phân loại | `READONLY` | required | Không | Định dạng `{PACKAGE.code} · {PACKAGE.type} - {PACKAGE.limit_type}` (ví dụ: "G01 · GYM - Theo ngày", "G05 · GYM - Theo buổi", "G06 · PT - Theo buổi", "G08 · COMBO - Theo ngày + buổi") |
-| Giá bán | `READONLY` | required | `DYNAMIC`: theo đơn vị VND | Lấy từ `PACKAGE.price` (ví dụ: "500.000 đ", "3.200.000 đ"); typography số to đậm nổi bật |
-| Hạn định / Quyền lợi | `READONLY` | required | `DYNAMIC`: theo loại gói | Hiển thị thời hạn ngày và/hoặc số buổi PT (ví dụ: "Thời hạn: 30 ngày", "Thời hạn: 90 ngày · PT: 10 buổi") |
-| Chi nhánh áp dụng | `READONLY` | required | `DYNAMIC`: theo danh sách branch | Hiển thị tên các chi nhánh được phép áp dụng gói (ví dụ: "Áp dụng: Quận 1, Bình Thạnh") |
-
-- **Thao tác trên mỗi thẻ gói (Card Action Controls):**
-  - **Nút [Sửa] (Icon cây bút 📝):** Mở modal **Cập nhật danh mục gói tập** (`QTV-W03-US03`), tự động prefill toàn bộ dữ liệu gói.
-  - **Nút [Ngừng bán] (nút màu đỏ):** Hiển thị khi gói đang ở trạng thái `Đang bán`, click mở popup xác nhận ngừng bán (`QTV-W03-US04`).
-  - **Nút [Mở bán lại] (nút màu tối):** Hiển thị khi gói đang ở trạng thái `Ngừng bán`, click để khôi phục gói về trạng thái `Đang bán`.
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Nút [ Thêm gói mới ]** | `Button / CTA` | `USER-INPUT` | required | Không | Nút CTA góc trên bên phải màn hình; bấm để mở modal Thêm gói tập mới (`QTV-W03-US02`) |
+| **Tên gói** | `Card Header / Typography` | `READONLY` | required | Không | Lấy từ `PACKAGE.name` (ví dụ: "Gói 1 tháng", "Combo Gym 3 tháng + PT 10 buổi"); tiêu đề đậm trên thẻ |
+| **Trạng thái gói** | `Badge / Status indicator` | `READONLY` | required | `DYNAMIC`: theo trạng thái bán | Lấy từ `PACKAGE.status`; hiển thị badge màu (ví dụ: badge xanh `Đang bán`, badge xám `Ngừng bán`) |
+| **Mã gói & Phân loại** | `Badge / Text label` | `READONLY` | required | Không | Định dạng `{PACKAGE.code} · {PACKAGE.type} - {PACKAGE.limit_type}` (ví dụ: "G01 · GYM - Theo ngày", "G05 · GYM - Theo buổi", "G06 · PT - Theo buổi", "G08 · COMBO - Theo ngày + buổi") |
+| **Giá bán** | `Typography / Price highlight` | `READONLY` | required | `DYNAMIC`: theo đơn vị VND | Lấy từ `PACKAGE.price` (ví dụ: "500.000 đ", "3.200.000 đ"); typography số to đậm nổi bật |
+| **Hạn định / Quyền lợi** | `Typography / Text` | `READONLY` | required | `DYNAMIC`: theo loại gói | Hiển thị thời hạn ngày và/hoặc số buổi PT (ví dụ: "Thời hạn: 30 ngày", "Thời hạn: 90 ngày · PT: 10 buổi") |
+| **Chi nhánh áp dụng** | `Badge / Text label` | `READONLY` | required | `DYNAMIC`: theo danh sách branch | Hiển thị tên các chi nhánh được phép áp dụng gói (ví dụ: "Áp dụng: Quận 1, Bình Thạnh") |
+| **Nút [ Sửa ]** | `Button / Action Icon` | `USER-INPUT` | required | Không | Nút icon cây bút trên mỗi thẻ; bấm mở modal Cập nhật danh mục gói tập (`QTV-W03-US03`) |
+| **Nút [ Ngừng bán ]** | `Button / Danger Action` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** trạng thái gói là `Đang bán`; **Ẩn khi** trạng thái gói là `Ngừng bán` | Nút màu đỏ; bấm mở popup xác nhận ngừng bán (`QTV-W03-US04`) |
+| **Nút [ Mở bán lại ]** | `Button / Action` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** trạng thái gói là `Ngừng bán`; **Ẩn khi** trạng thái gói là `Đang bán` | Nút màu tối; bấm để khôi phục gói về trạng thái `Đang bán` |
 
 - **Business rules / logic:**
   - Danh sách hiển thị theo dạng Card Grid trực quan (3 cột / hàng), phân tách rõ ràng giữa gói Gym, gói PT và Combo.

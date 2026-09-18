@@ -13,7 +13,8 @@
 1. Khách hàng nhập các thông tin đăng ký hồ sơ mới:
    - Số điện thoại đăng ký
    - Họ và tên
-   - Email
+   - Chi nhánh cơ sở (Home Branch - Chọn phòng tập sinh hoạt chính)
+   - Email (tùy chọn)
    - Mật khẩu mới
    - Xác nhận mật khẩu
 2. Khách hàng bấm nút **`[ Nhận mã OTP ]`**.
@@ -23,26 +24,29 @@
 5. Khách hàng bấm nút **`[ Hoàn tất tạo tài khoản ]`**.
 6. SYS kiểm tra:
    - Mã OTP hợp lệ và còn trong thời hạn hiệu lực.
+   - Chi nhánh cơ sở đã được lựa chọn hợp lệ từ danh mục phòng tập của hệ thống.
    - Mật khẩu mới đáp ứng tiêu chuẩn (tối thiểu 6 ký tự) và 2 ô mật khẩu trùng khớp 100%.
-7. SYS tạo bản ghi hồ sơ hội viên mới, tạo tài khoản `ROLE_MEMBER`, thiết lập mật khẩu đã mã hóa, khởi tạo phiên làm việc (Session Mobile) và điều hướng thẳng vào màn hình `HV01 · Trang chủ`.
+7. SYS tạo bản ghi hồ sơ hội viên mới (với `home_branch_id` đã chọn), tạo tài khoản `ROLE_MEMBER`, thiết lập mật khẩu đã mã hóa, khởi tạo phiên làm việc (Session Mobile) và điều hướng thẳng vào màn hình `HV01 · Trang chủ`.
 
 - **Business rules / logic:**
   - SĐT là định danh duy nhất; nếu SĐT đã tồn tại trên hệ thống (đã có tài khoản hoặc đã có hồ sơ tại quầy), hệ thống từ chối tạo mới và hướng dẫn người dùng chuyển sang Đăng nhập hoặc Kích hoạt tài khoản tương ứng.
+  - Chi nhánh cơ sở (`home_branch_id`) là trường bắt buộc để định tuyến hội viên vào đúng cơ sở sinh hoạt chính và phân bổ dịch vụ.
   - Không lưu mã OTP hoặc mật khẩu dạng rõ (plaintext) trong nhật ký audit hệ thống.
   - Mã OTP có hiệu lực trong 60 giây; tối đa 3 lần yêu cầu cấp lại mã OTP trong một phiên đăng ký.
 
 ### Field-level specification — Màn hình Tạo tài khoản mới
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Số điện thoại đăng ký** | `USER-INPUT` | required | Không | Nhập số điện thoại chính chủ của khách hàng (10 chữ số, chuẩn định dạng Việt Nam) |
-| **Họ và tên** | `USER-INPUT` | required | Không | Nhập họ và tên đầy đủ của khách hàng (ví dụ: *Trần Thị Lan*) |
-| **Email** | `USER-INPUT` | optional | Không | Nhập địa chỉ email hợp lệ để nhận thông báo và hóa đơn điện tử |
-| **Mật khẩu mới** | `USER-INPUT` | required | Không | Nhập mật khẩu mới cho tài khoản (tối thiểu 6 ký tự); hỗ trợ icon ẩn/hiện |
-| **Xác nhận mật khẩu** | `USER-INPUT` | required | Không | Nhập lại mật khẩu mới; yêu cầu trùng khớp 100% với ô Mật khẩu mới |
-| **Nút [ Nhận mã OTP ]** | `USER-INPUT` | required | `TRIGGER`: Kích hoạt gửi OTP và hiển thị trường nhập OTP | Nút bấm gửi mã xác thực tới SĐT đăng ký; có bộ đếm ngược thời gian gửi lại (60s) |
-| **Mã xác thực OTP** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc vào việc gửi mã OTP | - **Hiện khi:** Đã bấm nhận mã và hệ thống gửi SMS thành công (nhập 6 chữ số).<br>- **Ẩn khi:** Chưa gửi mã OTP. |
-| **Nút CTA [ Hoàn tất tạo tài khoản ]** | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã điền đủ thông tin bắt buộc, mật khẩu khớp và mã OTP đủ 6 chữ số | Nút màu xanh lá bo góc; bấm để tạo hồ sơ, tạo tài khoản và đăng nhập vào ứng dụng `HV01` |
-| **Text link [ Đã có hồ sơ tại quầy? Kích hoạt ngay ]** | `USER-INPUT` | optional | Không | Text link điều hướng bên dưới; bấm để chuyển sang Màn hình Kích hoạt tài khoản (`HV06-US02`) |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Số điện thoại đăng ký** | `Text input` | `USER-INPUT` | required | Không | Nhập số điện thoại chính chủ của khách hàng (10 chữ số, chuẩn định dạng Việt Nam) |
+| **Họ và tên** | `Text input` | `USER-INPUT` | required | Không | Nhập họ và tên đầy đủ của khách hàng (ví dụ: *Trần Thị Lan*) |
+| **Chi nhánh cơ sở** | `Select / Dropdown` | `USER-INPUT` | required | `DYNAMIC`: Lấy danh sách chi nhánh đang hoạt động từ API | Chọn chi nhánh sinh hoạt chính của hội viên trong hệ thống chuỗi Paradise Gym (tương ứng `member_profiles.home_branch_id`) |
+| **Email** | `Text input / Email` | `USER-INPUT` | optional | Không | Nhập địa chỉ email hợp lệ để nhận thông báo và hóa đơn điện tử |
+| **Mật khẩu mới** | `Password input` | `USER-INPUT` | required | Không | Nhập mật khẩu mới cho tài khoản (tối thiểu 6 ký tự); hỗ trợ icon ẩn/hiện |
+| **Xác nhận mật khẩu** | `Password input` | `USER-INPUT` | required | Không | Nhập lại mật khẩu mới; yêu cầu trùng khớp 100% với ô Mật khẩu mới |
+| **Nút [ Nhận mã OTP ]** | `Button / Secondary` | `USER-INPUT` | required | `TRIGGER`: Kích hoạt gửi OTP và hiển thị trường nhập OTP | Nút bấm gửi mã xác thực tới SĐT đăng ký; có bộ đếm ngược thời gian gửi lại (60s) |
+| **Mã xác thực OTP** | `Text input / OTP input` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc vào việc gửi mã OTP | - **Hiện khi:** Đã bấm nhận mã và hệ thống gửi SMS thành công (nhập 6 chữ số).<br>- **Ẩn khi:** Chưa gửi mã OTP. |
+| **Nút CTA [ Hoàn tất tạo tài khoản ]** | `Button / Primary CTA` | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã điền đủ thông tin bắt buộc, chọn chi nhánh, mật khẩu khớp và mã OTP đủ 6 chữ số | Nút màu xanh lá bo góc; bấm để tạo hồ sơ, tạo tài khoản và đăng nhập vào ứng dụng `HV01` |
+| **Text link [ Đã có hồ sơ tại quầy? Kích hoạt ngay ]** | `Text link / Action` | `USER-INPUT` | optional | Không | Text link điều hướng bên dưới; bấm để chuyển sang Màn hình Kích hoạt tài khoản (`HV06-US02`) |
 
 ## Alternate Flows
 

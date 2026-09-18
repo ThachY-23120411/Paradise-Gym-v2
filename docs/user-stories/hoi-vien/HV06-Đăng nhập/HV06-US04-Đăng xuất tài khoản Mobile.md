@@ -20,10 +20,10 @@
   - Lần truy cập tiếp theo bắt buộc phải thực hiện đăng nhập lại bằng một trong các phương thức hợp lệ (SĐT + Mật khẩu hoặc OTP qua SMS).
 
 ### Field-level specification — Popup Xác nhận Đăng xuất
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tiêu đề Popup** | `READONLY` | required | Không | Tiêu đề hộp thoại: `Xác nhận đăng xuất` |
-| **Thông báo xác nhận đăng xuất** | `READONLY` | required | Không | Đoạn text: *"Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng Paradise Gym trên thiết bị này không? Phiên đăng nhập hiện tại sẽ kết thúc."* |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tiêu đề Popup** | `Typography / Heading` | `READONLY` | required | Không | Tiêu đề hộp thoại: `Xác nhận đăng xuất` |
+| **Thông báo xác nhận đăng xuất** | `Typography / Helper text` | `READONLY` | required | Không | Đoạn text: *"Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng Paradise Gym trên thiết bị này không? Phiên đăng nhập hiện tại sẽ kết thúc."* |
 
 ## Alternate Flows
 

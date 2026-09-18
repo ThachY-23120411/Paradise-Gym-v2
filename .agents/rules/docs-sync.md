@@ -109,6 +109,8 @@ Never modify only the UI when the change alters documented behavior.
 
 Never modify only documentation when the existing UI is also affected.
 
+Never modify or extend database schema (adding/altering tables, columns, primary keys, foreign keys, constraints) without immediately updating `docs/database/erd.md`.
+
 Do not scan or rewrite unrelated documentation.
 
 Do not create Acceptance Criteria, API, database,
@@ -120,3 +122,4 @@ Product Spec
 → Epic
 → User Story
 ↔ UI / Screen / User Flow
+↔ Database Schema (`docs/database/erd.md`)

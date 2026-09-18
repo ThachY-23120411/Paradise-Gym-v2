@@ -25,21 +25,22 @@
   - Khi PT bấm `[ Đăng xuất ]`, hệ thống mở Popup xác nhận đăng xuất theo luồng `PT05-US03`.
 
 ### Field-level specification — Màn hình PT04 · Tài khoản
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Ảnh đại diện HLV** | `READONLY` | optional | Không | Hiển thị avatar chân dung HLV (hoặc icon mặc định) |
-| **Họ và tên HLV** | `READONLY` | required | Không | Tên đầy đủ của HLV lấy từ hồ sơ nhân sự (ví dụ: *Nguyễn Văn Cường*) |
-| **Mã nhân sự PT** | `READONLY` | required | Không | Mã định danh HLV do hệ thống cấp (ví dụ: `PT001`) |
-| **Chi nhánh làm việc** | `READONLY` | required | Không | Tên chi nhánh HLV đang trực thuộc (ví dụ: *Paradise Gym - Quận 1*) |
-| **Số điện thoại liên hệ** | `READONLY` | required | Không | Số điện thoại HLV đã đăng ký với phòng gym |
-| **Email liên hệ** | `READONLY` | optional | Không | Email HLV dùng nhận thông báo hệ thống |
-| **Nhận thông báo lịch mới** | `USER-INPUT` + `PREFILL` | optional | Không | Toggle Switch (`Bật` / `Tắt`); nhận thông báo khi có lịch tập mới hoặc học viên đổi lịch |
-| **Nhắc ghi kết quả buổi học** | `USER-INPUT` + `PREFILL` | optional | Không | Toggle Switch (`Bật` / `Tắt`); nhận nhắc nhở hoàn thành ghi nhận chỉ số sau ca tập |
-| **Hiển thị SĐT cho học viên** | `USER-INPUT` + `PREFILL` | optional | Không | Toggle Switch (`Bật` / `Tắt`); cho phép học viên nhìn thấy số liên hệ khi được phân công |
-| **Xác thực 2 lớp (2FA khi đăng nhập)** | `USER-INPUT` + `PREFILL` | optional | Không | Toggle Switch (`Bật` / `Tắt`); kích hoạt mã OTP SMS khi đăng nhập bằng mật khẩu |
-| **Nút [ Đổi mật khẩu ]** | `USER-INPUT` | optional | Không | Nút điều hướng; bấm để mở Modal Đổi mật khẩu tài khoản HLV |
-| **Nút CTA [ Lưu cài đặt ]** | `USER-INPUT` | required | `DYNAMIC`: Enable khi có ít nhất một tùy chọn toggle switch thay đổi | Nút màu xanh lá bo góc; bấm để lưu các cài đặt thông báo và bảo mật |
-| **Nút [ Đăng xuất ]** | `USER-INPUT` | required | Không | Nút màu đỏ ở cuối trang; bấm để kích hoạt Popup Xác nhận Đăng xuất (`PT05-US03`) |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Ảnh đại diện HLV** | `Avatar Image View` | `READONLY` | optional | Không | API `GET /mobile/profile`, từ `accounts.avatar_url`; thiếu ảnh thì dùng icon mặc định, không dùng ảnh chân dung mẫu |
+| **Họ và tên HLV** | `Readonly Text` | `READONLY` | required | Không | API hồ sơ cá nhân, từ `pt_profiles.full_name`; không thay bằng tên mẫu khi tải lỗi |
+| **Mã nhân sự PT** | `Readonly Badge / Tag` | `READONLY` | required | Không | API hồ sơ cá nhân, từ `pt_profiles.pt_code` do hệ thống cấp |
+| **Chi nhánh làm việc** | `Readonly Text` | `READONLY` | required | Không | API hồ sơ cá nhân nối `pt_profiles.branch_id` với `branches.name` |
+| **Số điện thoại liên hệ** | `Readonly Text` | `READONLY` | required | Không | API hồ sơ cá nhân, từ `pt_profiles.phone`; PT luôn xem được SĐT của chính mình |
+| **Email liên hệ** | `Readonly Text` | `READONLY` | optional | Không | API hồ sơ cá nhân, từ `pt_profiles.email`; rỗng thì hiển thị chưa cập nhật |
+| **Nhận thông báo lịch mới** | `Toggle Switch` | `USER-INPUT (PREFILL)` | optional | Không | Toggle `Bật` / `Tắt`, nạp/lưu qua `GET/PUT /mobile/preferences`, từ `accounts.notify_new_bookings`; chỉ nhận sự kiện khi đồng thời thỏa cấu hình quy tắc ON và mẫu đang sử dụng của QTV |
+| **Nhắc ghi kết quả buổi học** | `Toggle Switch` | `USER-INPUT (PREFILL)` | optional | Không | Toggle `Bật` / `Tắt`, nạp/lưu qua API tùy chọn, từ `accounts.notify_result_reminders`; không tự sinh thông báo tại frontend hoặc bỏ qua quy tắc QTV |
+| **Hiển thị SĐT cho học viên** | `Toggle Switch` | `USER-INPUT (PREFILL)` | optional | Không | Toggle `Bật` / `Tắt`, nạp/lưu qua API tùy chọn, từ `pt_profiles.show_phone_to_members`; API chỉ trả SĐT cho hội viên đã được phân công PT đó khi giá trị là bật; tắt thì API che SĐT đối với hội viên |
+| **Xác thực 2 lớp (2FA khi đăng nhập)** | `Toggle Switch` | `USER-INPUT (PREFILL)` | optional | Không | Toggle `Bật` / `Tắt`, nạp/lưu qua API tùy chọn, từ `accounts.is_two_factor_enabled`; áp dụng OTP khi đăng nhập bằng mật khẩu; không chỉ lưu cục bộ |
+| **Nút [ Chỉnh sửa hồ sơ ]** | `Action Button` | `USER-INPUT` | optional | Không | Nút điều hướng; bấm để mở Màn hình / Modal Cập nhật hồ sơ cá nhân HLV (`PT04-US02`) |
+| **Nút [ Đổi mật khẩu ]** | `Action Button` | `USER-INPUT` | optional | Không | Nút điều hướng; bấm để mở Modal Đổi mật khẩu tài khoản HLV |
+| **Nút CTA [ Lưu cài đặt ]** | `Action Button (CTA)` | `USER-INPUT` | required | Không | Luôn hiển thị; chỉ enable khi đã nạp cài đặt từ API, có thay đổi hợp lệ và không đang gửi. Gọi `PUT /mobile/preferences`; chỉ báo thành công sau khi API xác nhận lưu; lỗi thì giữ trạng thái đã lưu trước đó |
+| **Nút [ Đăng xuất ]** | `Action Button (Danger)` | `USER-INPUT` | required | Không | Nút màu đỏ ở cuối trang; bấm để kích hoạt Popup Xác nhận Đăng xuất (`PT05-US03`) |
 
 ## Alternate Flows
 
@@ -83,4 +84,4 @@ flowchart TB
       A04 --> S03 --> F02
     end
   end
-```\n
+```

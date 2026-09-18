@@ -33,25 +33,25 @@
   - **Quyền hạn tài khoản:** Ứng dụng không hỗ trợ tự đăng ký tài khoản PT. Tài khoản HLV bắt buộc phải do Lễ tân hoặc Quản trị viên khởi tạo hồ sơ nhân sự trên hệ thống Web trước.
 
 ### Field-level specification — Màn hình Đăng nhập PT
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tab chọn phương thức đăng nhập** | `USER-INPUT` | required | `TRIGGER`: Chuyển đổi giữa 2 form nhập | 2 tab lựa chọn: `Bằng Mật khẩu` (mặc định) và `Bằng mã OTP` |
-| **Số điện thoại / Mã PT** | `USER-INPUT` | required | Không | Nhập số điện thoại đăng ký hoặc Mã định danh PT (ví dụ `PT001`) |
-| **Mật khẩu** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập | - **Hiện khi:** Chọn tab `Bằng Mật khẩu`.<br>- **Ẩn khi:** Chọn tab `Bằng mã OTP`. |
-| **Nút [ Nhận mã OTP ]** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập | - **Hiện khi:** Chọn tab `Bằng mã OTP` (nút kích hoạt gửi mã SMS).<br>- **Ẩn khi:** Chọn tab `Bằng Mật khẩu`. |
-| **Mã OTP đăng nhập** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập và trạng thái gửi mã | - **Hiện khi:** Chọn tab `Bằng mã OTP` và hệ thống đã gửi OTP (nhập 6 chữ số).<br>- **Ẩn khi:** Chọn tab `Bằng Mật khẩu` hoặc chưa bấm nhận mã. |
-| **Nút CTA [ ĐĂNG NHẬP ]** | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã điền đủ thông tin theo phương thức tương ứng | Nút màu xanh lá bo góc; bấm để gửi thông tin xác thực lên hệ thống |
-| **Text link [ Kích hoạt tài khoản PT ]** | `USER-INPUT` | optional | Không | Text link điều hướng bên dưới; bấm để mở Màn hình Kích hoạt tài khoản PT (`PT05-US02`) dành cho HLV đã được Lễ tân tạo hồ sơ nhân sự |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tab chọn phương thức đăng nhập** | `Tab Segmented Control` | `USER-INPUT` | required | `TRIGGER`: Chuyển đổi giữa 2 form nhập | 2 tab lựa chọn: `Bằng Mật khẩu` (mặc định) và `Bằng mã OTP` |
+| **Số điện thoại / Mã PT** | `Textbox (Phone/Code Input)` | `USER-INPUT` | required | Không | Nhập số điện thoại đăng ký hoặc Mã định danh PT (ví dụ `PT001`) |
+| **Mật khẩu** | `Password Input (with Toggle Eye)` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập | - **Hiện khi:** Chọn tab `Bằng Mật khẩu`.<br>- **Ẩn khi:** Chọn tab `Bằng mã OTP`. |
+| **Nút [ Nhận mã OTP ]** | `Action Button` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập | - **Hiện khi:** Chọn tab `Bằng mã OTP` (nút kích hoạt gửi mã SMS).<br>- **Ẩn khi:** Chọn tab `Bằng Mật khẩu`. |
+| **Mã OTP đăng nhập** | `OTP Input (6 Digits)` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc tab đăng nhập và trạng thái gửi mã | - **Hiện khi:** Chọn tab `Bằng mã OTP` và hệ thống đã gửi OTP (nhập 6 chữ số).<br>- **Ẩn khi:** Chọn tab `Bằng Mật khẩu` hoặc chưa bấm nhận mã. |
+| **Nút CTA [ ĐĂNG NHẬP ]** | `Action Button (CTA)` | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã điền đủ thông tin theo phương thức tương ứng | Nút màu xanh lá bo góc; bấm để gửi thông tin xác thực lên hệ thống |
+| **Text link [ Kích hoạt tài khoản PT ]** | `Text Link / Button` | `USER-INPUT` | optional | Không | Text link điều hướng bên dưới; bấm để mở Màn hình Kích hoạt tài khoản PT (`PT05-US02`) dành cho HLV đã được Lễ tân tạo hồ sơ nhân sự |
 
 ### Field-level specification — Bước Xác thực 2 lớp (2FA Verification)
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tiêu đề màn hình 2FA** | `READONLY` | required | Không | Tiêu đề: `Xác thực 2 bước (2FA) - PT` |
-| **Thông báo gửi mã 2FA** | `READONLY` | required | Không | Hiển thị: *"Mã xác thực gồm 6 chữ số đã được gửi tới số điện thoại HLV [0908 *** 789]"* |
-| **Ô nhập mã OTP 2FA** | `USER-INPUT` | required | Không | 6 ô nhập chữ số OTP (tự động nhảy sang ô tiếp theo khi nhập) |
-| **Đếm ngược thời gian (Countdown)** | `READONLY` | required | Không | Đếm ngược hiệu lực mã: `Gửi lại mã sau (60s)` |
-| **Nút [ Gửi lại mã OTP ]** | `USER-INPUT` | optional | `DYNAMIC`: Enable khi bộ đếm về 0s, Disable khi đang đếm ngược | Bấm để gửi lại mã OTP mới (tối đa 3 lần) |
-| **Nút CTA [ Xác nhận 2FA ]** | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã nhập đủ 6 chữ số OTP | Nút màu xanh lá bo góc; bấm để hoàn tất xác thực 2 lớp và vào ứng dụng PT |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tiêu đề màn hình 2FA** | `Header Title` | `READONLY` | required | Không | Tiêu đề: `Xác thực 2 bước (2FA) - PT` |
+| **Thông báo gửi mã 2FA** | `Text Paragraph (Info)` | `READONLY` | required | Không | Hiển thị: *"Mã xác thực gồm 6 chữ số đã được gửi tới số điện thoại HLV [0908 *** 789]"* |
+| **Ô nhập mã OTP 2FA** | `Pin Code Input (6 Boxes)` | `USER-INPUT` | required | Không | 6 ô nhập chữ số OTP (tự động nhảy sang ô tiếp theo khi nhập) |
+| **Đếm ngược thời gian (Countdown)** | `Countdown Timer Text` | `READONLY` | required | Không | Đếm ngược hiệu lực mã: `Gửi lại mã sau (60s)` |
+| **Nút [ Gửi lại mã OTP ]** | `Action Button (Secondary)` | `USER-INPUT` | optional | `DYNAMIC`: Enable khi bộ đếm về 0s, Disable khi đang đếm ngược | Bấm để gửi lại mã OTP mới (tối đa 3 lần) |
+| **Nút CTA [ Xác nhận 2FA ]** | `Action Button (CTA)` | `USER-INPUT` | required | `DYNAMIC`: Enable khi đã nhập đủ 6 chữ số OTP | Nút màu xanh lá bo góc; bấm để hoàn tất xác thực 2 lớp và vào ứng dụng PT |
 
 ## Alternate Flows
 

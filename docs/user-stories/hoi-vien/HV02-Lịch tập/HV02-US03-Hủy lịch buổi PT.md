@@ -19,14 +19,14 @@
 5. SYS cập nhật lại danh sách buổi tập trên màn hình `Lịch của tôi`.
 
 ### Field-level specification — Modal Xác nhận Hủy lịch buổi PT
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Buổi tập cần hủy** | `PREFILL` + `READONLY` | required | Không | Tự động nạp thông tin buổi tập được chọn: `[Mã lịch] · [Khung giờ - Ngày] · [Tên PT]` (ví dụ: `BK092 · 09:00 09/09/2026 · PT Nguyễn Thành Long`) |
-| **Gói tập áp dụng** | `PREFILL` + `READONLY` | required | Không | Hiển thị tên gói tập của buổi (ví dụ: `Gói PT 20 buổi`) |
-| **Thời điểm hủy & Chính sách** | `AUTO-FILL` + `READONLY` | required | `DYNAMIC`: Hệ thống đối soát thời gian hiện tại với giờ bắt đầu | Hiển thị nhãn chính sách: "Hủy trước 4 tiếng: Bảo lưu buổi tập" HOẶC "Hủy sát giờ (< 4 tiếng): Khấu trừ 1 buổi tập" |
-| **Cảnh báo hậu quả** | `READONLY` | required | `DYNAMIC`: Tính toán theo mốc giờ | Badge/Alert cảnh báo: Màu xanh "Trong hạn: Giữ nguyên số buổi tập" HOẶC Màu đỏ "Quá hạn quy định: Bạn sẽ bị trừ 1 buổi tập trong gói" |
-| **Lý do hủy** | `USER-INPUT` | required | `TRIGGER`: Nếu chọn "Khác" sẽ kích hoạt hiện trường nhập lý do chi tiết | Dropdown chọn lý do: `Bận công việc đột xuất`, `Lý do sức khỏe`, `Trùng lịch hẹn khác`, `Thay đổi kế hoạch cá nhân`, `Khác` |
-| **Lý do chi tiết** | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện và bắt buộc khi** *Lý do hủy* = `Khác`; **Ẩn và không áp dụng khi** *Lý do hủy* nhận bất kỳ giá trị nào khác | Text input/textarea cho phép nhập lý do cụ thể (tối đa 150 ký tự) |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Buổi tập cần hủy** | `Card / Summary info` | `PREFILL` + `READONLY` | required | Không | Tự động nạp thông tin buổi tập được chọn: `[Mã lịch] · [Khung giờ - Ngày] · [Tên PT]` (ví dụ: `BK092 · 09:00 09/09/2026 · PT Nguyễn Văn Thể`) |
+| **Gói tập áp dụng** | `Typography / Text` | `PREFILL` + `READONLY` | required | Không | Hiển thị tên gói tập của buổi (ví dụ: `Gói PT 20 buổi`) |
+| **Thời điểm hủy & Chính sách** | `Badge / Text label` | `AUTO-FILL` + `READONLY` | required | `DYNAMIC`: Hệ thống đối soát thời gian hiện tại với giờ bắt đầu | Hiển thị nhãn chính sách: "Hủy trước 4 tiếng: Bảo lưu buổi tập" HOẶC "Hủy sát giờ (< 4 tiếng): Khấu trừ 1 buổi tập" |
+| **Cảnh báo hậu quả** | `Alert banner` | `READONLY` | required | `DYNAMIC`: Tính toán theo mốc giờ | Badge/Alert cảnh báo: Màu xanh "Trong hạn: Giữ nguyên số buổi tập" HOẶC Màu đỏ "Quá hạn quy định: Bạn sẽ bị trừ 1 buổi tập trong gói" |
+| **Lý do hủy** | `Select / Dropdown` | `USER-INPUT` | required | `TRIGGER`: Nếu chọn "Khác" sẽ kích hoạt hiện trường nhập lý do chi tiết | Dropdown chọn lý do: `Bận công việc đột xuất`, `Lý do sức khỏe`, `Trùng lịch hẹn khác`, `Thay đổi kế hoạch cá nhân`, `Khác` |
+| **Lý do chi tiết** | `Textarea / Input` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện và bắt buộc khi** *Lý do hủy* = `Khác`; **Ẩn và không áp dụng khi** *Lý do hủy* nhận bất kỳ giá trị nào khác | Text input/textarea cho phép nhập lý do cụ thể (tối đa 150 ký tự) |
 
 - **Business rules / logic:**
   - Hủy lịch không xóa vĩnh viễn bản ghi booking mà chuyển trạng thái sang `CANCELLED` để lưu vết audit log.

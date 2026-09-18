@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Paradise Gym (Docker - 5435)",
+      "Group": "Paradise Gym",
+      "Host": "paradise-postgres",
+      "Port": 5432,
+      "MaintenanceDB": "paradise_gym",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    }
+  }
+}

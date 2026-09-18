@@ -23,7 +23,7 @@
 | Số điện thoại | `Readonly Text` | `READONLY (PREFILL)` | required | Không | Giá trị hiện tại hiển thị cố định; SĐT là khóa nghiệp vụ định danh, không được phép sửa |
 | Email | `Textbox (Email Input)` | `USER-INPUT (PREFILL)` | optional | Không | Giá trị hiện tại nạp sẵn; QTV cập nhật địa chỉ email (validate đúng định dạng email RFC nếu có nhập) |
 | Chi nhánh phục vụ | `Select Dropdown` | `USER-INPUT (PREFILL)` | required | Không | Giá trị hiện tại nạp sẵn; QTV có thể chọn điều chuyển PT sang chi nhánh khác trong phạm vi phân quyền (`branch scope`) của tài khoản QTV |
-| Chuyên môn / Ghi chú | `Textarea` | `USER-INPUT (PREFILL)` | optional | Không | Giá trị hiện tại nạp sẵn; QTV cập nhật mô tả chuyên môn, chứng chỉ hoặc ghi chú |
+| Chuyên môn / Ghi chú | `Textarea` | `USER-INPUT (PREFILL)` | optional | Không | Giá trị hiện tại nạp sẵn; QTV cập nhật mô tả chuyên môn hoặc ghi chú |
 
 - **Business rules / logic:**
   - Không cho phép sửa đổi số điện thoại để đảm bảo tính toàn vẹn của dữ liệu định danh và tài khoản.

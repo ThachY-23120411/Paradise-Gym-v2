@@ -16,14 +16,14 @@
 4. Lễ tân xem danh sách các trường thông tin hội viên trên từng dòng của bảng dữ liệu.
 
 ### Field-level specification — Bảng danh sách hội viên
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- |
-| Mã HV | `READONLY` | required | Không | SYS sinh duy nhất từ `MEMBER_PROFILE.code` (ví dụ: "HV001"); hiển thị dạng text link |
-| Họ và tên | `READONLY` | required | Không | Lấy từ `MEMBER_PROFILE.full_name` (ví dụ: "Nguyễn Văn An"); hiển thị kèm avatar viết tắt tên |
-| Số điện thoại | `READONLY` | required | `DYNAMIC`: hiển thị định dạng chuẩn hóa 10 số | Lấy từ `MEMBER_PROFILE.phone` (ví dụ: "0901 234 567"); định danh liên hệ duy nhất |
-| Email | `READONLY` | optional | Không | Lấy từ `MEMBER_PROFILE.email` (ví dụ: "an.nguyen@example.vn"); hiển thị gạch ngang `-` nếu chưa có |
-| Chi nhánh | `READONLY` | required | `DYNAMIC`: theo branch scope | Lấy tên chi nhánh trực quầy từ `BRANCH.name` (ví dụ: "Quận 1") |
-| Trạng thái hồ sơ | `READONLY` | required | `DYNAMIC`: theo trạng thái record | Lấy từ `MEMBER_PROFILE.status`; hiển thị dạng status badge (ví dụ: badge xanh "Hồ sơ đang hoạt động") |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Mã HV | `dxDataGrid Link column` | `READONLY` | required | Không | SYS sinh duy nhất từ `MEMBER_PROFILE.code` (ví dụ: "HV001"); hiển thị dạng text link |
+| Họ và tên | `dxDataGrid Column` | `READONLY` | required | Không | Lấy từ `MEMBER_PROFILE.full_name` (ví dụ: "Nguyễn Văn An"); hiển thị kèm avatar viết tắt tên |
+| Số điện thoại | `dxDataGrid Column` | `READONLY` | required | `DYNAMIC`: hiển thị định dạng chuẩn hóa 10 số | Lấy từ `MEMBER_PROFILE.phone` (ví dụ: "0901 234 567"); định danh liên hệ duy nhất |
+| Email | `dxDataGrid Column` | `READONLY` | optional | Không | Lấy từ `MEMBER_PROFILE.email` (ví dụ: "an.nguyen@example.vn"); hiển thị gạch ngang `-` nếu chưa có |
+| Chi nhánh | `dxDataGrid Column` | `READONLY` | required | `DYNAMIC`: theo branch scope | Lấy tên chi nhánh trực quầy từ `BRANCH.name` (ví dụ: "Quận 1") |
+| Trạng thái hồ sơ | `dxDataGrid Status badge` | `READONLY` | required | `DYNAMIC`: theo trạng thái record | Lấy từ `MEMBER_PROFILE.status`; hiển thị dạng status badge (ví dụ: badge xanh "Hồ sơ đang hoạt động") |
 
 - **Business rules / logic:**
   - Chỉ hiển thị hồ sơ hội viên thuộc chi nhánh tiếp nhận mà Lễ tân đang trực quầy.

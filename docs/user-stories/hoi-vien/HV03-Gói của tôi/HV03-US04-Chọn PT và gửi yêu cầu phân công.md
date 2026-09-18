@@ -24,18 +24,18 @@
   - Thao tác gửi yêu cầu luôn qua bước Popup xác nhận để tránh bấm nhầm HLV.
 
 ### Field-level specification — Màn hình Chọn PT phụ trách
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Thông tin gói tập cần gán PT** | `PREFILL` + `READONLY` | required | Không | Hiển thị tóm tắt gói tập: `[Tên gói] · [Số buổi PT] · Chi nhánh: [Tên chi nhánh]` |
-| **Thẻ HLV (PT Card)** | `READONLY` | required | `DYNAMIC`: Lấy từ danh sách PT đang hoạt động thuộc chi nhánh của gói | Mỗi thẻ HLV bao gồm: Avatar/Chữ cái đại diện (`TL`, `VM`...), Họ và tên PT (in đậm), Chuyên môn & Chi nhánh (`Cardio, HIIT · Quận 1`) |
-| **Nút [ Gửi yêu cầu ] trên từng Card** | `USER-INPUT` | required | Không | Nút chữ màu xanh lá ở góc phải trên mỗi thẻ HLV; bấm để mở Popup Xác nhận Chọn PT |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Thông tin gói tập cần gán PT** | `Card / Summary info` | `PREFILL` + `READONLY` | required | Không | Hiển thị tóm tắt gói tập: `[Tên gói] · [Số buổi PT] · Chi nhánh: [Tên chi nhánh]` |
+| **Thẻ HLV (PT Card)** | `Card list item` | `READONLY` | required | `DYNAMIC`: Lấy từ danh sách PT đang hoạt động thuộc chi nhánh của gói | Mỗi thẻ HLV bao gồm: Avatar/Chữ cái đại diện (`TL`, `VM`...), Họ và tên PT (in đậm), Chuyên môn & Chi nhánh (`Cardio, HIIT · Quận 1`) |
+| **Nút [ Gửi yêu cầu ] trên từng Card** | `Button / CTA` | `USER-INPUT` | required | Không | Nút chữ màu xanh lá ở góc phải trên mỗi thẻ HLV; bấm để mở Popup Xác nhận Chọn PT |
 
 ### Field-level specification — Popup Xác nhận Chọn PT
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Thông tin HLV được chọn** | `PREFILL` + `READONLY` | required | Không | Hiển thị họ tên và chuyên môn của PT: `HLV [Tên PT] ([Chuyên môn])` |
-| **Thông tin gói tập áp dụng** | `PREFILL` + `READONLY` | required | Không | Hiển thị tên gói tập đang thực hiện gán PT |
-| **Thông báo xác nhận** | `READONLY` | required | Không | Đoạn text: *"Bạn có chắc chắn muốn gửi yêu cầu phân công HLV này không? Yêu cầu sẽ được gửi tới HLV để xác nhận."* |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Thông tin HLV được chọn** | `Typography / Subtitle` | `PREFILL` + `READONLY` | required | Không | Hiển thị họ tên và chuyên môn của PT: `HLV [Tên PT] ([Chuyên môn])` |
+| **Thông tin gói tập áp dụng** | `Typography / Text` | `PREFILL` + `READONLY` | required | Không | Hiển thị tên gói tập đang thực hiện gán PT |
+| **Thông báo xác nhận** | `Typography / Helper text` | `READONLY` | required | Không | Đoạn text: *"Bạn có chắc chắn muốn gửi yêu cầu phân công HLV này không? Yêu cầu sẽ được gửi tới HLV để xác nhận."* |
 
 ## Alternate Flows
 

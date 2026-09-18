@@ -26,14 +26,14 @@
    - Các con số thống kê tự động cập nhật ngay khi có buổi tập hoàn thành hoặc có lịch đặt mới.
 
 ### Field-level specification — Màn hình Tổng quan & Thống kê hiệu suất PT
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Bộ lọc mốc thời gian** | `USER-INPUT` + `PREFILL` | required | `TRIGGER`: Chọn mốc thời gian kích hoạt tính toán lại các ô chỉ số hiệu suất bên dưới | Segmented Control / Chips: `Tuần này`, `Tháng này` (mặc định), `Tháng trước` |
-| **Chỉ số: Học viên phụ trách** | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số lượng học viên theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số học viên có hợp đồng PT `ACTIVE` được phân công cho PT |
-| **Chỉ số: Buổi đã hoàn thành** | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số buổi hoàn thành theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số ca tập có trạng thái `DONE` (đã đủ xác nhận 2 chiều) trong kỳ |
-| **Chỉ số: Buổi đã được book** | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số buổi sắp dạy theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số ca tập có trạng thái `Đã đặt` (`UPCOMING`) trong tương lai |
-| **Chỉ số: Buổi chờ xác nhận** | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số buổi chờ xác nhận theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số ca tập có trạng thái `AWAITING_CONFIRMATION` |
-| **Chỉ số: Yêu cầu phân công** | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số yêu cầu chờ duyệt theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số yêu cầu ghép PT trạng thái `PENDING` |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Bộ lọc mốc thời gian** | `Segmented Control / Chips` | `USER-INPUT (PREFILL)` | required | `TRIGGER`: Chọn mốc thời gian kích hoạt tính toán lại các ô chỉ số hiệu suất bên dưới | Segmented Control / Chips: `Tuần này`, `Tháng này` (mặc định), `Tháng trước` |
+| **Chỉ số: Học viên phụ trách** | `KPI Metric Card` | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số lượng học viên theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số học viên có hợp đồng PT `ACTIVE` được phân công cho PT |
+| **Chỉ số: Buổi đã hoàn thành** | `KPI Metric Card` | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số buổi hoàn thành theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số ca tập có trạng thái `DONE` (đã đủ xác nhận 2 chiều) trong kỳ |
+| **Chỉ số: Buổi đã được book** | `KPI Metric Card` | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số buổi sắp dạy theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số ca tập có trạng thái `Đã đặt` (`UPCOMING`) trong tương lai |
+| **Chỉ số: Buổi chờ xác nhận** | `KPI Metric Card` | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số buổi chờ xác nhận theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số ca tập có trạng thái `AWAITING_CONFIRMATION` |
+| **Chỉ số: Yêu cầu phân công** | `KPI Metric Card` | `READONLY` | required | `DYNAMIC`: Cập nhật tổng số yêu cầu chờ duyệt theo mốc thời gian của TRIGGER | Số nguyên ≥ 0; đếm số yêu cầu ghép PT trạng thái `PENDING` |
 
 ## Alternate Flows
 

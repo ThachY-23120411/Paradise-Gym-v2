@@ -23,7 +23,7 @@
      - Gói Combo Gym + PT: `Gym: đã dùng 1/3 tháng · PT: còn 8/10 buổi` kèm thanh tiến độ (Progress bar).
    - **Badge trạng thái gói**: `Đang hoạt động` (badge xanh lá), `Sắp hết hạn` (badge vàng), `Chờ xử lý` / `Chờ kích hoạt`, `Đã hết hạn`.
    - **Thông tin PT phụ trách & Nút thao tác**:
-     - Nếu gói PT/Combo đã chọn PT phụ trách: Hiển thị `PT: Nguyễn Thành Long`.
+     - Nếu gói PT/Combo đã chọn PT phụ trách: Hiển thị `PT: Nguyễn Văn Thể`.
      - Nếu gói PT/Combo chưa chọn PT phụ trách: Hiển thị `PT: Chưa chọn` và nút CTA màu đen **`[ Chọn PT phụ trách ]`**.
 7. Khi Hội viên bấm nút **`[ Chọn PT phụ trách ]`**, SYS điều hướng sang màn hình Chọn PT cho gói đó (thuộc `HV03-US04`).
 
@@ -34,15 +34,15 @@
   - Mọi giao dịch hiển thị ở khối Lịch sử thanh toán đều là phiếu thu 100% qua chuyển khoản VietQR.
 
 ### Field-level specification — Sub-tab Gói của tôi
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tiêu đề khối Gói của tôi** | `READONLY` | required | `DYNAMIC`: Lấy từ tổng số gói đăng ký của hội viên | Hiển thị nhãn cố định kèm số lượng: `GÓI CỦA TÔI (n)` |
-| **Nhóm Chip lọc trạng thái gói** | `USER-INPUT` | required | `TRIGGER`: Điều khiển danh sách thẻ gói hiển thị bên dưới | 3 chip chuyển đổi trạng thái: `Đang sử dụng (n)`, `Chờ xử lý (n)`, `Đã hết hạn (n)`. Mặc định chọn `Đang sử dụng (n)` |
-| **Thẻ gói tập cá nhân (Package Card)** | `READONLY` | required | `DYNAMIC`: Danh sách thẻ hiển thị theo chip trạng thái đang chọn | Mỗi thẻ bao gồm: Tên gói (chữ đậm), Badge trạng thái (`Đang hoạt động` - xanh lá, `Sắp hết hạn` - vàng, `Chờ xử lý` - xám, `Đã hết hạn`), Dòng thông tin tiến độ (số buổi/số ngày) và Thanh tiến độ (Progress bar) |
-| **Thông tin PT phụ trách trên thẻ** | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào loại gói tập | - **Hiện khi:** Gói tập là gói `PT` hoặc `Combo (Gym + PT)`. Nếu đã có HLV hiển thị `PT: [Tên HLV]` (màu xanh lục); nếu chưa có HLV hiển thị `PT: Chưa chọn` (màu xám).<br>- **Ẩn khi:** Gói tập là gói `Gym` thuần (không sử dụng PT). |
-| **Nút CTA [ Chọn PT phụ trách ]** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc vào loại gói và trạng thái gán PT | - **Hiện khi:** Gói tập là `PT` hoặc `Combo`, trạng thái đang sử dụng và `PT: Chưa chọn`. Nút màu đen chữ trắng, bấm để chuyển sang màn hình Chọn PT (`HV03-US04`).<br>- **Ẩn khi:** Gói tập đã có PT phụ trách, gói Gym thuần, hoặc gói ở trạng thái Chờ xử lý / Đã hết hạn. |
-| **Tiêu đề khối Lịch sử thanh toán** | `READONLY` | required | Không | Header cố định bên dưới danh sách gói: `Lịch sử thanh toán` kèm phụ đề `Các giao dịch mua và thanh toán gói của bạn.` và icon phiếu thu |
-| **Thẻ giao dịch thanh toán (Payment Card)** | `READONLY` | optional | `DYNAMIC`: Lấy từ lịch sử phiếu thu 100% của hội viên | Hiển thị danh sách phiếu thu: Mã phiếu thu (`PT00125`), Số tiền 100% (`3.200.000 đ`), Tên gói & ngày thanh toán, Phương thức (`Chuyển khoản`), Badge trạng thái (`Đã xác nhận`) |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tiêu đề khối Gói của tôi** | `Typography / Heading` | `READONLY` | required | `DYNAMIC`: Lấy từ tổng số gói đăng ký của hội viên | Hiển thị nhãn cố định kèm số lượng: `GÓI CỦA TÔI (n)` |
+| **Nhóm Chip lọc trạng thái gói** | `Chip group / Segmented control` | `USER-INPUT` | required | `TRIGGER`: Điều khiển danh sách thẻ gói hiển thị bên dưới | 3 chip chuyển đổi trạng thái: `Đang sử dụng (n)`, `Chờ xử lý (n)`, `Đã hết hạn (n)`. Mặc định chọn `Đang sử dụng (n)` |
+| **Thẻ gói tập cá nhân (Package Card)** | `Card list item` | `READONLY` | required | `DYNAMIC`: Danh sách thẻ hiển thị theo chip trạng thái đang chọn | Mỗi thẻ bao gồm: Tên gói (chữ đậm), Badge trạng thái (`Đang hoạt động` - xanh lá, `Sắp hết hạn` - vàng, `Chờ xử lý` - xám, `Đã hết hạn`), Dòng thông tin tiến độ (số buổi/số ngày) và Thanh tiến độ (Progress bar) |
+| **Thông tin PT phụ trách trên thẻ** | `Badge / Text label` | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào loại gói tập | - **Hiện khi:** Gói tập là gói `PT` hoặc `Combo (Gym + PT)`. Nếu đã có HLV hiển thị `PT: [Tên HLV]` (màu xanh lục); nếu chưa có HLV hiển thị `PT: Chưa chọn` (màu xám).<br>- **Ẩn khi:** Gói tập là gói `Gym` thuần (không sử dụng PT). |
+| **Nút CTA [ Chọn PT phụ trách ]** | `Button / CTA` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc vào loại gói và trạng thái gán PT | - **Hiện khi:** Gói tập là `PT` hoặc `Combo`, trạng thái đang sử dụng và `PT: Chưa chọn`. Nút màu đen chữ trắng, bấm để chuyển sang màn hình Chọn PT (`HV03-US04`).<br>- **Ẩn khi:** Gói tập đã có PT phụ trách, gói Gym thuần, hoặc gói ở trạng thái Chờ xử lý / Đã hết hạn. |
+| **Tiêu đề khối Lịch sử thanh toán** | `Typography / Heading` | `READONLY` | required | Không | Header cố định bên dưới danh sách gói: `Lịch sử thanh toán` kèm phụ đề `Các giao dịch mua và thanh toán gói của bạn.` và icon phiếu thu |
+| **Thẻ giao dịch thanh toán (Payment Card)** | `Card list item` | `READONLY` | optional | `DYNAMIC`: Lấy từ lịch sử phiếu thu 100% của hội viên | Hiển thị danh sách phiếu thu: Mã phiếu thu (`PT00125`), Số tiền 100% (`3.200.000 đ`), Tên gói & ngày thanh toán, Phương thức (`Chuyển khoản`), Badge trạng thái (`Đã xác nhận`) |
 
 ## Alternate Flows
 

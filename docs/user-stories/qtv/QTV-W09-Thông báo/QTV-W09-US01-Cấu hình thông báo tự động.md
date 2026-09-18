@@ -26,8 +26,8 @@
    - QTV gạt công tắc Bật/Tắt (`ON` / `OFF`) và bấm nút Lưu cấu hình trên Drawer.
 4. SYS kiểm tra và lưu lại ánh xạ cấu hình (Event $\rightarrow$ Role & Scope $\rightarrow$ Template $\rightarrow$ Enabled/Disabled).
 5. Khi một sự kiện nghiệp vụ xảy ra trong hệ thống:
-   - Nếu `Trạng thái = ON`: SYS tự động tra cứu và xác định người nhận theo tổ hợp Role & Scope đã cấu hình (phát cho cá nhân liên quan trực tiếp từ context sự kiện hoặc gửi broadcast cho toàn bộ tài khoản active thuộc vai trò tại chi nhánh), nạp dữ liệu vào Template đã chọn, render nội dung thực tế và tự động phát In-app notification.
-   - Nếu `Trạng thái = OFF`: SYS bỏ qua, không phát In-app notification.
+   - Nếu có quy tắc đã lưu tại chi nhánh, `Trạng thái = ON` và Template được gán đang sử dụng: SYS tự động tra cứu và xác định người nhận theo tổ hợp Role & Scope đã cấu hình (phát cho cá nhân liên quan trực tiếp từ context sự kiện hoặc gửi broadcast cho toàn bộ tài khoản active thuộc vai trò tại chi nhánh), nạp dữ liệu vào Template đã chọn, render nội dung thực tế và tự động phát In-app notification.
+   - Nếu chưa có quy tắc, `Trạng thái = OFF` hoặc Template được gán đã ngừng sử dụng: SYS bỏ qua, không phát In-app notification. Không dùng nội dung/mẫu mặc định hoặc mẫu của chi nhánh khác để vượt qua cấu hình QTV.
 
 ### Field-level specification — Danh sách cấu hình sự kiện (Datagridview)
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
@@ -50,6 +50,7 @@
 | Trạng thái kích hoạt | `Switch Toggle` | `USER-INPUT (PREFILL)` | required | `DYNAMIC` | Tùy chọn: `ON` (Bật tự động gửi) hoặc `OFF` (Tắt tự động gửi) |
 
 - **Business rules / logic:**
+  - **Mặc định không gửi:** Sự kiện chưa được QTV lưu cấu hình `ON` không phát thông báo. Việc bật lại mẫu cũng không tự bật một quy tắc đang `OFF`.
   - **Cơ chế phân giải Người nhận kết hợp giữa Vai trò & Hình thức gửi:**
     - Khi sự kiện phát sinh và `Trạng thái = ON`, SYS tổ hợp các lựa chọn giữa **Vai trò nhận (Role)** và **Hình thức gửi (Scope / Mode)**:
       - **Nếu chọn `Người liên quan trực tiếp`:** Với mỗi vai trò được tick chọn, SYS trích xuất chính xác User ID tương ứng từ ngữ cảnh sự kiện (ví dụ: `member_id` của người thanh toán/đặt lịch nếu tick HV; `pt_id` của HLV phụ trách ca tập nếu tick PT; `staff_id` của lễ tân lập phiếu nếu tick LT) và chỉ phát thông báo riêng cho cá nhân đó.
@@ -83,13 +84,16 @@ flowchart TB
       I01(("Initial"))
       A01["Truy cập tab Cấu hình thông báo tự động trong W09"]
       A02["Xem bảng quy tắc sự kiện hoặc gạt Switch ON/OFF trực tiếp"]
+      D00{"Thao tác cấu hình?"}
+      A06["Gạt Switch ON/OFF tại dòng đã có cấu hình"]
       A03["Bấm nút [✎] tại dòng sự kiện cần chỉnh sửa"]
       A04["Tick chọn Vai trò nhận, Hình thức gửi (liên quan / broadcast), chọn Mẫu áp dụng và Trạng thái"]
       A05["Bấm nút Lưu cấu hình trên Drawer"]
-      F01((("Final — Ánh xạ cấu hình Event -> Role & Scope -> Template -> Status được áp dụng")))
 
       I01 --> A01
-      A02 --> A03
+      A02 --> D00
+      D00 -->|Gạt nhanh| A06
+      D00 -->|Mở Drawer| A03
       A04 --> A05
     end
 
@@ -97,11 +101,26 @@ flowchart TB
       S01["Tải bảng danh sách Event, Người nhận, Template gán và Trạng thái ON/OFF"]
       S02["Mở Drawer chi tiết với thông tin Event, Checkbox Vai trò nhận, Checkbox Hình thức gửi, Dropdown Template, Switch ON/OFF"]
       S03["Lưu ánh xạ quy tắc cấu hình vào cơ sở dữ liệu"]
-      S04["Tự động kiểm tra quy tắc và phát In-app notification khi Event phát sinh"]
+      D02{"Lưu cấu hình thành công?"}
+      S04["Khi Event phát sinh, nạp quy tắc tại chi nhánh và mẫu được gán"]
+      D01{"Có quy tắc ON và mẫu đang sử dụng?"}
+      S05["Xác định Role và Scope, render mẫu đã gán và phát In-app notification"]
+      S06["Không phát thông báo; không dùng mẫu mặc định thay thế"]
+      M01(("Merge — Đã xử lý điều kiện gửi"))
+      S07["Báo lỗi lưu, giữ nguyên cấu hình cũ"]
+      F01((("Final — Cấu hình được áp dụng đúng điều kiện gửi")))
+      F02((("Final — Không thay đổi cấu hình")))
 
       A01 --> S01 --> A02
       A03 --> S02 --> A04
-      A05 --> S03 --> S04 --> F01
+      A05 --> S03
+      A06 --> S03
+      S03 --> D02
+      D02 -->|Có| S04 --> D01
+      D02 -->|Không| S07 --> F02
+      D01 -->|Có| S05 --> M01
+      D01 -->|Không| S06 --> M01
+      M01 --> F01
     end
   end
 ```

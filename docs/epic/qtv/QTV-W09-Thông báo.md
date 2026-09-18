@@ -6,7 +6,7 @@
 - **Goal:** Quản lý kiến trúc phát hành thông báo in-app tự động theo sự kiện nghiệp vụ (Event-Driven Notification), cấu hình ánh xạ mẫu thông báo với sự kiện, quản lý thư viện mẫu template thông minh và tra cứu nhật ký lịch sử gửi thông báo.
 - **Scope:** 
   1. **Thông báo tự động theo sự kiện:** Hệ thống (SYS) tự động kích hoạt gửi thông báo in-app khi các sự kiện nghiệp vụ phát sinh (Thanh toán thành công, Đặt lịch PT, Hủy lịch, Phân công PT, Gói tập sắp hết hạn). QTV không soạn gửi tin nhắn thủ công rải rác từng người.
-  2. **Cấu hình quy tắc & Bật/Tắt:** QTV quản lý bật/tắt (`ON`/`OFF`) việc tự động gửi cho từng sự kiện và lựa chọn mẫu thông báo áp dụng. Quy tắc người nhận (Recipient Rule) và kênh (`IN_APP`) được cố định bởi logic nghiệp vụ backend.
+  2. **Cấu hình quy tắc & Bật/Tắt:** QTV quản lý bật/tắt (`ON`/`OFF`) việc tự động gửi cho từng sự kiện và lựa chọn mẫu thông báo áp dụng. Chỉ phát khi có quy tắc `ON` và mẫu được gán đang sử dụng; không có quy tắc, quy tắc `OFF` hoặc mẫu ngừng sử dụng thì không phát. Không tự gửi bằng mẫu mặc định. Kênh cố định `IN_APP`; backend xác định người nhận theo Vai trò và Hình thức gửi do QTV cấu hình trong `QTV-W09-US01`.
   3. **Thư viện mẫu thông minh (Template Library):** Quản lý các mẫu thông báo với công cụ soạn thảo trực quan, hỗ trợ bộ nút biến động tiếng Việt theo ngữ cảnh sự kiện để chèn dữ liệu tự động.
   4. **Nhật ký kiểm toán minh bạch (Audit Trail):** Tra cứu toàn bộ lịch sử thông báo in-app đã gửi với đầy đủ thông tin thời gian, người nhận, nội dung thực tế đã render và liên kết chứng từ nguồn.
 

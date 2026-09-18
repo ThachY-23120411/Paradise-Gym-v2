@@ -23,7 +23,7 @@
 | Số điện thoại | `Readonly Text (Phone)` | `READONLY` | required | Không | Số điện thoại định danh duy nhất của PT từ `PT_PROFILE.phone` (ví dụ: "0909 888 777") |
 | Email | `Readonly Text` | `READONLY` | optional | Không | Địa chỉ email của PT từ `PT_PROFILE.email` (ví dụ: "pt.hung@paradise.vn"); hiển thị `--` nếu chưa cập nhật |
 | Chi nhánh phục vụ | `Readonly Text` | `READONLY` | required | Không | Tên chi nhánh nơi Lễ tân và PT đang cùng công tác từ `BRANCH.name` (ví dụ: "Quận 1") |
-| Chuyên môn / Ghi chú | `Readonly Text` | `READONLY` | optional | Không | Tóm tắt chuyên môn, chứng chỉ thể hình từ `PT_PROFILE.specialty` (ví dụ: "Cardio & Thể hình, NASM"); hiển thị `--` nếu để trống |
+| Chuyên môn / Ghi chú | `Readonly Text` | `READONLY` | optional | Không | Tóm tắt chuyên môn từ `PT_PROFILE.specialty` (ví dụ: "Cardio & Thể hình, Boxing"); hiển thị `--` nếu để trống |
 | Trạng thái | `Status Badge` | `READONLY` | required | `DYNAMIC`: theo trạng thái record | Hiển thị badge trực quan theo trạng thái: `Đang hoạt động` (xanh lá), `Ngừng hoạt động` (vàng/xám), `Đã lưu trữ` (đỏ) |
 
 - **Business rules / logic:**

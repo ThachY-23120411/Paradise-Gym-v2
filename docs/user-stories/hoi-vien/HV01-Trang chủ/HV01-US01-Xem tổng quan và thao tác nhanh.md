@@ -35,23 +35,23 @@
   - Toàn bộ dữ liệu hiển thị (yêu cầu PT, lịch tập, gói) bắt buộc phải thuộc quyền sở hữu của Hội viên đang đăng nhập; tuyệt đối không hiển thị nhầm dữ liệu của hội viên khác.
 
 ### Field-level specification — Màn hình HV01 · Trang chủ
-| Field / Control | Interaction State | Required | Conditional / Dynamic | Data Source / Validation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Lời chào hội viên** | `READONLY` | required | Không | Hiển thị: *"Xin chào, [Họ và tên Hội viên]"* (ví dụ: *Xin chào, Trần Thị Bình*) |
-| **Tiêu đề câu hỏi tương tác** | `READONLY` | required | Không | Dòng chữ tiêu đề: *"Hôm nay bạn muốn làm gì?"* (font size 20px, bold) |
-| **Mô tả định hướng** | `READONLY` | required | Không | Dòng chữ mô tả: *"Trang tổng quan để bạn biết việc cần làm và đi nhanh đến đúng chức năng."* |
-| **Icon trạng thái việc cần làm** | `READONLY` | required | `DYNAMIC`: Đổi màu và icon theo trạng thái | Icon đồng hồ `clock` màu vàng amber (khi có yêu cầu chờ) hoặc icon tích `check` màu xanh green (khi rảnh) |
-| **Tiêu đề việc cần xử lý** | `READONLY` | required | `DYNAMIC`: Đổi nội dung theo trạng thái | - Khi có yêu cầu PT chờ: *"Yêu cầu PT đang chờ phản hồi"*<br>- Khi không có việc: *"Không có việc cần xử lý"* |
-| **Mô tả chi tiết việc cần xử lý** | `READONLY` | required | `DYNAMIC`: Đổi nội dung theo trạng thái | - Khi có yêu cầu PT chờ: *"[Tên HLV] đang xem yêu cầu chọn PT của bạn."*<br>- Khi không có: *"Bạn có thể mua gói mới hoặc đặt một buổi trong lịch PT."* |
-| **Nút [ Xem yêu cầu PT ]** | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc có yêu cầu chọn PT đang chờ duyệt hay không | - **Hiện khi:** Hội viên có yêu cầu chọn PT ở trạng thái `PENDING`.<br>- **Ẩn khi:** Không có yêu cầu PT nào đang chờ duyệt.<br>- Thao tác: Bấm để điều hướng sang `HV03` (sub-tab Yêu cầu PT). |
-| **Nhãn Thẻ Lịch sắp tới** | `READONLY` | required | Không | Đoạn text nhãn khối: *"Lịch sắp tới"* |
-| **Thời gian buổi tập sắp tới** | `READONLY` | required | `DYNAMIC`: Đổi nội dung theo dữ liệu lịch | - Khi có buổi tập sắp diễn ra: Hiển thị *"[Ngày] · [Khung giờ]"* (ví dụ: *18/10/2026 · 08:00 - 10:00*)<br>- Khi không có: Hiển thị *"Chưa có lịch sắp tới"* |
-| **Thông tin chi tiết buổi tập** | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc có buổi tập sắp diễn ra hay không | - **Hiện khi:** Có buổi tập sắp diễn ra (hiển thị *"[Tên HLV] · [Tên gói tập]"*).<br>- **Ẩn khi:** Chưa có lịch sắp tới. |
-| **Nút [ Xem lịch của tôi ]** | `USER-INPUT` | required | Không | Nút secondary bo góc viền; bấm để điều hướng sang `HV02 · Lịch tập` |
-| **Tiêu đề Thẻ Quản lý gói tập** | `READONLY` | required | Không | Đoạn text: *"Quản lý gói tập"* |
-| **Mô tả Thẻ Quản lý gói tập** | `READONLY` | required | Không | Đoạn text: *"Mua gói, xem tiến độ sử dụng và quản lý PT phụ trách."* |
-| **Nút [ Mua gói ]** | `USER-INPUT` | required | Không | Nút primary màu xanh lá; bấm để điều hướng sang `HV03 · Gói của tôi` (sub-tab Mua gói) |
-| **Nút [ Gói của tôi ]** | `USER-INPUT` | required | Không | Nút secondary bo góc; bấm để điều hướng sang `HV03 · Gói của tôi` (sub-tab Gói của tôi) |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Lời chào hội viên** | `Typography / Heading` | `READONLY` | required | Không | Hiển thị: *"Xin chào, [Họ và tên Hội viên]"* (ví dụ: *Xin chào, Trần Thị Bình*) |
+| **Tiêu đề câu hỏi tương tác** | `Typography / Heading` | `READONLY` | required | Không | Dòng chữ tiêu đề: *"Hôm nay bạn muốn làm gì?"* (font size 20px, bold) |
+| **Mô tả định hướng** | `Typography / Paragraph` | `READONLY` | required | Không | Dòng chữ mô tả: *"Trang tổng quan để bạn biết việc cần làm và đi nhanh đến đúng chức năng."* |
+| **Icon trạng thái việc cần làm** | `Icon indicator` | `READONLY` | required | `DYNAMIC`: Đổi màu và icon theo trạng thái | Icon đồng hồ `clock` màu vàng amber (khi có yêu cầu chờ) hoặc icon tích `check` màu xanh green (khi rảnh) |
+| **Tiêu đề việc cần xử lý** | `Typography / Subtitle` | `READONLY` | required | `DYNAMIC`: Đổi nội dung theo trạng thái | - Khi có yêu cầu PT chờ: *"Yêu cầu PT đang chờ phản hồi"*<br>- Khi không có việc: *"Không có việc cần xử lý"* |
+| **Mô tả chi tiết việc cần xử lý** | `Typography / Text` | `READONLY` | required | `DYNAMIC`: Đổi nội dung theo trạng thái | - Khi có yêu cầu PT chờ: *"[Tên HLV] đang xem yêu cầu chọn PT của bạn."*<br>- Khi không có: *"Bạn có thể mua gói mới hoặc đặt một buổi trong lịch PT."* |
+| **Nút [ Xem yêu cầu PT ]** | `Button / CTA` | `USER-INPUT` | conditional | `CONDITIONAL`: Phụ thuộc có yêu cầu chọn PT đang chờ duyệt hay không | - **Hiện khi:** Hội viên có yêu cầu chọn PT ở trạng thái `PENDING`.<br>- **Ẩn khi:** Không có yêu cầu PT nào đang chờ duyệt.<br>- Thao tác: Bấm để điều hướng sang `HV03` (sub-tab Yêu cầu PT). |
+| **Nhãn Thẻ Lịch sắp tới** | `Badge / Text label` | `READONLY` | required | Không | Đoạn text nhãn khối: *"Lịch sắp tới"* |
+| **Thời gian buổi tập sắp tới** | `Typography / Text` | `READONLY` | required | `DYNAMIC`: Đổi nội dung theo dữ liệu lịch | - Khi có buổi tập sắp diễn ra: Hiển thị *"[Ngày] · [Khung giờ]"* (ví dụ: *18/10/2026 · 08:00 - 10:00*)<br>- Khi không có: Hiển thị *"Chưa có lịch sắp tới"* |
+| **Thông tin chi tiết buổi tập** | `Typography / Text` | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc có buổi tập sắp diễn ra hay không | - **Hiện khi:** Có buổi tập sắp diễn ra (hiển thị *"[Tên HLV] · [Tên gói tập]"*).<br>- **Ẩn khi:** Chưa có lịch sắp tới. |
+| **Nút [ Xem lịch của tôi ]** | `Button / Secondary` | `USER-INPUT` | required | Không | Nút secondary bo góc viền; bấm để điều hướng sang `HV02 · Lịch tập` |
+| **Tiêu đề Thẻ Quản lý gói tập** | `Typography / Subtitle` | `READONLY` | required | Không | Đoạn text: *"Quản lý gói tập"* |
+| **Mô tả Thẻ Quản lý gói tập** | `Typography / Text` | `READONLY` | required | Không | Đoạn text: *"Mua gói, xem tiến độ sử dụng và quản lý PT phụ trách."* |
+| **Nút [ Mua gói ]** | `Button / Primary CTA` | `USER-INPUT` | required | Không | Nút primary màu xanh lá; bấm để điều hướng sang `HV03 · Gói của tôi` (sub-tab Mua gói) |
+| **Nút [ Gói của tôi ]** | `Button / Secondary` | `USER-INPUT` | required | Không | Nút secondary bo góc; bấm để điều hướng sang `HV03 · Gói của tôi` (sub-tab Gói của tôi) |
 
 ## Alternate Flows
 

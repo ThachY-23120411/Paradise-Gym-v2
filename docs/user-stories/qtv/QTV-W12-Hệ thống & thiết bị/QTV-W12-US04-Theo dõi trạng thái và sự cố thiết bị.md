@@ -17,12 +17,12 @@
 6. Khi thiết bị gửi bù event, SYS giữ timestamp/bối cảnh phát sinh và không phát lại trải nghiệm cũ trên K01.
 
 ### Field-level specification — Modal Ghi nhận & xử lý sự cố thiết bị
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Chọn thiết bị | `USER-INPUT` | required | `DYNAMIC`: chọn thiết bị bị sự cố | Registry thiết bị |
-| Mô tả sự cố | `USER-INPUT` | required | `DYNAMIC`: nhập mô tả chi tiết sự cố thiết bị | QTV / Lễ tân nhập |
-| Mức độ sự cố | `USER-INPUT` | required | `DYNAMIC`: chọn mức độ ưu tiên xử lý (`Thấp`, `Trung bình`, `Cao`, `Nghiêm trọng`) | Catalog mức độ sự cố |
-| Trạng thái xử lý sự cố | `USER-INPUT` | required | `DYNAMIC`: QTV cập nhật tiến độ (`Open`, `In progress`, `Resolved`) | Catalog trạng thái workflow |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Chọn thiết bị | `dxSelectBox` | `USER-INPUT` | required | `DYNAMIC`: chọn thiết bị bị sự cố từ danh sách đang kết nối | Registry thiết bị |
+| Mô tả sự cố | `dxTextArea` | `USER-INPUT` | required | `DYNAMIC`: nhập mô tả chi tiết sự cố thiết bị | QTV / Lễ tân nhập |
+| Mức độ sự cố | `dxSelectBox` | `USER-INPUT` | required | `DYNAMIC`: chọn mức độ ưu tiên xử lý (`Thấp`, `Trung bình`, `Cao`, `Nghiêm trọng`) | Catalog mức độ sự cố |
+| Trạng thái xử lý sự cố | `dxSelectBox` | `USER-INPUT` | required | `DYNAMIC`: QTV cập nhật tiến độ (`Open`, `In progress`, `Resolved`) | Catalog trạng thái workflow |
 
 - **Business rules / logic:**
   - Thiết bị lỗi không được là lý do để hội viên vượt rào qua cổng mà không đủ điều kiện gói; trường hợp sự cố chuyển sang xử lý thủ công tại W07.

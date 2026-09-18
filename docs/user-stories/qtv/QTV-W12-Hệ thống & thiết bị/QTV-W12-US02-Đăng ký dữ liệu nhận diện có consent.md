@@ -1,4 +1,4 @@
-﻿# QTV-W12-US02 - Đăng ký dữ liệu nhận diện có consent
+# QTV-W12-US02 - Đăng ký dữ liệu nhận diện có consent
 
 ## Preconditions
 - Người thực hiện đã đăng nhập, hồ sơ hội viên hợp lệ đã tồn tại và người thực hiện có quyền quản lý dữ liệu nhận diện.
@@ -18,15 +18,15 @@
 7. Người thực hiện xác nhận trạng thái sẵn sàng cho hội viên.
 
 ### Field-level specification — Quy trình đăng ký nhận diện có consent
-| Field / control | State | Required | Conditional / dynamic | Source / validation |
-|---|---|---|---|---|
-| Hội viên / Mục đích sử dụng | `READONLY (PREFILL)` | required | `DYNAMIC`: nạp thông tin hội viên và mục đích sử dụng dữ liệu nhận diện | Hồ sơ hội viên / Cấu hình consent |
-| Xác minh hồ sơ | `USER-INPUT` | required | `DYNAMIC`: người thực hiện đối chiếu thông tin định danh hội viên tại quầy | Người thực hiện xác minh |
-| Tích chọn consent | `USER-INPUT` | required | `DYNAMIC`: bắt buộc hội viên xác nhận đồng ý trước khi capture dữ liệu | Hội viên đồng ý / Consent store |
-| Thiết bị đăng ký | `USER-INPUT` | required | `DYNAMIC`: chọn thiết bị capture nhận diện đang kết nối | Danh mục thiết bị hoạt động |
-| Kết quả capture / Test nhận diện | `AUTO-FILL` | READONLY | `DYNAMIC`: tự động hiển thị kết quả xử lý từ thiết bị | Thiết bị nhận diện trả về |
-| Ảnh hồ sơ | `READONLY` | optional | `DYNAMIC`: hiển thị ảnh đại diện hồ sơ nếu có (không tự ý dùng làm dữ liệu nhận diện) | Hồ sơ hội viên |
-| Nhật ký consent & audit | `AUTO-FILL` | READONLY | `DYNAMIC`: hệ thống tự ghi phiên bản consent, thời điểm, người thực hiện | Hệ thống lưu audit trail |
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Hội viên / Mục đích sử dụng | `Card / Summary info` | `READONLY (PREFILL)` | required | `DYNAMIC`: nạp thông tin hội viên và mục đích sử dụng dữ liệu nhận diện | Hồ sơ hội viên / Cấu hình consent |
+| Xác minh hồ sơ | `dxCheckBox` | `USER-INPUT` | required | `DYNAMIC`: người thực hiện đối chiếu thông tin định danh hội viên tại quầy | Người thực hiện xác minh |
+| Tích chọn consent | `dxCheckBox` | `USER-INPUT` | required | `DYNAMIC`: bắt buộc hội viên xác nhận đồng ý trước khi capture dữ liệu | Hội viên đồng ý / Consent store |
+| Thiết bị đăng ký | `dxSelectBox` | `USER-INPUT` | required | `DYNAMIC`: chọn thiết bị capture nhận diện đang kết nối | Danh mục thiết bị hoạt động |
+| Kết quả capture / Test nhận diện | `Badge / Status indicator` | `AUTO-FILL` + `READONLY` | required | `DYNAMIC`: tự động hiển thị kết quả xử lý từ thiết bị | Thiết bị nhận diện trả về |
+| Ảnh hồ sơ | `Avatar / Image display` | `READONLY` | optional | `DYNAMIC`: hiển thị ảnh đại diện hồ sơ nếu có (không tự ý dùng làm dữ liệu nhận diện) | Hồ sơ hội viên |
+| Nhật ký consent & audit | `dxTextBox (Date/Time)` | `AUTO-FILL` + `READONLY` | required | `DYNAMIC`: hệ thống tự ghi phiên bản consent, thời điểm, người thực hiện | Hệ thống lưu audit trail |
 
 - **Business rules / logic:**
   - Quy trình đăng ký nhận diện tuân thủ chặt chẽ các bước: giải thích mục đích, thu thập consent, đối chiếu hồ sơ, capture dữ liệu, test thử nghiệm, xác nhận trạng thái `READY`.

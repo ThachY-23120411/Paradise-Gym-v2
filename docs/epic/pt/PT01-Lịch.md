@@ -12,9 +12,11 @@
 
 Giao diện `PT01 · Lịch` là phân hệ điều hành lịch làm việc hàng ngày của Huấn luyện viên trên nền tảng Mobile App, bao gồm các khối thành phần nghiệp vụ sau:
 
-### 1. Thanh điều hướng lịch ngày (Calendar Strip / DatePicker)
-- **Bộ chọn tháng:** Hiển thị `< Tháng MM/YYYY >` kèm nút chuyển tháng.
-- **Dải lịch cuộn ngang (Calendar Horizontal Strip):** Hiển thị các ngày trong tuần/tháng kèm thứ (T2, T3, T4...); ngày hiện tại được đánh dấu viền sáng; chạm vào ngày bất kỳ để nạp lịch làm việc của ngày đó.
+### 1. Bộ chọn ngày linh hoạt 2 chế độ (Expandable / Collapsible Calendar)
+- **Thanh tiêu đề tháng & Điều hướng:** Hiển thị `Tháng MM/YYYY`, cụm 2 nút chuyển tháng `<` `>`, và icon/nút chuyển đổi chế độ. Chạm vào tiêu đề tháng hoặc thanh toggle để mở rộng hoặc thu gọn.
+- **Chế độ Thu gọn (Compact Horizontal Strip):** Dải cuộn ngang lướt nhanh các ngày trong tuần/tháng; mỗi ô ngày bo góc mềm mại, hiển thị Thứ và Ngày; ngày được chọn nổi bật với nền màu xanh ngọc sáng rực rỡ và số ngày to đậm, kèm chấm trạng thái ca tập; tự động cuộn vào giữa màn hình.
+- **Chế độ Mở rộng (Full Month Grid Calendar):** Mở ra toàn bộ lưới lịch tháng 7 cột (`T2`, `T3`, `T4`, `T5`, `T6`, `T7`, `CN`), hiển thị toàn bộ các ngày từ 1 đến 30/31; ngày được chọn khoanh tròn nổi bật; cho phép PT chạm chọn bất kỳ ngày nào trong tháng một cách tức thì mà không cần phải vuốt ngang.
+- **Thanh chuyển đổi chế độ (Toggle Bar):** Nằm ở đáy card lịch, cho phép PT chuyển đổi linh hoạt giữa dải ngày thu gọn và mở rộng lưới cả tháng.
 
 ### 2. Tiêu đề ngày làm việc & Khung giờ hành chính
 - Hiển thị ngày được chọn (`DD/MM/YYYY`) kèm thông tin: `Khung làm việc cố định: 08:00 - 18:00`.
