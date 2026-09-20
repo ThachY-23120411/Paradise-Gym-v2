@@ -33,10 +33,12 @@
 | Số điện thoại | `Text Input (Tel)` | `USER-INPUT (PREFILL)` | required | Không | Prefill số điện thoại liên hệ hiện tại, cho phép sửa đổi; định dạng SĐT chuẩn Việt Nam |
 | Giờ mở cửa | `Text Input` | `USER-INPUT (PREFILL)` | required | Không | Prefill khung giờ hoạt động hiện tại (ví dụ: `06:00 - 22:00`), cho phép sửa đổi; định dạng chuẩn `HH:mm - HH:mm` |
 | Trạng thái hoạt động | `Select Dropdown` | `USER-INPUT (PREFILL)` | required | Không | Lựa chọn trạng thái hoạt động: `Đang hoạt động` (`ACTIVE`) hoặc `Tạm ngừng hoạt động` (`INACTIVE`) |
+| Tỷ lệ hoa hồng PT mặc định (%) | `Number Input` | `READONLY` | required | Không | Hiển thị tỷ lệ hoa hồng mặc định ban đầu của chi nhánh; trường bị khóa `READONLY` tại modal này kèm thông báo: "Cấu hình hoa hồng chi nhánh được quản lý phiên bản tại mục Quản lý hoa hồng PT (W15)" |
 
 - **Business rules / logic:**
   - QTV cấp tối cao là vai trò duy nhất có quyền điều chỉnh thông tin hồ sơ và trạng thái hoạt động của các cơ sở chi nhánh trong chuỗi.
   - Mã chi nhánh (`branch_code`) là khóa cố định bất biến, luôn ở trạng thái `READONLY` nhằm đảm bảo tính toàn vẹn dữ liệu liên kết với hợp đồng gói tập, lịch sử giao dịch và phân công PT.
+  - Tỷ lệ hoa hồng PT mặc định (`default_pt_commission_percentage`) hiển thị ở chế độ chỉ đọc (`READONLY`) trên form chỉnh sửa. Mọi thao tác nâng/hạ tỷ lệ hoa hồng chi nhánh đều được điều hành tập trung theo cơ chế quản lý phiên bản và lịch sử hiệu lực tại phân hệ **Quản lý hoa hồng PT (W15)**.
   - Khi chuyển trạng thái sang `Tạm ngừng hoạt động`:
     + Chi nhánh này sẽ tạm thời bị ẩn khỏi danh sách lựa chọn đăng ký gói tập mới áp dụng riêng cho cơ sở (W04).
     + Tạm khóa tính năng ghi nhận check-in ra/vào tại các cổng kiểm soát thuộc chi nhánh (W07, W12).

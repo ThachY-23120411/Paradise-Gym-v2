@@ -5,6 +5,10 @@ async function runScheduledNotifications(now=new Date()) {
   return transaction(async db=>{
     const locked=(await db.query("SELECT pg_try_advisory_xact_lock(hashtext('scheduled-notifications')) locked")).rows[0].locked;
     if(!locked)return {sent:0,skipped:true};
+    // Tự động kích hoạt các đơn đăng ký SCHEDULED thành ACTIVE khi đến ngày bắt đầu
+    await db.query(`UPDATE registrations SET status='ACTIVE', updated_at=NOW() WHERE status='SCHEDULED' AND start_date <= ($1::timestamptz AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`, [now]);
+    // Tự động hết hạn các đơn đăng ký đã qua ngày kết thúc
+    await db.query(`UPDATE registrations SET status='EXPIRED', updated_at=NOW() WHERE status IN ('ACTIVE', 'SCHEDULED') AND end_date IS NOT NULL AND end_date < ($1::timestamptz AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`, [now]);
     let sent=0;
     const bookings=(await db.query(`SELECT bk.*,m.account_id member_account,m.full_name member_name,p.account_id pt_account,p.full_name pt_name,b.branch_name,
       EXTRACT(EPOCH FROM ((bk.booking_date+bk.start_time) AT TIME ZONE b.timezone-$1::timestamptz))/3600 hours_left

@@ -1,4 +1,4 @@
-<!-- READ_BY: anti-2 -->
+<!-- READ_BY: anti-2, anti-1 -->
 # BÁO CÁO HOÀN THIỆN: 100% PHÂN HỆ MOBILE HỘI VIÊN (TAB 2)
 
 **Dự án:** Paradise Gym  

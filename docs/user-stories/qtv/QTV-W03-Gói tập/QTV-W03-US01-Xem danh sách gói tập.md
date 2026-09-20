@@ -13,7 +13,7 @@
 1. QTV mở menu **Gói tập** (W03).
 2. SYS xác định branch scope và nạp toàn bộ danh mục gói tập.
 3. SYS hiển thị giao diện lưới thẻ (Card Grid) các gói tập và thanh lọc trạng thái (`Tất cả`, `Đang bán`, `Ngừng bán`).
-4. QTV xem các thông tin chi tiết trên từng thẻ gói tập hoặc bấm chọn tab để lọc gói theo trạng thái bán.
+4. QTV xem các thông tin chi tiết trên từng thẻ gói tập, bấm chọn tab để lọc gói theo trạng thái bán, hoặc bấm nút **[Chi tiết]** để mở popup xem toàn bộ thông tin chi tiết gói tập.
 
 ### Field-level specification — Thẻ gói tập trên Card Grid (Bố cục 3 cột / hàng)
 - **Bố cục lưới (Card Grid Layout):** 
@@ -24,12 +24,13 @@
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Nút [ Thêm gói mới ]** | `Button / CTA` | `USER-INPUT` | required | Không | Nút CTA góc trên bên phải màn hình; bấm để mở modal Thêm gói tập mới (`QTV-W03-US02`) |
-| **Tên gói** | `Card Header / Typography` | `READONLY` | required | Không | Lấy từ `PACKAGE.name` (ví dụ: "Gói 1 tháng", "Combo Gym 3 tháng + PT 10 buổi"); tiêu đề đậm trên thẻ |
+| **Tên gói** | `Card Header / Typography` | `READONLY` | required | Không | Lấy từ `PACKAGE.name` (ví dụ: "Gói 1 tháng", "Combo Gym 3 tháng + PT 10 buổi"); tiêu đề đậm trên thẻ, click để mở popup Chi tiết gói |
 | **Trạng thái gói** | `Badge / Status indicator` | `READONLY` | required | `DYNAMIC`: theo trạng thái bán | Lấy từ `PACKAGE.status`; hiển thị badge màu (ví dụ: badge xanh `Đang bán`, badge xám `Ngừng bán`) |
 | **Mã gói & Phân loại** | `Badge / Text label` | `READONLY` | required | Không | Định dạng `{PACKAGE.code} · {PACKAGE.type} - {PACKAGE.limit_type}` (ví dụ: "G01 · GYM - Theo ngày", "G05 · GYM - Theo buổi", "G06 · PT - Theo buổi", "G08 · COMBO - Theo ngày + buổi") |
 | **Giá bán** | `Typography / Price highlight` | `READONLY` | required | `DYNAMIC`: theo đơn vị VND | Lấy từ `PACKAGE.price` (ví dụ: "500.000 đ", "3.200.000 đ"); typography số to đậm nổi bật |
 | **Hạn định / Quyền lợi** | `Typography / Text` | `READONLY` | required | `DYNAMIC`: theo loại gói | Hiển thị thời hạn ngày và/hoặc số buổi PT (ví dụ: "Thời hạn: 30 ngày", "Thời hạn: 90 ngày · PT: 10 buổi") |
 | **Chi nhánh áp dụng** | `Badge / Text label` | `READONLY` | required | `DYNAMIC`: theo danh sách branch | Hiển thị tên các chi nhánh được phép áp dụng gói (ví dụ: "Áp dụng: Quận 1, Bình Thạnh") |
+| **Nút [ Chi tiết ]** | `Button / Action Icon` | `USER-INPUT` | required | Không | Nút icon thông tin `[ℹ Chi tiết]` trên mỗi thẻ; bấm mở popup Chi tiết gói tập xem thông tin định danh, giá bóc tách, hạn mức, chi nhánh và mô tả quyền lợi |
 | **Nút [ Sửa ]** | `Button / Action Icon` | `USER-INPUT` | required | Không | Nút icon cây bút trên mỗi thẻ; bấm mở modal Cập nhật danh mục gói tập (`QTV-W03-US03`) |
 | **Nút [ Ngừng bán ]** | `Button / Danger Action` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** trạng thái gói là `Đang bán`; **Ẩn khi** trạng thái gói là `Ngừng bán` | Nút màu đỏ; bấm mở popup xác nhận ngừng bán (`QTV-W03-US04`) |
 | **Nút [ Mở bán lại ]** | `Button / Action` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** trạng thái gói là `Ngừng bán`; **Ẩn khi** trạng thái gói là `Đang bán` | Nút màu tối; bấm để khôi phục gói về trạng thái `Đang bán` |
@@ -37,7 +38,15 @@
 - **Business rules / logic:**
   - Danh sách hiển thị theo dạng Card Grid trực quan (3 cột / hàng), phân tách rõ ràng giữa gói Gym, gói PT và Combo.
   - Sắp xếp mặc định theo mã gói hoặc theo nhóm loại gói.
+  - Bấm nút **[Chi tiết]** mở popup xem toàn bộ thông tin chi tiết gói tập (Phân loại & Giá bán niêm yết, Quyền lợi & Hạn mức sử dụng, Phạm vi áp dụng & Mô tả quyền lợi) cùng các nút thao tác nhanh (`[Sửa gói]`, `[Ngừng bán / Mở bán lại]`, `[Đóng]`).
   - Gói đã ngừng bán vẫn hiển thị trên giao diện của QTV (có badge `Ngừng bán`) để phục vụ quản trị và mở bán lại khi cần, nhưng không xuất hiện trong luồng bán mới của Lễ tân hay trên Mobile App của Hội viên.
+
+## Alternate Flows
+
+### AF-01 - Xem chi tiết gói tập
+1. QTV bấm nút **[Chi tiết]** (hoặc click vào Tên gói) trên thẻ gói tập.
+2. SYS hiển thị modal/popup **Chi tiết gói tập** gồm 3 khối: Phân loại & Giá bán niêm yết, Quyền lợi & Hạn mức sử dụng, Phạm vi áp dụng & Mô tả quyền lợi, cùng các nút thao tác nhanh (`[Sửa gói]`, `[Ngừng bán / Mở bán lại]`, `[Đóng]`).
+3. QTV xem thông tin hoặc chọn thao tác chuyển tiếp tương ứng.
 
 ## Exception Flows
 - Không có gói tập nào theo bộ lọc: SYS hiển thị empty state "Không có gói tập nào".
@@ -53,14 +62,19 @@ flowchart TB
       I01(("Initial"))
       A01["Mở menu W03 Gói tập"]
       A02["Lọc theo tab (Tất cả, Đang bán, Ngừng bán)"]
+      A03["Bấm nút [Chi tiết] trên thẻ gói"]
       F01((("Final — Danh sách gói hiển thị dạng Card Grid")))
+      F02((("Final — Popup Chi tiết gói tập hiển thị")))
       I01 --> A01 --> A02
+      A01 --> A03
     end
     subgraph L1["Swimlane — SYS"]
       S01["Nạp danh mục gói tập theo branch scope"]
       S02["Hiển thị Card Grid (Tên, Mã, Giá, Hạn định, Chi nhánh, Badge trạng thái)"]
+      S03["Mở popup Chi tiết gói tập (Phân loại, Giá, Hạn mức, Chi nhánh, Mô tả)"]
       A01 --> S01 --> S02 --> F01
       A02 --> S02
+      A03 --> S03 --> F02
     end
   end
 ```

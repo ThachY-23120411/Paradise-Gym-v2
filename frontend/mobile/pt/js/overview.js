@@ -33,8 +33,10 @@
     isLoading: false,
     hasError: false,
     errorMessage: '',
-    kpiData: { this_week: null, this_month: null, last_month: null }
-
+    kpiData: { this_week: null, this_month: null, last_month: null },
+    commMonth: new Date().getMonth() + 1,
+    commYear: new Date().getFullYear(),
+    commData: null
   };
 
   /**
@@ -104,10 +106,7 @@
     const html = `
       <!-- Hero Banner PT06 -->
       <div class="pt-overview-hero">
-        <div class="pt-hero-badge">
-          <i class="fa-solid fa-chart-line"></i> Báo cáo hiệu suất PT
-        </div>
-        <h3 class="pt-hero-title">Năng Suất Huấn Luyện</h3>
+        <h3 class="pt-hero-title">Tổng quan</h3>
       </div>
 
       <!-- Exception Flow: Banner thông báo lỗi kết nối mạng -->
@@ -138,7 +137,7 @@
           </div>
           <div class="pt-kpi-number" id="kpiAssignedMembers">--</div>
           <div class="pt-kpi-footer">
-            <span class="pt-kpi-pill pill-cyan">Hợp đồng PT ACTIVE</span>
+            <span class="pt-kpi-pill pill-cyan">Đang phụ trách</span>
             <i class="fa-solid fa-chevron-right pt-kpi-arrow"></i>
           </div>
         </div>
@@ -153,8 +152,7 @@
           </div>
           <div class="pt-kpi-number" id="kpiCompletedSessions">--</div>
           <div class="pt-kpi-footer">
-            <span class="pt-kpi-pill pill-emerald">Đủ xác nhận kép (DONE)</span>
-            <span class="pt-kpi-subtext">Tính thù lao</span>
+            <span class="pt-kpi-pill pill-emerald">Đã xác nhận</span>
           </div>
         </div>
 
@@ -168,7 +166,7 @@
           </div>
           <div class="pt-kpi-number" id="kpiUpcomingBookings">--</div>
           <div class="pt-kpi-footer">
-            <span class="pt-kpi-pill pill-blue">Sắp dạy (UPCOMING)</span>
+            <span class="pt-kpi-pill pill-blue">Sắp dạy</span>
             <i class="fa-solid fa-chevron-right pt-kpi-arrow"></i>
           </div>
         </div>
@@ -198,8 +196,28 @@
           </div>
           <div class="pt-kpi-number" id="kpiPendingAssignments">--</div>
           <div class="pt-kpi-footer">
-            <span class="pt-kpi-pill pill-gold">Chờ HLV phản hồi (PENDING)</span>
+            <span class="pt-kpi-pill pill-gold">Chờ phản hồi</span>
             <span class="pt-kpi-action-link">Xem & duyệt <i class="fa-solid fa-arrow-right"></i></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thẻ Thù lao & Hoa hồng tháng (PT06-US02) -->
+      <div class="pt-commission-hero-card" id="cardPtCommissions" role="button" tabindex="0">
+        <div class="pt-comm-card-badge">
+          <i class="fa-solid fa-file-invoice-dollar"></i> Thù lao & hoa hồng
+        </div>
+        <div class="pt-comm-card-main">
+          <div class="pt-comm-card-left">
+            <span class="pt-comm-card-title">Hoa hồng ước tính tháng này</span>
+            <div class="pt-comm-card-amount" id="overviewCommAmount">-- <small>VNĐ</small></div>
+            <div class="pt-comm-card-sub" id="overviewCommStatus"><span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #996217; font-size: 12px; padding: 2px 8px; border-radius: 999px;">Chờ duyệt</span></div>
+          </div>
+          <div class="pt-comm-card-right">
+            <div class="pt-comm-btn-circle">
+              <i class="fa-solid fa-arrow-right"></i>
+            </div>
+            <span class="pt-comm-rate-pill" id="overviewCommRate">--% hoa hồng</span>
           </div>
         </div>
       </div>
@@ -212,7 +230,7 @@
         </div>
         <div class="pt-quick-actions-grid">
           <button type="button" class="pt-quick-btn" id="btnQuickSchedule">
-            <div class="pt-quick-btn-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--primary-light);">
+            <div class="pt-quick-btn-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--primary);">
               <i class="fa-solid fa-calendar-days"></i>
             </div>
             <div class="pt-quick-btn-text">
@@ -229,6 +247,17 @@
             <div class="pt-quick-btn-text">
               <strong>Duyệt phân công</strong>
               <small>Yêu cầu chọn HLV từ Hội viên</small>
+            </div>
+            <i class="fa-solid fa-chevron-right pt-quick-btn-arrow"></i>
+          </button>
+
+          <button type="button" class="pt-quick-btn" id="btnQuickCommissions">
+            <div class="pt-quick-btn-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-gold);">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div class="pt-quick-btn-text">
+              <strong>Bảng kê hoa hồng tháng</strong>
+              <small>Chi tiết thù lao buổi dạy & trạng thái chi trả</small>
             </div>
             <i class="fa-solid fa-chevron-right pt-quick-btn-arrow"></i>
           </button>
@@ -269,6 +298,16 @@
    * Gắn sự kiện chuyển đổi thời gian, điều hướng và thử lại
    */
   function bindEvents() {
+    $('.pt-kpi-card').attr({ role: 'button', tabindex: '0' });
+    $(document).off('keydown.ptOverview').on('keydown.ptOverview', function (e) {
+      if (e.key === 'Escape' && $('#commissionModalBackdrop').hasClass('active')) {
+        closeCommissionModal();
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && $(e.target).is('.pt-kpi-card, #cardPtCommissions')) {
+        e.preventDefault();
+        $(e.target).trigger('click');
+      }
+    });
     // 1. Chuyển đổi kỳ thống kê (TRIGGER)
     $(document).off('click', '.pt-period-btn').on('click', '.pt-period-btn', function () {
       const period = $(this).data('period');
@@ -322,6 +361,62 @@
       .on('click', '#cardKpiAssignments, #btnQuickAssignments', function () {
         navigateToAssignments();
       });
+
+    // 6. Chạm thẻ Hoa hồng hoặc Nút nhanh Bảng kê hoa hồng (PT06-US02)
+    $(document).off('click', '#cardPtCommissions, #btnQuickCommissions')
+      .on('click', '#cardPtCommissions, #btnQuickCommissions', function () {
+        openCommissionModal();
+      });
+
+    // 7. Đóng modal Bảng kê hoa hồng
+    $(document).off('click', '#btnCloseCommissionModal').on('click', '#btnCloseCommissionModal', function () {
+      closeCommissionModal();
+    });
+    $(document).off('click', '#commissionModalBackdrop').on('click', '#commissionModalBackdrop', function (e) {
+      if (e.target === this) closeCommissionModal();
+    });
+
+    // 8. Chuyển đổi kỳ thù lao (Chips: Tháng này / Tháng trước / Tháng khác)
+    $(document).off('click', '.pt-comm-chip').on('click', '.pt-comm-chip', function () {
+      const filter = $(this).data('filter');
+      $('.pt-comm-chip').removeClass('active').css({ background: 'var(--bg-surface)', color: 'var(--text-muted)' });
+      $(this).addClass('active').css({ background: 'var(--primary)', color: '#FFFFFF' });
+
+      const now = new Date();
+      if (filter === 'this_month') {
+        $('#commCustomMonthWrap').hide();
+        OverviewState.commMonth = now.getMonth() + 1;
+        OverviewState.commYear = now.getFullYear();
+        loadCommissionDetails(OverviewState.commMonth, OverviewState.commYear);
+      } else if (filter === 'last_month') {
+        $('#commCustomMonthWrap').hide();
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        OverviewState.commMonth = prev.getMonth() + 1;
+        OverviewState.commYear = prev.getFullYear();
+        loadCommissionDetails(OverviewState.commMonth, OverviewState.commYear);
+      } else if (filter === 'custom') {
+        $('#commCustomMonthWrap').show();
+        const curM = String(OverviewState.commMonth).padStart(2, '0');
+        $('#commMonthInput').val(`${OverviewState.commYear}-${curM}`);
+      }
+    });
+
+    // 9. Thay đổi Month Input tùy chọn
+    $(document).off('change', '#commMonthInput').on('change', '#commMonthInput', function () {
+      const val = $(this).val(); // "YYYY-MM"
+      if (!val) return;
+      const [y, m] = val.split('-').map(Number);
+      if (y && m) {
+        OverviewState.commMonth = m;
+        OverviewState.commYear = y;
+        loadCommissionDetails(m, y);
+      }
+    });
+
+    // 10. Nút Refresh bảng kê hoa hồng
+    $(document).off('click', '#btnRefreshCommSheet').on('click', '#btnRefreshCommSheet', function () {
+      loadCommissionDetails(OverviewState.commMonth, OverviewState.commYear);
+    });
   }
 
   /**
@@ -496,6 +591,29 @@
       };
       OverviewState.rawBookings = (bookings.data || []).filter(b => b.pt_id === ptId && b.booking_date >= res.data.start_date && b.booking_date <= res.data.end_date);
       updateKpiNumbers(OverviewState.kpiData[selected]);
+
+      // PT06-US02: Nạp nhanh thù lao hoa hồng tháng này hiển thị lên Overview Card
+      try {
+        const curDate = new Date();
+        const curMonth = curDate.getMonth() + 1;
+        const curYear = curDate.getFullYear();
+        const commRes = await apiClient.pt.getMyCommissions({ month: curMonth, year: curYear });
+        const commSummary = commRes.data?.summary || commRes.summary;
+        if (commSummary) {
+          const amt = formatVnd(commSummary.total_commission_amount || 0);
+          $('#overviewCommAmount').html(`${amt} <small>VNĐ</small>`);
+          $('#overviewCommRate').text(`${commSummary.commission_percentage || 0}% hoa hồng`);
+          const stMap = {
+            PENDING: { label: 'Chờ duyệt', bg: 'rgba(245, 158, 11, 0.2)', color: '#996217' },
+            APPROVED: { label: 'Đã duyệt', bg: 'rgba(59, 130, 246, 0.2)', color: '#286aa4' },
+            PAID: { label: 'Đã chi trả', bg: 'rgba(16, 185, 129, 0.2)', color: '#237b58' }
+          };
+          const curSt = stMap[commSummary.status] || stMap.PENDING;
+          $('#overviewCommStatus').html(`<span class="badge" style="background: ${curSt.bg}; color: ${curSt.color}; font-size: 12px; padding: 2px 8px; border-radius: 999px;">${curSt.label}</span>`);
+        }
+      } catch (cErr) {
+        console.warn('Could not fetch commission summary for overview:', cErr);
+      }
     } catch (err) {
       OverviewState.hasError = true;
       $('#kpiAssignedMembers, #kpiCompletedSessions, #kpiUpcomingBookings, #kpiAwaitingConfirmation, #kpiPendingAssignments').text('--');
@@ -525,6 +643,158 @@
   }
 
   /**
+   * Định dạng số tiền VNĐ chuẩn Việt Nam
+   */
+  function formatVnd(val) {
+    const n = Math.round(Number(val) || 0);
+    return n.toLocaleString('vi-VN');
+  }
+
+  /**
+   * Mở modal Bảng kê hoa hồng tháng (PT06-US02)
+   */
+  function openCommissionModal() {
+    $('#commissionModalBackdrop').addClass('active').fadeIn(150);
+    $('#btnCloseCommissionModal').trigger('focus');
+    const now = new Date();
+    OverviewState.commMonth = now.getMonth() + 1;
+    OverviewState.commYear = now.getFullYear();
+
+    // Reset chip active state to 'this_month'
+    $('.pt-comm-chip').removeClass('active').css({ background: 'var(--bg-surface)', color: 'var(--text-muted)' });
+    $('.pt-comm-chip[data-filter="this_month"]').addClass('active').css({ background: 'var(--primary)', color: '#FFFFFF' });
+    $('#commCustomMonthWrap').hide();
+
+    loadCommissionDetails(OverviewState.commMonth, OverviewState.commYear);
+  }
+
+  /**
+   * Đóng modal Bảng kê hoa hồng tháng
+   */
+  function closeCommissionModal() {
+    $('#commissionModalBackdrop').removeClass('active').fadeOut(150);
+    $('#cardPtCommissions').trigger('focus');
+  }
+
+  /**
+   * Nạp chi tiết Bảng kê hoa hồng từ Backend API (PT06-US02 Main Flow)
+   */
+  async function loadCommissionDetails(month, year) {
+    const $list = $('#commSessionsList');
+    $list.html(`
+      <div style="text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 12px;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; margin-bottom: 8px;"></i>
+        <div>Đang nạp bảng kê hoa hồng tháng ${month}/${year}...</div>
+      </div>
+    `);
+
+    try {
+      const res = await apiClient.pt.getMyCommissions({ month, year });
+      const summary = res.data?.summary || res.summary;
+      const sessions = res.data?.sessions || res.sessions;
+
+      if (!summary) {
+        $('#commTotalAmount').html(`0 <small style="font-size: 14px; color: #996217;">VNĐ</small>`);
+        $('#commRate').text('--%');
+        $('#commSessionsCount').text('0 buổi');
+        $('#commBaseRevenue').text('0 đ');
+        $('#commStatusBadge').text('Chưa có cấu hình').css({ background: 'rgba(239, 68, 68, 0.2)', color: '#c43d40' });
+        $list.html(`
+          <div style="text-align: center; padding: 24px 12px; color: #c43d40; font-size: 12px;">
+            <i class="fa-solid fa-circle-exclamation" style="font-size: 24px; margin-bottom: 6px;"></i>
+            <p>Chưa có cấu hình tỷ lệ hoa hồng từ quản lý. Vui lòng liên hệ QTV</p>
+          </div>
+        `);
+        return;
+      }
+
+      const totalComm = Number(summary.total_commission_amount) || 0;
+      const rate = Number(summary.commission_percentage) || 0;
+      const sessionsCount = summary.total_pt_sessions_taught || 0;
+      const baseRev = Number(summary.pt_revenue_share) || 0;
+      const status = summary.status || 'PENDING';
+
+      $('#commTotalAmount').html(`${formatVnd(totalComm)} <small style="font-size: 14px; color: #996217;">VNĐ</small>`);
+      $('#commRate').text(`${rate}%`);
+      $('#commSessionsCount').text(`${sessionsCount} buổi`);
+      $('#commBaseRevenue').text(`${formatVnd(baseRev)} đ`);
+
+      const statusMap = {
+        PENDING: { label: 'Chờ duyệt', bg: 'rgba(245, 158, 11, 0.2)', color: '#996217' },
+        APPROVED: { label: 'Đã duyệt', bg: 'rgba(59, 130, 246, 0.2)', color: '#286aa4' },
+        PAID: { label: 'Đã chi trả', bg: 'rgba(16, 185, 129, 0.2)', color: '#237b58' }
+      };
+      const st = statusMap[status] || statusMap.PENDING;
+      $('#commStatusBadge').text(st.label).css({ background: st.bg, color: st.color });
+
+      if (status === 'PAID' && summary.paid_at) {
+        const pd = new Date(summary.paid_at);
+        $('#commPaidDate').text(pd.toLocaleDateString('vi-VN') + ' ' + pd.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+        $('#commPaidDateWrap').show();
+      } else {
+        $('#commPaidDateWrap').hide();
+      }
+
+      const items = Array.isArray(sessions) ? sessions : [];
+      $('#commListSub').text(`${items.length} ca tập`);
+
+      if (items.length === 0) {
+        $list.html(`
+          <div style="text-align: center; padding: 28px 12px; color: var(--text-muted); font-size: 12px;">
+            <i class="fa-solid fa-calendar-xmark" style="font-size: 28px; margin-bottom: 8px; opacity: 0.5;"></i>
+            <p style="margin: 0;">Bạn chưa có buổi dạy hoàn thành nào trong tháng này. Hãy tiếp tục cố gắng!</p>
+          </div>
+        `);
+        return;
+      }
+
+      let rowsHtml = '';
+      items.forEach((s, idx) => {
+        const dateStr = s.booking_date ? new Date(s.booking_date).toLocaleDateString('vi-VN') : '--';
+        const timeStr = (s.start_time && s.end_time) ? `${s.start_time.slice(0, 5)} - ${s.end_time.slice(0, 5)}` : '';
+        const sessionVal = formatVnd(s.session_pt_value);
+        const sessionComm = formatVnd(s.session_commission);
+
+        rowsHtml += `
+          <div class="pt-comm-session-item" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px;">
+                <i class="fa-regular fa-clock" style="color: var(--primary);"></i>
+                <span>${timeStr} • ${dateStr}</span>
+                <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #237b58; font-size: 12px; padding: 1px 6px;">Buổi #${s.session_number || (idx + 1)}</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${s.member_name || 'Hội viên'} <small style="color: var(--text-muted); font-weight: 400;">(${s.member_code || '--'})</small>
+              </div>
+              <div style="font-size: 12px; color: var(--text-sub); margin-top: 1px;">
+                ${s.package_name_snapshot || 'Gói tập PT'}
+              </div>
+            </div>
+            <div style="text-align: right; flex-shrink: 0;">
+              <div style="font-size: 13.5px; font-weight: 800; color: #237b58;">
+                +${sessionComm} đ
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                Giá trị: ${sessionVal} đ
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      $list.html(rowsHtml);
+    } catch (err) {
+      console.error('Error loading commission details:', err);
+      $list.html(`
+        <div style="text-align: center; padding: 24px 12px; color: #c43d40; font-size: 12px;">
+          <i class="fa-solid fa-circle-exclamation" style="font-size: 24px; margin-bottom: 6px;"></i>
+          <p>Chưa có cấu hình tỷ lệ hoa hồng từ quản lý. Vui lòng liên hệ QTV</p>
+        </div>
+      `);
+    }
+  }
+
+  /**
    * Tự động inject CSS cho Module PT06
    */
   function injectOverviewStyles() {
@@ -544,9 +814,9 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
-        color: var(--primary-light);
+        color: var(--primary);
         background: rgba(16, 185, 129, 0.18);
         padding: 3px 10px;
         border-radius: var(--radius-full);
@@ -556,7 +826,7 @@
       .pt-hero-title {
         font-size: 17px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-main);
         margin-bottom: 4px;
       }
       .pt-hero-subtitle {
@@ -583,21 +853,21 @@
         align-items: center;
         gap: 8px;
         font-size: 12px;
-        color: #fca5a5;
+        color: #c43d40;
         line-height: 1.35;
       }
       .pt-error-icon {
-        color: #ef4444;
+        color: #c43d40;
         font-size: 15px;
         flex-shrink: 0;
       }
       .pt-error-retry-btn {
         background: rgba(239, 68, 68, 0.25);
         border: 1px solid rgba(239, 68, 68, 0.5);
-        color: #FFFFFF;
+        color: var(--text-main);
         border-radius: var(--radius-sm);
         padding: 5px 10px;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         cursor: pointer;
         display: inline-flex;
@@ -637,9 +907,9 @@
       }
       .pt-period-btn.active {
         background: var(--primary);
-        color: #FFFFFF;
+        color: var(--text-main);
         font-weight: 800;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+        box-shadow: none;
       }
 
       /* 5 KPI Stat Cards Grid */
@@ -663,7 +933,7 @@
       }
       .pt-kpi-card:hover {
         transform: translateY(-2px);
-        border-color: rgba(255, 255, 255, 0.16);
+        border-color: var(--border-color);
       }
       .pt-kpi-card.card-fullwidth {
         grid-column: span 2;
@@ -676,7 +946,7 @@
         margin-bottom: 8px;
       }
       .pt-kpi-label {
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 600;
         color: var(--text-muted);
         line-height: 1.3;
@@ -691,64 +961,64 @@
         font-size: 14px;
         flex-shrink: 0;
       }
-      .icon-cyan { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
-      .icon-emerald { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-      .icon-blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-      .icon-amber { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-      .icon-gold { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.2)); color: #fbbf24; }
+      .icon-cyan { background: rgba(6, 182, 212, 0.15); color: #286aa4; }
+      .icon-emerald { background: rgba(16, 185, 129, 0.15); color: #237b58; }
+      .icon-blue { background: rgba(59, 130, 246, 0.15); color: #286aa4; }
+      .icon-amber { background: rgba(245, 158, 11, 0.15); color: #996217; }
+      .icon-gold { background: var(--bg-card); color: #996217; }
 
       .pt-kpi-number {
         font-size: 26px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-main);
         line-height: 1.1;
         margin-bottom: 8px;
-        letter-spacing: -0.5px;
+        letter-spacing: 0;
       }
 
       .pt-kpi-footer {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        font-size: 10px;
+        font-size: 12px;
       }
       .pt-kpi-pill {
         padding: 2px 7px;
         border-radius: var(--radius-full);
         font-weight: 600;
-        font-size: 10px;
+        font-size: 12px;
       }
-      .pill-cyan { background: rgba(6, 182, 212, 0.15); color: #38bdf8; }
-      .pill-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-      .pill-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-      .pill-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-      .pill-gold { background: rgba(245, 158, 11, 0.2); color: #fef08a; font-weight: 700; }
+      .pill-cyan { background: rgba(6, 182, 212, 0.15); color: #286aa4; }
+      .pill-emerald { background: rgba(16, 185, 129, 0.15); color: #237b58; }
+      .pill-blue { background: rgba(59, 130, 246, 0.15); color: #286aa4; }
+      .pill-amber { background: rgba(245, 158, 11, 0.15); color: #996217; }
+      .pill-gold { background: rgba(245, 158, 11, 0.2); color: #996217; font-weight: 700; }
 
       .pt-kpi-subtext {
         color: var(--text-sub);
-        font-size: 10px;
+        font-size: 12px;
       }
       .pt-kpi-arrow {
         color: var(--text-sub);
-        font-size: 11px;
+        font-size: 12px;
       }
       .pt-kpi-action-link {
         color: var(--accent-gold);
         font-weight: 700;
-        font-size: 11px;
+        font-size: 12px;
         display: flex;
         align-items: center;
         gap: 4px;
       }
 
       /* Card borders with subtle glow */
-      .card-cyan { border-left: 3.5px solid #06b6d4; }
-      .card-emerald { border-left: 3.5px solid #10b981; }
-      .card-blue { border-left: 3.5px solid #3b82f6; }
-      .card-amber { border-left: 3.5px solid #f59e0b; }
+      .card-cyan { border-left: 3.5px solid #286aa4; }
+      .card-emerald { border-left: 3.5px solid #237b58; }
+      .card-blue { border-left: 3.5px solid #286aa4; }
+      .card-amber { border-left: 3.5px solid #996217; }
       .card-gold {
         border: 1px solid rgba(245, 158, 11, 0.3);
-        background: linear-gradient(145deg, rgba(20, 20, 20, 0.9), rgba(30, 25, 10, 0.6));
+        background: var(--bg-card);
       }
 
       /* Quick Actions Box */
@@ -764,7 +1034,7 @@
         gap: 8px;
         font-size: 13px;
         font-weight: 700;
-        color: #FFFFFF;
+        color: var(--text-main);
         margin-bottom: 12px;
       }
       .pt-quick-actions-grid {
@@ -787,12 +1057,12 @@
       }
       .pt-quick-btn:hover {
         background: var(--bg-card-hover);
-        border-color: rgba(255, 255, 255, 0.15);
+        border-color: var(--border-color);
       }
       .pt-quick-btn-icon {
         width: 36px;
         height: 36px;
-        border-radius: 10px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -806,17 +1076,106 @@
       }
       .pt-quick-btn-text strong {
         font-size: 13px;
-        color: #FFFFFF;
+        color: var(--text-main);
         font-weight: 700;
       }
       .pt-quick-btn-text small {
-        font-size: 11px;
+        font-size: 12px;
         color: var(--text-muted);
         margin-top: 2px;
       }
       .pt-quick-btn-arrow {
         color: var(--text-sub);
         font-size: 12px;
+      }
+
+      /* Commission Hero Card (PT06-US02) */
+      .pt-commission-hero-card {
+        background: var(--bg-card);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        border-radius: var(--radius-md);
+        padding: 14px;
+        margin-bottom: 16px;
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .pt-commission-hero-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(245, 158, 11, 0.6);
+        box-shadow: none;
+      }
+      .pt-comm-card-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #996217;
+        background: rgba(245, 158, 11, 0.15);
+        padding: 3px 8px;
+        border-radius: var(--radius-full);
+        margin-bottom: 8px;
+      }
+      .pt-comm-card-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .pt-comm-card-left {
+        display: flex;
+        flex-direction: column;
+      }
+      .pt-comm-card-title {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+      .pt-comm-card-amount {
+        font-size: 22px;
+        font-weight: 800;
+        color: #996217;
+        margin: 2px 0 4px;
+        letter-spacing: 0;
+      }
+      .pt-comm-card-amount small {
+        font-size: 13px;
+        font-weight: 600;
+        color: #996217;
+      }
+      .pt-comm-card-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+      }
+      .pt-comm-btn-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(245, 158, 11, 0.2);
+        color: #996217;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        transition: transform 0.2s ease;
+      }
+      .pt-commission-hero-card:hover .pt-comm-btn-circle {
+        transform: translateX(3px);
+        background: #996217;
+        color: #000;
+      }
+      .pt-comm-rate-pill {
+        font-size: 12px;
+        color: #237b58;
+        font-weight: 700;
+      }
+      .pt-comm-chip {
+        transition: all 0.2s ease;
+      }
+      .pt-comm-chip.active {
+        background: var(--primary) !important;
+        color: var(--text-main) !important;
       }
     `;
     document.head.appendChild(style);
@@ -829,11 +1188,21 @@
 
   return {
     init,
-    reset: () => { OverviewState.rawBookings = []; OverviewState.kpiData = {this_week:null,this_month:null,last_month:null}; $('#kpiAssignedMembers, #kpiCompletedSessions, #kpiUpcomingBookings, #kpiAwaitingConfirmation, #kpiPendingAssignments').text('--'); },
+    reset: () => {
+      OverviewState.rawBookings = [];
+      OverviewState.kpiData = { this_week: null, this_month: null, last_month: null };
+      $('#kpiAssignedMembers, #kpiCompletedSessions, #kpiUpcomingBookings, #kpiAwaitingConfirmation, #kpiPendingAssignments').text('--');
+      $('#overviewCommAmount').html('-- <small>VNĐ</small>');
+      $('#overviewCommRate').text('--% hoa hồng');
+      $('#overviewCommStatus').html('<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #996217; font-size: 12px; padding: 2px 8px; border-radius: 999px;">Chờ duyệt</span>');
+    },
     setPeriod,
     fetchStats,
     refresh,
     navigateToAssignments,
+    openCommissionModal,
+    closeCommissionModal,
+    loadCommissionDetails,
     getState: () => OverviewState
   };
 });

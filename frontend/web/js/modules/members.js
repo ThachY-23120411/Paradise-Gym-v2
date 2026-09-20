@@ -161,7 +161,11 @@ window.MembersModule = (function () {
           { dataField: 'member_code', caption: 'Mã HV', minWidth: 90, cellTemplate: (el, info) => $('<a href="#">').text(info.value).on('click', e => { e.preventDefault(); openDetail(info.data.id); }).appendTo(el) },
           { dataField: 'full_name', caption: 'Họ và tên', minWidth: 200, cellTemplate: (el, info) => {
             const row = $('<div>').css({ display: 'flex', gap: 10, alignItems: 'center' }).appendTo(el);
-            $('<span class="member-initials">').css({ width: 32, height: 32, flexShrink: 0, display: 'grid', placeItems: 'center', background: '#e4f3ef', color: '#185740', borderRadius: 6 }).text((info.value || '').trim().split(/\s+/).slice(-2).map(s => s[0]).join('').toUpperCase()).appendTo(row);
+            if (info.data.avatar_url && /^https?:\/\//.test(info.data.avatar_url)) {
+              $('<img class="member-avatar">').attr({ src: info.data.avatar_url, alt: info.value }).css({ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1px solid #237b58' }).appendTo(row);
+            } else {
+              $('<span class="member-initials">').css({ width: 32, height: 32, flexShrink: 0, display: 'grid', placeItems: 'center', background: '#e4f3ef', color: '#185740', borderRadius: '50%' }).text((info.value || '').trim().split(/\s+/).slice(-2).map(s => s[0]).join('').toUpperCase()).appendTo(row);
+            }
             $('<strong>').text(text(info.value)).appendTo(row);
           } },
           { dataField: 'phone', caption: 'Số điện thoại', minWidth: 125 },
@@ -191,6 +195,174 @@ window.MembersModule = (function () {
     if (activeRole(context) === 'RECEPTIONIST' && api().getCurrentBranchId() && member.home_branch_id !== api().getCurrentBranchId()) throw new Error('Hồ sơ không thuộc chi nhánh trực quầy.');
     return member;
   }
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = err => reject(err);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function openCameraCapture(onSuccess) {
+    const camDialog = popup('Chụp ảnh từ Camera tại quầy', 520);
+    const body = $('<div style="padding:10px;text-align:center;">').appendTo(camDialog.content);
+    const videoWrap = $('<div style="width:100%;max-width:420px;height:315px;margin:0 auto 12px;background:#1a1a1a;border-radius:8px;overflow:hidden;position:relative;display:grid;place-items:center;">').appendTo(body);
+    const video = $('<video autoplay playsinline style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1);">').appendTo(videoWrap)[0];
+    const statusMsg = $('<div style="color:#888;font-size:12px;margin-bottom:12px;">').text('Đang kết nối camera...').appendTo(body);
+
+    let localStream = null;
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } })
+        .then(stream => {
+          localStream = stream;
+          video.srcObject = stream;
+          statusMsg.text('Căn chỉnh khuôn mặt vào giữa khung hình rồi bấm "Chụp ảnh".');
+        })
+        .catch(err => {
+          statusMsg.html(`<span style="color:#b5493a;">Không thể kết nối camera: ${err.message || 'Thiết bị không hỗ trợ'}. Vui lòng tải file ảnh từ máy.</span>`);
+        });
+    } else {
+      statusMsg.html('<span style="color:#b5493a;">Trình duyệt không hỗ trợ truy cập camera. Vui lòng tải ảnh từ máy tính.</span>');
+    }
+
+    camDialog.instance.option('onHiding', () => {
+      if (localStream) localStream.getTracks().forEach(t => t.stop());
+    });
+
+    camDialog.instance.option('toolbarItems', [
+      { toolbar: 'bottom', location: 'after', widget: 'dxButton', options: { text: 'Đóng', onClick: () => camDialog.instance.hide() } },
+      { toolbar: 'bottom', location: 'after', widget: 'dxButton', options: {
+        text: 'Chụp ảnh', type: 'default', stylingMode: 'contained', icon: 'camera',
+        onClick: async event => {
+          if (!localStream || !video.videoWidth) {
+            notify('Chưa có tín hiệu camera', 'warning');
+            return;
+          }
+          event.component.option('disabled', true);
+          statusMsg.text('Đang xử lý ảnh chụp...');
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            const base64Data = dataUrl.split(',')[1];
+            const res = await api().request('/avatar/upload', {
+              method: 'POST',
+              body: { content_base64: base64Data, mime_type: 'image/jpeg' }
+            });
+            const url = res.data?.avatar_url || res.avatar_url;
+            onSuccess(url);
+            notify('Đã chụp ảnh khuôn mặt thành công!', 'success');
+            camDialog.instance.hide();
+          } catch (err) {
+            statusMsg.html(`<span style="color:#b5493a;">Lỗi xử lý ảnh: ${err.message}</span>`);
+            event.component.option('disabled', false);
+          }
+        }
+      } }
+    ]);
+  }
+
+  function renderAvatarField(container, getForm, initialUrl) {
+    const wrapper = $('<div class="avatar-field-wrapper" style="border:1px dashed #b8cebf;border-radius:8px;padding:12px 14px;background:#f9fcf9;margin-top:4px;">').appendTo(container);
+    const flex = $('<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">').appendTo(wrapper);
+
+    const preview = $('<div class="avatar-preview-box" style="width:84px;height:84px;border-radius:50%;overflow:hidden;border:3px solid #237b58;background:#edf4ee;display:grid;place-items:center;flex-shrink:0;">').appendTo(flex);
+
+    function updatePreview(url) {
+      preview.empty();
+      if (url && /^https?:\/\//.test(url)) {
+        $(`<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`).appendTo(preview);
+        clearBtn.show();
+      } else {
+        $('<i class="fa-solid fa-camera" style="font-size:26px;color:#748078;"></i>').appendTo(preview);
+        clearBtn.hide();
+      }
+    }
+
+    const controls = $('<div style="flex:1;min-width:230px;display:flex;flex-direction:column;gap:8px;">').appendTo(flex);
+    const btnRow = $('<div style="display:flex;gap:8px;flex-wrap:wrap;">').appendTo(controls);
+
+    // 1. Nút chụp camera
+    $('<button type="button" class="dx-button dx-button-normal dx-widget dx-button-has-icon dx-button-has-text" style="font-size:12px;padding:5px 12px;border-radius:4px;cursor:pointer;">')
+      .append($('<i class="fa-solid fa-camera" style="margin-right:6px;color:#237b58;"></i>'), $('<span>').text('Chụp camera'))
+      .appendTo(btnRow)
+      .on('click', () => openCameraCapture(url => {
+        const form = getForm();
+        if (form) form.option('formData').avatar_url = url;
+        urlInput.val(url);
+        updatePreview(url);
+      }));
+
+    // 2. Nút tải file
+    const fileInput = $('<input type="file" accept="image/png,image/jpeg,image/webp" style="display:none;">').appendTo(btnRow);
+    const uploadBtn = $('<button type="button" class="dx-button dx-button-normal dx-widget dx-button-has-icon dx-button-has-text" style="font-size:12px;padding:5px 12px;border-radius:4px;cursor:pointer;">')
+      .append($('<i class="fa-solid fa-upload" style="margin-right:6px;color:#3378b7;"></i>'), $('<span>').text('Tải ảnh lên'))
+      .appendTo(btnRow)
+      .on('click', () => fileInput.trigger('click'));
+
+    fileInput.on('change', async e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        notify('Kích thước ảnh tối đa 5 MB', 'error');
+        return;
+      }
+      try {
+        uploadBtn.prop('disabled', true).text('Đang tải...');
+        const base64 = await fileToBase64(file);
+        const res = await api().request('/avatar/upload', {
+          method: 'POST',
+          body: { content_base64: base64.split(',')[1], mime_type: file.type }
+        });
+        const url = res.data?.avatar_url || res.avatar_url;
+        const form = getForm();
+        if (form) form.option('formData').avatar_url = url;
+        urlInput.val(url);
+        updatePreview(url);
+        notify('Đã tải ảnh lên thành công!', 'success');
+      } catch (err) {
+        notify(err.message || 'Lỗi tải ảnh', 'error');
+      } finally {
+        uploadBtn.prop('disabled', false).html('<i class="fa-solid fa-upload" style="margin-right:6px;color:#3378b7;"></i><span>Tải ảnh lên</span>');
+        fileInput.val('');
+      }
+    });
+
+    // 3. Nút xóa ảnh
+    const clearBtn = $('<button type="button" class="dx-button dx-button-normal dx-widget dx-button-has-icon dx-button-has-text" style="font-size:12px;padding:5px 12px;border-radius:4px;color:#b5493a;cursor:pointer;display:none;">')
+      .append($('<i class="fa-solid fa-trash" style="margin-right:4px;"></i>'), $('<span>').text('Xóa'))
+      .appendTo(btnRow)
+      .on('click', () => {
+        const form = getForm();
+        if (form) form.option('formData').avatar_url = '';
+        urlInput.val('');
+        updatePreview('');
+      });
+
+    // 4. Ô nhập URL trực tiếp
+    const urlInput = $('<input type="text" placeholder="Hoặc dán URL ảnh chân dung (https://...)" style="width:100%;font-size:12px;padding:6px 10px;border:1px solid #d2ded7;border-radius:4px;background:#fff;margin-top:2px;">')
+      .val(initialUrl || '')
+      .on('input change', function () {
+        const val = $(this).val().trim();
+        const form = getForm();
+        if (form) form.option('formData').avatar_url = val;
+        updatePreview(val);
+      })
+      .appendTo(controls);
+
+    $('<small style="color:#748078;font-size:11px;display:block;margin-top:2px;">')
+      .text('Ảnh chân dung hiển thị làm Avatar hồ sơ và dữ liệu nhận diện khuôn mặt Kiosk check-in.')
+      .appendTo(controls);
+
+    updatePreview(initialUrl);
+  }
+
   async function openMemberModal(id = null, phone = '') {
     try {
       user = (await api().auth.getMe()).data;
@@ -201,7 +373,14 @@ window.MembersModule = (function () {
       const branchId = member?.home_branch_id || (branches.some(b => b.id === selected) ? selected : branches.length === 1 ? branches[0].id : null);
       if (!branchId) throw new Error('Vui lòng chọn chi nhánh làm việc trước khi thêm hội viên.');
       if (!id && !branches.some(b => b.id === branchId && b.status === 'ACTIVE')) throw new Error('Chi nhánh tiếp nhận đang ngừng hoạt động.');
-      const data = { full_name: member?.full_name || '', phone: member?.phone || phone, email: member?.email || '', home_branch_name: member?.home_branch_name || branchName(branchId), date_of_birth: dateOnly(member?.date_of_birth) };
+      const data = {
+        full_name: member?.full_name || '',
+        phone: member?.phone || phone,
+        email: member?.email || '',
+        home_branch_name: member?.home_branch_name || branchName(branchId),
+        date_of_birth: dateOnly(member?.date_of_birth),
+        avatar_url: member?.avatar_url || ''
+      };
       let dialog, phoneTimer;
       const phoneRules = [required('Số điện thoại'), { type: 'custom', message: 'Số điện thoại Việt Nam gồm 10 chữ số, bắt đầu bằng 0', validationCallback: e => validPhone(e.value) }];
       if (!id) phoneRules.push({ type: 'async', message: 'Số điện thoại đã tồn tại', ignoreEmptyValue: true, validationCallback: async e => {
@@ -219,9 +398,23 @@ window.MembersModule = (function () {
         field('phone', 'Số điện thoại', 'dxTextBox', { mode: 'tel', readOnly: Boolean(id), valueChangeEvent: 'input' }, phoneRules),
         field('email', 'Email', 'dxTextBox', { mode: 'email', maxLength: 254 }, [{ type: 'email', ignoreEmptyValue: true, message: 'Email không đúng định dạng' }]),
         field('home_branch_name', 'Chi nhánh tiếp nhận', 'dxTextBox', { readOnly: true }, [required('Chi nhánh tiếp nhận')]),
-        field('date_of_birth', 'Ngày sinh', 'dxDateBox', { type: 'date', displayFormat: 'dd/MM/yyyy', dateSerializationFormat: 'yyyy-MM-dd', max: new Date(), showClearButton: true, invalidDateMessage: 'Ngày sinh không hợp lệ' })
+        field('date_of_birth', 'Ngày sinh', 'dxDateBox', { type: 'date', displayFormat: 'dd/MM/yyyy', dateSerializationFormat: 'yyyy-MM-dd', max: new Date(), showClearButton: true, invalidDateMessage: 'Ngày sinh không hợp lệ' }),
+        {
+          dataField: 'avatar_url',
+          label: { text: 'Avatar & Đăng ký khuôn mặt' },
+          template: (formData, itemElement) => {
+            renderAvatarField(itemElement, () => dialog?.form, data.avatar_url);
+          }
+        }
       ], async values => {
-        const payload = { full_name: values.full_name.trim().replace(/\s+/g, ' '), email: values.email?.trim() || null, date_of_birth: dateOnly(values.date_of_birth) };
+        const avatarUrl = values.avatar_url?.trim() || null;
+        const payload = {
+          full_name: values.full_name.trim().replace(/\s+/g, ' '),
+          email: values.email?.trim() || null,
+          date_of_birth: dateOnly(values.date_of_birth),
+          avatar_url: avatarUrl,
+          face_enrolled: Boolean(avatarUrl)
+        };
         const response = id ? await api().members.update(id, payload) : await api().members.create({ ...payload, phone: normalizePhone(values.phone), home_branch_id: branchId });
         notify(id ? 'Đã cập nhật hồ sơ hội viên' : 'Đã thêm hội viên'); refresh();
         if (!id && response.data?.id) openDetail(response.data.id);
@@ -258,20 +451,46 @@ window.MembersModule = (function () {
         const member = await getMember(id);
         if (!dialog.host.closest('body').length) return;
         dialog.instance.option('title', `${member.member_code} - ${member.full_name}`); dialog.content.empty();
-        badge(dialog.content, member.status);
-        details(dialog.content, [['Số điện thoại', member.phone], ['Email', member.email], ['Chi nhánh tiếp nhận', member.home_branch_name], ['Ngày sinh', member.date_of_birth ? new Date(member.date_of_birth).toLocaleDateString('vi-VN') : '-']]);
+        const headerCard = $('<div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">').appendTo(dialog.content);
+        const avatarHtml = member.avatar_url && /^https?:\/\//.test(member.avatar_url)
+          ? `<img src="${member.avatar_url}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #237b58;">`
+          : `<div style="width:52px;height:52px;border-radius:50%;background:#eaf4ee;color:#237b58;font-size:18px;font-weight:700;display:grid;place-items:center;border:2px solid #237b58;">${(member.full_name || '?').split(' ').slice(-2).map(x => x[0]).join('')}</div>`;
+        $(avatarHtml).appendTo(headerCard);
+        const headerInfo = $('<div>').appendTo(headerCard);
+        $('<div>').append($(badge(headerInfo, member.status)), $(` <span class="status-badge ${member.face_enrolled ? 'badge-success' : 'badge-warning'}">${member.face_enrolled ? 'Đã thu thập khuôn mặt' : 'Chưa có khuôn mặt'}</span>`)).appendTo(headerInfo);
+
+        details(dialog.content, [
+          ['Mã hội viên', member.member_code],
+          ['Số điện thoại', member.phone],
+          ['Email', member.email],
+          ['Chi nhánh tiếp nhận', member.home_branch_name],
+          ['Ngày sinh', member.date_of_birth ? new Date(member.date_of_birth).toLocaleDateString('vi-VN') : '-'],
+          ['Mã QR Check-in', member.qr_code || `MEM-${member.member_code}`]
+        ]);
         const actions = $('<div class="view-actions">').css({ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }).appendTo(dialog.content);
         button(actions, { text: 'Sửa hồ sơ', icon: 'edit', onClick: () => { dialog.instance.hide(); openMemberModal(id); } });
         button(actions, { text: 'Đổi trạng thái', icon: 'repeat', onClick: () => { dialog.instance.hide(); openStatus(id); } });
         button(actions, { text: 'Đăng ký gói', icon: 'folder', onClick: () => quickRegisterPackage(id) });
+        button(actions, { text: 'Xem mã QR', icon: 'card', onClick: () => openQrModal(member) });
+        button(actions, { text: 'Thu thập khuôn mặt', icon: 'user', type: member.face_enrolled ? 'normal' : 'default', onClick: () => openFaceEnrollModal(member, load) });
         const tabs = $('<div>').appendTo(dialog.content), body = $('<div>').css('paddingTop', 16).appendTo(dialog.content);
         let tabVersion = 0;
         async function showTab(tab) {
           const current = ++tabVersion; body.empty();
           if (tab === 'registrations') detailGrid(body, member.registrations || [], [
             { caption: 'Mã đăng ký', calculateCellValue: row => row.reg_code || row.registration_code }, { dataField: 'package_name_snapshot', caption: 'Gói tập' },
-            { dataField: 'start_date', caption: 'Bắt đầu', dataType: 'date', format: 'dd/MM/yyyy' }, { dataField: 'end_date', caption: 'Hết hạn', dataType: 'date', format: 'dd/MM/yyyy' },
-            { dataField: 'remaining_gym_sessions', caption: 'Lượt Gym còn lại' }, { dataField: 'remaining_pt_sessions', caption: 'Buổi PT còn lại' }, { dataField: 'status', caption: 'Trạng thái' }
+            { dataField: 'start_date', caption: 'Bắt đầu', dataType: 'date', format: 'dd/MM/yyyy' }, { dataField: 'end_date', caption: 'Hết hạn', dataType: 'date', format: 'dd/MM/yyyy', customizeText: c => c.value ? c.valueText : '--' },
+            { dataField: 'remaining_gym_sessions', caption: 'Lượt Gym còn lại' }, { dataField: 'remaining_pt_sessions', caption: 'Buổi PT còn lại' },
+            {
+              dataField: 'status', caption: 'Trạng thái', minWidth: 130, cellTemplate: (el, c) => {
+                const isFrozen = c.data?.is_frozen || c.value === 'FROZEN';
+                const map = { PENDING_PAYMENT: 'Chờ thanh toán', SCHEDULED: 'Chưa đến ngày hiệu lực', ACTIVE: 'Đang hiệu lực', FROZEN: 'Đang đóng băng', EXPIRING: 'Sắp hết hạn', EXPIRED: 'Đã hết hạn', CANCELLED: 'Đã hủy' };
+                const tone = isFrozen ? 'badge-info' : c.value === 'ACTIVE' ? 'badge-success' : c.value === 'SCHEDULED' ? 'badge-info' : c.value === 'PENDING_PAYMENT' ? 'badge-warning' : 'badge-danger';
+                const label = isFrozen ? '❄️ Đang đóng băng' : (map[c.value] || c.value);
+                const $badge = $('<span>').addClass(`status-badge ${tone}`).text(label).appendTo(el);
+                if (isFrozen) $badge.css({ background: '#e0f2fe', color: '#0369a1', borderColor: '#7dd3fc', fontWeight: 600 });
+              }
+            }
           ], 'Chưa có đăng ký gói');
           if (tab === 'access') {
             const dateFilter = $('<div>').css({ maxWidth: 240, marginBottom: 16 }).appendTo(body);
@@ -331,6 +550,73 @@ window.MembersModule = (function () {
     dialog.instance.option('toolbarItems', [{ toolbar: 'bottom', location: 'after', widget: 'dxButton', options: { text: 'Đóng', onClick: () => dialog.instance.hide() } }]);
     await load();
   }
+  function openQrModal(member) {
+    const code = member.qr_code || `MEM-${member.member_code}`;
+    const dialog = popup('Mã QR Check-in Hội viên', 420);
+    $('<div style="text-align:center;padding:20px;">')
+      .append($('<h3>').text(member.full_name))
+      .append($('<p style="color:#748078;margin-top:4px;">').text(member.member_code + ' · ' + member.phone))
+      .append($('<div style="margin:20px auto;width:200px;height:200px;background:#f8fbf9;border:2px dashed #237b58;border-radius:8px;display:grid;place-items:center;font-size:12px;color:#237b58;">')
+        .html(`<div style="text-align:center;"><i class="fa-solid fa-qrcode" style="font-size:96px;display:block;margin-bottom:8px;"></i><strong>${code}</strong></div>`))
+      .append($('<p style="font-size:12px;color:#748078;">').text('Dùng mã này để quét qua cổng kiểm soát ra vào (Turnstile)'))
+      .appendTo(dialog.content);
+    dialog.instance.option('toolbarItems', [{ toolbar: 'bottom', location: 'after', widget: 'dxButton', options: { text: 'Đóng', onClick: () => dialog.instance.hide() } }]);
+  }
+
+  function openFaceEnrollModal(member, onComplete) {
+    const dialog = popup('Thu thập khuôn mặt (Face ID)', 480);
+    const body = $('<div style="padding:10px;">').appendTo(dialog.content);
+    $('<p style="color:#555;margin-bottom:16px;">').text(`Thu thập ảnh chân dung nhận diện cho hội viên ${member.full_name} (${member.member_code}).`).appendTo(body);
+
+    const previewContainer = $('<div style="width:160px;height:160px;margin:0 auto 16px;border-radius:50%;overflow:hidden;border:3px solid #237b58;display:grid;place-items:center;background:#f0f4f2;">').appendTo(body);
+    let currentAvatar = member.avatar_url || '';
+    if (currentAvatar) {
+      $(`<img src="${currentAvatar}" style="width:100%;height:100%;object-fit:cover;">`).appendTo(previewContainer);
+    } else {
+      $('<i class="fa-solid fa-camera" style="font-size:40px;color:#748078;">').appendTo(previewContainer);
+    }
+
+    const form = $('<div>').appendTo(body).dxForm({
+      formData: { avatar_url: member.avatar_url || '' },
+      labelLocation: 'top',
+      items: [
+        {
+          dataField: 'avatar_url', label: { text: 'Đường dẫn ảnh / URL ảnh khuôn mặt' },
+          editorType: 'dxTextBox',
+          editorOptions: {
+            placeholder: 'Nhập URL ảnh khuôn mặt hội viên (https://...)',
+            onValueChanged: e => {
+              previewContainer.empty();
+              if (e.value) $(`<img src="${e.value}" style="width:100%;height:100%;object-fit:cover;">`).appendTo(previewContainer);
+              else $('<i class="fa-solid fa-camera" style="font-size:40px;color:#748078;">').appendTo(previewContainer);
+            }
+          },
+          validationRules: [{ type: 'required', message: 'Vui lòng cung cấp ảnh' }]
+        }
+      ]
+    }).dxForm('instance');
+
+    dialog.instance.option('toolbarItems', [
+      { toolbar: 'bottom', location: 'after', widget: 'dxButton', options: { text: 'Hủy', onClick: () => dialog.instance.hide() } },
+      { toolbar: 'bottom', location: 'after', widget: 'dxButton', options: {
+        text: 'Lưu nhận diện khuôn mặt', type: 'default', stylingMode: 'contained', icon: 'check',
+        onClick: async () => {
+          if (!form.validate().isValid) return;
+          const url = form.option('formData').avatar_url;
+          try {
+            await api().request(`/members/${member.id}`, {
+              method: 'PUT',
+              body: { full_name: member.full_name, avatar_url: url, face_enrolled: true }
+            });
+            notify('Đã thu thập khuôn mặt hội viên thành công!', 'success');
+            dialog.instance.hide();
+            if (onComplete) await onComplete();
+          } catch (err) { errorBox(body, err); }
+        }
+      } }
+    ]);
+  }
+
   async function openRecognition(id) {
     try {
       if (typeof window.SystemModule?.openRecognition !== 'function') throw new Error('Chức năng đăng ký nhận diện chưa được kết nối. Vui lòng thử lại sau.');

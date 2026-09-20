@@ -34,9 +34,14 @@ window.CheckinModule = (function () {
     $('<div id="quickCheckinError" class="form-error" role="alert">').appendTo(quick);
     if (!concreteBranch()) $('#quickCheckinError').text('Chọn một chi nhánh làm việc để ghi nhận ra/vào.');
     const devices = $('<section class="tool-panel">').append('<h2>Thiết bị</h2><div id="gateDeviceList"></div>').appendTo(tools);
-    const actions = $('<div class="view-actions">').css('margin-top', 16).appendTo(devices);
+    const actions = $('<div class="view-actions">').css({ 'margin-top': 16, display: 'flex', gap: 6, flexWrap: 'wrap' }).appendTo(devices);
     if (ParadiseApp.isAdmin() && ParadiseApp.hasPermission('manage_devices')) W().button(actions, 'Cấu hình', 'preferences', () => ParadiseApp.navigateTo('equipment'));
     W().button(actions, 'Thủ công', 'edit', () => openManual()).option('disabled', !concreteBranch());
+    W().button(actions, 'Quét QR', 'card', () => openQrCheckinModal(), true).option('disabled', !concreteBranch());
+    W().button(actions, 'Kiosk K01', 'display', () => {
+      if (selected) showKioskGreeting(selected.id);
+      else DevExpress.ui.notify('Vui lòng chọn hội viên hoặc quét mã trước để mở Kiosk', 'info', 2500);
+    });
     const section = W().section(layout, 'Nhật ký ra/vào', header => $('<span id="accessCount" class="status-badge">').appendTo(header));
     $('<div id="gateLogError">').appendTo(section.body);
     logGrid = W().grid(section.body, [], [
@@ -144,7 +149,7 @@ window.CheckinModule = (function () {
       form = $('<div>').appendTo(body).dxForm({ formData: data, labelLocation: 'top', showColonAfterLabel: false, colCount: 2, colCountByScreen: { xs: 1, sm: 2 },
         items: [
           { dataField: 'member_id', label: { text: 'Hội viên' }, colSpan: 2, editorType: 'dxSelectBox', editorOptions: { dataSource: gateMemberStore(), minSearchLength: 2, showDataBeforeSearch: false, valueExpr: 'id', displayExpr: item => item ? [item.member_code, item.full_name, item.phone].join(' · ') : '', searchEnabled: true, searchExpr: ['member_code', 'full_name', 'phone'] }, validationRules: required },
-          { dataField: 'registration_id', label: { text: 'Gói tập sử dụng' }, colSpan: 2, editorType: 'dxSelectBox', editorOptions: { dataSource: [], valueExpr: 'id', displayExpr: item => item ? (item.package_name_snapshot || item.package_name) + ' · ' + W().date(item.end_date) : '', disabled: true, noDataText: 'Không có gói Gym còn hiệu lực' }, validationRules: required },
+          { dataField: 'registration_id', label: { text: 'Gói tập sử dụng' }, colSpan: 2, editorType: 'dxSelectBox', editorOptions: { dataSource: [], valueExpr: 'id', displayExpr: item => item ? (item.package_name_snapshot || item.package_name) + ' · ' + (item.end_date ? W().date(item.end_date) : 'Vô thời hạn') : '', disabled: true, noDataText: 'Không có gói Gym còn hiệu lực' }, validationRules: required },
           { dataField: 'location', label: { text: 'Chi nhánh / điểm vào' }, colSpan: 2, editorOptions: { readOnly: true } },
           { dataField: 'direction', label: { text: 'Loại sự kiện' }, editorType: 'dxSelectBox', editorOptions: { items: [{ id: 'IN', text: 'Vào' }, { id: 'OUT', text: 'Ra' }], valueExpr: 'id', displayExpr: 'text' }, validationRules: required },
           { dataField: 'event_time', label: { text: 'Thời điểm ghi nhận' }, editorType: 'dxDateBox', editorOptions: { type: 'datetime', displayFormat: 'dd/MM/yyyy HH:mm', max: new Date() }, validationRules: required },
@@ -171,6 +176,104 @@ window.CheckinModule = (function () {
     manualPopup = popup;
     popup.option('onDisposing', () => { if (manualPopup === popup) manualPopup = null; });
   }
+  function openQrCheckinModal() {
+    const dialog = W().popup('Quét mã QR cổng từ (Turnstile QR Check-in)', 480);
+    const body = $('<div style="padding:16px;">').appendTo(dialog.content);
+    $('<p style="color:#555;margin-bottom:12px;">').text('Nhập hoặc quét mã QR trên ứng dụng Mobile Hội viên để kích hoạt mở cổng từ.').appendTo(body);
+
+    const form = $('<div>').appendTo(body).dxForm({
+      formData: { qr_code: '' },
+      labelLocation: 'top',
+      items: [
+        {
+          dataField: 'qr_code', label: { text: 'Mã QR Hội viên' },
+          editorType: 'dxTextBox',
+          editorOptions: { placeholder: 'Quét mã QR từ ứng dụng hội viên hoặc nhập mã...' },
+          validationRules: [{ type: 'required', message: 'Vui lòng nhập hoặc quét mã QR' }]
+        }
+      ]
+    }).dxForm('instance');
+
+    dialog.instance.option('toolbarItems', [
+      { toolbar: 'bottom', location: 'after', widget: 'dxButton', options: { text: 'Đóng', onClick: () => dialog.hide() } },
+      { toolbar: 'bottom', location: 'after', widget: 'dxButton', options: {
+        text: 'Quét mã mở cổng', type: 'default', stylingMode: 'contained', icon: 'runner',
+        onClick: async () => {
+          if (!form.validate().isValid) return;
+          const qr = form.option('formData').qr_code.trim();
+          try {
+            const res = await apiClient.request('/access-gate/qr-checkin', {
+              method: 'POST',
+              body: { qr_code: qr, branch_id: branchId(), direction: 'IN' }
+            });
+            DevExpress.ui.notify('Quét mã hợp lệ - Đã mở cổng từ!', 'success', 2500);
+            dialog.hide();
+            await loadLogs(true);
+            if (res.data?.member_id) {
+              showKioskGreeting(res.data.member_id);
+            }
+          } catch (err) {
+            DevExpress.ui.notify(err.message, 'error', 3500);
+          }
+        }
+      } }
+    ]);
+  }
+
+  async function showKioskGreeting(memberId) {
+    try {
+      const res = await apiClient.request(`/access-gate/kiosk-greeting/${memberId}`);
+      const g = res.data;
+      const dialog = W().popup('Màn hình Kiosk K01 - Chào đón hội viên', 560);
+      const content = $('<div style="text-align:center;padding:24px 16px;">').appendTo(dialog.content);
+
+      // Avatar
+      const avatarHtml = g.avatar_url && /^https?:\/\//.test(g.avatar_url)
+        ? `<img src="${g.avatar_url}" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid #237b58;margin:0 auto 16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">`
+        : `<div style="width:120px;height:120px;border-radius:50%;background:#eaf4ee;color:#237b58;font-size:36px;font-weight:800;display:grid;place-items:center;border:4px solid #237b58;margin:0 auto 16px;">${(g.full_name || '?').split(' ').slice(-2).map(x => x[0]).join('')}</div>`;
+      $(avatarHtml).appendTo(content);
+
+      $('<h2 style="font-size:24px;color:#185740;margin-bottom:4px;">').text(g.full_name).appendTo(content);
+      $('<p style="color:#748078;font-size:13px;margin-bottom:16px;">').text(`Mã HV: ${g.member_code} · ${g.active_package || 'Gói Hội Viên'}`).appendTo(content);
+
+      // Welcome Message
+      $('<div style="font-size:16px;font-weight:600;color:#237b58;margin-bottom:16px;">').text(g.greeting).appendTo(content);
+
+      // Birthday Celebration Banner
+      if (g.is_birthday) {
+        $('<div style="background:linear-gradient(135deg, #ffeedb 0%, #ffe0e6 100%);border:2px solid #ff7b92;border-radius:8px;padding:16px;margin-bottom:16px;text-align:center;">')
+          .html(`
+            <div style="font-size:28px;margin-bottom:4px;">🎂 🎉 🎈</div>
+            <strong style="color:#b21f42;font-size:17px;display:block;">CHÚC MỪNG SINH NHẬT!</strong>
+            <p style="color:#6d2235;margin-top:6px;font-size:13px;">Paradise Gym thân chúc bạn tuổi mới luôn tràn đầy năng lượng, sức khỏe và đạt mọi mục tiêu hình thể!</p>
+          `).appendTo(content);
+      }
+
+      // Expiring Warning Banner
+      if (g.is_expiring_soon) {
+        $('<div style="background:#fff8e6;border:2px solid #e09419;border-radius:8px;padding:14px;margin-bottom:16px;text-align:left;display:flex;gap:12px;align-items:center;">')
+          .html(`
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:28px;color:#e09419;"></i>
+            <div>
+              <strong style="color:#945d04;font-size:14px;display:block;">CẢNH BÁO: GÓI TẬP SẮP HẾT HẠN</strong>
+              <span style="color:#7a510f;font-size:12px;">Gói của bạn sẽ hết hạn trong <strong>${g.days_remaining} ngày</strong> tới (${W().date(g.end_date)}). Vui lòng liên hệ quầy Lễ tân để gia hạn kịp thời.</span>
+            </div>
+          `).appendTo(content);
+      }
+
+      // Turnstile gate unlocked indicator
+      $('<div style="padding:10px 16px;background:#eaf4ee;border-radius:6px;color:#237b58;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;">')
+        .html('<i class="fa-solid fa-circle-check" style="font-size:18px;"></i> CỔNG TỪ ĐÃ MỞ (TURNSTILE GATE UNLOCKED)')
+        .appendTo(content);
+
+      dialog.instance.option('toolbarItems', [
+        { toolbar: 'bottom', location: 'after', widget: 'dxButton', options: { text: 'Đóng màn hình Kiosk', onClick: () => dialog.hide() } }
+      ]);
+    } catch (err) {
+      DevExpress.ui.notify(err.message, 'error', 3500);
+    }
+  }
+
   function destroy() { clearInterval(poll); manualPopup?.hide(); revision++; lookupVersion++; selected = null; logGrid = null; view = null; quickButton = null; }
-  return { render, refresh, destroy, openManual };
+  return { render, refresh, destroy, openManual, openQrCheckinModal, showKioskGreeting };
 })();

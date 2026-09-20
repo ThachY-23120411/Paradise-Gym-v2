@@ -38,4 +38,4 @@ volumes:
 
 networks:
   paradise-net:
-    name: paradise-net
+    external: true

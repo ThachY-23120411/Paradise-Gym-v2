@@ -10,17 +10,24 @@
 
 ## Main Flow
 
-1. Tại sub-tab **Lịch của tôi**, Hội viên thấy Card buổi tập có badge `Chờ xác nhận hoàn thành` và nút CTA màu xanh `[ Xác nhận hoàn thành ]`.
-2. Hội viên bấm nút `[ Xác nhận hoàn thành ]`.
-3. SYS ghi nhận phản hồi xác nhận của Hội viên.
-4. SYS kiểm tra trạng thái xác nhận từ phía PT phụ trách (trên App PT).
-5. Khi đã đủ xác nhận kép 2 chiều (từ cả Hội viên và PT), SYS chuyển trạng thái booking sang **`DONE` (Hoàn thành)** và trừ chính xác 1 buổi khả dụng trong gói PT/Combo.
-6. SYS cập nhật lại trạng thái hiển thị trên màn hình Lịch của tôi và tiến độ sử dụng gói.
+1. Tại sub-tab **Lịch của tôi**, Card buổi tập đã đặt (`Đã đặt`) hiển thị 2 nút: `[ Hủy lịch ]` và `[ Xác nhận hoàn thành ]`.
+2. Trước khi qua giờ kết thúc buổi tập (`now < end_time`), nút `[ Xác nhận hoàn thành ]` ở trạng thái màu xám (disabled, không bấm được). Sau khi đã qua giờ kết thúc buổi tập (`now >= end_time`), nút tự động sáng màu xanh lá (enabled, sẵn sàng thao tác).
+3. Hội viên bấm nút `[ Xác nhận hoàn thành ]`. SYS mở Hộp thoại xác nhận hiển thị thông tin ca tập và trạng thái xác nhận từ phía PT phụ trách.
+4. Hội viên bấm `[ Xác nhận hoàn thành ]` trong hộp thoại. SYS gọi API `POST /pt-bookings/:id/member-confirm` ghi nhận xác nhận của Hội viên.
+5. SYS kiểm tra trạng thái xác nhận từ phía PT phụ trách:
+   - **Nếu PT chưa bấm xác nhận:** SYS chuyển booking sang trạng thái **`Chờ xác nhận` (`PENDING_COMPLETION`)**, hiển thị **Card màu vàng (Amber)** kèm ghi chú `Bạn đã xác nhận · Đang chờ PT xác nhận` (chưa trừ buổi trong gói).
+   - **Nếu PT đã bấm xác nhận trước đó:** SYS hoàn tất xác nhận kép 2 chiều, chuyển booking sang **`Đã hoàn thành` (`COMPLETED`)**, hiển thị **Card màu xanh lá cây** và trừ chính xác 1 buổi khả dụng trong gói PT/Combo.
+6. SYS cập nhật lại danh sách buổi tập trên sub-tab Lịch của tôi và tiến độ sử dụng gói tập.
 
 - **Business rules / logic:**
-  - **Xác nhận 2 chiều**: Buổi PT chỉ chuyển sang trạng thái `DONE` và trừ 1 buổi trong gói sau khi CẢ HỘI VIÊN VÀ PT đều đã bấm xác nhận hoàn thành.
+  - **Quy tắc hiển thị 2 nút:** Thẻ buổi tập đã đặt luôn có 2 nút `[ Hủy lịch ]` (chỉ bấm được trước giờ bắt đầu) và `[ Xác nhận hoàn thành ]` (chỉ bấm được sau giờ kết thúc).
+  - **Xác nhận 2 chiều (Xác nhận kép):** Buổi PT chỉ chuyển sang trạng thái `COMPLETED` (Card xanh lá cây) và trừ 1 buổi trong gói sau khi CẢ HỘI VIÊN VÀ PT đều đã hoàn tất bấm xác nhận kết quả.
+  - **Màu sắc trạng thái chuẩn Semantic:**
+    * Buổi tập đã đặt (`BOOKED`): Card màu xanh dương, nút Xác nhận màu xám khi chưa hết giờ, màu xanh lá khi đã hết giờ.
+    * Buổi tập chờ xác nhận (`PENDING_COMPLETION`): Card màu vàng (Amber).
+    * Buổi tập hoàn thành (`COMPLETED`): Card màu xanh lá cây (Forest Green).
+    * Buổi tập đã hủy (`CANCELLED`): Card màu đỏ (Red).
   - **Check-in phòng Gym độc lập**: Việc Hội viên check-in vào cửa phòng Gym tại menu W07 không tự động chuyển buổi tập PT sang trạng thái hoàn thành.
-  - Nếu Hội viên bấm xác nhận trước khi PT bấm, booking tiếp tục ở trạng thái chờ PT xác nhận (chưa trừ buổi cho tới khi PT bấm xác nhận).
 
 ### Field-level specification — Dialog Xác nhận Hoàn thành buổi PT
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |

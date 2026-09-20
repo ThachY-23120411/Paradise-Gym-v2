@@ -18,8 +18,35 @@ window.WebUI = (function () {
     $('#' + containerId).empty().append(root);
     return { root, header, actions, body };
   }
+  const DX_BUILTIN_ICONS = new Set([
+    'add', 'airplane', 'bookmark', 'box', 'car', 'card', 'cart', 'chart', 'check', 'clear',
+    'clock', 'close', 'coffee', 'comment', 'copy', 'doc', 'download', 'edit', 'email', 'event',
+    'export', 'favorites', 'field', 'file', 'filter', 'find', 'folder', 'food', 'gift', 'globe',
+    'group', 'help', 'home', 'image', 'info', 'key', 'like', 'lock', 'map', 'message', 'money',
+    'music', 'options', 'parentfolder', 'percent', 'photo', 'pin', 'plus', 'preferences', 'print',
+    'product', 'refresh', 'remove', 'rename', 'repeat', 'revert', 'runner', 'save', 'search',
+    'share', 'sun', 'tag', 'tel', 'tips', 'trash', 'trophy', 'upload', 'user', 'video', 'warning',
+    'warninghex', 'xlsfile', 'xlsxfile'
+  ]);
+  function sanitizeButtonIcon(icon) {
+    if (!icon || typeof icon !== 'string') return undefined;
+    const trimmed = icon.trim();
+    if (!trimmed || trimmed === 'none') return undefined;
+    if (trimmed.startsWith('fa-') || trimmed.startsWith('fa ') || trimmed.startsWith('fas ') || trimmed.startsWith('far ')) return trimmed;
+    const lower = trimmed.toLowerCase();
+    if (DX_BUILTIN_ICONS.has(lower)) return lower;
+    const faMap = {
+      calculator: 'fa-solid fa-calculator',
+      'cake-candles': 'fa-solid fa-cake-candles',
+      eye: 'fa-solid fa-eye'
+    };
+    return faMap[lower] || undefined;
+  }
   function button(container, text, icon, action, primary = false) {
-    return $('<div>').appendTo(container).dxButton({ text, icon, type: primary ? 'default' : 'normal', stylingMode: primary ? 'contained' : 'outlined', onClick: action }).dxButton('instance');
+    const opts = { text, type: primary ? 'default' : 'normal', stylingMode: primary ? 'contained' : 'outlined', onClick: action };
+    const validIcon = sanitizeButtonIcon(icon);
+    if (validIcon) opts.icon = validIcon;
+    return $('<div>').appendTo(container).dxButton(opts).dxButton('instance');
   }
   function empty(container, message, icon = 'inbox') {
     $(container).empty().append($('<div class="empty-state">').append($(`<i class="fa-solid fa-${icon}" aria-hidden="true">`), $('<p>').text(message)));
@@ -46,6 +73,11 @@ window.WebUI = (function () {
       $('<div class="metric-label">').append($('<span>').text(item.label), $(`<i class="fa-solid fa-${item.icon || 'chart-simple'}" aria-hidden="true">`)).appendTo(el);
       $('<strong class="metric-value">').text(item.value ?? '-').appendTo(el);
       $('<span class="metric-caption">').text(item.caption || '').appendTo(el);
+      if (item.onClick) {
+        el.addClass('metric-clickable').attr({ role: 'button', tabindex: '0' });
+        el.on('click', item.onClick);
+        el.on('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.onClick(); } });
+      }
     }
     return row;
   }
@@ -57,8 +89,33 @@ window.WebUI = (function () {
     return { el, header, body };
   }
   function popup(title, content, toolbarItems = [], width = 620) {
+    let maxHeight = '86vh';
+    if (typeof toolbarItems === 'number') {
+      width = toolbarItems;
+      toolbarItems = [];
+    } else if (toolbarItems && typeof toolbarItems === 'object' && !Array.isArray(toolbarItems)) {
+      width = toolbarItems.width || width;
+      maxHeight = toolbarItems.maxHeight || maxHeight;
+      toolbarItems = toolbarItems.toolbarItems || [];
+    }
+    if (typeof content === 'number') {
+      width = content;
+      content = undefined;
+    }
     const el = $('<div>').appendTo(document.body);
-    const instance = el.dxPopup({ title, width: () => Math.min(width, innerWidth - 24), height: 'auto', maxHeight: '92vh', shadingColor: 'rgba(24, 45, 34, 0.3)', showCloseButton: true, dragEnabled: false, hideOnOutsideClick: false, contentTemplate: content, toolbarItems, onHidden: () => { instance.dispose(); el.remove(); } }).dxPopup('instance');
+    const instance = el.dxPopup({
+      title,
+      width: () => Math.min(width, innerWidth - 24),
+      height: 'auto',
+      maxHeight: () => maxHeight,
+      shadingColor: 'rgba(24, 45, 34, 0.3)',
+      showCloseButton: true,
+      dragEnabled: false,
+      hideOnOutsideClick: false,
+      contentTemplate: content,
+      toolbarItems: Array.isArray(toolbarItems) ? toolbarItems : [],
+      onHidden: () => { instance.dispose(); el.remove(); }
+    }).dxPopup('instance');
     instance.show();
     return instance;
   }

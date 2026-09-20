@@ -10,7 +10,7 @@ function getBranchById(id) {
   return store.branches.find(b => b.id === id);
 }
 
-function createBranch({ branch_code, branch_name, phone, address, open_time, close_time }) {
+function createBranch({ branch_code, branch_name, phone, address, open_time, close_time, default_pt_commission_percentage }) {
   const existing = store.branches.find(b => b.branch_code === branch_code);
   if (existing) {
     return { error: 'Mã chi nhánh đã tồn tại', status: 409 };
@@ -26,6 +26,7 @@ function createBranch({ branch_code, branch_name, phone, address, open_time, clo
     open_time: open_time || '06:00:00',
     close_time: close_time || '22:00:00',
     timezone: 'Asia/Ho_Chi_Minh',
+    default_pt_commission_percentage: default_pt_commission_percentage != null ? Number(default_pt_commission_percentage) : 20.00,
     created_at: new Date(),
     updated_at: new Date()
   };

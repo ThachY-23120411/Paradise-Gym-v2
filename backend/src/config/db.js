@@ -340,7 +340,7 @@ const memoryStore = {
       status: 'ACTIVE',
       work_start_time: '08:00:00',
       work_end_time: '18:00:00',
-      work_days: 'MON_TO_FRI',
+      work_days: 'ALL_WEEK',
       created_at: new Date(),
       updated_at: new Date()
     },
@@ -358,7 +358,7 @@ const memoryStore = {
       status: 'ACTIVE',
       work_start_time: '08:00:00',
       work_end_time: '18:00:00',
-      work_days: 'MON_TO_FRI',
+      work_days: 'ALL_WEEK',
       created_at: new Date(),
       updated_at: new Date()
     },
@@ -376,7 +376,7 @@ const memoryStore = {
       status: 'ACTIVE',
       work_start_time: '08:00:00',
       work_end_time: '18:00:00',
-      work_days: 'MON_TO_FRI',
+      work_days: 'ALL_WEEK',
       created_at: new Date(),
       updated_at: new Date()
     },
@@ -394,7 +394,7 @@ const memoryStore = {
       status: 'ACTIVE',
       work_start_time: '08:00:00',
       work_end_time: '18:00:00',
-      work_days: 'MON_TO_FRI',
+      work_days: 'ALL_WEEK',
       created_at: new Date(),
       updated_at: new Date()
     }
@@ -448,7 +448,7 @@ const memoryStore = {
       package_name: 'Gói PT Cao Cấp 20 buổi',
       package_type: 'PT_SESSION',
       price: 2000.0,
-      duration_days: 90,
+      duration_days: null,
       total_gym_sessions: null,
       total_pt_sessions: 20,
       status: 'ACTIVE',
@@ -462,7 +462,7 @@ const memoryStore = {
       package_name: 'Gói PT Tăng Cơ 36 buổi',
       package_type: 'PT_SESSION',
       price: 2000.0,
-      duration_days: 120,
+      duration_days: null,
       total_gym_sessions: null,
       total_pt_sessions: 36,
       status: 'ACTIVE',
@@ -476,11 +476,11 @@ const memoryStore = {
       package_name: 'Gói PT Giảm Mỡ 12 buổi',
       package_type: 'PT_SESSION',
       price: 1000.0,
-      duration_days: 60,
+      duration_days: null,
       total_gym_sessions: null,
       total_pt_sessions: 12,
       status: 'ACTIVE',
-      description: '12 buổi tập kèm 1-1 cùng HLV cá nhân chuyên nghiệp, hạn dùng 60 ngày (Giá test 1.000 đ)',
+      description: '12 buổi tập kèm 1-1 cùng HLV cá nhân chuyên nghiệp (Giá test 1.000 đ)',
       created_at: new Date(),
       updated_at: new Date()
     },

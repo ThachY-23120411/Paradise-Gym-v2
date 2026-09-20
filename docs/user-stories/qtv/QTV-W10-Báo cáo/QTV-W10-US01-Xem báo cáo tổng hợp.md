@@ -12,45 +12,54 @@
 
 1. QTV truy cập menu **W10 · Báo cáo**.
 2. SYS xác định phạm vi chi nhánh (branch scope) của tài khoản QTV và nạp kỳ báo cáo mặc định là **Tháng hiện tại (`Tháng`)**.
-3. SYS truy vấn dữ liệu, tổng hợp và hiển thị giao diện báo cáo quản trị toàn diện gồm 4 phân khu:
-   - **Cụm thanh điều khiển báo cáo:**
+3. SYS truy vấn dữ liệu, tổng hợp và hiển thị giao diện báo cáo quản trị toàn diện gồm 3 tầng nghiệp vụ:
+   - **Tầng 1: Cụm thanh điều khiển & Bộ lọc thời gian đa chiều:**
      + Bộ nút chọn kỳ: `[ Tháng ]` (đang kích hoạt), `[ Quý ]`, `[ Năm ]`.
-     + Badge thông tin phạm vi chi nhánh: `Tiền thực thu · Toàn bộ chi nhánh được cấp` (hoặc tên chi nhánh cụ thể theo bộ chọn toàn cục).
+     + Dropdown chọn Năm (`2025`, `2026`, `2027`) và Dropdown chọn Tháng (`Tháng 1` .. `12`) hoặc Quý (`Quý 1` .. `4`).
+     + Badge thông tin phạm vi chi nhánh và khoảng thời gian: `Tiền thực thu · {Tên chi nhánh} ({Từ ngày} - {Đến ngày})`.
      + Nút thao tác **`[ 📥 Xuất báo cáo ]`** màu xanh lá.
-   - **Hàng 4 Thẻ KPI Chỉ số tổng hợp (Stat Cards):**
-     + Thẻ 1 — `Tiền thực thu`: Tổng số tiền thực thu 100% trong kỳ (ví dụ: `18.200.000 đ`), ghi chú ngày chốt dữ liệu.
-     + Thẻ 2 — `Giá trị gói đã bán`: Tổng giá trị gói tập niêm yết bán ra trong kỳ (ví dụ: `21.300.000 đ`).
-     + Thẻ 3 — `Gói đã bán`: Tổng số lượng gói tập bán ra trong kỳ (ví dụ: `12`).
-     + Thẻ 4 — `Buổi PT đã dạy`: Tổng số buổi học PT hợp lệ đã hoàn thành và ghi nhận kết quả (ví dụ: `64`).
-   - **Khu vực Biểu đồ & Cơ cấu doanh số:**
-     + Biểu đồ Doanh thu kỳ gần nhất: Biểu đồ cột so sánh doanh thu 3 kỳ liên tiếp (ví dụ Tháng 7: `39 Trđ`, Tháng 8: `42 Trđ`, Tháng 9: `18 Trđ`).
-     + Khối Cơ cấu Gói tập đã bán: Thống kê số lượng, tỷ lệ phần trăm và thanh tiến trình (Progress bar màu) theo từng gói (Gói PT 20 buổi: `42%`, Gói 3 tháng: `33%`, Gói 1 tháng: `17%`, Gói khác: `8%`).
-   - **Bảng tổng hợp doanh thu (Datagridview):**
-     + Bảng hiển thị dữ liệu gom dòng duy nhất cho mỗi mốc thời gian (theo từng Ngày khi xem Tháng; theo từng Tháng khi xem Quý/Năm), gồm 4 cột:
-       * Cột Mốc thời gian (`Ngày` hoặc `Tháng`).
-       * Cột Tổng số gói bán (Tổng số lượng gói/dịch vụ hoàn tất thanh toán trong mốc thời gian đó, ví dụ: `4 gói`).
-       * Cột Phân rã theo dịch vụ (Liệt kê số lượng phân rã theo loại dịch vụ: `2 Gói Gym · 1 Buổi PT · 1 Combo`).
-       * Cột Doanh thu thực thu 100% (Tổng tiền thực thu thu về trong mốc thời gian đó, ví dụ: `11.250.000 đ`).
-4. QTV có thể chuyển đổi kỳ xem báo cáo bằng cách click chọn nút `[ Quý ]` hoặc `[ Năm ]`.
-5. SYS tự động truy vấn lại cơ sở dữ liệu, tự động chuyển đổi mức độ gom nhóm bảng doanh thu (từ từng ngày sang từng tháng) và làm mới đồng bộ toàn bộ 4 phân khu số liệu trên màn hình.
-6. Khi QTV bấm nút **`[ 📥 Xuất báo cáo ]`**, SYS tổng hợp toàn bộ dữ liệu chỉ số KPI, cơ cấu gói và bảng doanh thu theo kỳ hiện tại thành file bảng tính Excel (`.xlsx`) và tải về máy người dùng.
+   - **Tầng 2: Hàng 4 Thẻ KPI Chỉ số tổng hợp (Stat Cards):**
+     + Thẻ 1 — `Tiền thực thu`: Tổng số tiền thực thu 100% trong kỳ (ví dụ: `12.800 đ`), ghi chú ngày chốt dữ liệu.
+     + Thẻ 2 — `Giá trị gói đã bán`: Tổng giá trị gói tập niêm yết bán ra trong kỳ (ví dụ: `17.314.000 đ`).
+     + Thẻ 3 — `Gói đã bán`: Tổng số lượng gói tập bán ra trong kỳ (ví dụ: `6 gói`).
+     + Thẻ 4 — `Buổi PT đã dạy`: Tổng số buổi học PT hợp lệ đã hoàn thành và ghi nhận kết quả (ví dụ: `5 buổi`).
+   - **Tầng 3: Hệ thống 3 Tab Phân Tích Chuyên Sâu (`dxTabs`):**
+     + **Tab 1: Doanh thu & Dòng tiền:**
+       * *Biểu đồ 1.1:* `Spline Area Chart` xu hướng tiền thực thu theo ngày/tháng với vùng phủ màu xanh rừng gradient mềm mại.
+       * *Biểu đồ 1.2:* `Bar Chart` so sánh doanh thu 3 kỳ gần nhất (kỳ hiện tại highlight xanh thương hiệu).
+       * *Bảng tổng hợp:* DataGrid gom dòng theo mốc thời gian, số gói bán, phân rã dịch vụ và cột Thực thu 100%.
+     + **Tab 2: Cơ cấu Gói & Dịch vụ:**
+       * *Biểu đồ 2.1:* `Doughnut Chart` (vành khăn) tỷ trọng gói tập bán chạy với tâm vòng tròn hiển thị tổng số gói bán ra.
+       * *Biểu đồ 2.2:* `Stacked Bar Chart` phân rã sản lượng 3 nhóm dịch vụ (Gym vs PT vs Combo) theo từng mốc thời gian.
+       * *Bảng chi tiết:* DataGrid thống kê từng gói: Tên gói, phân loại, số lượng bán, thanh tiến trình % và doanh thu thu về.
+     + **Tab 3: Hiệu suất Đào tạo PT:**
+       * *Biểu đồ 3.1:* `Bar Chart` bảng xếp hạng số buổi dạy hoàn thành của từng Huấn luyện viên.
+       * *Cụm chỉ số mini:* Tổng buổi PT, số HLV tham gia dạy, số học viên phục vụ, năng suất trung bình.
+       * *Bảng chi tiết:* DataGrid danh sách HLV: Avatar + Mã/Tên PT, số buổi dạy hoàn thành, học viên phục vụ, tỷ trọng đóng góp %.
+4. QTV có thể click chuyển đổi giữa 3 Tab hoặc thay đổi bộ lọc Năm/Tháng/Quý.
+5. SYS tự động truy vấn lại cơ sở dữ liệu và làm mới đồng bộ toàn bộ chỉ số, biểu đồ và bảng dữ liệu tương ứng.
+6. Khi QTV bấm nút **`[ 📥 Xuất báo cáo ]`**, SYS tổng hợp toàn bộ dữ liệu chỉ số KPI, dòng tiền, cơ cấu gói và hiệu suất PT thành file bảng tính Excel (`.xlsx`) đa sheet tải về máy người dùng.
 
 ### Field-level specification — Màn hình Báo cáo tổng hợp (W10)
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Bộ nút chọn kỳ báo cáo | `Segmented Buttons` | `USER-INPUT (PREFILL)` | required | `TRIGGER` | Nhóm nút chuyển kỳ: `[ Tháng ]` (mặc định), `[ Quý ]`, `[ Năm ]`. Khi click thay đổi, kích hoạt hệ thống làm mới toàn bộ số liệu báo cáo và điều chỉnh mức gom nhóm của Bảng doanh thu |
-| Nhãn phạm vi chi nhánh | `Status Badge` | `READONLY` | required | `DYNAMIC` | Hiển thị phạm vi dữ liệu đang lọc: `Tiền thực thu · Toàn bộ chi nhánh được cấp` hoặc `Tiền thực thu · {Tên chi nhánh}` theo bộ chọn toàn cục |
-| Nút Xuất báo cáo `[ 📥 Xuất báo cáo ]` | `Button (Primary Green)` | `USER-INPUT` | optional | Không | Nút màu xanh lá có icon tải xuống; click xuất toàn bộ dữ liệu báo cáo và bảng doanh thu thành file Excel (.xlsx) |
-| Thẻ KPI Tiền thực thu | `Metric Card` | `READONLY` | required | `DYNAMIC` | Hiển thị tổng số tiền thực thu 100% trong kỳ (ví dụ: `18.200.000 đ`) kèm icon ví tiền và ghi chú `Tính đến {DD/MM/YYYY}` |
-| Thẻ KPI Giá trị gói đã bán | `Metric Card` | `READONLY` | required | `DYNAMIC` | Hiển thị tổng giá trị hợp đồng/gói bán ra trong kỳ (ví dụ: `21.300.000 đ`) kèm icon gói tập và ghi chú `Tổng giá trị niêm yết` |
-| Thẻ KPI Gói đã bán | `Metric Card` | `READONLY` | required | `DYNAMIC` | Hiển thị tổng số lượng gói tập đã bán trong kỳ (ví dụ: `12`) kèm icon danh sách và nhãn kỳ báo cáo |
-| Thẻ KPI Buổi PT đã dạy | `Metric Card` | `READONLY` | required | `DYNAMIC` | Hiển thị tổng số buổi học PT hoàn thành hợp lệ (ví dụ: `64`) kèm icon HLV và nhãn `Đã ghi kết quả` |
-| Biểu đồ Doanh thu kỳ gần nhất | `Bar Chart` | `READONLY` | required | `DYNAMIC` | Biểu đồ cột so sánh doanh thu 3 kỳ gần nhất (ví dụ: T7 `39 Trđ`, T8 `42 Trđ`, T9 `18 Trđ`); cột kỳ hiện tại tô màu xanh lá đậm |
-| Cơ cấu Gói tập đã bán | `Distribution List + Progress Bar` | `READONLY` | required | `DYNAMIC` | Danh sách tên gói, số lượng bán, tỷ lệ % và thanh Progress Bar màu sắc trực quan (Gói PT 20 buổi, Gói 3 tháng, Gói 1 tháng, Gói khác) |
-| Bảng doanh thu — Cột Mốc thời gian | `Readonly Text / Date` | `READONLY` | required | `DYNAMIC` | Hiển thị `Ngày` (`DD/MM/YYYY`, ví dụ `07/09/2026`) khi lọc theo `Tháng`; hiển thị `Tháng` (`Tháng MM/YYYY`, ví dụ `Tháng 09/2026`) khi lọc theo `Quý` hoặc `Năm` |
-| Bảng doanh thu — Cột Tổng số gói bán | `Readonly Text (Number)` | `READONLY` | required | `DYNAMIC` | Tổng số lượng gói/dịch vụ hoàn tất giao dịch thanh toán thành công trong mốc thời gian đó (ví dụ: `4 gói`, `12 gói`) |
-| Bảng doanh thu — Cột Phân rã theo dịch vụ | `Readonly Text / Badges` | `READONLY` | required | `DYNAMIC` | Tóm tắt cơ cấu dịch vụ phát sinh trong mốc thời gian: số lượng từng loại dịch vụ (ví dụ: `2 Gói Gym · 1 Buổi PT · 1 Combo`) |
-| Bảng doanh thu — Cột Doanh thu thực thu (100%) | `Currency Text (VND)` | `READONLY` | required | `DYNAMIC` | Tổng số tiền thực thu 100% đã hoàn tất trong mốc thời gian đó (ví dụ: `11.250.000 đ`, `42.800.000 đ`) |
+| Bộ nút chọn kỳ báo cáo | `Segmented Buttons` | `USER-INPUT (PREFILL)` | required | `TRIGGER` | `[ Tháng ]` (mặc định), `[ Quý ]`, `[ Năm ]`. Kích hoạt đổi chế độ xem kỳ |
+| Ô chọn Năm | `dxSelectBox` | `USER-INPUT (PREFILL)` | required | `DYNAMIC` | Danh sách năm: `2025`, `2026`, `2027` |
+| Ô chọn Tháng / Quý | `dxSelectBox` | `USER-INPUT (PREFILL)` | conditional | `CONDITIONAL` | **Hiện khi**: kỳ là Tháng hoặc Quý; **Ẩn khi**: kỳ là Năm. Lựa chọn tháng 1-12 hoặc quý 1-4 |
+| Nút Xuất báo cáo `[ 📥 Xuất báo cáo ]` | `Action Button` | `USER-INPUT` | optional | `Không` | Xuất toàn bộ 4 sheet báo cáo sang file Excel (.xlsx) |
+| Thẻ KPI Tiền thực thu | `Metric Card` | `READONLY` | required | `DYNAMIC` | Tổng tiền thực thu 100% trong kỳ |
+| Thẻ KPI Giá trị gói đã bán | `Metric Card` | `READONLY` | required | `DYNAMIC` | Tổng giá trị hợp đồng niêm yết bán ra |
+| Thẻ KPI Gói đã bán | `Metric Card` | `READONLY` | required | `DYNAMIC` | Tổng số lượng gói tập bán ra trong kỳ |
+| Thẻ KPI Buổi PT đã dạy | `Metric Card` | `READONLY` | required | `DYNAMIC` | Tổng số buổi PT hoàn thành hợp lệ |
+| Thanh điều hướng 3 Tab | `dxTabs` | `USER-INPUT` | required | `TRIGGER` | 3 tab: `Doanh thu & Dòng tiền`, `Cơ cấu Gói & Dịch vụ`, `Hiệu suất Đào tạo PT` |
+| Biểu đồ Xu hướng thực thu | `dxChart (splineArea)` | `READONLY` | required | `DYNAMIC` | Đường cong diện tích thực thu theo ngày/tháng trong kỳ |
+| Biểu đồ So sánh 3 kỳ | `dxChart (bar)` | `READONLY` | required | `DYNAMIC` | Biểu đồ cột so sánh thực thu 3 kỳ gần nhất |
+| Biểu đồ Cơ cấu gói bán chạy | `dxPieChart (doughnut)` | `READONLY` | required | `DYNAMIC` | Biểu đồ vành khăn tỷ trọng gói bán kèm số lượng tại tâm tròn |
+| Biểu đồ Phân rã dịch vụ | `dxChart (stackedBar)` | `READONLY` | required | `DYNAMIC` | Cột chồng 3 nhóm dịch vụ Gym, PT, Combo theo thời gian |
+| Biểu đồ Xếp hạng HLV PT | `dxChart (bar)` | `READONLY` | required | `DYNAMIC` | Xếp hạng số buổi dạy hoàn thành theo từng HLV |
+| Bảng tổng hợp dòng tiền | `dxDataGrid` | `READONLY` | required | `DYNAMIC` | Gom dòng theo mốc: Ngày/Tháng, Số gói, Phân rã, Thực thu |
+| Bảng chi tiết cơ cấu gói | `dxDataGrid` | `READONLY` | required | `DYNAMIC` | Tên gói, Phân loại, Số lượng, Tỷ trọng %, Doanh thu |
+| Bảng chi tiết hiệu suất HLV | `dxDataGrid` | `READONLY` | required | `DYNAMIC` | HLV, Số buổi hoàn thành, Học viên phục vụ, Tỷ trọng đóng góp |
 
 - **Business rules / logic:**
   - **1. Cơ chế xác định khoảng thời gian (Từ ? $\rightarrow$ Đến ?):**

@@ -70,8 +70,9 @@ router.post('/access-gate/manual-checkin',route(async req=>{
       for(const r of rows){
         let invalid=null;
         if(!r.branch_allowed)invalid=['WRONG_BRANCH','Gói không có quyền sử dụng tại chi nhánh này.'];
+        else if(r.is_frozen)invalid=['PACKAGE_FROZEN','Gói tập đang trong thời gian đóng băng bảo lưu.'];
         else if(r.package_type_snapshot.startsWith('PT'))invalid=['GYM_ENTITLEMENT_REQUIRED','Gói chỉ có quyền tập PT, không bao gồm quyền vào tập Gym.'];
-        else if(!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND status='COMPLETED' AND amount=$2",[r.id,r.price_snapshot])).rowCount)invalid=['PAYMENT_REQUIRED','Đăng ký chưa được thanh toán đủ 100%.'];
+        else if(!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND status='COMPLETED' AND (amount + COALESCE(discount_amount,0)) >= $2",[r.id,r.price_snapshot])).rowCount)invalid=['PAYMENT_REQUIRED','Đăng ký chưa được thanh toán đủ 100%.'];
         else if(!['ACTIVE','SCHEDULED','EXPIRED'].includes(r.status))invalid=['REGISTRATION_INACTIVE','Đăng ký không ở trạng thái được phép sử dụng.'];
         else if(r.start_date>local.day)invalid=['REGISTRATION_NOT_STARTED','Gói chưa đến ngày bắt đầu hiệu lực.'];
         else if(r.end_date&&r.end_date<local.day)invalid=['REGISTRATION_EXPIRED','Gói đã hết hạn tại thời điểm vào tập.'];
@@ -83,12 +84,159 @@ router.post('/access-gate/manual-checkin',route(async req=>{
       if(!matched&&!denial)deny(...(failure||['NO_GYM_REGISTRATION','Hội viên chưa có đăng ký gói cho phép vào tập Gym.']));
     }
     if(direction==='OUT'&&req.body.registration_id){reg=await row(db,'registrations',req.body.registration_id);if(reg.member_id!==m.id)fail(400,'Registration does not belong to member');}
-    const saved=(await db.query(`INSERT INTO access_logs(member_id,registration_id,branch_id,direction,access_method,status,denial_reason,is_duplicate_warning,is_gym_session_deducted,manual_recorded_by,manual_reason,check_in_time)
-      VALUES($1,$2,$3,$4,'MANUAL',$5,$6,$7,$8,$9,$10,$11) RETURNING *`,[m.id,reg?.id||null,b.id,direction,denial?'DENIED':'ALLOWED',denial,denialCode==='DUPLICATE_SCAN',!denial&&deduct,req.user.account_id,reason,event])).rows[0];
+    const checkinMethod = req.body.checkin_method || 'MANUAL';
+    const accessMethod = req.body.access_method || (checkinMethod === 'QR' ? 'QR_CODE' : 'MANUAL');
+    const saved=(await db.query(`INSERT INTO access_logs(member_id,registration_id,branch_id,direction,access_method,checkin_method,status,denial_reason,is_duplicate_warning,is_gym_session_deducted,manual_recorded_by,manual_reason,check_in_time)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,[m.id,reg?.id||null,b.id,direction,accessMethod,checkinMethod,denial?'DENIED':'ALLOWED',denial,denialCode==='DUPLICATE_SCAN',!denial&&deduct,req.user.account_id,reason,event])).rows[0];
     if(!denial&&deduct)await db.query('UPDATE registrations SET remaining_gym_sessions=remaining_gym_sessions-1,updated_at=NOW() WHERE id=$1',[reg.id]);
     await audit(db,req,'access_logs',saved.id,'MANUAL_ACCESS',null,{direction,status:saved.status,event_time:event,member_id:m.id,denial_code:denialCode},b.id,reason);
-    return {allowed:!denial,reason:denial,denial_code:denialCode,reason_code:denialCode,log:saved,member:gateIdentity(m),registration:reg?{id:reg.id,reg_code:reg.reg_code,package_name_snapshot:reg.package_name_snapshot}:null,door_command_sent:false,device_integration:'NOT_CONFIGURED'};
+    
+    // Kiosk greeting payload (chúc mừng sinh nhật & cảnh báo sắp hết hạn <= 4 ngày)
+    const isBirthday = m.date_of_birth ? (
+      new Date(m.date_of_birth).getMonth() === new Date().getMonth() &&
+      new Date(m.date_of_birth).getDate() === new Date().getDate()
+    ) : false;
+    const daysLeft = reg?.end_date ? Math.floor((Date.parse(reg.end_date) - Date.parse(today())) / 86400000) : null;
+    const isExpiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 4;
+
+    const kioskGreeting = {
+      is_birthday_today: isBirthday,
+      birthday_message: isBirthday ? `Chúc mừng sinh nhật ${m.full_name}! Paradise Gym chúc bạn tuổi mới ngập tràn năng lượng và sức khỏe!` : null,
+      is_expiring_soon: isExpiringSoon,
+      expiring_message: isExpiringSoon ? `Gói tập ${reg?.package_name_snapshot} của bạn sẽ hết hạn trong ${daysLeft} ngày nữa. Vui lòng liên hệ Lễ tân để gia hạn!` : null,
+      days_left: daysLeft,
+      avatar_url: m.avatar_url
+    };
+
+    return {
+      allowed:!denial,reason:denial,denial_code:denialCode,reason_code:denialCode,log:saved,
+      member:gateIdentity(m),registration:reg?{id:reg.id,reg_code:reg.reg_code,package_name_snapshot:reg.package_name_snapshot}:null,
+      kiosk_greeting: kioskGreeting,
+      door_command_sent:false,device_integration:'NOT_CONFIGURED'
+    };
   });
+}));
+
+// POST /access-gate/qr-checkin - Check-in tự động bằng mã QR cá nhân trên App Hội viên
+router.post('/access-gate/qr-checkin', route(async req => {
+  const qrCode = req.body.qr_code;
+  if (!qrCode) fail(400, 'Vui lòng cung cấp mã QR');
+  const branchId = selected(req, req.body.branch_id);
+
+  const member = (await pool.query('SELECT * FROM member_profiles WHERE qr_code = $1', [qrCode])).rows[0];
+  if (!member) fail(404, 'Mã QR không hợp lệ hoặc không tìm thấy hội viên', 'MEMBER_NOT_FOUND');
+
+  // Gọi logic check-in dùng chung với checkin_method = 'QR'
+  req.body.member_id = member.id;
+  req.body.branch_id = branchId;
+  req.body.direction = req.body.direction || 'IN';
+  req.body.manual_reason = 'Check-in bằng mã QR tại cổng';
+  req.body.checkin_method = 'QR';
+  req.body.access_method = 'QR_CODE';
+
+  return transaction(async db => {
+    const b = await row(db, 'branches', branchId, true);
+    const m = member;
+    const direction = req.body.direction;
+    const event = new Date();
+    const local = (await db.query("SELECT ($1::timestamptz AT TIME ZONE $2)::date AS day,($1::timestamptz AT TIME ZONE $2)::time AS clock", [event, b.timezone])).rows[0];
+    let denial = null, denialCode = null, reg = null, deduct = false;
+    const deny = (code, reason) => { if (!denial) { denialCode = code; denial = reason; } };
+
+    if ((await db.query("SELECT 1 FROM access_logs WHERE member_id=$1 AND branch_id=$2 AND direction=$3 AND status='ALLOWED' AND ABS(EXTRACT(EPOCH FROM (check_in_time-$4::timestamptz)))<60", [m.id, b.id, direction, event])).rowCount) {
+      deny('DUPLICATE_SCAN', 'Lượt quét trùng trong vòng 60 giây.');
+    }
+
+    if (direction === 'IN' && !denial) {
+      if (b.status !== 'ACTIVE') deny('BRANCH_INACTIVE', 'Chi nhánh đã ngừng hoạt động.');
+      else if (m.status !== 'ACTIVE') deny('MEMBER_INACTIVE', 'Hồ sơ hội viên không hoạt động.');
+      else if (local.clock < b.open_time || local.clock > b.close_time) deny('OUTSIDE_OPENING_HOURS', 'Ngoài giờ mở cửa của chi nhánh.');
+      
+      const rows = (await db.query(`SELECT r.*, EXISTS(SELECT 1 FROM registration_allowed_branches a WHERE a.registration_id=r.id AND a.branch_id=$2) branch_allowed FROM registrations r WHERE r.member_id=$1 ORDER BY r.end_date NULLS LAST, r.created_at FOR UPDATE OF r`, [m.id, b.id])).rows;
+      const already = (await db.query(`SELECT 1 FROM access_logs l WHERE l.member_id=$1 AND l.is_gym_session_deducted AND (l.check_in_time AT TIME ZONE $2)::date=$3`, [m.id, b.timezone, local.day])).rowCount > 0;
+      let failure = null;
+
+      for (const r of rows) {
+        let invalid = null;
+        if (!r.branch_allowed) invalid = ['WRONG_BRANCH', 'Gói không có quyền sử dụng tại chi nhánh này.'];
+        else if (r.is_frozen) invalid = ['PACKAGE_FROZEN', 'Gói tập đang trong thời gian đóng băng bảo lưu.'];
+        else if (r.package_type_snapshot.startsWith('PT')) invalid = ['GYM_ENTITLEMENT_REQUIRED', 'Gói chỉ có quyền tập PT, không bao gồm quyền vào tập Gym.'];
+        else if (!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND status='COMPLETED' AND (amount + COALESCE(discount_amount,0)) >= $2", [r.id, r.price_snapshot])).rowCount) invalid = ['PAYMENT_REQUIRED', 'Đăng ký chưa được thanh toán đủ 100%.'];
+        else if (!['ACTIVE', 'SCHEDULED'].includes(r.status)) invalid = ['REGISTRATION_INACTIVE', 'Đăng ký không ở trạng thái được phép sử dụng.'];
+        else if (r.start_date > local.day) invalid = ['REGISTRATION_NOT_STARTED', 'Gói chưa đến ngày bắt đầu hiệu lực.'];
+        else if (r.end_date && r.end_date < local.day) invalid = ['REGISTRATION_EXPIRED', 'Gói đã hết hạn tại thời điểm vào tập.'];
+        else if (r.remaining_gym_sessions != null && r.remaining_gym_sessions <= 0 && !already) invalid = ['GYM_SESSIONS_EXHAUSTED', 'Gói đã hết buổi Gym.'];
+        
+        if (invalid) { failure ||= invalid; continue; }
+        reg = r; deduct = r.remaining_gym_sessions != null && !already; break;
+      }
+      if (!reg && !denial) deny(...(failure || ['NO_GYM_REGISTRATION', 'Hội viên chưa có đăng ký gói cho phép vào tập Gym.']));
+    }
+
+    const saved = (await db.query(`
+      INSERT INTO access_logs(member_id, registration_id, branch_id, direction, access_method, checkin_method, status, denial_reason, is_duplicate_warning, is_gym_session_deducted, manual_recorded_by, manual_reason, check_in_time)
+      VALUES($1, $2, $3, $4, 'QR_CODE', 'QR', $5, $6, $7, $8, $9, 'Check-in bằng mã QR tại cổng', $10)
+      RETURNING *
+    `, [m.id, reg?.id || null, b.id, direction, denial ? 'DENIED' : 'ALLOWED', denial, denialCode === 'DUPLICATE_SCAN', !denial && deduct, req.user.account_id, event])).rows[0];
+
+    if (!denial && deduct) await db.query('UPDATE registrations SET remaining_gym_sessions = remaining_gym_sessions - 1, updated_at = NOW() WHERE id = $1', [reg.id]);
+
+    const isBirthday = m.date_of_birth ? (
+      new Date(m.date_of_birth).getMonth() === new Date().getMonth() &&
+      new Date(m.date_of_birth).getDate() === new Date().getDate()
+    ) : false;
+    const daysLeft = reg?.end_date ? Math.floor((Date.parse(reg.end_date) - Date.parse(today())) / 86400000) : null;
+    const isExpiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 4;
+
+    return {
+      allowed: !denial,
+      reason: denial,
+      denial_code: denialCode,
+      log: saved,
+      member: gateIdentity(m),
+      registration: reg ? { id: reg.id, reg_code: reg.reg_code, package_name_snapshot: reg.package_name_snapshot } : null,
+      kiosk_greeting: {
+        is_birthday_today: isBirthday,
+        birthday_message: isBirthday ? `Chúc mừng sinh nhật ${m.full_name}! Paradise Gym chúc bạn tuổi mới ngập tràn năng lượng và sức khỏe!` : null,
+        is_expiring_soon: isExpiringSoon,
+        expiring_message: isExpiringSoon ? `Gói tập ${reg?.package_name_snapshot} của bạn sẽ hết hạn trong ${daysLeft} ngày nữa. Vui lòng liên hệ Lễ tân để gia hạn!` : null,
+        days_left: daysLeft,
+        avatar_url: m.avatar_url
+      }
+    };
+  });
+}));
+
+// GET /access-gate/kiosk-greeting/:memberId - Lấy thông điệp chào mừng Kiosk K01
+router.get('/access-gate/kiosk-greeting/:memberId', route(async req => {
+  const m = await row(pool, 'member_profiles', req.params.memberId);
+  const isBirthday = m.date_of_birth ? (
+    new Date(m.date_of_birth).getMonth() === new Date().getMonth() &&
+    new Date(m.date_of_birth).getDate() === new Date().getDate()
+  ) : false;
+
+  const reg = (await pool.query(`
+    SELECT r.*, (r.end_date - CURRENT_DATE) AS days_left
+    FROM registrations r
+    WHERE r.member_id = $1 AND r.status = 'ACTIVE' AND r.end_date >= CURRENT_DATE
+    ORDER BY r.end_date ASC LIMIT 1
+  `, [m.id])).rows[0];
+
+  const daysLeft = reg ? parseInt(reg.days_left, 10) : null;
+  const isExpiringSoon = daysLeft !== null && daysLeft <= 4;
+
+  return {
+    member_id: m.id,
+    member_code: m.member_code,
+    full_name: m.full_name,
+    avatar_url: m.avatar_url,
+    package_name: reg?.package_name_snapshot || null,
+    days_left: daysLeft,
+    is_birthday_today: isBirthday,
+    birthday_message: isBirthday ? `Chúc mừng sinh nhật ${m.full_name}! Paradise Gym chúc bạn tuổi mới ngập tràn năng lượng và sức khỏe!` : null,
+    is_expiring_soon: isExpiringSoon,
+    expiring_message: isExpiringSoon ? `Gói tập của bạn sẽ hết hạn trong ${daysLeft} ngày nữa. Vui lòng liên hệ Lễ tân để gia hạn!` : null
+  };
 }));
 
 async function branchStats(req,db=pool) {
@@ -136,11 +284,26 @@ router.get('/reports',route(async req=>{
   const metrics={cash_received:revenue.reduce((a,r)=>a+r.cash_received,0),packages_sold:revenue.reduce((a,r)=>a+r.packages_sold,0)};
   metrics.package_value=Number((await pool.query("SELECT COALESCE(SUM(price_snapshot),0) value FROM registrations WHERE status<>'CANCELLED' AND ($1::uuid[] IS NULL OR sold_branch_id=ANY($1)) AND (created_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3",[ids,start,end])).rows[0].value);
   metrics.completed_pt=Number((await pool.query("SELECT COUNT(*) FROM pt_bookings WHERE status='COMPLETED' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND booking_date BETWEEN $2 AND $3",[ids,start,end])).rows[0].count);
-  const distribution=(await pool.query(`SELECT r.package_name_snapshot package_name,COUNT(*)::int count FROM payments p JOIN registrations r ON r.id=p.registration_id WHERE p.status='COMPLETED' AND ($1::uuid[] IS NULL OR p.branch_id=ANY($1)) AND (p.confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3 GROUP BY 1 ORDER BY 2 DESC`,[ids,start,end])).rows.map(r=>({...r,percentage:metrics.packages_sold?Math.round(r.count/metrics.packages_sold*10000)/100:0}));
-  const comparison=[];
-  for(let i=2;i>=0;i--){const a=new Date(Date.UTC(year,firstMonth-1-i*months,1)).toISOString().slice(0,10),z=new Date(Date.UTC(year,firstMonth-1+(1-i)*months,1)).toISOString().slice(0,10);
-    const value=(await pool.query("SELECT COALESCE(SUM(amount),0) cash_received FROM payments WHERE status='COMPLETED' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date >= $2 AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date < $3",[ids,a,z])).rows[0].cash_received;
-    comparison.push({period:period==='year'?a.slice(0,4):period==='quarter'?`${a.slice(0,4)} Q${Math.ceil(Number(a.slice(5,7))/3)}`:a.slice(0,7),cash_received:value});}
-  return {metrics,revenue,comparison,distribution,start_date:start,end_date:end};
+  const distribution = (await pool.query(`SELECT r.package_name_snapshot package_name, COALESCE(r.package_type_snapshot, 'GYM') package_type, COUNT(*)::int count, COALESCE(SUM(p.amount), 0) revenue FROM payments p JOIN registrations r ON r.id=p.registration_id WHERE p.status='COMPLETED' AND ($1::uuid[] IS NULL OR p.branch_id=ANY($1)) AND (p.confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3 GROUP BY 1, 2 ORDER BY 3 DESC`, [ids, start, end])).rows.map(r => ({ ...r, percentage: metrics.packages_sold ? Math.round(r.count / metrics.packages_sold * 10000) / 100 : 0 }));
+  const pt_performance = (await pool.query(`
+    SELECT pt.id, pt.full_name AS pt_name, pt.pt_code, pt.phone,
+           COUNT(b.id)::int AS completed_sessions,
+           COUNT(DISTINCT b.member_id)::int AS unique_students
+    FROM pt_profiles pt
+    LEFT JOIN pt_bookings b ON b.pt_id = pt.id 
+      AND b.status = 'COMPLETED' 
+      AND ($1::uuid[] IS NULL OR b.branch_id = ANY($1))
+      AND b.booking_date BETWEEN $2 AND $3
+    WHERE ($1::uuid[] IS NULL OR pt.branch_id = ANY($1))
+    GROUP BY pt.id, pt.full_name, pt.pt_code, pt.phone
+    ORDER BY completed_sessions DESC, pt.full_name ASC
+  `, [ids, start, end])).rows;
+  const comparison = [];
+  for (let i = 2; i >= 0; i--) {
+    const a = new Date(Date.UTC(year, firstMonth - 1 - i * months, 1)).toISOString().slice(0, 10), z = new Date(Date.UTC(year, firstMonth - 1 + (1 - i) * months, 1)).toISOString().slice(0, 10);
+    const value = (await pool.query("SELECT COALESCE(SUM(amount),0) cash_received FROM payments WHERE status='COMPLETED' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date >= $2 AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date < $3", [ids, a, z])).rows[0].cash_received;
+    comparison.push({ period: period === 'year' ? a.slice(0, 4) : period === 'quarter' ? `${a.slice(0, 4)} Q${Math.ceil(Number(a.slice(5, 7)) / 3)}` : a.slice(0, 7), cash_received: value });
+  }
+  return { metrics, revenue, comparison, distribution, pt_performance, start_date: start, end_date: end };
 }));
 module.exports={router,accessLogs,branchStats};

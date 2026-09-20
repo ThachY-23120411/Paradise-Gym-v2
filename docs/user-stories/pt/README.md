@@ -15,6 +15,7 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 ## PT06 · Tổng quan
 
 - [PT06-US01 — Xem tổng quan và thống kê hiệu suất PT](./PT06-Tổng%20quan/PT06-US01-Xem%20t%E1%BB%95ng%20quan%20v%C3%A0%20th%E1%BB%91ng%20k%C3%AA%20hi%E1%BB%87u%20su%E1%BA%A5t%20PT.md)
+- [PT06-US02 — Xem bảng kê hoa hồng tháng](./PT06-Tổng%20quan/PT06-US02-Xem%20bảng%20kê%20hoa%20hồng%20tháng.md)
 
 ## PT01 · Lịch
 
@@ -41,7 +42,7 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 - [PT05-US02 — Kích hoạt tài khoản PT bằng OTP](./PT05-Đăng%20nhập/PT05-US02-Kích%20hoạt%20tài%20khoản%20PT%20bằng%20OTP.md)
 - [PT05-US03 — Đăng xuất tài khoản PT Mobile](./PT05-Đăng%20nhập/PT05-US03-Đăng%20xuất%20tài%20khoản%20PT%20Mobile.md)
 
-**Tổng số:** 5 Epic, 10 User Story canonical.
+**Tổng số:** 5 Epic, 11 User Story canonical.
 
 ## Boundary
 

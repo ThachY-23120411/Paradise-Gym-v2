@@ -1,60 +1,76 @@
-# QTV-W07-US01 - Xử lý check-in tự động qua thiết bị
+# QTV-W07-US01 - Xử lý check-in tự động qua thiết bị (FaceID, QR Code) & Màn hình chào Kiosk
 
 ## Preconditions
-- Hệ thống đã tích hợp và kết nối thành công với Camera / Thiết bị nhận diện khuôn mặt / Cổng kiểm soát ra vào tại chi nhánh.
-- Hệ thống đã có dữ liệu hồ sơ hội viên (`MEMBER_PROFILE`) và các gói đăng ký (`Registration`).
+- Hệ thống đã kết nối với Camera AI nhận diện khuôn mặt, Đầu đọc quét mã QR và Màn hình chào Kiosk K01 tại cổng kiểm soát.
+- Hội viên đã có hồ sơ và gói tập trên hệ thống.
 
 ## Trigger
-- Hội viên tới phòng Gym và được Camera / thiết bị nhận diện quét tự động tại cửa.
-- Màn hình liên quan: Tương tác sự kiện tự động giữa thiết bị và SYS (xem nhật ký thời gian thực trên Web QTV — W07 Ra / Vào).
+- Hội viên tới phòng Gym, thực hiện quét nhận diện khuôn mặt hoặc đưa mã QR trên app Mobile vào đầu đọc tại cửa.
+- Màn hình liên quan: Màn hình chào Kiosk K01 và Web QTV — W07 Ra vào & check-in.
 
 ## Main Flow
 
-1. Hội viên tới phòng Gym.
-2. Camera / thiết bị nhận diện khuôn mặt / cổng kiểm soát tự động quét và nhận diện khuôn mặt hội viên.
-3. SYS tự động nạp hồ sơ và kiểm tra đối soát **6 điều kiện hợp lệ** để vào tập:
-   - **ĐIỀU KIỆN 1**: `MEMBER_PROFILE` của hội viên đang ở trạng thái `ACTIVE` (Hoạt động).
-   - **ĐIỀU KIỆN 2**: Hội viên sở hữu gói Gym entitlement còn hiệu lực thời hạn.
-   - **ĐIỀU KIỆN 3**: Gói đăng ký đã được thanh toán 100% (không ở trạng thái `PENDING_PAYMENT`).
-   - **ĐIỀU KIỆN 4**: Chi nhánh hiện tại nằm trong phạm vi chi nhánh được phép sử dụng của gói.
-   - **ĐIỀU KIỆN 5**: Nếu gói Gym tính theo số buổi: Số buổi tập khả dụng còn lại (`remaining_sessions` > 0).
-   - **ĐIỀU KIỆN 6**: Thời điểm quét nằm trong khung giờ hoạt động hàng ngày của chi nhánh.
-4. Nếu **ĐỦ ĐIỀU KIỆN HỢP LỆ**:
-   - SYS ghi nhận sự kiện `VÀO` (`direction` = `IN`, `source` = `CAMERA` / `GATE`).
-   - SYS gửi tín hiệu phát lệnh mở cổng / cửa cho hội viên vào tập.
+1. Hội viên tới cửa phòng Gym và quét nhận diện qua **Camera Khuôn mặt (FaceID)** hoặc **Đầu đọc mã QR (QR Code từ app Mobile)**.
+2. Thiết bị gửi mã định danh/Face vector đến hệ thống (SYS).
+3. SYS kiểm tra điều kiện vào tập của hội viên:
+   - Hồ sơ hội viên đang ở trạng thái `ACTIVE`.
+   - Sở hữu gói Gym còn hiệu lực (`ACTIVE`, không bị đóng băng `is_frozen = false`, đã thanh toán 100%, đúng chi nhánh, còn số buổi Gym nếu là gói theo buổi).
+4. Nếu **ĐỦ ĐIỀU KIỆN**:
+   - SYS ghi nhận sự kiện `VÀO` (`direction = 'IN'`, `checkin_method = 'FACE'` hoặc `'QR'`).
+   - SYS gửi tín hiệu mở cổng barrier.
+   - **Tương tác trên màn hình Kiosk K01:**
+     + Hiển thị ảnh đại diện Avatar, lời chào mừng thân thiện: *"Chào mừng [Họ tên hội viên] đến với Paradise Gym"*.
+     + **Nếu hôm nay là SINH NHẬT của hội viên:** Kiosk tự động phát hiệu ứng pháo hoa, banner *"🎂 CHÚC MỪNG SINH NHẬT [Họ tên]! Chúc bạn có một buổi tập tràn đầy năng lượng và nhận ưu đãi đặc biệt tại quầy Lễ tân"*.
+     + **Nếu gói tập SẮP HẾT HẠN (<= 4 ngày):** Kiosk hiển thị cảnh báo màu vàng nổi bật: *"⚠️ Gói tập của bạn sẽ hết hạn sau [X] ngày. Vui lòng gặp Lễ tân tại quầy để gia hạn và nhận ưu đãi duy trì quyền lợi"*. (Phục vụ mục tiêu mời chào gia hạn thu tiền).
 5. Nếu **KHÔNG ĐỦ ĐIỀU KIỆN**:
-   - SYS từ chối mở cửa.
-   - SYS ghi log sự kiện từ chối kèm lý do từ chối cụ thể (Gói hết hạn, Chưa thanh toán, Sai chi nhánh, Hết số buổi, Ngoài giờ hoạt động).
+   - SYS từ chối mở cổng, ghi log từ chối và lý do (`Gói hết hạn`, `Chưa kích hoạt`, `Đang đóng băng`, `Hết lượt tập`).
+   - Màn hình Kiosk hiển thị thông báo hướng dẫn hội viên liên hệ Lễ tân tại quầy để được hỗ trợ gia hạn/kích hoạt.
 
-- **Business rules / logic:**
-  - Mọi sự kiện quét tự động qua thiết bị đều phải qua kiểm soát 6 điều kiện độc lập trước khi mở cổng.
-  - Toàn bộ sự kiện thành công hay từ chối đều được lưu vết nhật ký tự động.
+### Field-level specification — Màn hình Kiosk chào mừng K01
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Avatar hội viên | `Image Display` | `READONLY` | required | `DYNAMIC` | Lấy từ `MEMBER_PROFILES.avatar_url` |
+| Lời chào mừng & Họ tên | `Text Heading (Bold)` | `READONLY` | required | `DYNAMIC` | *"Xin chào [Họ và tên hội viên]"* |
+| Tên gói & Trạng thái | `Badge / Subtext` | `READONLY` | required | `DYNAMIC` | Tên gói Gym đang sử dụng và số ngày/buổi còn lại |
+| Banner Chúc mừng sinh nhật | `Animated Banner` | `READONLY` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: Ngày sinh nhật của hội viên trùng với hôm nay<br>• **Ẩn khi**: Không phải sinh nhật | Hiệu ứng chúc mừng sinh nhật kèm thông điệp nhận quà tại quầy |
+| Cảnh báo Gói sắp hết hạn | `Warning Banner` | `READONLY` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: Gói còn hạn $\le$ 4 ngày<br>• **Ẩn khi**: Gói còn hạn $> 4$ ngày | Cảnh báo số ngày còn lại và nhắc gặp Lễ tân gia hạn tiếp tục thu tiền |
+| Trạng thái mở cửa | `Status Indicator` | `READONLY` | required | `DYNAMIC` | `MỜI VÀO (Xanh lá)` hoặc `VUI LÒNG GẶP LỄ TÂN (Đỏ)` |
+
+## Alternate Flows
+
+### AF-01 - Check-in bằng mã QR Mobile
+1. Hội viên mở app Mobile Hội viên (HV01/HV04) và đưa mã QR cá nhân vào máy quét.
+2. Thiết bị giải mã chuỗi QR và gửi về SYS.
+3. SYS kiểm tra quyền vào tập và phản hồi kết quả lên Kiosk giống luồng chính.
 
 ## Exception Flows
-- Thiết bị mất kết nối / không nhận diện được khuôn mặt: Chuyển sang luồng xử lý thủ công tại `QTV-W07-US02`.
+- **Gói tập đang đóng băng bảo lưu:** Kiosk thông báo: *"Gói tập của bạn đang trong thời gian đóng băng. Vui lòng liên hệ Lễ tân để mở lại gói trước khi vào tập"*.
+- **Gói tập đã hết hạn:** Kiosk hiển thị thông báo gói hết hạn và mời hội viên đến quầy gia hạn gói mới.
 
 ## Activity Diagram — Swimlane
-**Trigger:** Camera / Thiết bị quét tự động nhận diện hội viên tại cổng chi nhánh.
+**Trigger:** Hội viên quét FaceID hoặc mã QR tại cổng kiểm soát.
 
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — Web QTV W07 / Hệ thống Check-in tự động"]
-    subgraph L0["Swimlane — Thiết bị Camera / Gate"]
+  subgraph B["Boundary — Web QTV W07 / Hệ thống Check-in Kiosk K01"]
+    subgraph L0["Swimlane — Hội viên & Thiết bị"]
       I01(("Initial"))
-      A01["Quét nhận diện khuôn mặt hội viên tại cửa"]
-      F01((("Final — Mở cổng cho hội viên vào")))
-      F02((("Final — Từ chối mở cổng & ghi log lý do")))
-      I01 --> A01
+      A01["Quét khuôn mặt (FaceID) hoặc quét mã QR từ app Mobile"]
+      F01((("Final — Cổng mở, Kiosk chào mừng & hiển thị sinh nhật / nhắc hết hạn")))
+      F02((("Final — Từ chối mở cửa, Kiosk hướng dẫn gặp Lễ tân")))
     end
-    subgraph L1["Swimlane — SYS"]
-      S01["Kiểm tra 6 điều kiện hợp lệ (Profile ACTIVE, Gói còn hạn, Thanh toán 100%, Đúng chi nhánh, Còn số buổi, Trong giờ hoạt động)"]
-      D01{"Đủ 6 điều kiện hợp lệ?"}
-      S02["Cho phép VÀO, gửi tín hiệu mở cổng & lưu event (source=CAMERA/GATE)"]
-      S03["Từ chối mở cổng & ghi log lý do từ chối"]
 
-      A01 --> S01 --> D01
-      D01 -->|Có| S02 --> F01
-      D01 -->|Không| S03 --> F02
+    subgraph L1["Swimlane — SYS"]
+      S01["Kiểm tra hồ sơ ACTIVE và gói Gym còn hiệu lực (không đóng băng, thanh toán 100%)"]
+      D01{"Gói Gym hợp lệ?"}
+      S02["Gửi tín hiệu mở cổng barrier, ghi log check-in (Face/QR)"]
+      S03["Kiểm tra ngày sinh nhật và ngày hết hạn gói (<= 4 ngày)"]
+      S04["Hiển thị màn hình Kiosk K01: Lời chào + Banner sinh nhật (nếu có) + Cảnh báo hết hạn (nếu có)"]
+      S05["Từ chối mở cổng, ghi log từ chối và hiển thị thông báo trên Kiosk"]
+
+      I01 --> A01 --> S01 --> D01
+      D01 -->|Hợp lệ| S02 --> S03 --> S04 --> F01
+      D01 -->|Không hợp lệ| S05 --> F02
     end
   end
 ```

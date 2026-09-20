@@ -111,6 +111,7 @@ window.PtSchedulerModule = (function () {
         settings.onReady?.(form, errorBox);
       },
       toolbarItems: [
+        ...(settings.extraButtons || []),
         { widget: 'dxButton', toolbar: 'bottom', location: 'after', options: { text: 'Hủy', stylingMode: 'outlined', onClick: () => popup.hide() } },
         { widget: 'dxButton', toolbar: 'bottom', location: 'after', options: {
           text: settings.submitText || 'Lưu thay đổi', icon: settings.submitIcon || 'save', type: settings.destructive ? 'danger' : 'default',
@@ -146,13 +147,226 @@ window.PtSchedulerModule = (function () {
     popup.show();
     return { popup, form, errorBox };
   }
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = err => reject(err);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function openTrainerCameraCapture(state, onSuccess) {
+    const host = $('<div>').appendTo(state?.root || $('body'));
+    let localStream = null;
+    const camPopup = host.dxPopup({
+      title: 'Chụp ảnh từ Camera tại quầy',
+      width: 520,
+      maxWidth: 'calc(100vw - 24px)',
+      height: 'auto',
+      showCloseButton: true,
+      dragEnabled: true,
+      hideOnOutsideClick: false,
+      onHiding: () => {
+        if (localStream) localStream.getTracks().forEach(t => t.stop());
+      },
+      onHidden: () => {
+        if (state?.popups) state.popups = state.popups.filter(item => item !== camPopup);
+        host.remove();
+      },
+      contentTemplate: element => {
+        const body = $('<div style="padding:10px;text-align:center;">').appendTo(element);
+        const videoWrap = $('<div style="width:100%;max-width:420px;height:315px;margin:0 auto 12px;background:#1a1a1a;border-radius:8px;overflow:hidden;position:relative;display:grid;place-items:center;">').appendTo(body);
+        const video = $('<video autoplay playsinline style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1);">').appendTo(videoWrap)[0];
+        const statusMsg = $('<div style="color:#888;font-size:12px;margin-bottom:12px;">').text('Đang kết nối camera...').appendTo(body);
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } })
+            .then(stream => {
+              localStream = stream;
+              video.srcObject = stream;
+              statusMsg.text('Căn chỉnh khuôn mặt vào giữa khung hình rồi bấm "Chụp ảnh".');
+            })
+            .catch(err => {
+              statusMsg.html(`<span style="color:#b5493a;">Không thể kết nối camera: ${err.message || 'Thiết bị không hỗ trợ'}. Vui lòng tải file ảnh từ máy tính.</span>`);
+            });
+        } else {
+          statusMsg.html('<span style="color:#b5493a;">Trình duyệt không hỗ trợ truy cập camera. Vui lòng tải file ảnh từ máy tính.</span>');
+        }
+
+        body.data('video', video);
+        body.data('statusMsg', statusMsg);
+      },
+      toolbarItems: [
+        { toolbar: 'bottom', location: 'after', widget: 'dxButton', options: { text: 'Đóng', onClick: () => camPopup.hide() } },
+        { toolbar: 'bottom', location: 'after', widget: 'dxButton', options: {
+          text: 'Chụp ảnh', type: 'default', stylingMode: 'contained', icon: 'camera',
+          onClick: async event => {
+            const body = host.find('.dx-popup-content > div');
+            const video = body.data('video');
+            const statusMsg = body.data('statusMsg');
+            if (!localStream || !video || !video.videoWidth) {
+              notify('Chưa có tín hiệu camera', 'warning');
+              return;
+            }
+            event.component.option('disabled', true);
+            statusMsg.text('Đang xử lý ảnh chụp...');
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = video.videoWidth || 640;
+              canvas.height = video.videoHeight || 480;
+              const ctx = canvas.getContext('2d');
+              ctx.translate(canvas.width, 0);
+              ctx.scale(-1, 1);
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+              const base64Data = dataUrl.split(',')[1];
+              const res = await api().request('/avatar/upload', {
+                method: 'POST',
+                body: { content_base64: base64Data, mime_type: 'image/jpeg' }
+              });
+              const url = res.data?.avatar_url || res.avatar_url;
+              onSuccess(url);
+              notify('Đã chụp ảnh khuôn mặt thành công!', 'success');
+              camPopup.hide();
+            } catch (err) {
+              statusMsg.html(`<span style="color:#b5493a;">Lỗi xử lý ảnh: ${err.message}</span>`);
+              event.component.option('disabled', false);
+            }
+          }
+        } }
+      ]
+    }).dxPopup('instance');
+    if (state?.popups) state.popups.push(camPopup);
+    camPopup.show();
+  }
+
+  function renderTrainerAvatarField(container, getForm, initialUrl, state) {
+    const wrapper = $('<div class="avatar-field-wrapper" style="border:1px dashed #b8cebf;border-radius:8px;padding:12px 14px;background:#f9fcf9;margin-top:4px;">').appendTo(container);
+    const flex = $('<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">').appendTo(wrapper);
+
+    const preview = $('<div class="avatar-preview-box" style="width:84px;height:84px;border-radius:50%;overflow:hidden;border:3px solid #237b58;background:#edf4ee;display:grid;place-items:center;flex-shrink:0;">').appendTo(flex);
+
+    function updatePreview(url) {
+      preview.empty();
+      if (url && /^https?:\/\//.test(url)) {
+        $(`<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`).appendTo(preview);
+        clearBtn.show();
+      } else {
+        $('<i class="fa-solid fa-camera" style="font-size:26px;color:#748078;"></i>').appendTo(preview);
+        clearBtn.hide();
+      }
+    }
+
+    const controls = $('<div style="flex:1;min-width:230px;display:flex;flex-direction:column;gap:8px;">').appendTo(flex);
+    const btnRow = $('<div style="display:flex;gap:8px;flex-wrap:wrap;">').appendTo(controls);
+
+    // 1. Nút chụp camera
+    $('<button type="button" class="dx-button dx-button-normal dx-widget dx-button-has-icon dx-button-has-text" style="font-size:12px;padding:5px 12px;border-radius:4px;cursor:pointer;">')
+      .append($('<i class="fa-solid fa-camera" style="margin-right:6px;color:#237b58;"></i>'), $('<span>').text('Chụp camera'))
+      .appendTo(btnRow)
+      .on('click', () => openTrainerCameraCapture(state, url => {
+        const form = getForm();
+        if (form) {
+          form.updateData('avatar_url', url);
+          if (form.option('formData')) form.option('formData').avatar_url = url;
+        }
+        urlInput.val(url);
+        updatePreview(url);
+      }));
+
+    // 2. Nút tải file
+    const fileInput = $('<input type="file" accept="image/png,image/jpeg,image/webp" style="display:none;">').appendTo(btnRow);
+    const uploadBtn = $('<button type="button" class="dx-button dx-button-normal dx-widget dx-button-has-icon dx-button-has-text" style="font-size:12px;padding:5px 12px;border-radius:4px;cursor:pointer;">')
+      .append($('<i class="fa-solid fa-upload" style="margin-right:6px;color:#3378b7;"></i>'), $('<span>').text('Tải ảnh lên'))
+      .appendTo(btnRow)
+      .on('click', () => fileInput.trigger('click'));
+
+    fileInput.on('change', async e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        notify('Kích thước ảnh tối đa 5 MB', 'error');
+        return;
+      }
+      try {
+        uploadBtn.prop('disabled', true).text('Đang tải...');
+        const base64 = await fileToBase64(file);
+        const res = await api().request('/avatar/upload', {
+          method: 'POST',
+          body: { content_base64: base64.split(',')[1], mime_type: file.type }
+        });
+        const url = res.data?.avatar_url || res.avatar_url;
+        const form = getForm();
+        if (form) {
+          form.updateData('avatar_url', url);
+          if (form.option('formData')) form.option('formData').avatar_url = url;
+        }
+        urlInput.val(url);
+        updatePreview(url);
+        notify('Đã tải ảnh lên thành công!', 'success');
+      } catch (err) {
+        notify(err.message || 'Lỗi tải ảnh', 'error');
+      } finally {
+        uploadBtn.prop('disabled', false).html('<i class="fa-solid fa-upload" style="margin-right:6px;color:#3378b7;"></i><span>Tải ảnh lên</span>');
+        fileInput.val('');
+      }
+    });
+
+    // 3. Nút xóa ảnh
+    const clearBtn = $('<button type="button" class="dx-button dx-button-normal dx-widget dx-button-has-icon dx-button-has-text" style="font-size:12px;padding:5px 12px;border-radius:4px;color:#b5493a;cursor:pointer;display:none;">')
+      .append($('<i class="fa-solid fa-trash" style="margin-right:4px;"></i>'), $('<span>').text('Xóa'))
+      .appendTo(btnRow)
+      .on('click', () => {
+        const form = getForm();
+        if (form) {
+          form.updateData('avatar_url', '');
+          if (form.option('formData')) form.option('formData').avatar_url = '';
+        }
+        urlInput.val('');
+        updatePreview('');
+      });
+
+    // 4. Ô nhập URL trực tiếp
+    const urlInput = $('<input type="text" placeholder="Hoặc dán URL ảnh chân dung (https://...)" style="width:100%;font-size:12px;padding:6px 10px;border:1px solid #d2ded7;border-radius:4px;background:#fff;margin-top:2px;">')
+      .val(initialUrl || '')
+      .on('input change', function () {
+        const val = $(this).val().trim();
+        const form = getForm();
+        if (form) {
+          form.updateData('avatar_url', val);
+          if (form.option('formData')) form.option('formData').avatar_url = val;
+        }
+        updatePreview(val);
+      })
+      .appendTo(controls);
+
+    $('<small style="color:#748078;font-size:11px;display:block;margin-top:2px;">')
+      .text('Ảnh chân dung hiển thị làm Avatar hồ sơ Huấn luyện viên và nhận diện khuôn mặt.')
+      .appendTo(controls);
+
+    updatePreview(initialUrl);
+  }
+
   function profileData(pt) {
-    return { full_name: pt?.full_name || '', phone: pt?.phone || '', email: pt?.email || '',
-      branch_id: pt?.branch_id || branchId(), specialty: pt?.specialty ?? pt?.specialties ?? '' };
+    return {
+      full_name: pt?.full_name || '',
+      phone: pt?.phone || '',
+      email: pt?.email || '',
+      branch_id: pt?.branch_id || branchId(),
+      specialty: pt?.specialty ?? pt?.specialties ?? '',
+      avatar_url: pt?.avatar_url || ''
+    };
   }
   function profilePayload(data, editing) {
-    const payload = { full_name: nameValue(data.full_name), email: String(data.email || '').trim() || null,
-      branch_id: data.branch_id, specialties: String(data.specialty || '').trim() || null };
+    const payload = {
+      full_name: nameValue(data.full_name),
+      email: String(data.email || '').trim() || null,
+      branch_id: data.branch_id,
+      specialties: String(data.specialty || '').trim() || null,
+      avatar_url: String(data.avatar_url || '').trim() || null,
+      face_enrolled: Boolean(String(data.avatar_url || '').trim())
+    };
     if (!editing) payload.phone = phoneValue(data.phone);
     return payload;
   }
@@ -200,7 +414,14 @@ window.PtSchedulerModule = (function () {
             dataSource: branches, valueExpr: 'id', displayExpr: 'branch_name', searchEnabled: true,
             noDataText: 'Không có chi nhánh được phép', placeholder: 'Chọn chi nhánh'
           }),
-          field('specialty', 'Chuyên môn / Ghi chú', false, 'dxTextArea', { height: 72 })
+          field('specialty', 'Chuyên môn / Ghi chú', false, 'dxTextArea', { height: 72 }),
+          {
+            dataField: 'avatar_url',
+            label: { text: 'Avatar & Ảnh chân dung PT' },
+            template: (formData, itemElement) => {
+              renderTrainerAvatarField(itemElement, () => formInstance, data.avatar_url, state);
+            }
+          }
         ],
         submit: async values => {
           await api().request(pt ? `/pt-bookings/trainers/${encodeURIComponent(pt.id)}` : '/pt-bookings/trainers', {
@@ -227,6 +448,15 @@ window.PtSchedulerModule = (function () {
         },
         contentTemplate: element => {
           const content = $('<div class="pt-trainer-detail-content" style="padding: 10px;">').appendTo(element);
+          const headerCard = $('<div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #e2ece5;">').appendTo(content);
+          const avatarHtml = fullPt.avatar_url && /^https?:\/\//.test(fullPt.avatar_url)
+            ? `<img src="${fullPt.avatar_url}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #237b58;">`
+            : `<div style="width:60px;height:60px;border-radius:50%;background:#eaf4ee;color:#237b58;font-size:20px;font-weight:700;display:grid;place-items:center;border:2px solid #237b58;">${(fullPt.full_name || '?').trim().split(/\s+/).slice(-2).map(x => x[0]).join('').toUpperCase()}</div>`;
+          $(avatarHtml).appendTo(headerCard);
+          const headerInfo = $('<div>').appendTo(headerCard);
+          $('<h4 style="margin:0 0 4px;font-size:16px;font-weight:700;color:#185740;">').text(fullPt.full_name).appendTo(headerInfo);
+          $('<div>').append($(badge(headerInfo, fullPt.status, PROFILE_STATUS)), $(` <span class="status-badge ${fullPt.face_enrolled ? 'badge-success' : 'badge-warning'}">${fullPt.face_enrolled ? 'Đã có ảnh chân dung' : 'Chưa có ảnh chân dung'}</span>`)).appendTo(headerInfo);
+
           const infoGroup = [
             readonlyField('Họ và tên', fullPt.full_name),
             readonlyField('Mã PT', fullPt.pt_code || pt.code),
@@ -241,16 +471,28 @@ window.PtSchedulerModule = (function () {
           });
         },
         toolbarItems: [
-          ...(isAdmin() ? [{
-            widget: 'dxButton', toolbar: 'bottom', location: 'after',
-            options: {
-              text: 'Sửa hồ sơ PT', icon: 'edit', type: 'default', stylingMode: 'contained',
-              onClick: () => {
-                popup.hide();
-                showTrainerForm(state, fullPt);
+          ...(isAdmin() ? [
+            {
+              widget: 'dxButton', toolbar: 'bottom', location: 'after',
+              options: {
+                text: 'Bàn giao học viên', icon: 'repeat', type: 'normal',
+                onClick: () => {
+                  popup.hide();
+                  openTrainerHandoverModal(state, fullPt);
+                }
+              }
+            },
+            {
+              widget: 'dxButton', toolbar: 'bottom', location: 'after',
+              options: {
+                text: 'Sửa hồ sơ PT', icon: 'edit', type: 'default', stylingMode: 'contained',
+                onClick: () => {
+                  popup.hide();
+                  showTrainerForm(state, fullPt);
+                }
               }
             }
-          }] : []),
+          ] : []),
           {
             widget: 'dxButton', toolbar: 'bottom', location: 'after',
             options: { text: 'Đóng', stylingMode: 'outlined', onClick: () => popup.hide() }
@@ -262,6 +504,52 @@ window.PtSchedulerModule = (function () {
     } catch (error) {
       if (alive(state)) showError(state.status, error);
     }
+  }
+
+  async function openTrainerHandoverModal(state, pt) {
+    try {
+      const trainers = rows(await api().request('/pt-bookings/trainers'));
+      const available = trainers.filter(t => t.id !== pt.id && t.status === 'ACTIVE');
+      if (!available.length) {
+        notify('Không có HLV nào khác đang hoạt động để nhận bàn giao.', 'warning');
+        return;
+      }
+
+      formPopup(state, {
+        title: `Bàn giao học viên & lịch tập: ${pt.full_name}`,
+        width: 540,
+        items: [
+          readonlyField('HLV chuyển giao', `${pt.full_name} (${pt.pt_code || ''})`),
+          {
+            dataField: 'new_pt_id', label: { text: 'Chọn HLV tiếp nhận' },
+            editorType: 'dxSelectBox',
+            editorOptions: {
+              dataSource: available, valueExpr: 'id',
+              displayExpr: t => `${t.full_name} (${t.pt_code || ''})`,
+              placeholder: 'Chọn HLV tiếp nhận'
+            },
+            validationRules: [{ type: 'required', message: 'Vui lòng chọn HLV tiếp nhận' }]
+          },
+          {
+            dataField: 'reason', label: { text: 'Lý do bàn giao' },
+            editorType: 'dxSelectBox',
+            editorOptions: {
+              items: ['HLV nghỉ việc đột xuất', 'HLV chuyển công tác/chi nhánh', 'Điều phối lại học viên', 'Khác'],
+              value: 'HLV nghỉ việc đột xuất'
+            },
+            validationRules: [{ type: 'required', message: 'Vui lòng chọn lý do' }]
+          }
+        ],
+        submit: async values => {
+          await api().request(`/pt-bookings/trainers/${encodeURIComponent(pt.id)}/handover`, {
+            method: 'POST',
+            body: { new_pt_id: values.new_pt_id, reason: values.reason }
+          });
+          notify('Đã bàn giao học viên và toàn bộ lịch tập sang HLV mới thành công!');
+          await loadTrainers(state);
+        }
+      });
+    } catch (err) { notify(err.message, 'error'); }
   }
 
   function showTrainerStatus(state, pt) {
@@ -316,7 +604,18 @@ window.PtSchedulerModule = (function () {
     if (!alive(state)) return;
     const columns = [
       { dataField: 'pt_code', caption: 'Mã PT', width: 100, calculateCellValue: pt => pt.pt_code || pt.code },
-      { dataField: 'full_name', caption: 'Họ và tên', minWidth: 180 },
+      {
+        dataField: 'full_name', caption: 'Họ và tên', minWidth: 200, cellTemplate: (el, info) => {
+          const row = $('<div>').css({ display: 'flex', gap: 10, alignItems: 'center' }).appendTo(el);
+          if (info.data.avatar_url && /^https?:\/\//.test(info.data.avatar_url)) {
+            $('<img class="trainer-avatar member-avatar">').attr({ src: info.data.avatar_url, alt: info.value }).css({ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1px solid #237b58' }).appendTo(row);
+          } else {
+            const initials = (info.value || '').trim().split(/\s+/).slice(-2).map(s => s[0]).join('').toUpperCase() || 'PT';
+            $('<span class="trainer-initials member-initials">').css({ width: 32, height: 32, flexShrink: 0, display: 'grid', placeItems: 'center', background: '#e4f3ef', color: '#185740', borderRadius: '50%', fontWeight: 700, fontSize: 12 }).text(initials).appendTo(row);
+          }
+          $('<strong>').text(info.value || '--').appendTo(row);
+        }
+      },
       { dataField: 'phone', caption: 'Số điện thoại', width: 140 },
       { dataField: 'email', caption: 'Email', minWidth: 180, cellTemplate: (cell, info) => cell.text(info.value || '--') },
       { dataField: 'branch_name', caption: 'Chi nhánh phục vụ', minWidth: 170 },
@@ -555,121 +854,597 @@ window.PtSchedulerModule = (function () {
   function refreshBookingView(state) {
     return state.mode === 'booking-tasks' ? loadBookingTasks(state) : loadSchedule(state);
   }
-  function slotFor(state, date, start) {
-    const availability = state.availability.get(dayKey(date));
-    return (availability?.slots || availability?.available_slots || []).find(slot => clock(slot.start_time) === clock(start));
+  const clockFromDate = d => {
+    if (!d) return '09:00';
+    const dateObj = d instanceof Date ? d : new Date(d);
+    return `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+  };
+  function calculateEndTime(startStr, durationMinutes) {
+    if (!startStr) return '';
+    const [h, m] = startStr.split(':').map(Number);
+    const total = h * 60 + m + (durationMinutes || 60);
+    const eh = Math.floor(total / 60) % 24;
+    const em = total % 60;
+    return `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
   }
-  function canBook(state, date, slot) {
-    if (!slot || slot.is_available !== true || state.trainer?.status !== 'ACTIVE') return false;
-    if (appointmentTime(date, slot.start_time).getTime() <= Date.now()) return false;
-    return !state.bookings.some(booking => activeBooking(booking) && dayKey(booking.booking_date) === dayKey(date) && clock(booking.start_time) === clock(slot.start_time));
+  function calculateDurationMinutes(start, end) {
+    if (!start || !end) return 60;
+    const [sh, sm] = String(start).split(':').map(Number);
+    const [eh, em] = String(end).split(':').map(Number);
+    return (eh * 60 + em) - (sh * 60 + sm);
   }
-  function appointmentContent(state, booking, parent, compact = false) {
-    const content = $('<div class="pt-appointment">').css({ whiteSpace: 'normal', overflowWrap: 'anywhere' }).appendTo(parent);
-    const packageLabel = [booking.member_code, booking.package_name || booking.package_name_snapshot].filter(Boolean).join(' · ');
-    $('<strong>').text(booking.member_name || '--').attr('title', booking.member_name || '')
-      .css({ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }).appendTo(content);
-    $('<div>').text(packageLabel).attr('title', packageLabel)
-      .css({ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }).appendTo(content);
-    badge(content, booking.status);
-    content.find('.status-badge').css({ maxWidth: '100%', whiteSpace: 'normal', lineHeight: '1.3' });
-    if (!compact && booking.status === 'BOOKED') {
-      const actions = $('<div class="pt-slot-actions">').css({ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }).appendTo(content);
-      button(actions, { icon: 'close', hint: 'Hủy lịch', type: 'danger', stylingMode: 'contained', onClick: event => { event.event?.stopPropagation(); showCancellation(state, booking); } });
-      button(actions, { icon: 'check', hint: 'Xác nhận hoàn thành', type: 'default', stylingMode: 'contained', disabled: !ended(booking),
-        onClick: event => { event.event?.stopPropagation(); showBookingDetail(state, booking); } });
+  function checkCollision(state, dateStr, startStr, endStr, excludeId = null) {
+    return state.bookings.some(b =>
+      b.id !== excludeId &&
+      activeBooking(b) &&
+      dayKey(b.booking_date) === dateStr &&
+      clock(b.start_time) < endStr &&
+      clock(b.end_time) > startStr
+    );
+  }
+  function getAllAppointments(state) {
+    const list = state.bookings.filter(activeBooking).map(booking => ({
+      ...booking,
+      id: booking.id,
+      text: `${booking.member_name || ''} - ${booking.package_name || booking.package_name_snapshot || ''}`,
+      startDate: appointmentTime(booking.booking_date, booking.start_time),
+      endDate: appointmentTime(booking.booking_date, booking.end_time),
+      is_draft: false
+    }));
+    if (state.draft) {
+      list.push({
+        ...state.draft,
+        id: 'draft-booking',
+        text: 'Lịch tập dự kiến',
+        startDate: state.draft.startDate,
+        endDate: state.draft.endDate,
+        is_draft: true
+      });
+    }
+    return list;
+  }
+  function refreshSchedulerAppointments(state) {
+    if (state.scheduler) {
+      state.scheduler.option('dataSource', getAllAppointments(state));
     }
   }
+  function renderDraftFloatingBar(state) {
+    state.content.find('.pt-floating-draft-bar').remove();
+    if (!state.draft) return;
+    const draft = state.draft;
+    const startStr = draft.startDate ? clockFromDate(draft.startDate) : (draft.start_time || '09:00');
+    const duration = Number(draft.duration_minutes) || 60;
+    const endStr = draft.endDate ? clockFromDate(draft.endDate) : calculateEndTime(startStr, duration);
+    draft.start_time = startStr;
+    draft.end_time = endStr;
+    const targetDate = draft.startDate ? dayDate(draft.startDate) : dayDate(draft.booking_date || new Date());
+    const targetDateStr = dayKey(targetDate);
+    const dateText = targetDate.toLocaleDateString('vi-VN');
+
+    const bar = $('<div class="pt-floating-draft-bar">').appendTo(state.content);
+    const info = $('<div class="info">').appendTo(bar);
+    $('<span class="pt-duration-tag">').text(`${duration} phút`).appendTo(info);
+    const textCol = $('<div style="display:flex;flex-direction:column;">').appendTo(info);
+    $('<strong style="color:#065f46;font-size:14px;">').text(`${startStr} - ${endStr}`).appendTo(textCol);
+    if (draft.member_name) {
+      $('<span style="font-size:12px;color:#0f172a;font-weight:600;">').text(`${draft.member_name} · ${draft.package_name || 'Gói PT'}`).appendTo(textCol);
+    }
+    $('<span style="font-size:11px;color:#64748b;">').text(`Ngày tập: ${dateText}`).appendTo(textCol);
+
+    $('<div class="hint">').html('<i class="fa-solid fa-arrows-up-down" style="color:#059669;"></i> <span>Kéo thả thẻ xanh trên lịch để đổi giờ</span>').appendTo(bar);
+
+    const actions = $('<div class="actions">').appendTo(bar);
+    if (draft.registration_id) {
+      button(actions, {
+        text: 'Xác nhận đặt lịch', icon: 'check', type: 'default', stylingMode: 'contained',
+        onClick: async () => {
+          if (appointmentTime(targetDateStr, draft.start_time).getTime() <= Date.now()) {
+            notify('Không thể đặt lịch ở thời điểm trong quá khứ.', 'warning');
+            return;
+          }
+          if (checkCollision(state, targetDateStr, draft.start_time, draft.end_time)) {
+            notify(`⚠️ Khung giờ ${draft.start_time} - ${draft.end_time} bị trùng với lịch khác của HLV!`, 'error');
+            return;
+          }
+          try {
+            await api().request('/pt-bookings', {
+              method: 'POST',
+              body: {
+                registration_id: draft.registration_id,
+                member_id: draft.member_id,
+                pt_id: state.trainer.id,
+                branch_id: state.trainer.branch_id,
+                booking_date: targetDateStr,
+                start_time: draft.start_time,
+                end_time: draft.end_time,
+                session_duration_minutes: duration,
+                workout_notes: String(draft.notes || '').trim() || null
+              }
+            });
+            notify('Đã đặt lịch PT thành công!');
+            state.draft = null;
+            bar.remove();
+            await loadSchedule(state);
+          } catch (err) {
+            notify(err.message || 'Không thể đặt lịch.', 'error');
+          }
+        }
+      });
+      button(actions, {
+        text: 'Đổi gói / thông tin', icon: 'edit', stylingMode: 'outlined',
+        onClick: () => showBookingForm(state, state.draft)
+      });
+    } else {
+      button(actions, {
+        text: 'Điền thông tin & Đặt lịch', icon: 'check', type: 'default', stylingMode: 'contained',
+        onClick: () => showBookingForm(state, state.draft)
+      });
+    }
+    button(actions, {
+      text: 'Hủy chọn', icon: 'close', stylingMode: 'outlined',
+      onClick: () => {
+        state.draft = null;
+        bar.remove();
+        refreshSchedulerAppointments(state);
+        notify('Đã hủy chọn lịch dự kiến.', 'info');
+      }
+    });
+  }
+
+  function appointmentContent(state, booking, parent, compact = false) {
+    if (booking.is_draft) {
+      const draftBox = $('<div class="pt-draft-inner">').appendTo(parent);
+      $('<div class="pt-draft-handle">').html('<i class="fa-solid fa-arrows-up-down"></i> KÉO ĐỔI GIỜ').appendTo(draftBox);
+      const timeRow = $('<div class="pt-draft-time">').appendTo(draftBox);
+
+      const startStr = booking.startDate ? clockFromDate(booking.startDate) : (booking.start_time || '09:00');
+      const duration = Number(booking.duration_minutes) || Number(state.draft?.duration_minutes) || 60;
+      const endStr = booking.endDate ? clockFromDate(booking.endDate) : calculateEndTime(startStr, duration);
+
+      booking.start_time = startStr;
+      booking.end_time = endStr;
+      if (state.draft && state.draft.id === booking.id) {
+        state.draft.start_time = startStr;
+        state.draft.end_time = endStr;
+      }
+
+      $('<strong>').text(`${startStr} - ${endStr}`).appendTo(timeRow);
+      $('<span class="pt-duration-tag">').text(`${duration}p`).appendTo(timeRow);
+
+      const desc = $('<div class="pt-draft-desc">').appendTo(draftBox);
+      if (booking.member_name) {
+        desc.text(`${booking.member_name} · ${booking.package_name || 'Gói PT'}`);
+      } else {
+        desc.text('Click thẻ để nhập thông tin đặt lịch');
+      }
+
+      const btnRow = $('<div class="pt-draft-btn-row">').appendTo(draftBox);
+      $('<button type="button" class="pt-draft-btn-confirm">').html('<i class="fa-solid fa-check"></i> Đặt lịch').appendTo(btnRow)
+        .on('click', e => { e.stopPropagation(); showBookingForm(state, booking); });
+      $('<button type="button" class="pt-draft-btn-cancel">').html('<i class="fa-solid fa-xmark"></i> Hủy').appendTo(btnRow)
+        .on('click', e => {
+          e.stopPropagation();
+          state.draft = null;
+          state.content.find('.pt-floating-draft-bar').remove();
+          refreshSchedulerAppointments(state);
+          notify('Đã hủy lịch dự kiến.', 'info');
+        });
+      return;
+    }
+
+    const isEnded = ended(booking);
+    const durationMin = booking.session_duration_minutes || calculateDurationMinutes(booking.start_time, booking.end_time);
+    const isDayView = state.calendarView === 'day';
+    const content = $('<div class="pt-appointment-card-body">')
+      .addClass(isDayView ? 'pt-view-day' : 'pt-view-week')
+      .appendTo(parent);
+
+    if (isDayView) {
+      // --- BỐ CỤC CHẾ ĐỘ NGÀY (DAY VIEW): 2 HÀNG RỘNG RÃI, THOÁNG ĐẸP, TUYỆT ĐỐI KHÔNG CHỒNG ĐÈ ---
+      const topRow = $('<div class="pt-day-top-row">').appendTo(content);
+      const topLeft = $('<div class="pt-day-top-left">').appendTo(topRow);
+
+      $('<div class="pt-card-time">')
+        .html(`<i class="fa-regular fa-clock" style="margin-right: 5px;"></i><strong>${clock(booking.start_time)} - ${clock(booking.end_time)}</strong> <span class="pt-card-dur-tag">${durationMin}p</span>`)
+        .appendTo(topLeft);
+
+      $('<span class="pt-card-status-pill">')
+        .text(BOOKING_STATUS[booking.status] || booking.status || 'Đã đặt')
+        .appendTo(topLeft);
+
+      const topRight = $('<div class="pt-day-top-right">').appendTo(topRow);
+
+      if (booking.status === 'BOOKED') {
+        $('<button type="button" class="pt-btn-card-complete">')
+          .addClass(isEnded ? 'is-ended' : 'is-waiting')
+          .html('<i class="fa-solid fa-check"></i> Xác nhận hoàn thành')
+          .attr('title', isEnded ? 'Xác nhận hoàn thành buổi tập (QTV-W06-US03)' : `Buổi tập chưa kết thúc (sau ${clock(booking.end_time)} mới có thể xác nhận)`)
+          .appendTo(topRight)
+          .on('click', e => {
+            e.preventDefault(); e.stopPropagation();
+            if (!isEnded) {
+              notify(`Buổi tập chưa kết thúc (kết thúc lúc ${clock(booking.end_time)}). Chưa thể xác nhận hoàn thành.`, 'warning');
+              return;
+            }
+            showBookingDetail(state, booking);
+          });
+
+        $('<button type="button" class="pt-btn-card-cancel">')
+          .html('<i class="fa-solid fa-xmark"></i> Hủy lịch')
+          .attr('title', 'Hủy lịch PT này (QTV-W06-US04 / LT-W06-US04)')
+          .appendTo(topRight)
+          .on('click', e => {
+            e.preventDefault(); e.stopPropagation();
+            showCancellation(state, booking);
+          });
+      } else if (['AWAITING_CONFIRMATION', 'PENDING_COMPLETION'].includes(booking.status)) {
+        $('<button type="button" class="pt-btn-card-complete is-ended">')
+          .html('<i class="fa-solid fa-check-double"></i> Đối soát xác nhận')
+          .appendTo(topRight)
+          .on('click', e => {
+            e.preventDefault(); e.stopPropagation();
+            showBookingDetail(state, booking);
+          });
+      }
+
+      // Hàng 2: Tên hội viên & Gói tập rõ ràng, nổi bật
+      const bottomRow = $('<div class="pt-day-bottom-row">').appendTo(content);
+      $('<strong class="pt-card-member-name">')
+        .html(`<i class="fa-regular fa-user" style="margin-right: 5px; opacity: 0.85;"></i>${booking.member_name || '--'}`)
+        .appendTo(bottomRow);
+      $('<span class="pt-card-divider">').text('·').appendTo(bottomRow);
+      $('<span class="pt-card-pkg-name">')
+        .text([booking.member_code, booking.package_name || booking.package_name_snapshot].filter(Boolean).join(' - '))
+        .appendTo(bottomRow);
+
+    } else {
+      // --- BỐ CỤC CHẾ ĐỘ TUẦN (WEEK VIEW): PHÂN BỔ ĐỀU CÁC HÀNG CÂN ĐỐI ---
+      const headerRow = $('<div class="pt-week-header-row">').appendTo(content);
+      $('<div class="pt-card-time">')
+        .html(`<i class="fa-regular fa-clock" style="margin-right: 3px;"></i>${clock(booking.start_time)}-${clock(booking.end_time)}`)
+        .appendTo(headerRow);
+
+      if (booking.status === 'BOOKED') {
+        $('<button type="button" class="pt-btn-card-cancel-mini">')
+          .html('<i class="fa-solid fa-xmark"></i>')
+          .attr('title', 'Hủy lịch PT')
+          .appendTo(headerRow)
+          .on('click', e => {
+            e.preventDefault(); e.stopPropagation();
+            showCancellation(state, booking);
+          });
+      }
+
+      $('<strong class="pt-card-member-name">')
+        .text(booking.member_name || '--')
+        .attr('title', booking.member_name || '')
+        .appendTo(content);
+
+      const packageLabel = [booking.member_code, booking.package_name || booking.package_name_snapshot].filter(Boolean).join(' · ');
+      $('<div class="pt-card-pkg-name">')
+        .text(packageLabel)
+        .attr('title', packageLabel)
+        .appendTo(content);
+
+      const footerRow = $('<div class="pt-week-footer-row">').appendTo(content);
+      $('<span class="pt-card-status-pill">')
+        .text(BOOKING_STATUS[booking.status] || booking.status || 'Đã đặt')
+        .appendTo(footerRow);
+
+      if (booking.status === 'BOOKED') {
+        $('<button type="button" class="pt-btn-card-complete-mini">')
+          .addClass(isEnded ? 'is-ended' : 'is-waiting')
+          .html('<i class="fa-solid fa-check"></i>')
+          .attr('title', isEnded ? 'Xác nhận hoàn thành buổi tập' : `Buổi tập chưa kết thúc (sau ${clock(booking.end_time)} mới có thể xác nhận)`)
+          .appendTo(footerRow)
+          .on('click', e => {
+            e.preventDefault(); e.stopPropagation();
+            if (!isEnded) {
+              notify(`Buổi tập chưa kết thúc (kết thúc lúc ${clock(booking.end_time)}).`, 'warning');
+              return;
+            }
+            showBookingDetail(state, booking);
+          });
+      } else if (['AWAITING_CONFIRMATION', 'PENDING_COMPLETION'].includes(booking.status)) {
+        $('<button type="button" class="pt-btn-card-complete-mini is-ended">')
+          .html('<i class="fa-solid fa-check-double"></i>')
+          .attr('title', 'Đối soát')
+          .appendTo(footerRow)
+          .on('click', e => {
+            e.preventDefault(); e.stopPropagation();
+            showBookingDetail(state, booking);
+          });
+      }
+    }
+  }
+
   function renderCalendar(state) {
-    const appointments = state.bookings.filter(activeBooking).map(booking => ({
-      ...booking, text: `${booking.member_name || ''} - ${booking.package_name || ''}`,
-      startDate: appointmentTime(booking.booking_date, booking.start_time), endDate: appointmentTime(booking.booking_date, booking.end_time)
-    }));
-    state.scheduler = $('<div id="ptScheduler">').appendTo($('<div class="card-panel">').appendTo(state.content)).dxScheduler({
-      dataSource: appointments, views: [{ type: 'day', name: 'Ngày' }, { type: 'workWeek', name: 'Tuần' }],
-      currentView: state.calendarView, currentDate: state.date, firstDayOfWeek: 1, startDayHour: 8, endDayHour: 18,
-      cellDuration: 120, showAllDayPanel: false, height: 730, editing: false, showCurrentTimeIndicator: true,
-      onAppointmentFormOpening: event => { event.cancel = true; }, onAppointmentDblClick: event => { event.cancel = true; },
-      onAppointmentClick: event => { event.cancel = true; showBookingDetail(state, event.appointmentData); },
+    const appointments = getAllAppointments(state);
+    state.scheduler = $('<div id="ptScheduler">').appendTo($('<div class="card-panel" style="position:relative;min-height:780px;">').appendTo(state.content)).dxScheduler({
+      dataSource: appointments,
+      views: [
+        { type: 'day', name: 'Ngày', intervalCount: 1 },
+        { type: 'workWeek', name: 'Tuần (T2-T6)' },
+        { type: 'week', name: 'Toàn tuần' }
+      ],
+      currentView: state.calendarView,
+      currentDate: state.date,
+      firstDayOfWeek: 1,
+      startDayHour: 6,
+      endDayHour: 22,
+      cellDuration: 30, // 30 phút mỗi ô lưới
+      showAllDayPanel: false,
+      height: 750,
+      editing: {
+        allowAdding: false,
+        allowDeleting: false,
+        allowDragging: true, // KÉO THẢ THẺ LỊCH TẬP
+        allowResizing: false,
+        allowUpdating: true
+      },
+      showCurrentTimeIndicator: true,
+      onAppointmentFormOpening: event => { event.cancel = true; },
+      onAppointmentDblClick: event => { event.cancel = true; },
+      onAppointmentClick: event => {
+        event.cancel = true;
+        if (event.appointmentData.is_draft) {
+          showBookingForm(state, event.appointmentData);
+        } else {
+          showBookingDetail(state, event.appointmentData);
+        }
+      },
+      onAppointmentRendered: event => {
+        const item = event.appointmentData;
+        const el = $(event.appointmentElement);
+        if (item.is_draft) {
+          el.addClass('pt-draft-appointment');
+        } else if (item.status) {
+          const statusKey = String(item.status).toLowerCase();
+          el.addClass(`pt-appointment-${statusKey}`);
+
+          // Directly apply inline styles to guarantee status color themes
+          if (statusKey === 'booked') {
+            el.css({
+              'background': '#1e40af',
+              'background-color': '#1e40af',
+              'border-left': '5px solid #60a5fa',
+              'border-radius': '6px',
+              'box-shadow': '0 2px 8px rgba(30, 64, 175, 0.4)'
+            });
+          } else if (['awaiting_confirmation', 'pending_completion'].includes(statusKey)) {
+            el.css({
+              'background': '#b45309',
+              'background-color': '#b45309',
+              'border-left': '5px solid #fbbf24',
+              'border-radius': '6px',
+              'box-shadow': '0 2px 8px rgba(180, 83, 9, 0.4)'
+            });
+          } else if (statusKey === 'completed') {
+            el.css({
+              'background': '#047857',
+              'background-color': '#047857',
+              'border-left': '5px solid #34d399',
+              'border-radius': '6px',
+              'box-shadow': '0 2px 8px rgba(4, 120, 87, 0.4)'
+            });
+          } else if (statusKey === 'cancelled') {
+            el.css({
+              'background': '#475569',
+              'background-color': '#475569',
+              'border-left': '5px solid #94a3b8',
+              'border-radius': '6px',
+              'opacity': '0.75'
+            });
+          } else if (statusKey === 'no_show') {
+            el.css({
+              'background': '#991b1b',
+              'background-color': '#991b1b',
+              'border-left': '5px solid #f87171',
+              'border-radius': '6px'
+            });
+          }
+        }
+      },
+      onAppointmentUpdating: event => {
+        const item = event.oldData || event.appointmentData;
+        if (!item?.is_draft) {
+          event.cancel = true;
+          notify('Chỉ thẻ lịch tập dự kiến mới có thể nhấn giữ kéo đổi giờ.', 'warning');
+          return;
+        }
+
+        const newStart = new Date(event.newData?.startDate || item.startDate);
+        const duration = Number(state.draft?.duration_minutes) || Number(item.duration_minutes) || 60;
+        const newEnd = new Date(newStart.getTime() + duration * 60000);
+
+        if (event.newData) {
+          event.newData.startDate = newStart;
+          event.newData.endDate = newEnd;
+        }
+
+        const newDateStr = dayKey(newStart);
+        const newStartStr = clockFromDate(newStart);
+        const newEndStr = clockFromDate(newEnd);
+
+        if (state.draft) {
+          state.draft.startDate = newStart;
+          state.draft.endDate = newEnd;
+          state.draft.booking_date = newDateStr;
+          state.draft.start_time = newStartStr;
+          state.draft.end_time = newEndStr;
+          state.draft.duration_minutes = duration;
+        }
+      },
+      onAppointmentUpdated: event => {
+        const item = event.appointmentData || event.newData || state.draft;
+        if (!item || !item.is_draft) return;
+
+        const newStart = new Date(item.startDate);
+        const duration = Number(state.draft?.duration_minutes) || Number(item.duration_minutes) || 60;
+        const newEnd = new Date(newStart.getTime() + duration * 60000);
+
+        const newDateStr = dayKey(newStart);
+        const newStartStr = clockFromDate(newStart);
+        const newEndStr = clockFromDate(newEnd);
+
+        if (state.draft) {
+          state.draft.startDate = newStart;
+          state.draft.endDate = newEnd;
+          state.draft.booking_date = newDateStr;
+          state.draft.start_time = newStartStr;
+          state.draft.end_time = newEndStr;
+          state.draft.duration_minutes = duration;
+        }
+
+        const hasCollision = checkCollision(state, newDateStr, newStartStr, newEndStr);
+        if (hasCollision) {
+          notify(`⚠️ Khung giờ ${newStartStr} - ${newEndStr} bị trùng với lịch khác của HLV!`, 'warning');
+        } else {
+          notify(`⏰ Đã điều chỉnh giờ bắt đầu: ${newStartStr} - ${newEndStr} (${duration} phút)`, 'success');
+        }
+
+        renderDraftFloatingBar(state);
+
+        if (state.activeBookingForm) {
+          state.activeBookingForm.updateData('date', dayDate(newDateStr));
+          state.activeBookingForm.updateData('start_time', newStartStr);
+          state.activeBookingForm.updateData('end_time', newEndStr);
+        }
+
+        setTimeout(() => {
+          refreshSchedulerAppointments(state);
+        }, 0);
+      },
       onCellClick: event => {
         event.cancel = true;
-        const date = dayKey(event.cellData.startDate);
-        const start = `${String(event.cellData.startDate.getHours()).padStart(2, '0')}:00`;
-        const slot = slotFor(state, date, start);
-        if (canBook(state, date, slot)) showBookingForm(state, date, slot);
+        const clickedStart = new Date(event.cellData.startDate);
+        const dateStr = dayKey(clickedStart);
+        const startStr = clockFromDate(clickedStart);
+
+        if (clickedStart.getTime() <= Date.now()) {
+          notify('Không thể đặt lịch ở thời điểm trong quá khứ.', 'warning');
+          return;
+        }
+        const dayOfWeek = clickedStart.getDay();
+        if (state.trainer?.work_days === 'MON_TO_FRI' && (dayOfWeek === 0 || dayOfWeek === 6)) {
+          notify('HLV chỉ làm việc từ Thứ 2 đến Thứ 6.', 'warning');
+          return;
+        }
+
+        // Nếu đã có thẻ dự kiến với gói tập đã chọn sẵn -> Di chuyển thẻ đó tới ô mới click
+        if (state.draft && state.draft.registration_id) {
+          const duration = Number(state.draft.duration_minutes) || 60;
+          const clickedEnd = new Date(clickedStart.getTime() + duration * 60000);
+          const endStr = clockFromDate(clickedEnd);
+
+          state.draft.startDate = clickedStart;
+          state.draft.endDate = clickedEnd;
+          state.draft.booking_date = dateStr;
+          state.draft.start_time = startStr;
+          state.draft.end_time = endStr;
+
+          const hasCollision = checkCollision(state, dateStr, startStr, endStr);
+          if (hasCollision) {
+            notify(`⚠️ Khung giờ ${startStr} - ${endStr} bị trùng với lịch khác của HLV!`, 'warning');
+          } else {
+            notify(`⏰ Đã điều chỉnh giờ bắt đầu: ${startStr} - ${endStr} (${duration} phút)`, 'success');
+          }
+
+          refreshSchedulerAppointments(state);
+          renderDraftFloatingBar(state);
+          return;
+        }
+
+        // Nếu chưa chọn gói: mở modal để chọn Hội viên & Gói PT trước, với giờ dự kiến là ô vừa click!
+        showBookingForm(state, {
+          booking_date: dateStr,
+          start_time: startStr
+        });
       },
       timeCellTemplate: (cell, _, element) => {
-        $(element).css({ height: 128, verticalAlign: 'top' });
-        $('<span>').text(`${String(cell.date.getHours()).padStart(2, '0')}:${String(cell.date.getMinutes()).padStart(2, '0')}`).appendTo(element);
+        $(element).css({ height: 42, verticalAlign: 'middle', padding: '0 6px' });
+        const h = String(cell.date.getHours()).padStart(2, '0');
+        const m = String(cell.date.getMinutes()).padStart(2, '0');
+        if (m === '00') {
+          $('<span style="font-weight: 700; color: #1e293b; font-size: 12px;">').text(`${h}:00`).appendTo(element);
+        } else {
+          $('<span style="font-size: 11px; color: #94a3b8;">').text(`${h}:${m}`).appendTo(element);
+        }
       },
       dataCellTemplate: (cell, _, element) => {
-        $(element).css({ height: 128, verticalAlign: 'top' });
-        const date = dayKey(cell.startDate);
-        const start = `${String(cell.startDate.getHours()).padStart(2, '0')}:00`;
-        const slot = slotFor(state, date, start);
-        if (canBook(state, date, slot)) button(element, {
-          icon: 'add', text: state.calendarView === 'day' ? 'Chọn khung giờ' : undefined, hint: `Đặt lịch ${date} ${start}`, stylingMode: 'text',
-          onClick: event => { event.event?.stopPropagation(); showBookingForm(state, date, slot); }
-        });
-        else if (!slot || slot.is_available === true) $('<span class="pt-slot-unavailable">').text('Không khả dụng').appendTo(element);
+        $(element).css({ height: 42, cursor: 'pointer' });
       },
-      appointmentTemplate: (data, _, element) => appointmentContent(state, data.appointmentData, element, state.calendarView !== 'day'),
+      appointmentTemplate: (data, _, element) => appointmentContent(state, data.appointmentData, element),
       onOptionChanged: event => {
         if (!alive(state)) return;
         if (event.name === 'currentDate' && dayKey(event.value) !== dayKey(state.date)) {
           state.date = dayDate(event.value); state.datePicker.option('value', state.date); loadSchedule(state);
         }
         if (event.name === 'currentView') {
-          const view = ['day', 'Ngày'].includes(event.value) ? 'day' : 'workWeek';
+          const view = event.value;
           if (state.calendarView !== view) { state.calendarView = view; loadSchedule(state); }
         }
       }
     }).dxScheduler('instance');
-    if (!state.bookings.length) $('<p class="pt-calendar-summary">').text('Chưa có lịch tập trong thời gian đã chọn.').appendTo(state.content);
+
+    renderDraftFloatingBar(state);
+
+    if (!state.bookings.length && !state.draft) {
+      $('<p class="pt-calendar-summary">').text('Chưa có lịch tập trong thời gian đã chọn. Click vào ô giờ bất kỳ để tạo thẻ đặt lịch.').appendTo(state.content);
+    }
   }
+
   function renderSlotList(state) {
     const date = dayKey(state.date);
-    const dayBookings = state.bookings.filter(booking => dayKey(booking.booking_date) === date);
-    // Five documented time-scale rows; only API availability can make a row bookable.
-    const data = Array.from({ length: 5 }, (_, index) => {
-      const start = `${String(8 + index * 2).padStart(2, '0')}:00`;
-      const end = `${String(10 + index * 2).padStart(2, '0')}:00`;
-      return { id: start, start, end, booking: dayBookings.find(booking => activeBooking(booking) && clock(booking.start_time) === start), slot: slotFor(state, date, start) };
+    const dayBookings = state.bookings.filter(booking => dayKey(booking.booking_date) === date && activeBooking(booking));
+    dayBookings.sort((a, b) => clock(a.start_time).localeCompare(clock(b.start_time)));
+
+    const panel = $('<div class="card-panel">').appendTo(state.content);
+    const headerRow = $('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">').appendTo(panel);
+    $('<h4 style="margin:0;font-size:15px;color:#185740;">').text(`Danh sách lịch tập ngày ${dayDate(date).toLocaleDateString('vi-VN')} (${dayBookings.length} buổi)`).appendTo(headerRow);
+    button(headerRow, {
+      icon: 'add', text: 'Đặt lịch mới ngày này', type: 'default', stylingMode: 'contained',
+      onClick: () => {
+        showBookingForm(state, { booking_date: date, start_time: '09:00' });
+      }
     });
-    $('<div id="ptSlotList">').appendTo($('<div class="card-panel">').appendTo(state.content)).dxDataGrid({
-      dataSource: data, keyExpr: 'id', showBorders: false, showRowLines: true, wordWrapEnabled: true, paging: { enabled: false }, columnAutoWidth: true, rowAlternationEnabled: true,
+
+    $('<div id="ptSlotList">').appendTo(panel).dxDataGrid({
+      dataSource: dayBookings, keyExpr: 'id', showBorders: false, showRowLines: true, wordWrapEnabled: true,
+      noDataText: 'Chưa có lịch tập nào trong ngày này.', columnAutoWidth: true, rowAlternationEnabled: true,
       columns: [
-        { caption: 'Khung giờ', width: 145, calculateCellValue: item => `${item.start} - ${item.end}` },
-        { caption: 'Hội viên / Gói PT', minWidth: 250, cellTemplate: (cell, info) => {
-          if (info.data.booking) appointmentContent(state, info.data.booking, cell, true);
-          else cell.text(canBook(state, date, info.data.slot) ? 'Khung giờ trống' : 'Không khả dụng');
+        { caption: 'Khung giờ', width: 145, calculateCellValue: b => `${clock(b.start_time)} - ${clock(b.end_time)}` },
+        { caption: 'Thời lượng', width: 110, calculateCellValue: b => `${b.session_duration_minutes || calculateDurationMinutes(b.start_time, b.end_time)} phút` },
+        { dataField: 'member_name', caption: 'Hội viên', minWidth: 180, cellTemplate: (cell, info) => {
+          $('<strong>').text(info.value || '--').appendTo(cell);
+          if (info.data.member_code) $('<div>').text(info.data.member_code).appendTo(cell);
         } },
-        { caption: 'Thao tác', minWidth: 250, cellTemplate: (cell, info) => {
-          const { booking, slot } = info.data;
+        { dataField: 'package_name', caption: 'Gói PT sử dụng', minWidth: 180, calculateCellValue: b => b.package_name || b.package_name_snapshot || '--' },
+        { dataField: 'status', caption: 'Trạng thái', width: 155, cellTemplate: (cell, info) => badge(cell, info.value) },
+        { caption: 'Thao tác', width: 220, cellTemplate: (cell, info) => {
+          const booking = info.data;
           const actions = $('<div>').css({ display: 'flex', gap: 6, flexWrap: 'wrap' }).appendTo(cell);
-          if (booking) {
-            button(actions, { icon: 'find', hint: 'Chi tiết buổi tập', onClick: () => showBookingDetail(state, booking) });
-            if (booking.status === 'BOOKED') {
-              button(actions, { icon: 'close', text: 'Hủy lịch', type: 'danger', stylingMode: 'contained', onClick: () => showCancellation(state, booking) });
-              button(actions, { icon: 'check', text: 'Xác nhận hoàn thành', type: 'default', stylingMode: 'contained', disabled: !ended(booking), onClick: () => showBookingDetail(state, booking) });
-            }
-          } else if (canBook(state, date, slot)) button(actions, {
-            icon: 'add', text: 'Chọn khung giờ', type: 'default', stylingMode: 'contained', onClick: () => showBookingForm(state, date, slot)
-          });
+          button(actions, { icon: 'find', hint: 'Chi tiết buổi tập', onClick: () => showBookingDetail(state, booking) });
+          if (booking.status === 'BOOKED') {
+            button(actions, { icon: 'close', text: 'Hủy lịch', type: 'danger', stylingMode: 'contained', onClick: () => showCancellation(state, booking) });
+            button(actions, { icon: 'check', text: 'Xác nhận hoàn thành', type: 'default', stylingMode: 'contained', disabled: !ended(booking), onClick: () => showBookingDetail(state, booking) });
+          }
         } }
       ]
     });
-    const availability = state.availability.get(date);
-    if (availability?.message) $('<p>').text(availability.message).appendTo(state.content);
-    const cancelled = dayBookings.filter(booking => !activeBooking(booking));
+
+    const cancelled = state.bookings.filter(booking => dayKey(booking.booking_date) === date && !activeBooking(booking));
     if (cancelled.length) {
-      $('<h3>').text('Lịch đã hủy / Vắng mặt').appendTo(state.content);
-      $('<div>').appendTo(state.content).dxDataGrid({
+      $('<h4 style="margin:20px 0 10px;color:#991b1b;font-size:14px;">').text('Lịch đã hủy / Vắng mặt').appendTo(panel);
+      $('<div>').appendTo(panel).dxDataGrid({
         dataSource: cancelled, keyExpr: 'id', showRowLines: true, wordWrapEnabled: true, paging: { enabled: false },
-        columns: [{ caption: 'Khung giờ', calculateCellValue: booking => `${clock(booking.start_time)} - ${clock(booking.end_time)}` },
-          { dataField: 'member_name', caption: 'Hội viên' }, { dataField: 'package_name', caption: 'Gói PT' },
+        columns: [
+          { caption: 'Khung giờ', width: 145, calculateCellValue: booking => `${clock(booking.start_time)} - ${clock(booking.end_time)}` },
+          { dataField: 'member_name', caption: 'Hội viên' },
+          { dataField: 'package_name', caption: 'Gói PT' },
           { dataField: 'status', caption: 'Trạng thái', cellTemplate: (cell, info) => badge(cell, info.value) },
-          { type: 'buttons', buttons: [{ icon: 'find', hint: 'Chi tiết buổi tập', onClick: event => showBookingDetail(state, event.row.data) }] }]
+          { type: 'buttons', buttons: [{ icon: 'find', hint: 'Chi tiết buổi tập', onClick: event => showBookingDetail(state, event.row.data) }] }
+        ]
       });
     }
   }
@@ -689,98 +1464,139 @@ window.PtSchedulerModule = (function () {
     const end = reg.pt_end_date || reg.end_date;
     const allowed = reg.allowed_branch_ids || reg.allowed_branches?.map(branch => typeof branch === 'string' ? branch : branch.id);
     return reg.member_id === memberId && reg.assigned_pt_id === pt.id &&
-      ['PT', 'PT_SESSION', 'PT_SESSIONS', 'COMBO', 'COMBO_GYM_PT'].includes(type) && reg.status === 'ACTIVE' && Number(reg.remaining_pt_sessions) > 0 &&
-      !!start && !!end && dayKey(start) <= date && dayKey(end) >= date && (!allowed || allowed.includes(pt.branch_id));
+      ['PT', 'PT_SESSION', 'PT_SESSIONS', 'COMBO', 'COMBO_GYM_PT'].includes(type) &&
+      reg.status === 'ACTIVE' && !reg.is_frozen && Number(reg.remaining_pt_sessions) > 0 &&
+      (!start || dayKey(start) <= date) && (!end || dayKey(end) >= date) &&
+      (!allowed || !allowed.length || allowed.includes(pt.branch_id));
   }
+  function generateStartTimeSlots(stepMinutes = 15, startHour = 6, endHour = 21, endMinute = 30) {
+    const slots = [];
+    let currentTotal = startHour * 60;
+    const maxTotal = endHour * 60 + endMinute;
+    while (currentTotal <= maxTotal) {
+      const h = Math.floor(currentTotal / 60);
+      const m = currentTotal % 60;
+      const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      slots.push({ id: timeStr, text: timeStr });
+      currentTotal += stepMinutes;
+    }
+    return slots;
+  }
+
+  function canBook(state, date, slotOrStart) {
+    if (!state.trainer || state.trainer.status !== 'ACTIVE') return false;
+    const dateStr = dayKey(date);
+    const startStr = typeof slotOrStart === 'object' && slotOrStart !== null ? slotOrStart.start_time : slotOrStart;
+    if (!startStr) return true;
+    if (appointmentTime(dateStr, startStr).getTime() <= Date.now()) return false;
+    const dur = typeof slotOrStart === 'object' && slotOrStart?.duration_minutes ? slotOrStart.duration_minutes : 60;
+    const endStr = typeof slotOrStart === 'object' && slotOrStart?.end_time ? slotOrStart.end_time : calculateEndTime(startStr, dur);
+    return !checkCollision(state, dateStr, startStr, endStr);
+  }
+
+
   function showQuickBooking(state) {
-    let sequence = 0;
-    let closed = false;
-    let selected = null;
-    let available = [];
-    let form;
-    let errors;
-    const loadSlots = async () => {
-      const version = ++sequence;
-      const data = form.option('formData');
-      const slotEditor = form.getEditor('start_time');
-      available = [];
-      form.updateData('start_time', null);
-      slotEditor.option({ dataSource: [], disabled: true, placeholder: 'Chọn HLV và ngày tập' });
-      if (!data.pt_id || !data.date) return;
-      slotEditor.option('placeholder', 'Đang tải khung giờ...');
-      errors.empty();
-      try {
-        const result = read(await request('/pt-bookings/available-slots', { pt_id: data.pt_id, date: dayKey(data.date) }));
-        if (closed || version !== sequence) return;
-        available = (result?.slots || result?.available_slots || []).filter(slot =>
-          slot.is_available === true && appointmentTime(data.date, slot.start_time).getTime() > Date.now());
-        slotEditor.option({ dataSource: available, disabled: false,
-          placeholder: available.length ? 'Chọn khung giờ' : 'Không có khung giờ trống', noDataText: result?.message || 'Không có khung giờ trống.' });
-      } catch (error) {
-        if (!closed && version === sequence) {
-          slotEditor.option('placeholder', 'Không tải được khung giờ');
-          showError(errors, error, loadSlots);
+    if (!state.trainer) {
+      notify('Vui lòng chọn huấn luyện viên trước khi đặt lịch.', 'warning');
+      return;
+    }
+    showBookingForm(state, { booking_date: dayKey(state.date || new Date()), start_time: '09:00' });
+  }
+
+  function showBookingForm(state, draftOrDate, maybeSlot) {
+    const pt = state.trainer;
+    if (!pt) {
+      notify('Vui lòng chọn huấn luyện viên trước khi đặt lịch.', 'warning');
+      return;
+    }
+
+    let initialDateStr = dayKey(state.date);
+    let initialStart = '09:00';
+    let initialDuration = null;
+    let initialDurationDisplay = '';
+    let initialEnd = '';
+    let initialMemberId = null;
+    let initialRegId = null;
+    let initialMemberName = '';
+    let initialPackageName = '';
+    let initialNotes = '';
+
+    if (draftOrDate && typeof draftOrDate === 'object' && !(draftOrDate instanceof Date)) {
+      initialDateStr = dayKey(draftOrDate.booking_date || state.date);
+      initialStart = draftOrDate.start_time ? clock(draftOrDate.start_time) : '09:00';
+      initialDuration = draftOrDate.duration_minutes ? Number(draftOrDate.duration_minutes) : null;
+      initialMemberId = draftOrDate.member_id || null;
+      initialRegId = draftOrDate.registration_id || null;
+      initialMemberName = draftOrDate.member_name || '';
+      initialPackageName = draftOrDate.package_name || '';
+      initialNotes = draftOrDate.notes || '';
+      if (initialDuration) {
+        initialDurationDisplay = `${initialDuration} phút (Theo cấu hình gói đã chọn)`;
+        initialEnd = calculateEndTime(initialStart, initialDuration);
+      }
+    } else if (draftOrDate) {
+      initialDateStr = dayKey(draftOrDate);
+      if (maybeSlot) {
+        initialStart = clock(maybeSlot.start_time || '09:00');
+        initialDuration = maybeSlot.session_duration_minutes ? Number(maybeSlot.session_duration_minutes) : null;
+        if (initialDuration) {
+          initialDurationDisplay = `${initialDuration} phút (Theo cấu hình gói đã chọn)`;
+          initialEnd = calculateEndTime(initialStart, initialDuration);
         }
       }
-    };
-    formPopup(state, {
-      title: 'Chọn lịch tập PT', submitText: 'Tiếp tục', submitIcon: 'chevronnext',
-      data: { pt_id: state.trainer?.id || null, date: dayDate(state.date), start_time: null },
-      items: [
-        field('pt_id', 'Huấn luyện viên', true, 'dxSelectBox', {
-          dataSource: state.trainers, valueExpr: 'id', displayExpr: trainerLabel, searchEnabled: true,
-          searchExpr: ['full_name', 'phone', 'pt_code', 'code'], placeholder: 'Tìm theo tên, SĐT hoặc mã PT',
-          noDataText: 'Không tìm thấy huấn luyện viên', showClearButton: true
-        }),
-        field('date', 'Ngày tập', true, 'dxDateBox', { type: 'date', displayFormat: 'dd/MM/yyyy',
-          min: dayDate(new Date()), useMaskBehavior: true }),
-        field('start_time', 'Khung giờ', true, 'dxSelectBox', {
-          dataSource: [], valueExpr: 'start_time', displayExpr: slot => slot ? `${clock(slot.start_time)} - ${clock(slot.end_time)}` : '',
-          disabled: true, placeholder: 'Chọn HLV và ngày tập'
-        })
-      ],
-      onReady: (instance, errorBox) => { form = instance; errors = errorBox; if (form.option('formData').pt_id) loadSlots(); },
-      onChange: event => { if (form && ['pt_id', 'date'].includes(event.dataField)) loadSlots(); },
-      submit: async data => {
-        const slot = available.find(item => item.start_time === data.start_time);
-        if (!slot || appointmentTime(data.date, slot.start_time).getTime() <= Date.now()) throw new Error('Vui lòng chọn khung giờ còn khả dụng.');
-        selected = { ptId: data.pt_id, date: dayKey(data.date), start: slot.start_time };
-      },
-      onClose: () => {
-        closed = true; sequence++;
-        if (selected && alive(state)) openQuickBookingForm(state, selected);
-      }
-    });
-  }
-  async function openQuickBookingForm(state, choice) {
-    try {
-      state.date = dayDate(choice.date);
-      state.datePicker.option('value', state.date);
-      if (state.selector.option('value') !== choice.ptId) state.selector.option('value', choice.ptId);
-      else state.loading = loadSchedule(state);
-      await state.loading;
-      if (!alive(state)) return;
-      const slot = slotFor(state, choice.date, choice.start);
-      if (!canBook(state, choice.date, slot)) throw new Error('Khung giờ không còn khả dụng. Vui lòng chọn lịch khác.');
-      showBookingForm(state, choice.date, slot);
-    } catch (error) { if (alive(state)) showError(state.status, error, () => showQuickBooking(state)); }
-  }
-  function showBookingForm(state, date, slot) {
-    if (!canBook(state, date, slot)) return;
-    const pt = state.trainer;
-    let registrationLoad = 0, registrations = [], closed = false, modal;
+    }
+
+    let registrationLoad = 0;
+    let registrations = [];
+    let closed = false;
+    let modal;
+    let calendarDragButton = null;
+
+    const timeSlots = generateStartTimeSlots();
+
     const loadRegistrations = async (memberId, form) => {
       const sequence = ++registrationLoad;
-      registrations = []; form.updateData('registration_id', null);
+      registrations = [];
+      form.updateData('registration_id', null);
+      form.updateData('duration_minutes', null);
+      form.updateData('duration_display', '');
+      form.updateData('end_time', '');
+
+      if (calendarDragButton) calendarDragButton.option('disabled', true);
+
       const editor = form.getEditor('registration_id');
       editor.option({ dataSource: [], disabled: true, placeholder: memberId ? 'Đang tải gói PT...' : 'Chọn hội viên trước' });
       if (!memberId) return;
       try {
         const response = await request('/registrations', { member_id: memberId });
         if (closed || sequence !== registrationLoad) return;
-        registrations = rows(response).filter(reg => eligibleRegistration(reg, memberId, pt, date));
-        editor.option({ dataSource: registrations, disabled: false, placeholder: registrations.length ? 'Chọn gói PT' : 'Không có gói PT hợp lệ', noDataText: 'Không có gói PT hợp lệ cho HLV và ngày tập này.' });
+        const targetDate = dayKey(form.option('formData').date || initialDateStr);
+        registrations = rows(response).filter(reg => eligibleRegistration(reg, memberId, pt, targetDate));
+        editor.option({
+          dataSource: registrations,
+          disabled: false,
+          placeholder: registrations.length ? 'Chọn gói PT' : 'Không có gói PT hợp lệ',
+          noDataText: 'Hội viên không có gói PT nào do HLV này phụ trách còn hiệu lực.'
+        });
         modal.errorBox.empty();
+
+        if (registrations.length === 0) {
+          form.updateData('duration_display', 'Hội viên chưa có gói PT khả dụng với HLV này');
+        }
+
+        if (initialRegId && registrations.some(r => r.id === initialRegId)) {
+          form.updateData('registration_id', initialRegId);
+          const reg = registrations.find(r => r.id === initialRegId);
+          if (reg) {
+            const dur = Number(reg.session_duration_minutes) || 60;
+            form.updateData('duration_minutes', dur);
+            form.updateData('duration_display', `${dur} phút (Theo cấu hình gói đã chọn)`);
+            const curStart = form.option('formData').start_time || initialStart;
+            const curEnd = calculateEndTime(curStart, dur);
+            form.updateData('end_time', curEnd);
+            if (calendarDragButton) calendarDragButton.option('disabled', false);
+          }
+        }
       } catch (error) {
         if (!closed && sequence === registrationLoad) {
           editor.option({ disabled: true, placeholder: 'Không tải được gói PT' });
@@ -788,36 +1604,233 @@ window.PtSchedulerModule = (function () {
         }
       }
     };
+
     modal = formPopup(state, {
-      title: 'Đặt lịch PT', data: { member_id: null, registration_id: null, notes: '' }, submitText: 'Xác nhận đặt lịch', submitIcon: 'event',
-      items: [readonlyField('PT phụ trách', trainerLabel(pt)), readonlyField('Ngày tập', dayDate(date).toLocaleDateString('vi-VN')),
-        readonlyField('Khung giờ', `${clock(slot.start_time)} - ${clock(slot.end_time)}`), readonlyField('Chi nhánh', pt.branch_name),
-        field('member_id', 'Hội viên', true, 'dxSelectBox', {
-          dataSource: { store: memberSource(pt.branch_id), paginate: true, pageSize: 20 }, valueExpr: 'id', displayExpr: memberLabel,
+      title: 'Đặt lịch PT mới',
+      width: 620,
+      data: {
+        pt_id: pt.id,
+        member_id: initialMemberId || state.context.member_id || null,
+        registration_id: initialRegId,
+        duration_minutes: initialDuration,
+        duration_display: initialDurationDisplay,
+        date: dayDate(initialDateStr),
+        start_time: initialStart,
+        end_time: initialEnd,
+        notes: initialNotes
+      },
+      submitText: 'Xác nhận đặt lịch',
+      submitIcon: 'check',
+      extraButtons: [
+        {
+          widget: 'dxButton',
+          toolbar: 'bottom',
+          location: 'before',
+          options: {
+            text: 'Kéo chọn giờ trên Calendar',
+            icon: 'event',
+            type: 'default',
+            stylingMode: 'outlined',
+            disabled: !initialRegId,
+            onInitialized: event => { calendarDragButton = event.component; },
+            onClick: () => {
+              const data = modal.form.option('formData');
+              if (!data.member_id || !data.registration_id) {
+                notify('Vui lòng chọn Hội viên và Gói PT trước khi kéo chọn trên lịch.', 'warning');
+                return;
+              }
+              const reg = registrations.find(r => r.id === data.registration_id);
+              const dur = Number(reg?.session_duration_minutes) || Number(data.duration_minutes) || 60;
+              const dateStr = dayKey(data.date || initialDateStr);
+              const startStr = data.start_time ? clock(data.start_time) : (initialStart || '09:00');
+              const endStr = calculateEndTime(startStr, dur);
+
+              const memberEditor = modal.form.getEditor('member_id');
+              const memberDisplay = memberEditor?.option('displayValue') || '';
+              const memberName = memberDisplay.includes(' - ') ? memberDisplay.split(' - ').slice(1).join(' - ') : memberDisplay;
+
+              modal.popup.hide();
+
+              state.draft = {
+                id: 'draft-booking',
+                is_draft: true,
+                pt_id: pt.id,
+                booking_date: dateStr,
+                start_time: startStr,
+                end_time: endStr,
+                duration_minutes: dur,
+                startDate: appointmentTime(dateStr, startStr),
+                endDate: appointmentTime(dateStr, endStr),
+                member_id: data.member_id,
+                member_name: memberName || initialMemberName || 'Hội viên',
+                registration_id: data.registration_id,
+                package_name: reg?.package_name_snapshot || reg?.package_name || 'Gói PT',
+                notes: data.notes || ''
+              };
+
+              if (dayKey(state.date) !== dateStr) {
+                state.date = dayDate(dateStr);
+                if (state.datePicker) state.datePicker.option('value', state.date);
+                loadSchedule(state);
+              } else {
+                refreshSchedulerAppointments(state);
+                renderDraftFloatingBar(state);
+              }
+
+              notify(`Đã kích hoạt thẻ đặt lịch ${dur} phút cho gói "${reg?.package_name_snapshot || reg?.package_name}". Nhấn giữ thẻ xanh và kéo lên/xuống để chọn giờ!`, 'info');
+            }
+          }
+        }
+      ],
+      items: [
+        readonlyField('PT phụ trách', trainerLabel(pt)),
+        readonlyField('Chi nhánh phục vụ', pt.branch_name || '--'),
+        field('member_id', 'Hội viên *', true, 'dxSelectBox', {
+          dataSource: { store: memberSource(pt.branch_id), paginate: true, pageSize: 20 },
+          valueExpr: 'id', displayExpr: memberLabel,
           searchEnabled: true, minSearchLength: 0, searchExpr: ['phone', 'full_name', 'member_code'], searchTimeout: 300,
           placeholder: 'Tìm theo SĐT, họ tên hoặc mã hội viên', showClearButton: true, noDataText: 'Không tìm thấy hội viên'
         }),
-        field('registration_id', 'Gói PT sử dụng', true, 'dxSelectBox', {
-          dataSource: [], valueExpr: 'id', displayExpr: reg => reg ? `${reg.registration_code || ''} - ${reg.package_name_snapshot || reg.package_name || ''} (${reg.remaining_pt_sessions} buổi còn lại)` : '',
-          disabled: true, placeholder: 'Chọn hội viên trước', searchEnabled: true
-        }), field('notes', 'Ghi chú cho buổi', false, 'dxTextArea', { height: 80 })],
-      onChange: (event, form) => { if (event.dataField === 'member_id') loadRegistrations(event.value, form); },
-      onClose: () => { closed = true; registrationLoad++; },
-      submit: async data => {
-        if (!registrations.some(reg => reg.id === data.registration_id && eligibleRegistration(reg, data.member_id, pt, date))) {
-          throw new Error('Gói PT không còn hợp lệ. Vui lòng chọn lại hội viên và gói.');
+        field('registration_id', 'Gói PT sử dụng *', true, 'dxSelectBox', {
+          dataSource: [], valueExpr: 'id',
+          displayExpr: reg => reg ? `${reg.registration_code || reg.reg_code || ''} - ${reg.package_name_snapshot || reg.package_name || ''} (${reg.remaining_pt_sessions} buổi còn lại · ${reg.session_duration_minutes || 60}p)` : '',
+          disabled: true, placeholder: 'Vui lòng chọn hội viên trước', searchEnabled: true, noDataText: 'Hội viên không có gói PT phù hợp'
+        }),
+        field('duration_display', 'Thời lượng buổi tập', false, 'dxTextBox', {
+          readOnly: true,
+          placeholder: 'Vui lòng chọn hội viên & gói PT để xác định thời lượng'
+        }),
+        field('date', 'Ngày tập *', true, 'dxDateBox', {
+          type: 'date', displayFormat: 'dd/MM/yyyy', min: dayDate(new Date()), useMaskBehavior: true
+        }),
+        field('start_time', 'Giờ bắt đầu *', true, 'dxSelectBox', {
+          dataSource: timeSlots, valueExpr: 'id', displayExpr: 'text',
+          searchEnabled: true, placeholder: 'Chọn giờ bắt đầu'
+        }),
+        field('end_time', 'Giờ kết thúc', false, 'dxTextBox', {
+          readOnly: true,
+          placeholder: '--:--'
+        }),
+        field('notes', 'Ghi chú cho buổi', false, 'dxTextArea', { height: 70, placeholder: 'Mục tiêu buổi tập, lưu ý thể lực...' })
+      ],
+      onReady: instance => {
+        state.activeBookingForm = instance;
+        const currentData = instance.option('formData');
+        if (currentData.member_id) loadRegistrations(currentData.member_id, instance);
+      },
+      onChange: (event, form) => {
+        const data = form.option('formData');
+        if (event.dataField === 'member_id') {
+          loadRegistrations(event.value, form);
+        } else if (event.dataField === 'registration_id') {
+          const reg = registrations.find(r => r.id === event.value);
+          if (reg) {
+            const dur = Number(reg.session_duration_minutes) || 60;
+            const curStart = data.start_time || '09:00';
+            const curEnd = calculateEndTime(curStart, dur);
+            data.duration_minutes = dur;
+            data.end_time = curEnd;
+
+            form.updateData('duration_display', `${dur} phút (Theo cấu hình gói đã chọn)`);
+            form.updateData('end_time', curEnd);
+            if (calendarDragButton) calendarDragButton.option('disabled', false);
+
+            if (state.draft && state.draft.registration_id) {
+              state.draft.duration_minutes = dur;
+              state.draft.end_time = curEnd;
+              state.draft.registration_id = reg.id;
+              state.draft.package_name = reg.package_name_snapshot || reg.package_name;
+              state.draft.endDate = new Date(state.draft.startDate.getTime() + dur * 60000);
+              refreshSchedulerAppointments(state);
+              renderDraftFloatingBar(state);
+            }
+          } else {
+            data.duration_minutes = null;
+            data.end_time = null;
+            form.updateData('duration_display', '');
+            form.updateData('end_time', '');
+            if (calendarDragButton) calendarDragButton.option('disabled', true);
+          }
+        } else if (event.dataField === 'start_time') {
+          const newStart = event.value;
+          const dur = Number(data.duration_minutes) || state.draft?.duration_minutes;
+          if (dur) {
+            const newEnd = calculateEndTime(newStart, dur);
+            data.end_time = newEnd;
+            form.updateData('end_time', newEnd);
+          }
+          if (state.draft && state.draft.registration_id) {
+            state.draft.start_time = newStart;
+            if (dur) state.draft.end_time = calculateEndTime(newStart, dur);
+            state.draft.startDate = appointmentTime(state.draft.booking_date, newStart);
+            state.draft.endDate = appointmentTime(state.draft.booking_date, state.draft.end_time);
+            refreshSchedulerAppointments(state);
+            renderDraftFloatingBar(state);
+          }
+        } else if (event.dataField === 'date') {
+          const newDateStr = dayKey(event.value);
+          if (state.draft && state.draft.registration_id) {
+            state.draft.booking_date = newDateStr;
+            state.draft.startDate = appointmentTime(newDateStr, state.draft.start_time);
+            state.draft.endDate = appointmentTime(newDateStr, state.draft.end_time);
+            refreshSchedulerAppointments(state);
+            renderDraftFloatingBar(state);
+          }
+          if (data.member_id) loadRegistrations(data.member_id, form);
         }
-        const availability = read(await request('/pt-bookings/available-slots', { pt_id: pt.id, date }));
-        const actual = (availability?.slots || availability?.available_slots || []).find(item => clock(item.start_time) === clock(slot.start_time));
-        if (!actual?.is_available || appointmentTime(date, slot.start_time).getTime() <= Date.now()) throw new Error('Khung giờ không còn khả dụng. Vui lòng tải lại lịch và chọn ca khác.');
-        await api().request('/pt-bookings', { method: 'POST', body: {
-          registration_id: data.registration_id, member_id: data.member_id, pt_id: pt.id, branch_id: pt.branch_id,
-          booking_date: date, start_time: slot.start_time, end_time: slot.end_time, workout_notes: String(data.notes || '').trim() || null
-        } });
-        notify('Đã đặt lịch PT.'); await loadSchedule(state);
+      },
+      onClose: () => {
+        closed = true;
+        registrationLoad++;
+        state.activeBookingForm = null;
+      },
+      submit: async data => {
+        if (!data.registration_id) {
+          throw new Error('Vui lòng chọn hội viên và gói PT sử dụng.');
+        }
+        const targetDate = dayKey(data.date);
+        const start = clock(data.start_time);
+        const reg = registrations.find(r => r.id === data.registration_id);
+        const duration = Number(reg?.session_duration_minutes) || Number(data.duration_minutes) || 60;
+        const end = calculateEndTime(start, duration);
+
+        if (!registrations.some(r => r.id === data.registration_id && eligibleRegistration(r, data.member_id, pt, targetDate))) {
+          throw new Error('Gói PT không còn hợp lệ hoặc đã hết số buổi. Vui lòng chọn lại.');
+        }
+
+        if (appointmentTime(targetDate, start).getTime() <= Date.now()) {
+          throw new Error('Không thể đặt lịch ở thời điểm trong quá khứ.');
+        }
+
+        if (checkCollision(state, targetDate, start, end)) {
+          throw new Error(`Khung giờ ${start} - ${end} ngày ${dayDate(targetDate).toLocaleDateString('vi-VN')} bị trùng với một lịch tập khác của HLV!`);
+        }
+
+        await api().request('/pt-bookings', {
+          method: 'POST',
+          body: {
+            registration_id: data.registration_id,
+            member_id: data.member_id,
+            pt_id: pt.id,
+            branch_id: pt.branch_id,
+            booking_date: targetDate,
+            start_time: start,
+            end_time: end,
+            session_duration_minutes: duration,
+            workout_notes: String(data.notes || '').trim() || null
+          }
+        });
+
+        notify('Đã đặt lịch PT thành công!');
+        state.draft = null;
+        state.content.find('.pt-floating-draft-bar').remove();
+        await loadSchedule(state);
       }
     });
-    if (state.context.member_id) modal.form.updateData('member_id', state.context.member_id);
+
+    if (state.context.member_id && !initialMemberId) {
+      modal.form.updateData('member_id', state.context.member_id);
+    }
   }
   async function freshBooking(booking) {
     const response = await request('/pt-bookings', { pt_id: booking.pt_id, date: dayKey(booking.booking_date), branch_id: booking.branch_id });

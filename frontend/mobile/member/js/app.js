@@ -162,7 +162,7 @@
     return section;
   };
   A.badge = (status, label) =>
-    `<span class="badge ${{ ACTIVE: "green", COMPLETED: "green", ACCEPTED: "green", SCHEDULED: "blue", BOOKED: "blue", PENDING: "amber", PENDING_PAYMENT: "amber", PENDING_COMPLETION: "amber", REJECTED: "red", CANCELLED: "red", EXPIRED: "red" }[status] || ""}">${A.escape(label || { ACTIVE: "Đang hoạt động", COMPLETED: "Đã hoàn thành", ACCEPTED: "Đã chấp nhận", SCHEDULED: "Chờ kích hoạt", BOOKED: "Đã đặt", PENDING: "Đang chờ phản hồi", PENDING_PAYMENT: "Chờ thanh toán", PENDING_COMPLETION: "Chờ xác nhận", REJECTED: "Đã từ chối", CANCELLED: "Đã hủy", EXPIRED: "Đã hết hạn" }[status] || status)}</span>`;
+    `<span class="badge ${{ ACTIVE: "green", COMPLETED: "green", ACCEPTED: "green", SCHEDULED: "blue", BOOKED: "blue", PENDING: "amber", PENDING_PAYMENT: "amber", PENDING_COMPLETION: "amber", REJECTED: "red", CANCELLED: "red", EXPIRED: "red", FROZEN: "ice" }[status] || ""}">${A.escape(label || { ACTIVE: "Đang hoạt động", COMPLETED: "Đã hoàn thành", ACCEPTED: "Đã chấp nhận", SCHEDULED: "Chưa đến ngày hiệu lực", BOOKED: "Đã đặt", PENDING: "Đang chờ phản hồi", PENDING_PAYMENT: "Chờ thanh toán", PENDING_COMPLETION: "Chờ xác nhận", REJECTED: "Đã từ chối", CANCELLED: "Đã hủy", EXPIRED: "Đã hết hạn", FROZEN: "❄️ Đang đóng băng" }[status] || status)}</span>`;
   A.avatar = (name, url) => {
     const initials = String(name || "")
       .split(/\s+/)
@@ -217,6 +217,18 @@
   A.clearDialogs = () => {
     for (const d of A.dialogs) d.close();
   };
+  A.updateUnreadNotifications = async () => {
+    if (!A.user) return;
+    try {
+      const data = await A.request("/notifications");
+      const list = Array.isArray(data) ? data : data.items || [];
+      const hasUnread = list.some((n) => !n.is_read);
+      const dot = document.getElementById("unreadBellDot");
+      if (dot) dot.hidden = !hasUnread;
+    } catch (e) {
+      // silently ignore
+    }
+  };
   A.expire = () => {
     A.sessionVersion++;
     A.version++;
@@ -226,6 +238,8 @@
     sdk.clearAuth();
     document.getElementById("bottomNav").hidden = true;
     document.getElementById("refreshPage").hidden = true;
+    const notifBtn = document.getElementById("btnHeaderNotifications");
+    if (notifBtn) notifBtn.hidden = true;
     window.location.replace("/mobile/");
   };
   A.navigate = async (route = "home", sub = null, context = null) => {
@@ -243,6 +257,8 @@
     document
       .querySelectorAll("[data-route]")
       .forEach((b) => b.classList.toggle("active", b.dataset.route === route));
+    const notifBtn = document.getElementById("btnHeaderNotifications");
+    if (notifBtn) notifBtn.classList.toggle("active", route === "notifications");
     history.replaceState(null, "", `#${route}${sub ? "/" + sub : ""}`);
     try {
       await A.modules[route].render(
@@ -251,6 +267,7 @@
         () => version === A.version,
         context,
       );
+      A.updateUnreadNotifications();
     } catch (error) {
       if (version === A.version)
         A.error(root, error, () => A.navigate(route, sub, context));
@@ -279,9 +296,15 @@
     A.profile = p;
     document.getElementById("bottomNav").hidden = false;
     document.getElementById("refreshPage").hidden = false;
+    const notifBtn = document.getElementById("btnHeaderNotifications");
+    if (notifBtn) {
+      notifBtn.hidden = false;
+      notifBtn.onclick = () => A.navigate("notifications");
+    }
+    A.updateUnreadNotifications();
     const [r, s] = location.hash.slice(1).split("/");
     await A.navigate(
-      ["home", "schedule", "packages", "notifications", "account"].includes(r)
+      ["home", "schedule", "packages", "payments", "notifications", "account"].includes(r)
         ? r
         : "home",
       s,

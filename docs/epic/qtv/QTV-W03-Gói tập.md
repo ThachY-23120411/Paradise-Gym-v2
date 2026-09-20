@@ -35,6 +35,7 @@ Menu `W03 · Gói tập` được thiết kế theo dạng **Lưới thẻ (Card
   - **Hạn định / Quyền lợi:** Dòng thông tin thời hạn sử dụng và/hoặc số buổi tập (ví dụ: `Thời hạn: 30 ngày`, `Thời hạn: 90 ngày · PT: 10 buổi`).
   - **Chi nhánh áp dụng:** Danh sách các chi nhánh được phép sử dụng gói (ví dụ: `Áp dụng: Quận 1, Bình Thạnh`).
 - **Các nút thao tác dưới chân thẻ (Card Footer Actions):**
+  - **Nút [Chi tiết]:** Nút icon thông tin `[ℹ Chi tiết]`. Click mở popup **Chi tiết gói tập** hiển thị toàn diện các khối thông tin của gói: Phân loại & Giá bán niêm yết, Quyền lợi & Hạn mức sử dụng (thời hạn/vô thời hạn theo buổi, số lượt Gym, số buổi PT, hình thức 1-1 hay nhóm 1-N), Phạm vi áp dụng & Mô tả chi tiết, cùng các nút thao tác nhanh (`[Sửa gói]`, `[Ngừng bán / Mở bán lại]`, `[Đóng]`).
   - **Nút [Sửa]:** Nút nền tối, chữ trắng, icon cây bút 📝. Click mở modal **Cập nhật danh mục gói tập** (`QTV-W03-US03`), tự động `PREFILL` toàn bộ thông tin của gói hiện tại (Loại gói & Cách giới hạn khóa cứng `READONLY`, Tên gói, Thời hạn, Số lượt Gym / Số buổi PT, Giá bán, Chi nhánh áp dụng, Trạng thái bán, Mô tả).
   - **Nút chuyển trạng thái bán:**
     - Khi gói đang ở trạng thái `Đang bán`: Hiển thị nút đỏ **[Ngừng bán]**. Click mở popup xác nhận ngừng bán (`QTV-W03-US04`).
@@ -46,7 +47,7 @@ Menu `W03 · Gói tập` được thiết kế theo dạng **Lưới thẻ (Card
 
 | User Story | Loại giao diện | Modal / Form tương ứng | Đặc tả chi tiết |
 | :--- | :--- | :--- | :--- |
-| [QTV-W03-US01 — Xem danh sách gói tập](../../user-stories/qtv/QTV-W03-Gói tập/QTV-W03-US01-Xem danh sách gói tập.md) | Màn hình chính | Giao diện Card Grid (3 cột / hàng) | Đặc tả chi tiết các trường hiển thị trên từng thẻ gói tập và bộ lọc trạng thái bán |
+| [QTV-W03-US01 — Xem danh sách gói tập](../../user-stories/qtv/QTV-W03-Gói tập/QTV-W03-US01-Xem danh sách gói tập.md) | Màn hình chính & Popup chi tiết | Giao diện Card Grid (3 cột / hàng) & **Popup Chi tiết gói tập** | Đặc tả chi tiết các trường hiển thị trên từng thẻ gói tập, popup xem chi tiết toàn diện và bộ lọc trạng thái bán |
 | [QTV-W03-US02 — Thêm gói tập](../../user-stories/qtv/QTV-W03-Gói tập/QTV-W03-US02-Thêm gói tập.md) | Modal | **Tạo mới danh mục gói tập** | Bảng Field-level spec: Chọn Loại gói (`GYM`/`PT`/`COMBO`) $\rightarrow$ Chọn Cách giới hạn $\rightarrow$ Dynamic form nhập hạn định (Thời hạn, Số lượt Gym, Số buổi PT), Giá bán, Chi nhánh, Trạng thái |
 | [QTV-W03-US03 — Sửa gói tập](../../user-stories/qtv/QTV-W03-Gói tập/QTV-W03-US03-Sửa gói tập.md) | Modal | **Cập nhật danh mục gói tập** | Bảng Field-level spec: Prefill thông tin gói; khóa cứng `Loại gói` và `Cách giới hạn` (`READONLY`); cho sửa Tên, Giá, Hạn định (Thời hạn/Số buổi), Chi nhánh, Trạng thái, Mô tả |
 | [QTV-W03-US04 — Ngừng bán gói](../../user-stories/qtv/QTV-W03-Gói tập/QTV-W03-US04-Ngừng bán gói.md) | Popup xác nhận | **Xác nhận ngừng bán gói tập** | Popup cảnh báo tác động: chỉ ngừng bán cho đăng ký mới, giữ nguyên hiệu lực cho các gói đã bán |

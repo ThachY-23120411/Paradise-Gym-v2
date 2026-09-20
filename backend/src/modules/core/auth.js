@@ -24,7 +24,7 @@ async function context(id, activeRole, db=pool) {
   return {account_id:a.id,phone:a.login_phone,login_phone:a.login_phone,full_name:a.display_name,avatar_url:active==='MEMBER'?(a.member_avatar_url||a.avatar_url):a.avatar_url,is_two_factor_enabled:a.is_two_factor_enabled,
     roles:a.roles,role:active,active_role:active,branch_ids:ids,is_all_branches:active==='QTV'&&a.all_branches,
     member_profile_id:a.member_profile_id,pt_profile_id:a.pt_profile_id,session_version:a.session_version,
-    permissions:{view_financial:staff&&a.permissions.view_financial!==false,manage_devices:active==='QTV'&&a.permissions.manage_devices!==false,manage_accounts:active==='QTV'&&a.permissions.manage_accounts!==false}};
+    permissions:{view_financial:staff&&a.permissions.view_financial!==false,manage_devices:active==='QTV'&&a.permissions.manage_devices!==false,manage_accounts:active==='QTV'&&a.permissions.manage_accounts!==false,commission_config:active==='QTV'&&a.permissions.commission_config!==false}};
 }
 function parseDeviceName(ua) {
   if (!ua) return 'Thiết bị không xác định';
@@ -117,7 +117,7 @@ async function challenge(a,purpose,targetPhone=a.login_phone) {
   const windowMinutes = env.LOCKOUT_DURATION_MINUTES || 2;
   const sent=Number((await db.query(`SELECT count(*) FROM audit_logs WHERE actor_account_id=$1 AND action_name='OTP_REQUESTED' AND created_at>NOW() - ($2 || ' minutes')::interval`,[a.id, `${windowMinutes}`])).rows[0].count);
   if(sent>=4)fail(429,`Đã đạt giới hạn gửi lại OTP. Vui lòng thử lại sau ${windowMinutes} phút.`,'OTP_RESEND_LIMIT');
-  const development=process.env.AUTH_OTP_MODE==='development'&&env.NODE_ENV!=='production';
+  const development=(env.NODE_ENV==='test'?process.env.AUTH_OTP_MODE==='development':(process.env.AUTH_OTP_MODE||'development')==='development')&&env.NODE_ENV!=='production';
   if(!development && !process.env.SMS_PROVIDER_URL) fail(503,'SMS provider is not configured','SMS_UNAVAILABLE');
   const otp=String(randomInt(100000,1000000));
   if(!development) {
@@ -245,7 +245,7 @@ router.post('/signup-otp',route(async req=>{
     fail(409,'Số điện thoại này đã tồn tại trong hệ thống Paradise Gym. Vui lòng Đăng nhập hoặc Kích hoạt tài khoản để tiếp tục.','PHONE_EXISTS');
   }
 
-  const development=process.env.AUTH_OTP_MODE==='development'&&env.NODE_ENV!=='production';
+  const development=(env.NODE_ENV==='test'?process.env.AUTH_OTP_MODE==='development':(process.env.AUTH_OTP_MODE||'development')==='development')&&env.NODE_ENV!=='production';
   if(!development&&!process.env.SMS_PROVIDER_URL) fail(503,'SMS provider is not configured','SMS_UNAVAILABLE');
   const otp=String(randomInt(100000,1000000));
   if(!development){

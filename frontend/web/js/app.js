@@ -6,8 +6,12 @@ window.ParadiseApp = (function () {
     { id: 'registrations', code: 'W04', text: 'Đăng ký & gia hạn', icon: 'file-signature', module: 'SalesModule', method: 'renderRegistrations' },
     { id: 'trainers', code: 'W05', text: 'Huấn luyện viên', icon: 'dumbbell', module: 'PtSchedulerModule', method: 'renderTrainers' },
     { id: 'pt-schedule', code: 'W06', text: 'Lịch tập & buổi PT', icon: 'calendar-days', module: 'PtSchedulerModule', method: 'renderSchedule' },
+    { id: 'community-classes', code: 'W16', text: 'Lớp tập cộng đồng', icon: 'users-rectangle', module: 'CommunityModule', method: 'render' },
     { id: 'access-gate', code: 'W07', text: 'Ra vào & check-in', icon: 'arrow-right-to-bracket', module: 'CheckinModule', method: 'render' },
+    { id: 'customer-care', code: 'W14', text: 'Chăm sóc khách hàng', icon: 'cake-candles', module: 'CustomerCareModule', method: 'render' },
     { id: 'payments', code: 'W08', text: 'Thu tiền & thanh toán', icon: 'wallet', module: 'SalesModule', method: 'renderPayments', group: 'KINH DOANH' },
+    { id: 'commissions', code: 'W15', text: 'Hoa hồng PT', icon: 'hand-holding-dollar', module: 'CommissionsModule', method: 'render', admin: true },
+    { id: 'discounts', code: 'W17', text: 'Voucher & khuyến mãi', icon: 'ticket', module: 'DiscountsModule', method: 'render', admin: true },
     { id: 'notifications', code: 'W09', text: 'Thông báo', icon: 'bell', module: 'SystemModule', method: 'renderNotifications' },
     { id: 'reports', code: 'W10', text: 'Báo cáo', icon: 'chart-column', module: 'ReportsModule', method: 'render', admin: true, permission: 'view_financial' },
     { id: 'branches', code: 'W11', text: 'Chi nhánh', icon: 'building', module: 'PackagesModule', method: 'renderBranches', admin: true, global: true, group: 'QUẢN TRỊ' },
@@ -24,6 +28,20 @@ window.ParadiseApp = (function () {
   }
   const allowedMenus = () => menus.filter(menu => (!menu.admin || isAdmin()) && (!menu.global || user?.is_all_branches) && (!menu.permission || hasPermission(menu.permission)));
   const getBranchName = () => branches.find(branch => branch.id === apiClient.getCurrentBranchId())?.branch_name || ((user?.is_all_branches && !apiClient.getCurrentBranchId()) || apiClient.getCurrentBranchId() === 'ALL' ? 'Toàn bộ chi nhánh' : 'Chi nhánh được phân công');
+  function buildShortcuts() {
+    const $shortcuts = $('.top-shortcuts').empty();
+    allowedMenus().forEach(menu => {
+      $('<button class="icon-button">')
+        .attr({
+          'data-route': menu.id,
+          'title': `${menu.code} - ${menu.text}`,
+          'aria-label': menu.text
+        })
+        .toggleClass('active', menu.id === active)
+        .append($('<i>').addClass('fa-solid fa-' + menu.icon))
+        .appendTo($shortcuts);
+    });
+  }
   function buildNavigation() {
     const nav = $('#sidebarList').empty();
     allowedMenus().forEach(menu => {
@@ -33,6 +51,7 @@ window.ParadiseApp = (function () {
     });
     $('#sidebarRoleIndicator').text(isAdmin() ? 'QTV' : 'LT');
     $('#scopeLabel').text(isAdmin() ? 'Quản trị vận hành' : 'Tiếp đón & chăm sóc');
+    buildShortcuts();
   }
   function buildTabs() {
     const tabs = $('#workspaceTabs').empty();
@@ -65,6 +84,8 @@ window.ParadiseApp = (function () {
     if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
     $('.menu-nav-item').removeClass('active').removeAttr('aria-current');
     $('.menu-nav-item[data-menu="' + id + '"]').addClass('active').attr('aria-current', 'page');
+    $('.top-shortcuts .icon-button').removeClass('active').removeAttr('aria-current');
+    $('.top-shortcuts .icon-button[data-route="' + id + '"]').addClass('active').attr('aria-current', 'page');
     buildTabs();
     document.title = menu.text + ' | Paradise Gym';
     if (innerWidth <= 900) document.body.classList.remove('sidebar-open');

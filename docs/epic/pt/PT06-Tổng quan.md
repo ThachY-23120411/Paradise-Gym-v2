@@ -31,6 +31,7 @@ Giao diện `PT06 · Tổng quan` là màn hình khởi đầu của Huấn luy�
 | User Story | Loại giao diện | Chức năng chính |
 | :--- | :--- | :--- |
 | [PT06-US01 — Xem tổng quan và thống kê hiệu suất PT](../../user-stories/pt/PT06-Tổng%20quan/PT06-US01-Xem%20t%E1%BB%95ng%20quan%20v%C3%A0%20th%E1%BB%91ng%20k%C3%AA%20hi%E1%BB%87u%20su%E1%BA%A5t%20PT.md) | Màn hình Dashboard (Mobile Screen) | Bộ lọc mốc thời gian và 5 thẻ chỉ số KPI hiệu suất huấn luyện của PT |
+| [PT06-US02 — Xem bảng kê hoa hồng tháng](../../user-stories/pt/PT06-Tổng%20quan/PT06-US02-Xem%20bảng%20kê%20hoa%20hồng%20tháng.md) | Màn hình Chi tiết (Mobile Screen) | Xem chi tiết số buổi đã dạy và hoa hồng ước tính nhận được trong tháng |
 
 ---
 

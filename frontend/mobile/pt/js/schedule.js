@@ -609,7 +609,7 @@
                 <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(booking.branchName)}</span>
               </div>
               ${booking.workoutNotes ? `
-                <div class="pt-slot-workout-notes" style="font-size: 11px; color: #cbd5e1; margin-top: 5px; line-height: 1.4;">
+                <div class="pt-slot-workout-notes" style="font-size: 12px; color: var(--text-main); margin-top: 5px; line-height: 1.4;">
                   <i class="fa-solid fa-clipboard-list" style="color: var(--primary);"></i> <strong>Bài tập:</strong> ${escapeHtml(booking.workoutNotes)}
                 </div>
               ` : ''}
@@ -807,17 +807,17 @@
       contentTemplate: function () {
         return $(`
           <div class="pt-dx-confirm-content" style="padding: 4px 0;">
-            <div class="pt-prefill-box" style="margin-bottom: 12px; background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px; font-size: 12px; line-height: 1.5;">
+            <div class="pt-prefill-box" style="margin-bottom: 12px; background: var(--border-color); padding: 10px; border-radius: 8px; font-size: 12px; line-height: 1.5;">
               <div style="margin-bottom: 4px;"><strong>Ca tập:</strong> ${sessionInfo}</div>
-              <div style="margin-bottom: 4px;"><strong>Học viên:</strong> <span style="color: var(--primary-light, #34d399); font-weight: 600;">${memberInfo}</span></div>
+              <div style="margin-bottom: 4px;"><strong>Học viên:</strong> <span style="color: var(--primary); font-weight: 600;">${memberInfo}</span></div>
               <div><strong>Chi nhánh:</strong> ${escapeHtml(branchInfo)}</div>
             </div>
 
             <div style="margin-bottom: 12px;">
               <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 6px;">
-                Kết quả buổi tập <span style="color: #ef4444;">*</span>
+                Kết quả buổi tập <span style="color: #c43d40;">*</span>
               </label>
-              <div style="padding: 8px 12px; background: rgba(16, 185, 129, 0.12); border: 1px solid #10b981; border-radius: 6px; color: #34d399; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+              <div style="padding: 8px 12px; background: rgba(16, 185, 129, 0.12); border: 1px solid #237b58; border-radius: 6px; color: #237b58; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-circle-check"></i> Hoàn thành (Đạt chỉ tiêu buổi tập)
               </div>
             </div>
@@ -832,12 +832,12 @@
                 rows="3" 
                 maxlength="2000" 
                 placeholder="Nhập nội dung bài tập, thể trạng học viên, dặn dò dinh dưỡng..." 
-                style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; padding: 8px; font-size: 12px; resize: vertical;"
+                style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 8px; font-size: 12px; resize: vertical;"
               >${escapeHtml(currentNotes)}</textarea>
             </div>
 
-            <div style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; line-height: 1.4;">
-              <i class="fa-solid fa-shield-halved" style="color: #10b981;"></i> <strong>Cơ chế xác nhận kép:</strong> Khi cả HLV và Hội viên cùng xác nhận, hệ thống sẽ chuyển buổi tập sang DONE và trừ 1 buổi khả dụng.
+            <div style="font-size: 12px; color: #65736d; background: var(--border-color); padding: 8px; border-radius: 6px; line-height: 1.4;">
+              <i class="fa-solid fa-shield-halved" style="color: #237b58;"></i> <strong>Cơ chế xác nhận kép:</strong> Khi cả HLV và Hội viên cùng xác nhận, hệ thống sẽ chuyển buổi tập sang DONE và trừ 1 buổi khả dụng.
             </div>
           </div>
         `);
@@ -1058,16 +1058,16 @@
       .pt-schedule-main-title {
         font-size: 17px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-main);
         display: flex;
         align-items: center;
         gap: 8px;
       }
       .pt-schedule-badge-hours {
         display: inline-block;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
-        color: var(--primary-light);
+        color: var(--primary);
         background: rgba(16, 185, 129, 0.12);
         padding: 2px 8px;
         border-radius: var(--radius-full);
@@ -1077,13 +1077,13 @@
 
       /* Calendar Strip & Expandable Full Month Card (PT01-US01) */
       .pt-calendar-strip-card {
-        background: #0f172a;
-        background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(6, 78, 59, 0.4));
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 18px;
+        background: var(--bg-card);
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         padding: 14px 12px 10px;
         margin-bottom: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        box-shadow: none;
       }
       .pt-month-picker-row {
         display: flex;
@@ -1102,23 +1102,23 @@
         transition: background 0.2s ease;
       }
       .pt-month-title-wrap:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--border-color);
       }
       .pt-month-display {
         font-size: 14px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-main);
       }
       .pt-calendar-toggle-badge {
         width: 22px;
         height: 22px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-color);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 10px;
-        color: var(--primary-light);
+        font-size: 12px;
+        color: var(--primary);
       }
       .pt-month-nav-group {
         display: flex;
@@ -1128,14 +1128,14 @@
         width: 32px;
         height: 32px;
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #FFFFFF;
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        font-size: 11px;
+        font-size: 12px;
         transition: all 0.2s ease;
       }
       .pt-month-nav-btn:hover {
@@ -1159,9 +1159,9 @@
       .pt-date-chip {
         flex: 0 0 52px;
         height: 68px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1175,28 +1175,28 @@
         opacity: 0.55;
       }
       .pt-date-chip:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
+        background: var(--border-color);
+        border-color: var(--border-color);
       }
       .pt-date-chip.active {
-        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        background: var(--bg-card);
         border-color: var(--primary-light);
-        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
+        box-shadow: none;
         transform: translateY(-2px);
       }
       .pt-chip-day {
-        font-size: 10.5px;
+        font-size: 12px;
         font-weight: 600;
         color: var(--text-muted);
         text-transform: uppercase;
       }
       .pt-date-chip.active .pt-chip-day {
-        color: #FFFFFF;
+        color: var(--text-main);
       }
       .pt-chip-num {
         font-size: 17px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-main);
         margin-top: 2px;
       }
       .pt-date-dot {
@@ -1205,9 +1205,9 @@
         border-radius: 50%;
         margin-top: 4px;
       }
-      .dot-amber { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
-      .dot-blue { background: #3b82f6; box-shadow: 0 0 6px #3b82f6; }
-      .dot-emerald { background: #10b981; box-shadow: 0 0 6px #10b981; }
+      .dot-amber { background: #996217; box-shadow: none; }
+      .dot-blue { background: #286aa4; box-shadow: none; }
+      .dot-emerald { background: #237b58; box-shadow: none; }
 
       /* Full Month Grid Container */
       .pt-full-month-container {
@@ -1221,7 +1221,7 @@
         text-align: center;
       }
       .pt-weekday-col {
-        font-size: 10.5px;
+        font-size: 12px;
         font-weight: 700;
         color: var(--text-muted);
         text-transform: uppercase;
@@ -1234,9 +1234,9 @@
       }
       .pt-month-day-cell {
         aspect-ratio: 1;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 10px;
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1254,18 +1254,18 @@
         opacity: 0.45;
       }
       .pt-month-day-cell:not(.is-empty):hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
+        background: var(--border-color);
+        border-color: var(--border-color);
       }
       .pt-month-day-cell.active {
-        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        background: var(--bg-card);
         border-color: var(--primary-light);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.45);
+        box-shadow: none;
       }
       .pt-day-number {
         font-size: 12.5px;
         font-weight: 700;
-        color: #FFFFFF;
+        color: var(--text-main);
       }
       .pt-grid-dot {
         width: 5px;
@@ -1278,19 +1278,19 @@
       .pt-calendar-toggle-bar {
         margin-top: 10px;
         padding-top: 8px;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 600;
-        color: var(--primary-light);
+        color: var(--primary);
         cursor: pointer;
         transition: color 0.2s ease;
       }
       .pt-calendar-toggle-bar:hover {
-        color: #FFFFFF;
+        color: var(--text-main);
       }
 
       /* Selected Day Header */
@@ -1304,13 +1304,13 @@
       .pt-selected-date-text {
         font-size: 14.5px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-main);
         display: flex;
         align-items: center;
         gap: 6px;
       }
       .pt-today-tag {
-        font-size: 10px;
+        font-size: 12px;
         background: var(--primary);
         color: #022016;
         padding: 2px 6px;
@@ -1318,9 +1318,9 @@
         font-weight: 800;
       }
       .pt-slots-counter-badge {
-        font-size: 11px;
+        font-size: 12px;
         color: var(--text-muted);
-        background: rgba(255, 255, 255, 0.06);
+        background: var(--border-color);
         padding: 3px 8px;
         border-radius: 6px;
       }
@@ -1332,7 +1332,7 @@
         border-radius: var(--radius-sm);
         padding: 10px 14px;
         font-size: 12px;
-        color: #fef08a;
+        color: #996217;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -1340,7 +1340,7 @@
       }
       .pt-weekend-alert i {
         font-size: 16px;
-        color: #f59e0b;
+        color: #996217;
         flex-shrink: 0;
       }
 
@@ -1362,7 +1362,7 @@
       .pt-slot-time-col {
         width: 86px;
         flex-shrink: 0;
-        background: rgba(255, 255, 255, 0.02);
+        background: var(--border-color);
         border-right: 1px solid var(--border-color);
         padding: 14px 8px;
         display: flex;
@@ -1372,13 +1372,13 @@
         text-align: center;
       }
       .pt-slot-time-text {
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-main);
         line-height: 1.3;
       }
       .pt-slot-index {
-        font-size: 9.5px;
+        font-size: 12px;
         font-weight: 700;
         color: var(--text-sub);
         margin-top: 4px;
@@ -1395,15 +1395,15 @@
       /* 1. Slot Trống */
       .pt-slot-card.slot-empty {
         border-style: dashed;
-        border-color: rgba(255, 255, 255, 0.1);
+        border-color: var(--border-color);
         opacity: 0.75;
       }
       .pt-slot-card.slot-empty:hover {
         opacity: 1;
-        border-color: rgba(255, 255, 255, 0.2);
+        border-color: var(--border-color);
       }
       .pt-empty-badge {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         color: var(--text-muted);
         display: inline-flex;
@@ -1411,15 +1411,15 @@
         gap: 6px;
       }
       .pt-empty-hint {
-        font-size: 10px;
+        font-size: 12px;
         color: var(--text-sub);
         margin-top: 4px;
       }
 
       /* 2. Slot UPCOMING */
       .pt-slot-card.slot-upcoming {
-        border-left: 4px solid #3b82f6;
-        background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, var(--bg-card) 60%);
+        border-left: 4px solid #286aa4;
+        background: var(--bg-card);
       }
       .pt-slot-header-row {
         display: flex;
@@ -1428,7 +1428,7 @@
         margin-bottom: 4px;
       }
       .pt-slot-status-badge {
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 700;
         padding: 2px 7px;
         border-radius: 4px;
@@ -1436,27 +1436,27 @@
         align-items: center;
         gap: 4px;
       }
-      .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-      .badge-amber { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-      .badge-emerald { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-      .badge-gray { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
+      .badge-blue { background: rgba(59, 130, 246, 0.2); color: #286aa4; }
+      .badge-amber { background: rgba(245, 158, 11, 0.2); color: #996217; }
+      .badge-emerald { background: rgba(16, 185, 129, 0.2); color: #237b58; }
+      .badge-gray { background: rgba(148, 163, 184, 0.2); color: #65736d; }
 
       .pt-slot-id {
-        font-size: 10px;
+        font-size: 12px;
         color: var(--text-sub);
         font-family: monospace;
       }
       .pt-slot-member-name {
         font-size: 14px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-main);
         margin-bottom: 4px;
       }
       .pt-slot-meta-row {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        font-size: 11px;
+        font-size: 12px;
         color: var(--text-muted);
         margin-bottom: 6px;
       }
@@ -1465,38 +1465,38 @@
       }
       .btn-confirm-trigger {
         width: 100%;
-        background: linear-gradient(135deg, #065f46, var(--primary));
-        color: #FFFFFF;
+        background: var(--bg-card);
+        color: var(--text-main);
         border: none;
         border-radius: 6px;
         padding: 7px 12px;
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 700;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+        box-shadow: none;
         transition: filter 0.2s ease;
       }
       .btn-confirm-trigger:hover {
         filter: brightness(1.1);
       }
       .pt-locked-hint {
-        font-size: 10px;
+        font-size: 12px;
         color: var(--text-sub);
         font-style: italic;
       }
 
       /* 3. Slot AWAITING CONFIRMATION */
       .pt-slot-card.slot-awaiting {
-        border-left: 4px solid #f59e0b;
-        background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, var(--bg-card) 60%);
+        border-left: 4px solid #996217;
+        background: var(--bg-card);
       }
       .pt-awaiting-notice {
-        font-size: 10.5px;
-        color: #fef08a;
+        font-size: 12px;
+        color: #996217;
         background: rgba(245, 158, 11, 0.12);
         padding: 4px 8px;
         border-radius: 4px;
@@ -1508,21 +1508,21 @@
 
       /* 4. Slot DONE */
       .pt-slot-card.slot-done {
-        border-left: 4px solid #10b981;
-        background: linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, var(--bg-card) 60%);
+        border-left: 4px solid #237b58;
+        background: var(--bg-card);
       }
       .pt-slot-fitness-notes {
-        font-size: 11px;
-        color: #cbd5e1;
-        background: rgba(255, 255, 255, 0.04);
+        font-size: 12px;
+        color: var(--text-main);
+        background: var(--border-color);
         padding: 5px 8px;
         border-radius: 4px;
         margin-top: 4px;
         border-left: 2px solid var(--primary);
       }
       .pt-slot-done-footer {
-        font-size: 10px;
-        color: var(--primary-light);
+        font-size: 12px;
+        color: var(--primary);
         margin-top: 6px;
         display: flex;
         align-items: center;
@@ -1532,12 +1532,12 @@
 
       /* 5. Slot CANCELLED */
       .pt-slot-card.slot-cancelled {
-        border-left: 4px solid #64748b;
+        border-left: 4px solid #65736d;
         opacity: 0.65;
       }
       .pt-slot-cancel-reason {
-        font-size: 10px;
-        color: #f87171;
+        font-size: 12px;
+        color: #c43d40;
         margin-top: 3px;
       }
 
@@ -1558,12 +1558,12 @@
       .pt-bottom-sheet {
         width: 100%;
         max-width: 410px;
-        background: #111827;
+        background: var(--bg-card);
         border-top-left-radius: 24px;
         border-top-right-radius: 24px;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-top: 1px solid var(--border-color);
         padding: 16px 18px 24px;
-        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.8);
+        box-shadow: none;
         animation: sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
       }
       @keyframes sheetSlideUp {
@@ -1573,7 +1573,7 @@
       .pt-sheet-handle {
         width: 40px;
         height: 4px;
-        background: rgba(255, 255, 255, 0.2);
+        background: var(--border-color);
         border-radius: 2px;
         margin: 0 auto 12px;
       }
@@ -1586,7 +1586,7 @@
       .pt-sheet-title {
         font-size: 15px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-main);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -1595,7 +1595,7 @@
         width: 28px;
         height: 28px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--border-color);
         border: none;
         color: var(--text-muted);
         display: flex;
@@ -1610,9 +1610,9 @@
         gap: 12px;
       }
       .pt-prefill-box {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         padding: 10px 12px;
         display: flex;
         flex-direction: column;
@@ -1621,7 +1621,7 @@
       .pt-prefill-row {
         display: flex;
         justify-content: space-between;
-        font-size: 11.5px;
+        font-size: 12px;
         gap: 8px;
       }
       .pt-prefill-label {
@@ -1629,12 +1629,12 @@
         flex-shrink: 0;
       }
       .pt-prefill-value {
-        color: #FFFFFF;
+        color: var(--text-main);
         font-weight: 600;
         text-align: right;
       }
       .pt-prefill-value.text-highlight {
-        color: var(--primary-light);
+        color: var(--primary);
       }
       .pt-form-group {
         display: flex;
@@ -1644,7 +1644,7 @@
       .pt-form-label {
         font-size: 12px;
         font-weight: 700;
-        color: #FFFFFF;
+        color: var(--text-main);
       }
       .required-star {
         color: var(--accent-danger);
@@ -1659,17 +1659,17 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        color: var(--primary-light);
+        color: var(--primary);
         font-size: 12.5px;
         font-weight: 700;
       }
       .pt-textarea {
         width: 100%;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
         border-radius: 8px;
         padding: 10px 12px;
-        color: #FFFFFF;
+        color: var(--text-main);
         font-size: 12.5px;
         font-family: inherit;
         resize: none;
@@ -1677,10 +1677,10 @@
       .pt-textarea:focus {
         outline: none;
         border-color: var(--primary);
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--border-color);
       }
       .pt-form-hint {
-        font-size: 10px;
+        font-size: 12px;
         color: var(--text-sub);
       }
       .pt-dual-confirm-notice {
@@ -1693,14 +1693,14 @@
         align-items: flex-start;
       }
       .pt-dual-confirm-notice i {
-        color: #06b6d4;
+        color: #286aa4;
         font-size: 14px;
         margin-top: 2px;
         flex-shrink: 0;
       }
       .pt-dual-confirm-text {
-        font-size: 10.5px;
-        color: #cffafe;
+        font-size: 12px;
+        color: #286aa4;
         line-height: 1.4;
       }
       .pt-sheet-actions {
@@ -1713,8 +1713,8 @@
 
       .pill-blue {
         background: rgba(59, 130, 246, 0.15);
-        color: #60a5fa;
-        font-size: 11px;
+        color: #286aa4;
+        font-size: 12px;
         font-weight: 700;
         padding: 5px 10px;
         border-radius: var(--radius-sm);
@@ -1740,13 +1740,18 @@
         border-radius: var(--radius-sm);
         padding: 10px 14px;
         font-size: 12px;
-        color: #93c5fd;
+        color: #286aa4;
         display: flex;
         align-items: center;
         gap: 8px;
         margin-bottom: 12px;
       }
-    `;
+      .pt-date-chip.active, .pt-month-day-cell.active { background: var(--primary); color: #fff; box-shadow: none; }
+      .pt-date-chip.active .pt-chip-num, .pt-date-chip.active .pt-chip-day,
+      .pt-month-day-cell.active .pt-day-number { color: #fff; }
+      .pt-month-nav-btn:hover, .pt-today-tag { color: #fff; }
+      .btn-confirm-trigger { background: var(--primary); color: #fff; }
+ `;
     document.head.appendChild(style);
   }
 

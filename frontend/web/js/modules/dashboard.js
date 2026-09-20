@@ -15,7 +15,12 @@ window.DashboardModule = (function () {
     const W = ui(), target = view.body, version = ++revision, day = W.dateKey(currentDate), admin = ParadiseApp.isAdmin();
     W.loading(target);
     try {
-      const data = (await apiClient.request('/dashboard?date=' + day)).data;
+      const [dashRes, careRes] = await Promise.all([
+        apiClient.request('/dashboard?date=' + day),
+        apiClient.request('/customer-care/summary').catch(() => ({ data: {} }))
+      ]);
+      const data = dashRes.data;
+      const careSummary = careRes.data || {};
       if (version !== revision || !document.contains(target[0])) return;
       target.empty();
       const metrics = data.metrics;
@@ -23,21 +28,61 @@ window.DashboardModule = (function () {
       const completed = sessions.filter(item => item.status === 'COMPLETED').length;
       const upcoming = sessions.filter(item => item.status === 'BOOKED' && new Date(String(item.booking_date).slice(0, 10) + 'T' + item.start_time) > new Date()).length;
       const cards = admin ? [
-        { label: 'Hội viên đang hoạt động', value: metrics.active_members, caption: 'Hồ sơ đang hoạt động', icon: 'users', tone: 'green' },
-        ...(ParadiseApp.hasPermission('view_financial') ? [{ label: 'Tiền thực thu trong ngày', value: W.money(metrics.cash_received), caption: 'Giao dịch đã xác nhận', icon: 'wallet', tone: 'blue' }] : []),
-        { label: 'Gói sắp hết hạn', value: metrics.expiring_packages, caption: 'Trong 14 ngày tới', icon: 'hourglass-half', tone: 'amber' },
-        { label: 'Buổi PT trong ngày', value: metrics.pt_bookings, caption: day === W.dateKey(new Date()) ? upcoming + ' buổi sắp tới' : completed + ' buổi đã hoàn thành', icon: 'dumbbell', tone: 'coral' }
+        { label: 'Hội viên đang hoạt động', value: metrics.active_members, caption: 'Hồ sơ đang hoạt động', icon: 'users', tone: 'green', onClick: () => ParadiseApp.navigateTo('members') },
+        ...(ParadiseApp.hasPermission('view_financial') ? [{ label: 'Tiền thực thu hôm nay', value: W.money(careSummary.today_revenue ?? metrics.cash_received), caption: 'Dòng tiền đã xác nhận', icon: 'wallet', tone: 'blue', onClick: () => ParadiseApp.navigateTo('sales') }] : []),
+        { label: 'Lượt check-in hôm nay', value: metrics.checkins, caption: 'Lượt quét tại chi nhánh', icon: 'arrow-right-to-bracket', tone: 'teal', onClick: () => ParadiseApp.navigateTo('access-gate') },
+        { label: 'Buổi PT trong ngày', value: metrics.pt_bookings, caption: day === W.dateKey(new Date()) ? upcoming + ' buổi sắp tới' : completed + ' buổi đã hoàn thành', icon: 'dumbbell', tone: 'coral', onClick: () => ParadiseApp.navigateTo('pt-schedule') }
       ] : [
-        { label: 'Lượt check-in hôm nay', value: metrics.checkins, caption: 'Tại chi nhánh đang phục vụ', icon: 'arrow-right-to-bracket' },
-        { label: 'Booking PT hôm nay', value: metrics.pt_bookings, caption: 'Lịch tập tại chi nhánh', icon: 'calendar-days', tone: 'blue' },
-        { label: 'Đăng ký chờ thanh toán', value: metrics.pending_registrations, caption: 'Chưa kích hoạt quyền tập', icon: 'file-invoice', tone: 'amber' },
-        { label: 'Yêu cầu cần xử lý', value: metrics.pending_requests, caption: 'Công việc tại quầy', icon: 'list-check', tone: 'coral' }
+        { label: 'Lượt check-in hôm nay', value: metrics.checkins, caption: 'Tại chi nhánh đang phục vụ', icon: 'arrow-right-to-bracket', tone: 'green', onClick: () => ParadiseApp.navigateTo('access-gate') },
+        { label: 'Booking PT hôm nay', value: metrics.pt_bookings, caption: 'Lịch tập tại chi nhánh', icon: 'calendar-days', tone: 'blue', onClick: () => ParadiseApp.navigateTo('pt-schedule') },
+        { label: 'Đăng ký chờ thanh toán', value: metrics.pending_registrations, caption: 'Chưa kích hoạt quyền tập', icon: 'file-invoice', tone: 'amber', onClick: () => ParadiseApp.navigateTo('registrations', { status: 'PENDING_PAYMENT' }) },
+        { label: 'Việc cần xử lý tại quầy', value: metrics.pending_requests, caption: 'Nhiệm vụ quầy trong ngày', icon: 'list-check', tone: 'coral', onClick: () => ParadiseApp.navigateTo('customer-care') }
       ];
       W.metrics(target, cards);
+
+      // Section: Hôm nay cần xử lý (KPI Chăm sóc khách hàng & Vận hành theo style phần mềm mẫu & chỉ đạo Sếp Cường)
+      const careSection = W.section(target, 'Hôm nay cần xử lý (Chăm sóc khách hàng & Vận hành)', header => W.button(header, 'Mở CSKH', 'fa-solid fa-cake-candles', () => ParadiseApp.navigateTo('customer-care')));
+      const careCards = [
+        {
+          label: 'Sinh nhật hôm nay',
+          value: careSummary.birthdays_today ?? 0,
+          caption: 'Hội viên có sinh nhật cần chúc mừng',
+          icon: 'cake-candles',
+          tone: 'coral',
+          onClick: () => ParadiseApp.navigateTo('customer-care', { tab: 'birthdays' })
+        },
+        {
+          label: 'Gói sắp hết hạn (<= 4 ngày)',
+          value: careSummary.expiring_soon_4days ?? 0,
+          caption: (careSummary.expiring_soon_4days ?? 0) > 0 ? 'Cần liên hệ nhắc gia hạn gấp' : 'Không có gói cận hạn',
+          icon: 'triangle-exclamation',
+          tone: (careSummary.expiring_soon_4days ?? 0) > 0 ? 'danger' : 'amber',
+          onClick: () => ParadiseApp.navigateTo('customer-care', { tab: 'expiring' })
+        },
+        {
+          label: 'Chờ nhắc gia hạn (14 ngày qua)',
+          value: careSummary.pending_renewals ?? 0,
+          caption: 'Gói hết hạn chưa gia hạn lại',
+          icon: 'hourglass-half',
+          tone: 'amber',
+          onClick: () => ParadiseApp.navigateTo('customer-care', { tab: 'pending-renewals' })
+        },
+        {
+          label: 'Đăng ký mới hôm nay',
+          value: careSummary.new_registrations_today ?? 0,
+          caption: 'Hợp đồng tạo trong ngày',
+          icon: 'file-signature',
+          tone: 'blue',
+          onClick: () => ParadiseApp.navigateTo('customer-care', { tab: 'today-regs' })
+        }
+      ];
+      W.metrics(careSection.body, careCards);
+
       const quick = $('<div class="quick-actions">').appendTo(target);
       W.button(quick, 'Thêm hội viên', 'add', () => ParadiseApp.navigateTo('members', { action: 'create' }), true);
       W.button(quick, 'Tạo đăng ký', 'doc', () => ParadiseApp.navigateTo('registrations', { action: 'create' }));
       W.button(quick, 'Đặt lịch PT', 'event', () => ParadiseApp.navigateTo('pt-schedule', { action: 'create' }));
+      W.button(quick, 'Lớp cộng đồng', 'group', () => ParadiseApp.navigateTo('community-classes'));
       W.button(quick, 'Ghi nhận ra/vào', 'runner', () => ParadiseApp.navigateTo('access-gate'));
       if (!admin) renderTasks(target, data.tasks || {});
       const columns = $('<div class="dashboard-columns">').appendTo(target);
@@ -47,14 +92,49 @@ window.DashboardModule = (function () {
   }
   function renderTasks(container, tasks) {
     const W = ui(), section = W.section(container, 'Việc cần xử lý tại quầy');
-    const list = $('<div class="task-list">').appendTo(section.body);
-    [
-      { label: 'Đăng ký chưa thanh toán', count: tasks.pending_registrations, icon: 'file-invoice', route: 'registrations', context: { status: 'PENDING_PAYMENT' } },
-      { label: 'Booking PT sắp tới', count: tasks.upcoming_bookings, icon: 'calendar-days', route: 'pt-schedule', context: { status: 'BOOKED' } },
-      { label: 'Booking chờ xác nhận', count: tasks.awaiting_bookings, icon: 'clock', route: 'pt-schedule', context: { status: 'PENDING_COMPLETION' } },
-      { label: 'Hội viên cần hỗ trợ đặt lịch', count: tasks.unassigned_registrations, icon: 'user-plus', route: 'pt-schedule', context: { action: 'create' } },
-      { label: 'Thiết bị check-in có lỗi', count: tasks.offline_devices, icon: 'display', route: 'access-gate', context: {} }
-    ].forEach(task => $('<button class="task-button">').toggleClass('task-danger', task.route === 'access-gate' && task.count > 0).append($('<i>').addClass('fa-solid fa-' + task.icon), $('<span>').text(task.label), $('<strong>').text(task.count ?? '-')).on('click', () => ParadiseApp.navigateTo(task.route, task.context)).appendTo(list));
+    const taskCards = [
+      {
+        label: 'Đăng ký chưa thanh toán',
+        value: tasks.pending_registrations ?? 0,
+        caption: 'Hợp đồng chờ kích hoạt',
+        icon: 'file-invoice',
+        tone: 'amber',
+        onClick: () => ParadiseApp.navigateTo('registrations', { status: 'PENDING_PAYMENT' })
+      },
+      {
+        label: 'Booking PT sắp tới',
+        value: tasks.upcoming_bookings ?? 0,
+        caption: 'Ca tập chuẩn bị bắt đầu',
+        icon: 'calendar-days',
+        tone: 'blue',
+        onClick: () => ParadiseApp.navigateTo('pt-schedule', { status: 'BOOKED' })
+      },
+      {
+        label: 'Booking chờ xác nhận',
+        value: tasks.awaiting_bookings ?? 0,
+        caption: 'Cần xác nhận kép hoàn thành',
+        icon: 'clock',
+        tone: 'coral',
+        onClick: () => ParadiseApp.navigateTo('pt-schedule', { status: 'PENDING_COMPLETION' })
+      },
+      {
+        label: 'Cần hỗ trợ đặt lịch',
+        value: tasks.unassigned_registrations ?? 0,
+        caption: 'Hội viên chưa xếp lịch tập',
+        icon: 'user-plus',
+        tone: 'teal',
+        onClick: () => ParadiseApp.navigateTo('pt-schedule', { action: 'create' })
+      },
+      {
+        label: 'Thiết bị check-in',
+        value: tasks.offline_devices > 0 ? (tasks.offline_devices + ' lỗi') : 'Ổn định',
+        caption: tasks.offline_devices > 0 ? 'Kiểm tra kết nối cổng' : 'Tất cả thiết bị sẵn sàng',
+        icon: 'display',
+        tone: tasks.offline_devices > 0 ? 'danger' : 'green',
+        onClick: () => ParadiseApp.navigateTo('access-gate')
+      }
+    ];
+    W.metrics(section.body, taskCards);
   }
   function renderAccess(container, logs) {
     const W = ui(), section = W.section(container, 'Ra/vào gần nhất', header => W.button(header, 'Xem tất cả', 'chevronright', () => ParadiseApp.navigateTo('access-gate', { date: W.dateKey(currentDate) })));

@@ -308,7 +308,8 @@
       createInvoice: (data) => this.request('/payments/create-invoice', { method: 'POST', body: data }),
       confirm: (paymentId, data = {}) => this.request(`/payments/${paymentId}/confirm`, { method: 'POST', body: data }),
       getReceipt: (paymentId) => this.request(`/payments/${paymentId}/receipt`),
-      checkBankStatus: (paymentId) => this.request(`/payments/${paymentId}/check-bank-status`, { method: 'POST' })
+      checkBankStatus: (paymentId) => this.request(`/payments/${paymentId}/check-bank-status`, { method: 'POST' }),
+      simulateTransfer: (paymentId, data = {}) => this.request(`/payments/${paymentId}/simulate-transfer`, { method: 'POST', body: data })
     };
 
     // ==========================================
@@ -337,7 +338,11 @@
         const qs = new URLSearchParams(params).toString();
         return this.request(`/pt-bookings/assignment-requests${qs ? '?' + qs : ''}`);
       },
-      respondAssignment: (requestId, status, response_note) => this.request(`/pt-bookings/assignment-request/${requestId}/respond`, { method: 'POST', body: { status, response_note } })
+      respondAssignment: (requestId, status, response_note) => this.request(`/pt-bookings/assignment-request/${requestId}/respond`, { method: 'POST', body: { status, response_note } }),
+      getMyCommissions: (params = {}) => {
+        const qs = new URLSearchParams(params).toString();
+        return this.request(`/pt/my-commissions${qs ? '?' + qs : ''}`);
+      }
     };
 
     // ==========================================

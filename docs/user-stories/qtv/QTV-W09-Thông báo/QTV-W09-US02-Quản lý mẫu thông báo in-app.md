@@ -54,7 +54,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Tên mẫu thông báo | `Text Input` | `USER-INPUT` | required | Không | Nhập tên quản trị gợi nhớ (tối đa 100 ký tự) |
 | Sự kiện áp dụng (Event) | `Select Dropdown` | `USER-INPUT (PREFILL)` | required | `TRIGGER` | Chọn Sự kiện nghiệp vụ hệ thống. Khi chọn, kích hoạt tự động nạp bộ nút biến tiếng Việt tương ứng bên dưới |
-| Bộ nút biến tiếng Việt ngữ cảnh | `Button Tags Container` | `USER-INPUT` | optional | `DYNAMIC` | Lấy từ **Từ điển biến sự kiện chuẩn (System Event Schema)** của backend gắn liền với Sự kiện được chọn. Mỗi biến gồm `Mã kỹ thuật` (backend) và `Nhãn tiếng Việt` (hiển thị trên nút). Click nút để tự động chèn mã `{{key}}` tại vị trí con trỏ trong ô nội dung |
+| Bộ nút biến tiếng Việt ngữ cảnh | `Button Tags Container` | `USER-INPUT` | optional | `DYNAMIC` | Mặc định khi mở modal hiển thị ngay toàn bộ danh mục biến nội dung hệ thống (14 biến). Khi chọn Sự kiện áp dụng, hệ thống tự động phân nhóm và làm nổi bật các biến khả dụng tương thích với sự kiện đó lên hàng đầu, đồng thời giữ nhóm các biến khác bên dưới để tham khảo. Click nút để tự động chèn mã `{{key}}` tại vị trí con trỏ trong ô tiêu đề hoặc nội dung |
 | Tiêu đề thông báo | `Text Input` | `USER-INPUT` | required | Không | Nhập tiêu đề hiển thị trên thông báo app di động (tối đa 150 ký tự) |
 | Nội dung thông báo | `Text Area (Rich Editor)` | `USER-INPUT` | required | Không | Ô soạn thảo văn bản tự do, nhận văn bản và nhận mã chèn tự động khi click các nút biến (tối đa 1.000 ký tự) |
 

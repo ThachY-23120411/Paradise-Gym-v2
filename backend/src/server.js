@@ -47,6 +47,11 @@ app.use(API_PREFIX, require('./modules/core/catalog').router);
 app.use(API_PREFIX, require('./modules/core/commerce').router);
 app.use(API_PREFIX, require('./modules/core/bookings').router);
 app.use(API_PREFIX, require('./modules/core/operations').router);
+app.use(API_PREFIX, require('./modules/core/discounts').router);
+app.use(API_PREFIX, require('./modules/core/commissions').router);
+app.use(API_PREFIX, require('./modules/core/community').router);
+app.use(API_PREFIX, require('./modules/core/customerCare').router);
+app.use(API_PREFIX, require('./modules/core/holidays').router);
 app.use((req,res)=>res.status(404).json({success:false,message:'Route not found',code:'NOT_FOUND'}));
 
 // Centralized error handler

@@ -11,12 +11,12 @@
 Không gian nghiệp vụ bên trong Menu **`HV02 · Lịch tập`** (nằm giữa Header và Bottom Navigation Bar chung của ứng dụng) được phân chia thành **2 sub-tab chính** thông qua bộ chuyển tab nội bộ (Segmented Control):
 
 1. **Sub-tab `Lịch của tôi`:**
-   - Vai trò: Màn hình mặc định khi vào menu `HV02`, cho phép Hội viên theo dõi danh sách buổi tập theo ngày/tháng, lọc theo trạng thái và thực hiện các tác vụ nhanh (hủy lịch, xác nhận hoàn thành).
-   - Chi tiết đặc tả UI toàn diện (thanh chọn ngày, chip lọc, thẻ buổi tập, nút thao tác): Xem tại [HV02-US01](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US01-Xem lịch tập và lọc trạng thái buổi PT.md).
+   - Vai trò: Màn hình theo dõi các buổi tập PT cá nhân theo ngày/tháng, đặt lịch PT từ slot trống linh động, hủy lịch có kiểm soát mốc thời gian và xác nhận hoàn thành buổi tập 2 chiều với PT.
+   - Chi tiết đặc tả UI: Xem tại [HV02-US01](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US01-Xem lịch tập và lọc trạng thái buổi PT.md) và [HV02-US02](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US02-Đặt lịch PT từ slot trống.md).
 
-2. **Sub-tab `Đặt lịch PT`:**
-   - Vai trò: Màn hình đặt lịch chủ động, cho phép Hội viên chọn gói PT/Combo hợp lệ, xem lịch làm việc của PT phụ trách và chọn các slot 2 tiếng còn trống để đặt lịch.
-   - Chi tiết đặc tả UI toàn diện (chọn gói, hiển thị PT, widget lịch làm việc, chọn slot giờ, ghi chú và nút CTA Đặt lịch): Xem tại [HV02-US02](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US02-Đặt lịch PT từ slot trống.md).
+2. **Sub-tab `Lịch cộng đồng`:**
+   - Vai trò: Hiển thị các buổi tập lớp cộng đồng (Cardio, Aerobic, Yoga, Zumba...) do phòng gym tổ chức đang mở đăng ký. Hội viên xem danh sách theo ngày, theo dõi số slot còn trống (ví dụ `25/40 chỗ`) và bấm nút Đăng ký tham gia.
+   - Chi tiết đặc tả UI: Xem tại [HV02-US05](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US05-Đăng ký tham gia lớp tập cộng đồng.md).
 
 ---
 
@@ -25,9 +25,10 @@ Không gian nghiệp vụ bên trong Menu **`HV02 · Lịch tập`** (nằm gi�
 | User Story | Phân loại giao diện | Thành phần giao diện tương ứng | Phạm vi đặc tả UI |
 | :--- | :--- | :--- | :--- |
 | [HV02-US01 — Xem lịch tập và lọc trạng thái buổi PT](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US01-Xem lịch tập và lọc trạng thái buổi PT.md) | Màn hình Sub-tab | **Sub-tab `Lịch của tôi`** | Bảng Field-level spec toàn diện cho tab: Widget Lịch tháng (Trigger), chip lọc trạng thái, thẻ buổi tập cá nhân và các nút thao tác trên thẻ |
-| [HV02-US02 — Đặt lịch PT từ slot trống](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US02-Đặt lịch PT từ slot trống.md) | Màn hình Sub-tab | **Sub-tab `Đặt lịch PT`** | Bảng Field-level spec toàn diện cho tab: Combobox chọn gói (Trigger), Card thông tin PT phụ trách, Widget Lịch tháng (Trigger), Lưới 5 khung giờ (Thẻ slot trống [+], Thẻ slot đã bận, Thẻ buổi tập của chính Hội viên theo trạng thái Đã đặt/Chờ xác nhận/Hoàn thành) |
+| [HV02-US02 — Đặt lịch PT tùy chọn giờ bắt đầu theo thời lượng gói (Timeline kéo thả)](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US02-Đặt lịch PT từ slot trống.md) | Màn hình Sub-tab | **Sub-tab `Đặt lịch PT`** | Bảng Field-level spec: Lịch biểu Timeline 06:00 - 22:00, thẻ đặt lịch dự kiến kéo thả (chiều cao = thời lượng gói), khối giờ bận HLV, thanh xác nhận nổi ở đáy |
 | [HV02-US03 — Hủy lịch buổi PT](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US03-Hủy lịch buổi PT.md) | Modal xác nhận | **Modal Xác nhận Hủy lịch buổi PT** | Bảng Field-level spec 6 trường nhập/hiển thị của modal (mở từ nút Hủy lịch tại tab Lịch của tôi) |
 | [HV02-US04 — Xác nhận hoàn thành buổi PT](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US04-Xác nhận hoàn thành buổi PT.md) | Dialog xác nhận | **Dialog Xác nhận Hoàn thành buổi PT** | Bảng Field-level spec 3 trường hiển thị thông tin & trạng thái của dialog (mở từ nút Xác nhận hoàn thành tại tab Lịch của tôi) |
+| [HV02-US05 — Đăng ký tham gia lớp tập cộng đồng](../../user-stories/hoi-vien/HV02-Lịch tập/HV02-US05-Đăng ký tham gia lớp tập cộng đồng.md) | Màn hình Sub-tab | **Sub-tab `Lịch cộng đồng`** | Chọn ngày, danh sách lớp nhóm, hiển thị số chỗ trống (`25/40`) và nút Đăng ký tham gia |
 
 ---
 

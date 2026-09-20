@@ -143,7 +143,7 @@
                       r.package_type === 'PT' || r.package_type === 'COMBO' ||
                       r.package_type_snapshot === 'PT_SESSION' || r.package_type_snapshot === 'COMBO';
         const isAssigned = r.assigned_pt_id === currentPtId;
-        return hasPt && isAssigned && r.status === 'ACTIVE';
+        return hasPt && isAssigned && ['ACTIVE', 'SCHEDULED'].includes(r.status);
       });
 
       const clientMap = new Map();
@@ -182,7 +182,7 @@
           completedSessions: used,
           remainingSessions: remaining,
           lastSessionDate: lastCompletedBooking ? formatDateDisplay(lastCompletedBooking.booking_date) : '-',
-          avatarBg: 'linear-gradient(135deg, #10B981, #059669)',
+          avatarBg: 'var(--primary-light)',
           sessions: completedBookings.map((b, bIdx) => ({
             sessionNumber: b.session_number || '-',
             date: formatDateDisplay(b.booking_date),
@@ -215,7 +215,7 @@
           note: r.request_note || '',
           notes: r.request_note || '',
           status: r.status,
-          avatarBg: 'linear-gradient(135deg, #F59E0B, #D97706)'
+          avatarBg: 'var(--accent-warning-bg)'
         };
       });
 
@@ -396,7 +396,7 @@
           const percent = client.totalSessions > 0 ? Math.round((client.completedSessions / client.totalSessions) * 100) : 0;
 
           return `
-            <div class="pt-client-card" onclick="ParadisePTClients.openClientDetail('${client.id}')">
+            <div class="pt-client-card" role="button" tabindex="0" onclick="ParadisePTClients.openClientDetail('${client.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
               <!-- Top Row: Avatar, Tên, Mã & Phone, Badge trạng thái -->
               <div class="pt-card-top">
                 <div class="pt-avatar" style="background: ${client.avatarBg};">
@@ -569,7 +569,7 @@
       <div class="pt-detail-view-inner">
         <!-- Top Navigation Bar: Nút Quay lại [←] và Tiêu đề -->
         <div class="pt-subscreen-header">
-          <button type="button" class="pt-back-btn" onclick="ParadisePTClients.closeClientDetail()">
+          <button type="button" class="pt-back-btn" title="Quay lại danh sách học viên" aria-label="Quay lại danh sách học viên" onclick="ParadisePTClients.closeClientDetail()">
             <i class="fa-solid fa-arrow-left"></i>
           </button>
           <div class="pt-subscreen-title">Lộ trình tập luyện</div>
@@ -774,15 +774,15 @@
       contentTemplate: function () {
         return $(`
           <div class="pt-dx-reject-content" style="padding: 4px 0;">
-            <div class="pt-reject-summary-card" style="margin-bottom: 12px; background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px; font-size: 12px; line-height: 1.5;">
-              <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">${escapeHtml(req.studentName)} <span style="font-weight: 400; color: var(--text-muted, #94a3b8);">(${req.studentCode})</span></div>
-              <div style="color: #cbd5e1; margin-bottom: 2px;"><i class="fa-solid fa-cube" style="color: var(--primary-light, #10b981);"></i> ${escapeHtml(req.packageName)}</div>
-              <div style="color: var(--text-muted, #94a3b8); font-size: 11px;"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(req.branchName)}</div>
+            <div class="pt-reject-summary-card" style="margin-bottom: 12px; background: var(--border-color); padding: 10px; border-radius: 8px; font-size: 12px; line-height: 1.5;">
+              <div style="font-weight: 700; color: var(--text-main); margin-bottom: 4px;">${escapeHtml(req.studentName)} <span style="font-weight: 400; color: var(--text-muted, #65736d);">(${req.studentCode})</span></div>
+              <div style="color: var(--text-main); margin-bottom: 2px;"><i class="fa-solid fa-cube" style="color: var(--primary);"></i> ${escapeHtml(req.packageName)}</div>
+              <div style="color: var(--text-muted, #65736d); font-size: 12px;"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(req.branchName)}</div>
             </div>
 
             <div class="pt-form-group" style="margin-bottom: 12px;">
               <label class="pt-form-label" style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 8px;">
-                Lý do từ chối <span style="color: #ef4444;">*</span>
+                Lý do từ chối <span style="color: #c43d40;">*</span>
               </label>
               <div id="dxRadioGroupRejectReasons" style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -806,7 +806,7 @@
 
             <div id="dxOtherReasonGroup" style="display: none; margin-bottom: 10px;">
               <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 4px;">
-                Chi tiết lý do khác <span style="color: #ef4444;">*</span>
+                Chi tiết lý do khác <span style="color: #c43d40;">*</span>
               </label>
               <textarea 
                 id="dxRejectOtherReasonText" 
@@ -814,9 +814,9 @@
                 rows="3" 
                 maxlength="255" 
                 placeholder="Vui lòng nhập lý do cụ thể để chuyển tiếp quản lý..."
-                style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; padding: 8px; font-size: 12px; resize: vertical;"
+                style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 8px; font-size: 12px; resize: vertical;"
               ></textarea>
-              <div style="text-align: right; font-size: 10px; color: var(--text-muted, #94a3b8); margin-top: 2px;"><span id="dxCharCounter">0</span>/255</div>
+              <div style="text-align: right; font-size: 12px; color: var(--text-muted, #65736d); margin-top: 2px;"><span id="dxCharCounter">0</span>/255</div>
             </div>
           </div>
         `);
@@ -943,7 +943,7 @@
     if (ClientsState.isLoading && ClientsState.clients.length === 0 && ClientsState.assignmentRequests.length === 0) {
       contentList.innerHTML = `
         <div class="pt-empty-state">
-          <div class="pt-empty-icon" style="color: var(--primary, #10B981);">
+          <div class="pt-empty-icon" style="color: var(--primary, #237b58);">
             <i class="fa-solid fa-circle-notch fa-spin"></i>
           </div>
           <div class="pt-empty-title">Đang nạp dữ liệu học viên...</div>
@@ -1133,7 +1133,7 @@
         flex-direction: column;
         height: 100%;
         position: relative;
-        background-color: #000000;
+        background-color: var(--bg-card);
         color: var(--text-main, #F8FAFC);
         font-family: var(--font-family, 'Inter', sans-serif);
       }
@@ -1141,7 +1141,7 @@
       /* Search Bar */
       .pt-clients-search-bar {
         padding: 12px 16px 8px;
-        background: #000000;
+        background: var(--bg-card);
       }
       .pt-search-input-wrap {
         position: relative;
@@ -1152,36 +1152,36 @@
       .pt-search-icon {
         position: absolute;
         left: 12px;
-        color: #94A3B8;
+        color: #65736d;
         font-size: 13px;
         pointer-events: none;
       }
       .pt-search-input {
         width: 100%;
         height: 38px;
-        background: #141414;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         padding: 0 34px 0 34px;
-        color: #F8FAFC;
+        color: var(--text-main);
         font-size: 13px;
         font-family: inherit;
         outline: none;
         transition: border-color 0.2s, box-shadow 0.2s;
       }
       .pt-search-input:focus {
-        border-color: var(--primary, #10B981);
-        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        border-color: var(--primary, #237b58);
+        box-shadow: none;
       }
       .pt-search-input::placeholder {
-        color: #64748B;
+        color: #65736d;
       }
       .pt-search-clear-btn {
         position: absolute;
         right: 10px;
         background: transparent;
         border: none;
-        color: #94A3B8;
+        color: #65736d;
         font-size: 13px;
         cursor: pointer;
         padding: 4px;
@@ -1190,14 +1190,14 @@
         justify-content: center;
       }
       .pt-search-clear-btn:hover {
-        color: #F8FAFC;
+        color: var(--text-main);
       }
 
       /* Navigation Tabs */
       .pt-clients-tabs-bar {
         display: flex;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        background: #000000;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-card);
         padding: 0 16px;
       }
       .pt-tab-btn {
@@ -1206,7 +1206,7 @@
         background: transparent;
         border: none;
         border-bottom: 2px solid transparent;
-        color: #94A3B8;
+        color: #65736d;
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
@@ -1218,24 +1218,24 @@
         padding: 0 8px;
       }
       .pt-tab-btn.active {
-        color: var(--primary, #10B981);
-        border-bottom-color: var(--primary, #10B981);
+        color: var(--primary, #237b58);
+        border-bottom-color: var(--primary, #237b58);
       }
       .pt-badge-count {
-        background: rgba(255, 255, 255, 0.1);
-        color: #CBD5E1;
-        font-size: 11px;
+        background: var(--border-color);
+        color: var(--text-main);
+        font-size: 12px;
         font-weight: 700;
         padding: 2px 7px;
-        border-radius: 12px;
+        border-radius: 8px;
       }
       .pt-badge-pending-count {
-        background: #EF4444;
-        color: #FFFFFF;
-        font-size: 11px;
+        background: #c43d40;
+        color: var(--text-main);
+        font-size: 12px;
         font-weight: 700;
         padding: 2px 6px;
-        border-radius: 12px;
+        border-radius: 8px;
       }
 
       /* Scrollable List */
@@ -1248,9 +1248,9 @@
 
       /* Card Học Viên (PT02-US01) */
       .pt-client-card {
-        background: #141414;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 14px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         padding: 14px;
         margin-bottom: 12px;
         cursor: pointer;
@@ -1272,14 +1272,14 @@
         width: 44px;
         height: 44px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #1E293B, #0F172A);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
         font-size: 14px;
-        color: #F8FAFC;
+        color: var(--text-main);
         flex-shrink: 0;
       }
       .pt-card-info-col {
@@ -1294,16 +1294,16 @@
       .pt-card-name {
         font-size: 14px;
         font-weight: 700;
-        color: #FFFFFF;
+        color: var(--text-main);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
       .pt-badge-expiring {
         background: rgba(245, 158, 11, 0.15);
-        color: #F59E0B;
+        color: #996217;
         border: 1px solid rgba(245, 158, 11, 0.3);
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 600;
         padding: 2px 6px;
         border-radius: 6px;
@@ -1314,19 +1314,19 @@
         align-items: center;
         gap: 6px;
         margin-top: 2px;
-        font-size: 11px;
-        color: #94A3B8;
+        font-size: 12px;
+        color: #65736d;
       }
       .pt-status-pill-active {
-        color: #10B981;
+        color: #237b58;
         font-weight: 600;
       }
       .pt-card-phone-btn {
         width: 32px;
         height: 32px;
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.06);
-        color: #94A3B8;
+        background: var(--border-color);
+        color: #65736d;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1336,29 +1336,29 @@
       }
       .pt-card-phone-btn:hover {
         background: rgba(16, 185, 129, 0.15);
-        color: #10B981;
+        color: #237b58;
       }
 
       /* Package Info Row */
       .pt-card-pkg-row {
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--border-color);
         border-radius: 8px;
         padding: 8px 10px;
         margin-bottom: 10px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 11px;
+        font-size: 12px;
       }
       .pt-pkg-name {
-        color: #E2E8F0;
+        color: var(--text-main);
         font-weight: 600;
         display: flex;
         align-items: center;
         gap: 6px;
       }
       .pt-pkg-expiry {
-        color: #94A3B8;
+        color: #65736d;
       }
 
       /* Metrics Row */
@@ -1369,23 +1369,23 @@
         margin-bottom: 10px;
       }
       .pt-metric-box {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
         border-radius: 8px;
         padding: 6px 10px;
       }
       .pt-metric-label {
-        font-size: 10px;
-        color: #94A3B8;
+        font-size: 12px;
+        color: #65736d;
         margin-bottom: 2px;
       }
       .pt-metric-value {
         font-size: 13px;
         font-weight: 700;
-        color: #F8FAFC;
+        color: var(--text-main);
       }
       .pt-metric-value.highlight {
-        color: var(--primary, #10B981);
+        color: var(--primary, #237b58);
       }
 
       /* Progress Bar */
@@ -1395,54 +1395,54 @@
       .pt-progress-header {
         display: flex;
         justify-content: space-between;
-        font-size: 11px;
-        color: #94A3B8;
+        font-size: 12px;
+        color: #65736d;
         margin-bottom: 4px;
       }
       .pt-progress-text {
-        color: #E2E8F0;
+        color: var(--text-main);
         font-weight: 600;
       }
       .pt-progress-bar-bg {
         height: 6px;
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--border-color);
         border-radius: 6px;
         overflow: hidden;
       }
       .pt-progress-bar-fill {
         height: 100%;
-        background: linear-gradient(90deg, #10B981, #34D399);
+        background: var(--bg-card);
         border-radius: 6px;
         transition: width 0.3s ease;
       }
 
       /* Card Yêu Cầu Phân Công (PT02-US03) */
       .pt-request-card {
-        background: #141414;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         padding: 14px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        box-shadow: none;
       }
       .pt-badge-pending {
         background: rgba(59, 130, 246, 0.15);
-        color: #60A5FA;
+        color: #286aa4;
         border: 1px solid rgba(59, 130, 246, 0.3);
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
         padding: 3px 8px;
-        border-radius: 20px;
+        border-radius: 8px;
       }
       .pt-req-detail-rows {
         display: flex;
         flex-direction: column;
         gap: 6px;
         font-size: 12px;
-        color: #CBD5E1;
+        color: var(--text-main);
         margin-bottom: 12px;
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--border-color);
         padding: 10px;
-        border-radius: 10px;
+        border-radius: 8px;
       }
       .pt-req-row {
         display: flex;
@@ -1450,23 +1450,23 @@
         gap: 8px;
       }
       .pt-row-icon {
-        color: var(--primary, #10B981);
+        color: var(--primary, #237b58);
         width: 14px;
         text-align: center;
       }
       .pt-highlight-text {
-        color: #F8FAFC;
+        color: var(--text-main);
         font-weight: 600;
       }
       .pt-time-text {
-        color: #94A3B8;
+        color: #65736d;
       }
       .pt-req-note-box {
         margin-top: 4px;
         padding-top: 6px;
-        border-top: 1px dashed rgba(255, 255, 255, 0.08);
+        border-top: 1px dashed var(--border-color);
         font-style: italic;
-        color: #E2E8F0;
+        color: var(--text-main);
         display: flex;
         gap: 6px;
       }
@@ -1479,8 +1479,8 @@
         height: 38px;
         background: rgba(239, 68, 68, 0.1);
         border: 1px solid rgba(239, 68, 68, 0.3);
-        color: #EF4444;
-        border-radius: 10px;
+        color: #c43d40;
+        border-radius: 8px;
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
@@ -1496,10 +1496,10 @@
       .pt-btn-accept {
         flex: 1.3;
         height: 38px;
-        background: linear-gradient(135deg, #10B981, #084736);
+        background: var(--bg-card);
         border: none;
-        color: #FFFFFF;
-        border-radius: 10px;
+        color: var(--text-main);
+        border-radius: 8px;
         font-size: 13px;
         font-weight: 700;
         cursor: pointer;
@@ -1507,7 +1507,7 @@
         align-items: center;
         justify-content: center;
         gap: 6px;
-        box-shadow: 0 4px 12px rgba(8, 71, 54, 0.4);
+        box-shadow: none;
       }
       .pt-btn-accept:active {
         transform: scale(0.98);
@@ -1520,7 +1520,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: #000000;
+        background: var(--bg-card);
         z-index: 50;
         display: flex;
         flex-direction: column;
@@ -1529,7 +1529,7 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-        background: #000000;
+        background: var(--bg-card);
       }
       .pt-subscreen-header {
         height: 52px;
@@ -1538,12 +1538,12 @@
         justify-content: space-between;
         padding: 0 16px;
         background: var(--brand-header-footer, #084736);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        border-bottom: 1px solid var(--border-color);
       }
       .pt-back-btn {
         background: transparent;
         border: none;
-        color: #F8FAFC;
+        color: var(--text-main);
         font-size: 18px;
         cursor: pointer;
         padding: 6px;
@@ -1551,14 +1551,14 @@
       .pt-subscreen-title {
         font-size: 16px;
         font-weight: 700;
-        color: #F8FAFC;
+        color: var(--text-main);
       }
       .pt-phone-call-btn {
         width: 34px;
         height: 34px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.15);
-        color: #34D399;
+        background: var(--border-color);
+        color: #237b58;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1569,12 +1569,12 @@
         flex: 1;
         overflow-y: auto;
         padding: 16px 16px 24px;
-        background: #000000;
+        background: var(--bg-card);
       }
       .pt-detail-profile-card {
-        background: #141414;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         padding: 16px;
         margin-bottom: 16px;
       }
@@ -1587,21 +1587,21 @@
       .pt-profile-name {
         font-size: 17px;
         font-weight: 800;
-        color: #FFFFFF;
+        color: var(--text-main);
       }
       .pt-profile-meta {
         font-size: 13px;
-        color: #94A3B8;
+        color: #65736d;
         margin-top: 2px;
       }
       .pt-profile-branch {
         font-size: 12px;
-        color: #64748B;
+        color: #65736d;
         margin-top: 4px;
       }
       .pt-profile-package-box {
-        background: #1c1c1c;
-        border-radius: 12px;
+        background: var(--bg-card);
+        border-radius: 8px;
         padding: 12px;
         margin-bottom: 14px;
       }
@@ -1614,20 +1614,20 @@
       .pt-pkg-badge-title {
         font-size: 14px;
         font-weight: 700;
-        color: var(--primary, #10B981);
+        color: var(--primary, #237b58);
       }
       .pt-badge-active-mini {
         background: rgba(16, 185, 129, 0.2);
-        color: #10B981;
-        font-size: 10px;
+        color: #237b58;
+        font-size: 12px;
         padding: 2px 6px;
         border-radius: 4px;
         font-weight: 600;
       }
       .pt-badge-warning-mini {
         background: rgba(245, 158, 11, 0.2);
-        color: #F59E0B;
-        font-size: 10px;
+        color: #996217;
+        font-size: 12px;
         padding: 2px 6px;
         border-radius: 4px;
         font-weight: 600;
@@ -1639,26 +1639,26 @@
         margin-bottom: 12px;
       }
       .pt-stat-col {
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--border-color);
         border-radius: 8px;
         padding: 8px 10px;
       }
       .pt-stat-col-label {
-        font-size: 11px;
-        color: #94A3B8;
+        font-size: 12px;
+        color: #65736d;
         margin-bottom: 2px;
       }
       .pt-stat-col-val {
         font-size: 14px;
         font-weight: 700;
-        color: #FFFFFF;
+        color: var(--text-main);
       }
 
       /* Timeline Sessions */
       .pt-timeline-header-title {
         font-size: 15px;
         font-weight: 700;
-        color: #F8FAFC;
+        color: var(--text-main);
         margin-bottom: 12px;
         display: flex;
         align-items: center;
@@ -1675,7 +1675,7 @@
         bottom: 8px;
         left: 5px;
         width: 2px;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-color);
       }
       .pt-timeline-item {
         position: relative;
@@ -1688,14 +1688,14 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: var(--primary, #10B981);
+        background: var(--primary, #237b58);
         border: 2px solid #000000;
-        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4);
+        box-shadow: none;
       }
       .pt-session-bubble {
-        background: #141414;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         padding: 12px;
         margin-left: 8px;
       }
@@ -1708,14 +1708,14 @@
       .pt-session-num {
         font-weight: 700;
         font-size: 13px;
-        color: #F8FAFC;
+        color: var(--text-main);
       }
       .pt-session-date {
-        font-size: 11px;
-        color: #94A3B8;
+        font-size: 12px;
+        color: #65736d;
       }
       .pt-session-status-done {
-        color: #10B981;
+        color: #237b58;
         font-weight: 600;
         background: rgba(16, 185, 129, 0.15);
         padding: 2px 6px;
@@ -1724,50 +1724,50 @@
       .pt-assessment-block {
         margin-bottom: 8px;
         font-size: 12px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--border-color);
         padding: 8px 10px;
         border-radius: 8px;
       }
       .pt-assessment-block.fitness {
         background: rgba(8, 71, 54, 0.2);
-        border-left: 3px solid #10B981;
+        border-left: 3px solid #237b58;
       }
       .pt-assessment-block .block-title {
         font-weight: 600;
-        color: #94A3B8;
+        color: #65736d;
         margin-bottom: 3px;
         display: flex;
         align-items: center;
         gap: 4px;
       }
       .pt-assessment-block.fitness .block-title {
-        color: #34D399;
+        color: #237b58;
       }
       .pt-assessment-block .block-content {
-        color: #E2E8F0;
+        color: var(--text-main);
         line-height: 1.4;
       }
       .pt-empty-history-card {
-        background: #141414;
-        border: 1px dashed rgba(255, 255, 255, 0.12);
-        border-radius: 14px;
+        background: var(--bg-card);
+        border: 1px dashed var(--border-color);
+        border-radius: 8px;
         padding: 24px 16px;
         text-align: center;
       }
       .empty-hist-icon {
         font-size: 32px;
-        color: #64748B;
+        color: #65736d;
         margin-bottom: 8px;
       }
       .empty-hist-title {
         font-size: 14px;
         font-weight: 600;
-        color: #E2E8F0;
+        color: var(--text-main);
         margin-bottom: 4px;
       }
       .empty-hist-desc {
         font-size: 12px;
-        color: #94A3B8;
+        color: #65736d;
         line-height: 1.4;
       }
 
@@ -1786,10 +1786,10 @@
       }
       .pt-bottom-sheet {
         width: 100%;
-        background: #141414;
+        background: var(--bg-card);
         border-top-left-radius: 24px;
         border-top-right-radius: 24px;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-top: 1px solid var(--border-color);
         padding: 12px 16px 24px;
         animation: slideUp 0.25s ease-out;
       }
@@ -1800,7 +1800,7 @@
       .pt-sheet-handle {
         width: 36px;
         height: 4px;
-        background: rgba(255, 255, 255, 0.2);
+        background: var(--border-color);
         border-radius: 4px;
         margin: 0 auto 12px;
       }
@@ -1813,35 +1813,35 @@
       .pt-sheet-title {
         font-size: 16px;
         font-weight: 700;
-        color: #F8FAFC;
+        color: var(--text-main);
       }
       .pt-sheet-close {
         background: transparent;
         border: none;
-        color: #94A3B8;
+        color: #65736d;
         font-size: 16px;
         cursor: pointer;
       }
       .pt-reject-summary-card {
         background: rgba(239, 68, 68, 0.08);
         border: 1px solid rgba(239, 68, 68, 0.2);
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 10px 12px;
         margin-bottom: 14px;
         font-size: 13px;
       }
       .summary-name {
         font-weight: 700;
-        color: #F8FAFC;
+        color: var(--text-main);
         margin-bottom: 2px;
       }
       .summary-code {
         font-weight: 400;
-        color: #94A3B8;
+        color: #65736d;
       }
       .summary-pkg, .summary-branch {
         font-size: 12px;
-        color: #CBD5E1;
+        color: var(--text-main);
         margin-top: 2px;
         display: flex;
         align-items: center;
@@ -1853,12 +1853,12 @@
       .pt-form-label {
         font-size: 13px;
         font-weight: 600;
-        color: #CBD5E1;
+        color: var(--text-main);
         margin-bottom: 8px;
         display: block;
       }
       .required-star {
-        color: #EF4444;
+        color: #c43d40;
       }
       .pt-reason-options {
         display: flex;
@@ -1870,35 +1870,35 @@
         align-items: center;
         gap: 10px;
         background: var(--bg-surface-elevated, #1E293B);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         padding: 10px 12px;
         cursor: pointer;
         font-size: 13px;
-        color: #E2E8F0;
+        color: var(--text-main);
       }
       .pt-radio-option input[type="radio"] {
-        accent-color: #EF4444;
+        accent-color: #c43d40;
       }
       .pt-textarea {
         width: 100%;
         background: var(--bg-surface-elevated, #1E293B);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         padding: 10px;
-        color: #F8FAFC;
+        color: var(--text-main);
         font-size: 13px;
         font-family: inherit;
         outline: none;
         resize: none;
       }
       .pt-textarea:focus {
-        border-color: #EF4444;
+        border-color: #c43d40;
       }
       .char-count {
         text-align: right;
-        font-size: 11px;
-        color: #64748B;
+        font-size: 12px;
+        color: #65736d;
         margin-top: 4px;
       }
       .pt-sheet-actions {
@@ -1909,27 +1909,27 @@
       .pt-btn-secondary {
         flex: 1;
         height: 42px;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        color: #CBD5E1;
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-main);
         font-weight: 600;
         cursor: pointer;
       }
       .pt-btn-danger {
         flex: 1.5;
         height: 42px;
-        background: #EF4444;
+        background: #c43d40;
         border: none;
-        border-radius: 12px;
-        color: #FFFFFF;
+        border-radius: 8px;
+        color: var(--text-main);
         font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        box-shadow: none;
       }
 
       /* Empty State chung */
@@ -1943,17 +1943,17 @@
         margin-bottom: 12px;
       }
       .pt-empty-icon.success-glow {
-        color: #10B981;
+        color: #237b58;
       }
       .pt-empty-title {
         font-size: 15px;
         font-weight: 700;
-        color: #E2E8F0;
+        color: var(--text-main);
         margin-bottom: 6px;
       }
       .pt-empty-desc {
         font-size: 13px;
-        color: #94A3B8;
+        color: #65736d;
         line-height: 1.4;
       }
       .pt-section-hint {
@@ -1961,10 +1961,15 @@
         align-items: center;
         gap: 6px;
         font-size: 12px;
-        color: #94A3B8;
+        color: #65736d;
         margin-bottom: 10px;
       }
-    `;
+      .pt-btn-accept { background: var(--primary); color: #fff; }
+      .pt-subscreen-header { background: var(--bg-card); color: var(--text-main); }
+      .pt-badge-pending-count { color: #fff; }
+      .pt-progress-bar-fill { background: var(--primary); }
+      .pt-back-btn, .pt-subscreen-title { color: var(--text-main); }
+ `;
     document.head.appendChild(style);
   }
 

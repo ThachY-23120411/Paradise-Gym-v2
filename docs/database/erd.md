@@ -79,6 +79,12 @@ erDiagram
     branches ||--o{ devices : "installed_at"
     branches ||--o{ access_logs : "occurs_at"
     branches ||--o{ audit_logs : "scoped_to"
+    branches ||--o{ pt_commission_configs : "configures"
+    branches ||--o{ pt_commission_config_history : "records_branch_history"
+    pt_commission_configs ||--o{ pt_commission_config_history : "tracks_history"
+    branches ||--o{ discounts : "offers"
+    branches ||--o{ community_classes : "hosts"
+    branches ||--o{ holidays : "observes"
 
     accounts ||--o{ account_roles : "has"
     accounts ||--o{ account_sessions : "has_session"
@@ -88,6 +94,7 @@ erDiagram
     accounts ||--o| pt_profiles : "links_to_pt"
     accounts ||--o{ notifications : "receives"
     accounts ||--o{ audit_logs : "performs_action"
+    accounts ||--o{ pt_commissions : "pays_commission"
 
     member_profiles ||--o{ registrations : "owns"
     packages ||--o{ package_branches : "available_at"
@@ -99,13 +106,23 @@ erDiagram
     registrations ||--o{ pt_bookings : "deducts_sessions_from"
     registrations ||--o{ payments : "paid_by"
     registrations ||--o{ access_logs : "grants_access_for"
+    registrations ||--o{ package_freezes : "frozen_by"
+    registrations ||--o{ package_transfers : "transferred_by"
+    registrations ||--o{ group_pt_members : "includes_members"
 
     pt_profiles ||--o{ pt_assignment_requests : "receives_request"
     pt_profiles ||--o{ pt_bookings : "conducts_session"
+    pt_profiles ||--o{ pt_commissions : "receives_commission"
+    pt_profiles ||--o{ pt_commission_configs : "has_special_config"
     member_profiles ||--o{ pt_assignment_requests : "sends_request"
     member_profiles ||--o{ pt_bookings : "books_session"
+    member_profiles ||--o{ community_class_registrations : "registers_class"
+    member_profiles ||--o{ group_pt_members : "participates_in_group_pt"
+
+    community_classes ||--o{ community_class_registrations : "has_participants"
 
     payments ||--|| receipts : "generates_receipt"
+    payments ||--o| discounts : "applies"
     member_profiles ||--o{ payments : "makes_payment"
 
     devices ||--o{ access_logs : "records_entry"
@@ -126,6 +143,7 @@ erDiagram
         time open_time
         time close_time
         varchar timezone
+        decimal default_pt_commission_percentage
         timestamptz created_at
         timestamptz updated_at
     }
@@ -191,6 +209,8 @@ erDiagram
         date date_of_birth
         varchar gender
         varchar avatar_url
+        varchar qr_code
+        boolean face_enrolled
         varchar status
         uuid created_by FK
         timestamptz created_at
@@ -205,9 +225,14 @@ erDiagram
         varchar full_name
         varchar phone UK
         varchar email
+        varchar avatar_url
+        boolean face_enrolled
         varchar gender
         text bio
         text specialties
+        varchar bank_name
+        varchar bank_account_no
+        varchar bank_account_name
         boolean show_phone_to_members
         varchar status
         time work_start_time
@@ -223,9 +248,15 @@ erDiagram
         varchar package_name
         varchar package_type
         decimal price
+        decimal gym_price
+        decimal pt_price
+        decimal combo_price
         int duration_days
         int total_gym_sessions
         int total_pt_sessions
+        int session_duration_minutes
+        varchar package_mode
+        int max_group_members
         varchar status
         text description
         timestamptz created_at
@@ -245,9 +276,13 @@ erDiagram
         uuid assigned_pt_id FK
         uuid sold_branch_id FK
         uuid previous_registration_id FK
+        uuid group_leader_member_id FK
         varchar package_name_snapshot
         varchar package_type_snapshot
         decimal price_snapshot
+        decimal gym_price_snapshot
+        decimal pt_price_snapshot
+        decimal combo_price_snapshot
         int duration_days_snapshot
         int total_gym_sessions_snapshot
         int total_pt_sessions_snapshot
@@ -257,6 +292,10 @@ erDiagram
         int remaining_pt_sessions
         int booked_pt_sessions
         int used_pt_sessions
+        varchar package_mode
+        int max_group_members_snapshot
+        boolean is_frozen
+        int freeze_days_total
         varchar status
         uuid created_by FK
         timestamptz created_at
@@ -285,8 +324,10 @@ erDiagram
         uuid registration_id FK
         uuid member_id FK
         uuid pt_id FK
+        uuid substitute_pt_id FK
         uuid branch_id FK
         int session_number
+        int session_duration_minutes
         date booking_date
         time start_time
         time end_time
@@ -309,6 +350,8 @@ erDiagram
         uuid registration_id FK
         uuid member_id FK
         uuid branch_id FK
+        uuid discount_id FK
+        decimal discount_amount
         varchar payment_code UK
         varchar payment_method
         decimal amount
@@ -355,6 +398,7 @@ erDiagram
         uuid branch_id FK
         varchar direction
         varchar access_method
+        varchar checkin_method
         varchar status
         varchar denial_reason
         boolean is_duplicate_warning
@@ -423,6 +467,157 @@ erDiagram
         varchar ip_address
         timestamptz created_at
     }
+
+    pt_commission_configs {
+        uuid id PK
+        uuid branch_id FK
+        uuid pt_id FK
+        decimal commission_percentage
+        boolean is_active
+        int version
+        timestamptz effective_from
+        text note
+        uuid updated_by_account_id FK
+        timestamptz updated_at
+        timestamptz created_at
+    }
+
+    pt_commission_config_history {
+        uuid id PK
+        uuid config_id FK
+        int version
+        uuid branch_id FK
+        uuid pt_id FK
+        decimal commission_percentage
+        boolean is_active
+        timestamptz effective_from
+        timestamptz effective_to
+        varchar action
+        text note
+        uuid changed_by_account_id FK
+        timestamptz changed_at
+    }
+
+    pt_commissions {
+        uuid id PK
+        uuid pt_id FK
+        int month
+        int year
+        int total_pt_sessions_taught
+        decimal pt_revenue_share
+        decimal commission_percentage
+        decimal total_commission_amount
+        varchar status
+        timestamptz paid_at
+        varchar payout_method
+        varchar payout_ref
+        text payout_note
+        uuid paid_by_account_id FK
+        timestamptz created_at
+    }
+
+    discounts {
+        uuid id PK
+        uuid branch_id FK
+        varchar code UK
+        varchar title
+        varchar discount_type
+        decimal discount_value
+        decimal min_order_value
+        decimal max_discount_amount
+        date start_date
+        date end_date
+        int usage_limit
+        int used_count
+        boolean is_active
+        timestamptz created_at
+    }
+
+    community_classes {
+        uuid id PK
+        uuid branch_id FK
+        varchar title
+        varchar instructor_name
+        date class_date
+        time start_time
+        time end_time
+        int max_slots
+        int enrolled_slots
+        varchar status
+        text description
+        timestamptz created_at
+    }
+
+    community_class_registrations {
+        uuid id PK
+        uuid class_id FK
+        uuid member_id FK
+        timestamptz registration_date
+        varchar status
+    }
+
+    group_pt_members {
+        uuid id PK
+        uuid registration_id FK
+        uuid member_id FK
+        uuid inviter_member_id FK
+        varchar invitation_status
+        timestamptz joined_at
+        timestamptz created_at
+    }
+
+    package_freezes {
+        uuid id PK
+        uuid registration_id FK
+        date start_date
+        date end_date
+        int freeze_days
+        text reason
+        uuid approved_by FK
+        varchar status
+        timestamptz created_at
+    }
+
+    package_transfers {
+        uuid id PK
+        uuid registration_id FK
+        uuid from_member_id FK
+        uuid to_member_id FK
+        decimal transfer_fee
+        text reason
+        uuid approved_by FK
+        timestamptz created_at
+    }
+
+    holidays {
+        uuid id PK
+        uuid branch_id FK
+        date holiday_date
+        varchar title
+        boolean is_closed
+        timestamptz created_at
+    }
+
+    discounts {
+        uuid id PK
+        uuid branch_id FK
+        uuid_array branch_ids
+        varchar code
+        varchar title
+        varchar discount_type
+        decimal discount_value
+        decimal min_order_value
+        decimal max_discount_amount
+        date start_date
+        date end_date
+        int usage_limit
+        int used_count
+        boolean is_active
+        timestamptz created_at
+    }
+
+    branches ||--o{ discounts : "applies_to"
+    discounts ||--o{ payments : "applied_to"
 ```
 
 ---
@@ -448,6 +643,7 @@ erDiagram
 | `open_time` | `TIME` | `NOT NULL` | `'06:00:00'` | Giờ mở cửa phòng gym hàng ngày |
 | `close_time` | `TIME` | `NOT NULL` | `'22:00:00'` | Giờ đóng cửa phòng gym hàng ngày |
 | `timezone` | `VARCHAR(50)` | `NOT NULL` | `'Asia/Ho_Chi_Minh'` | Múi giờ chuẩn của chi nhánh |
+| `default_pt_commission_percentage` | `DECIMAL(5,2)` | `NOT NULL` | `20.00` | Tỷ lệ hoa hồng PT mặc định (%) ban đầu cho chi nhánh, dùng để tự sinh bản ghi cấu hình hoa hồng chi nhánh v1 (`pt_commission_configs`) qua trigger |
 | `created_at` | `TIMESTAMPTZ` | `NOT NULL` | `NOW()` | Thời điểm tạo bản ghi |
 | `updated_at` | `TIMESTAMPTZ` | `NOT NULL` | `NOW()` | Thời điểm cập nhật cuối cùng |
 
@@ -565,6 +761,9 @@ erDiagram
 | `gender` | `VARCHAR(10)` | `NULL` | | Giới tính PT |
 | `bio` | `TEXT` | `NULL` | | Giới thiệu kinh nghiệm, thế mạnh huấn luyện |
 | `specialties` | `TEXT` | `NULL` | | Chuyên môn (ví dụ: Giảm cân, Tăng cơ, Boxing, Phục hồi) |
+| `bank_name` | `VARCHAR(100)` | `NULL` | | Tên ngân hàng thụ hưởng nhận hoa hồng (ví dụ: MB Bank, Vietcombank) |
+| `bank_account_no` | `VARCHAR(50)` | `NULL` | | Số tài khoản ngân hàng thụ hưởng của PT |
+| `bank_account_name` | `VARCHAR(150)` | `NULL` | | Tên chủ tài khoản ngân hàng thụ hưởng (viết hoa không dấu) |
 | `show_phone_to_members` | `BOOLEAN` | `NOT NULL` | `FALSE` | Cho phép hội viên thực sự được phân công PT này xem SĐT liên hệ; PT tự chỉnh cài đặt. Không ảnh hưởng QTV/LT có quyền xem hồ sơ hoặc chính PT |
 | `status` | `VARCHAR(20)` | `NOT NULL` | `'ACTIVE'` | Trạng thái: `ACTIVE`, `INACTIVE` |
 | `work_start_time` | `TIME` | `NOT NULL` | `'08:00:00'` | Giờ bắt đầu ca làm việc chuẩn cố định |
@@ -591,6 +790,12 @@ erDiagram
 | `duration_days` | `INT` | `NOT NULL` | | Số ngày hiệu lực sử dụng tối đa của gói |
 | `total_gym_sessions` | `INT` | `NULL` | | Số buổi tập Gym (dành cho `GYM_SESSION` hoặc `COMBO`) |
 | `total_pt_sessions` | `INT` | `NULL` | | Số buổi tập PT (dành cho `PT_SESSION` hoặc `COMBO`) |
+| `gym_price` | `DECIMAL(12,2)` | `NULL` | | Giá thành phần Gym (cho gói Combo) |
+| `pt_price` | `DECIMAL(12,2)` | `NULL` | | Giá thành phần PT (cho gói Combo/PT dùng tính hoa hồng) |
+| `combo_price` | `DECIMAL(12,2)` | `NULL` | | Giá bán combo ưu đãi |
+| `session_duration_minutes` | `INT` | `NOT NULL` | `60` | Thời lượng buổi tập PT (phút): 30, 45, 60, 75, 90 |
+| `package_mode` | `VARCHAR(20)` | `NOT NULL` | `'INDIVIDUAL'` | Hình thức huấn luyện: `INDIVIDUAL` (1-1) hoặc `GROUP_1_N` (1-Nhiều) |
+| `max_group_members` | `INT` | `NULL` | | Số học viên tối đa trong nhóm khi gói PT 1-Nhiều (tối đa 50) |
 | `status` | `VARCHAR(20)` | `NOT NULL` | `'ACTIVE'` | Trạng thái: `ACTIVE` (đang bán), `INACTIVE` (ngừng bán) |
 | `description` | `TEXT` | `NULL` | | Mô tả chi tiết quyền lợi và quy định gói |
 | `created_at` | `TIMESTAMPTZ` | `NOT NULL` | `NOW()` | Thời điểm tạo gói |
@@ -611,7 +816,7 @@ erDiagram
   - Áp dụng **Snapshot đóng băng thông số bán**: `package_name_snapshot`, `package_type_snapshot`, `price_snapshot`, `duration_days_snapshot`, `total_gym_sessions_snapshot`, `total_pt_sessions_snapshot`.
   - Khi tạo gói PT/Combo, `assigned_pt_id` ban đầu **để trống (NULL)**; PT chỉ được gán sau khi Hội viên gửi request và PT `ACCEPT`.
   - Gia hạn gói: `previous_registration_id` liên kết với đăng ký trước để nối tiếp ngày kết thúc.
-  - Trạng thái đăng ký: `PENDING_PAYMENT` (Chờ thanh toán 100%), `SCHEDULED` (Đã thanh toán, chờ đến ngày bắt đầu), `ACTIVE` (Đang có hiệu lực tập), `EXPIRED` (Đã hết hạn), `CANCELLED` (Đã hủy).
+  - Trạng thái đăng ký: `PENDING_PAYMENT` (Chờ thanh toán 100%), `SCHEDULED` (Chưa đến ngày hiệu lực: đã thanh toán đủ 100%, chờ đến ngày bắt đầu; cho phép gán PT phụ trách ngay), `ACTIVE` (Đang hiệu lực), `EXPIRED` (Đã hết hạn), `CANCELLED` (Đã hủy). Khi đến ngày bắt đầu (`start_date <= CURRENT_DATE`), hệ thống tự động chuyển sang `ACTIVE`.
 
 | Tên trường | Kiểu dữ liệu | Ràng buộc | Giá trị mặc định | Mô tả & Nguồn nghiệp vụ |
 | :--- | :--- | :--- | :--- | :--- |
@@ -625,6 +830,9 @@ erDiagram
 | `package_name_snapshot` | `VARCHAR(150)` | `NOT NULL` | | Snapshot tên gói tại thời điểm mua |
 | `package_type_snapshot` | `VARCHAR(30)` | `NOT NULL` | | Snapshot loại gói (`GYM_TIME`, `GYM_SESSION`, `PT_SESSION`, `COMBO`) |
 | `price_snapshot` | `DECIMAL(12,2)` | `NOT NULL` | | Snapshot giá gói phải thanh toán 100% |
+| `gym_price_snapshot` | `DECIMAL(12,2)` | `NULL` | | Snapshot giá thành phần Gym tại thời điểm mua |
+| `pt_price_snapshot` | `DECIMAL(12,2)` | `NULL` | | Snapshot giá thành phần PT tại thời điểm mua |
+| `combo_price_snapshot` | `DECIMAL(12,2)` | `NULL` | | Snapshot giá combo tại thời điểm mua |
 | `duration_days_snapshot` | `INT` | `NOT NULL` | | Snapshot số ngày hiệu lực |
 | `total_gym_sessions_snapshot` | `INT` | `NULL` | | Snapshot tổng số buổi Gym ban đầu |
 | `total_pt_sessions_snapshot` | `INT` | `NULL` | | Snapshot tổng số buổi PT ban đầu |
@@ -634,6 +842,11 @@ erDiagram
 | `remaining_pt_sessions` | `INT` | `NULL` | | Số buổi PT còn lại có thể đặt hẹn |
 | `booked_pt_sessions` | `INT` | `NOT NULL` | `0` | Số buổi PT đang giữ chỗ (chưa diễn ra) |
 | `used_pt_sessions` | `INT` | `NOT NULL` | `0` | Số buổi PT đã hoàn thành (đã khấu trừ) |
+| `package_mode` | `VARCHAR(20)` | `NOT NULL` | `'INDIVIDUAL'` | Chế độ gói: `INDIVIDUAL` (Cá nhân 1-1) hoặc `GROUP` / `GROUP_1_N` (Nhóm 1-Nhiều) |
+| `group_leader_member_id` | `UUID` | `FK, NULL` | | Hội viên đại diện mua và quản lý gói PT 1-Nhiều (`member_profiles(id)`) |
+| `max_group_members_snapshot` | `INT` | `NULL` | | Snapshot số học viên tối đa trong nhóm (gói PT 1-Nhiều) |
+| `is_frozen` | `BOOLEAN` | `NOT NULL` | `FALSE` | Cờ đánh dấu gói đang được bảo lưu đóng băng |
+| `freeze_days_total` | `INT` | `NOT NULL` | `0` | Tổng số ngày đã bảo lưu đóng băng cộng dồn |
 | `status` | `VARCHAR(30)` | `NOT NULL` | `'PENDING_PAYMENT'` | Trạng thái: `PENDING_PAYMENT`, `SCHEDULED`, `ACTIVE`, `EXPIRED`, `CANCELLED` |
 | `created_by` | `UUID` | `FK, NULL` | | Tài khoản nhân viên/hội viên tạo đăng ký (`accounts(id)`) |
 | `created_at` | `TIMESTAMPTZ` | `NOT NULL` | `NOW()` | Thời điểm lập đăng ký |
@@ -674,6 +887,7 @@ erDiagram
   - Slot khả dụng = Khung giờ cố định của PT (08:00 - 18:00, Thứ 2 - Thứ 6) trừ đi các booking đang giữ chỗ (`BOOKED`, `PENDING_COMPLETION`).
   - Hủy trước 12h: Giải phóng slot, không trừ buổi (`is_deducted = FALSE`). Hủy muộn dưới 12h hoặc vắng mặt: Khấu trừ 1 buổi (`is_deducted = TRUE`).
   - **Xác nhận kép 2 chiều:** Buổi tập kết thúc chỉ chuyển sang `COMPLETED` khi cả `pt_confirmed_at` và `member_confirmed_at` đều khác NULL.
+  - **Quy tắc 1 khung giờ duy nhất 1 buổi tập (Chống trùng lịch):** Tại một thời điểm bắt đầu trong ngày, một HLV hoặc một Hội viên chỉ được phép có tối đa 1 buổi tập (ngoại trừ trạng thái `CANCELLED`). Ràng buộc được bảo vệ nghiêm ngặt ở tầng cơ sở dữ liệu qua 2 Partial Unique Indexes: `uq_pt_bookings_pt_slot (pt_id, booking_date, start_time) WHERE status <> 'CANCELLED'` và `uq_pt_bookings_member_slot (member_id, booking_date, start_time) WHERE status <> 'CANCELLED'`.
 
 | Tên trường | Kiểu dữ liệu | Ràng buộc | Giá trị mặc định | Mô tả & Nguồn nghiệp vụ |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1017,7 +1231,7 @@ erDiagram
 ### Database Guards
 
 - `protect_completed_payment()` / trigger `completed_payment_immutable`, BEFORE UPDATE OR DELETE on payments: completed financial evidence cannot be overwritten or deleted.
-- `validate_full_payment()` / trigger `payment_snapshot_guard`, BEFORE INSERT OR UPDATE on payments: lock the registration, require exact snapshot amount/member/sold branch and reject a second completed payment. The registration row lock serializes competing confirmations without modifying existing financial records.
+- `validate_full_payment()` / trigger `payment_snapshot_guard`, BEFORE INSERT OR UPDATE on payments: lock the registration, require exact snapshot amount (tính cả `discount_amount` nếu có voucher: `amount + discount_amount = price_snapshot`), member, sold branch and reject a second completed payment. The registration row lock serializes competing confirmations without modifying existing financial records.
 - API transactions lock the registration and relevant trainer/member rows before reserving sessions, assigning trainers, collecting payment or deducting gym sessions; all related audit/receipt writes commit together.
 
 ### Mobile Refactor: Approved Additions (2026-09-17) & Certificates Removal (2026-09-18)
@@ -1027,3 +1241,223 @@ Migration `003_mobile_preferences.sql` initially introduced notification prefere
 Notification preferences are account-owned, independent of active-role UI: MEMBER may update only its in-app/reminder flags; PT may update only its new-booking/result flags and its own profile privacy setting. A multi-role account retains both sets. All automatic notifications still require an enabled branch W09 rule with its assigned active template. The new flags can suppress an otherwise permitted recipient, never bypass W09. `show_phone_to_members` does not expose PT phone to arbitrary members: an assigned registration relationship is also required.
 
 Phone-change challenges reuse existing `accounts.otp_hash`, `otp_expires_at`, `otp_purpose` and a signed client-carried challenge bound to account/new phone/current session. The change atomically updates existing account/member phone fields and revokes old sessions. No additional OTP, trusted-device or session schema was approved or introduced.
+
+---
+
+## Boss Feedback Additive Migration (006, 2026-09-19)
+
+Cập nhật mô hình cơ sở dữ liệu đáp ứng 100% các yêu cầu từ phiên họp với sếp Cường (`ghi chú a Cường (1).pdf`): Quản lý hoa hồng PT, bóc tách 3 giá gói Combo, lớp tập cộng đồng, gói PT 1-nhiều, đóng băng & chuyển nhượng gói, mã giảm giá, kiểm soát check-in 3 hình thức (Face, QR, Thủ công), avatar người dùng và lịch ngày lễ.
+
+### 1. Bổ Sung / Thay Đổi Các Trường Thuộc Bảng Hiện Có
+
+| Bảng | Trường bổ sung / Điều chỉnh | Kiểu dữ liệu | Ràng buộc / Mặc định | Ý nghĩa & Nghiệp vụ |
+| :--- | :--- | :--- | :--- | :--- |
+| `packages` | `gym_price` | `DECIMAL(12,2)` | `NULL` | Giá trị phần tập Gym trong gói |
+| `packages` | `pt_price` | `DECIMAL(12,2)` | `NULL` | Giá trị phần tập PT trong gói (dùng tính hoa hồng PT) |
+| `packages` | `combo_price` | `DECIMAL(12,2)` | `NULL` | Giá bán gói combo ($\le \text{gym\_price} + \text{pt\_price}$) |
+| `packages` | `session_duration_minutes`| `INTEGER` | `NOT NULL DEFAULT 60` | Thời lượng tiêu chuẩn của 1 buổi tập PT (phút) |
+| `packages` | `package_mode` | `VARCHAR(20)` | `NOT NULL DEFAULT 'INDIVIDUAL'` | Hình thức gói: `INDIVIDUAL` (1-1), `GROUP_PT` (1-Nhiều), `COMMUNITY` |
+| `packages` | `max_group_members` | `INTEGER` | `NULL` | Số học viên tối đa của nhóm khi gói PT 1-Nhiều (mặc định 3, tối đa 50) |
+| `registrations` | `gym_price_snapshot` | `DECIMAL(12,2)` | `NULL` | Snapshot giá Gym tại thời điểm bán |
+| `registrations` | `pt_price_snapshot` | `DECIMAL(12,2)` | `NULL` | Snapshot giá PT tại thời điểm bán (cơ sở trích hoa hồng) |
+| `registrations` | `combo_price_snapshot`| `DECIMAL(12,2)` | `NULL` | Snapshot giá Combo tại thời điểm bán |
+| `registrations` | `max_group_members_snapshot` | `INTEGER` | `NULL` | Snapshot số học viên tối đa trong nhóm (gói PT 1-Nhiều) |
+| `registrations` | `is_frozen` | `BOOLEAN` | `NOT NULL DEFAULT FALSE` | Cờ đánh dấu gói đang trong thời gian đóng băng bảo lưu |
+| `registrations` | `freeze_days_total` | `INTEGER` | `NOT NULL DEFAULT 0` | Tổng số ngày gói đã được đóng băng cộng dồn |
+| `registrations` | `group_leader_member_id` | `UUID FK` | `NULL REFERENCES member_profiles(id)` | ID Hội viên đại diện mua và quản lý gói PT 1-Nhiều |
+| `member_profiles`| `avatar_url` | `VARCHAR(500)` | `NULL` | Đường dẫn ảnh chân dung / ảnh Face enrollment |
+| `member_profiles`| `qr_code` | `VARCHAR(100)` | `NULL UNIQUE` | Mã định danh QR Code cá nhân dùng check-in |
+| `member_profiles`| `face_enrolled` | `BOOLEAN` | `NOT NULL DEFAULT FALSE` | Đã hoàn tất đăng ký khuôn mặt tại quầy |
+| `pt_profiles` | `avatar_url` | `VARCHAR(500)` | `NULL` | Đường dẫn ảnh đại diện PT |
+| `pt_profiles` | `face_enrolled` | `BOOLEAN` | `NOT NULL DEFAULT FALSE` | Đã đăng ký nhận diện khuôn mặt |
+| `accounts` | `avatar_url` | `VARCHAR(500)` | `NULL` | Ảnh đại diện tài khoản đồng bộ từ profile |
+| `access_logs` | `checkin_method` | `VARCHAR(20)` | `NOT NULL DEFAULT 'MANUAL'` | Phương thức check-in: `FACE`, `QR`, `MANUAL` |
+| `payments` | `discount_id` | `UUID FK` | `NULL REFERENCES discounts(id)` | Khóa ngoại trỏ đến mã giảm giá áp dụng (nếu có) |
+| `payments` | `discount_amount` | `DECIMAL(12,2)` | `NOT NULL DEFAULT 0` | Số tiền được giảm trừ trực tiếp trên giao dịch |
+| `pt_bookings` | `session_duration_minutes`| `INTEGER`| `NOT NULL DEFAULT 60` | Thời lượng thực tế của ca tập (phút) |
+| `pt_bookings` | `substitute_pt_id` | `UUID FK` | `NULL REFERENCES pt_profiles(id)` | PT dạy thay thế khi PT chính nghỉ ngang hoặc đổi ca |
+
+---
+
+### 2. Danh Sách 9 Bảng Mới Bổ Sung
+
+#### 2.1. `pt_commission_configs` (Cấu hình hoa hồng Huấn luyện viên PT hiện hành)
+- **Mục đích:** QTV thiết lập tỷ lệ % hoa hồng hiện hành cho Huấn luyện viên PT tại từng chi nhánh. Mỗi chi nhánh bắt buộc có đúng 1 cấu hình mặc định (Branch Default), mỗi PT cụ thể có tối đa 1 cấu hình riêng (PT Override). Áp dụng nguyên tắc Zero Hard Delete (dùng `is_active`).
+- **Ràng buộc Unique:**
+  * `uq_commission_config_branch_default`: `UNIQUE(branch_id) WHERE pt_id IS NULL`
+  * `uq_commission_config_branch_pt`: `UNIQUE(branch_id, pt_id) WHERE pt_id IS NOT NULL`
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `branch_id UUID NOT NULL REFERENCES branches(id) ON DELETE CASCADE`
+  * `pt_id UUID NULL REFERENCES pt_profiles(id) ON DELETE CASCADE` (Nếu `NULL`: Branch Default; nếu có giá trị: PT Override)
+  * `commission_percentage DECIMAL(5,2) NOT NULL CHECK (commission_percentage >= 0 AND commission_percentage <= 100)`: Tỷ lệ % hoa hồng
+  * `is_active BOOLEAN NOT NULL DEFAULT true`: Trạng thái đang áp dụng (`true`) hoặc đã gỡ bỏ cấu hình riêng (`false`, fallback về Branch Default)
+  * `version INT NOT NULL DEFAULT 1`: Số thứ tự phiên bản hiện hành
+  * `effective_from TIMESTAMPTZ NOT NULL DEFAULT NOW()`: Thời điểm bắt đầu có hiệu lực (backend tự động ghi nhận thời điểm thao tác)
+  * `note TEXT NULL`: Ghi chú lý do thiết lập/thay đổi
+  * `updated_by_account_id UUID NULL REFERENCES accounts(id)`: Người thực hiện cập nhật gần nhất
+  * `updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+  * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+#### 2.1.b. `pt_commission_config_history` (Lịch sử phiên bản cấu hình hoa hồng PT)
+- **Mục đích:** Bảo toàn 100% snapshot lịch sử biến động tỷ lệ hoa hồng qua các phiên bản, phục vụ tra cứu kiểm toán và tính hoa hồng theo tỷ lệ tại thời điểm buổi tập được `COMPLETED` trong quá khứ.
+- **Ràng buộc Unique & Khóa Ngoại:**
+  * `uq_commission_history_config_version`: `UNIQUE(config_id, version)`
+  * Khóa ngoại `config_id`, `branch_id`, `pt_id` sử dụng `ON DELETE RESTRICT` để chống xóa nhầm làm mất dữ liệu lịch sử tài chính.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `config_id UUID NOT NULL REFERENCES pt_commission_configs(id) ON DELETE RESTRICT`
+  * `version INT NOT NULL`: Phiên bản cấu hình
+  * `branch_id UUID NOT NULL REFERENCES branches(id) ON DELETE RESTRICT`
+  * `pt_id UUID NULL REFERENCES pt_profiles(id) ON DELETE RESTRICT`
+  * `commission_percentage DECIMAL(5,2) NOT NULL CHECK (commission_percentage >= 0 AND commission_percentage <= 100)`
+  * `is_active BOOLEAN NOT NULL DEFAULT true`
+  * `effective_from TIMESTAMPTZ NOT NULL`: Thời điểm bắt đầu hiệu lực của phiên bản
+  * `effective_to TIMESTAMPTZ NULL`: Thời điểm kết thúc hiệu lực (`NULL` nếu là phiên bản đang có hiệu lực hiện tại). Tạo khoảng nửa mở `[effective_from, effective_to)`.
+  * `action VARCHAR(30) NOT NULL CHECK (action IN ('CREATE', 'UPDATE', 'REMOVE_OVERRIDE', 'REACTIVATE'))`: Hành động thay đổi
+  * `note TEXT NULL`: Ghi chú thay đổi
+  * `changed_by_account_id UUID NULL REFERENCES accounts(id) ON DELETE SET NULL`: Người thực hiện
+  * `changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`: Thời điểm ghi nhận lịch sử
+
+#### 2.2. `pt_commissions` (Bảng kê tính hoa hồng PT hàng tháng)
+- **Mục đích:** Lưu trữ kết quả tính toán hoa hồng hàng tháng cho từng PT phục vụ trả thù lao và quyết toán tài chính.
+- **Công thức:** $\text{Tổng hoa hồng} = \sum (\frac{\text{pt\_price\_snapshot}}{\text{total\_pt\_sessions}} \times \text{commission\_percentage} \times \text{số buổi dạy trong tháng})$.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `pt_id UUID NOT NULL REFERENCES pt_profiles(id)`
+  * `month INTEGER NOT NULL CHECK (month BETWEEN 1 AND 12)`
+  * `year INTEGER NOT NULL CHECK (year >= 2026)`
+  * `total_pt_sessions_taught INTEGER NOT NULL DEFAULT 0`: Tổng số buổi PT thực dạy trong tháng đã hoàn thành (`COMPLETED`)
+  * `pt_revenue_share DECIMAL(12,2) NOT NULL DEFAULT 0`: Tổng giá trị doanh thu gói PT tương ứng với số buổi đã dạy
+  * `commission_percentage DECIMAL(5,2) NOT NULL`: Tỷ lệ % hoa hồng áp dụng
+  * `total_commission_amount DECIMAL(12,2) NOT NULL DEFAULT 0`: Tiền hoa hồng thực lĩnh
+  * `status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'PAID'))`: Trạng thái: `PENDING` (Chờ chi trả - hỗ trợ bấm [Chi trả] trực tiếp khi hoa hồng > 0đ), `PAID` (Đã chi trả)
+  * `paid_at TIMESTAMPTZ NULL`: Thời điểm hoàn tất giải ngân chi trả hoa hồng
+  * `payout_method VARCHAR(30) NOT NULL DEFAULT 'BANK_TRANSFER'`: Phương thức chi trả (`BANK_TRANSFER` chuyển khoản, `CASH` tiền mặt)
+  * `payout_ref VARCHAR(100) NULL`: Mã giao dịch ngân hàng hoặc số chứng từ / phiếu chi kế toán
+  * `payout_note TEXT NULL`: Ghi chú nội dung chuyển khoản hoặc lý do điều chỉnh
+  * `paid_by_account_id UUID NULL REFERENCES accounts(id)`: Tài khoản Quản trị viên / Kế toán thực hiện lệnh chi trả
+  * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+  * `UNIQUE(pt_id, month, year)`
+
+#### 2.3. `discounts` (Khuyến mãi & Mã giảm giá)
+- **Mục đích:** Quản lý các chương trình ưu đãi, mã voucher giảm giá áp dụng khi hội viên mua/gia hạn gói.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `branch_id UUID NULL REFERENCES branches(id)` (NULL: áp dụng toàn chuỗi)
+  * `code VARCHAR(50) NOT NULL UNIQUE`: Mã giảm giá (ví dụ: `SUMMER2026`, `VIP10`)
+  * `title VARCHAR(200) NOT NULL`: Tên chương trình khuyến mãi
+  * `discount_type VARCHAR(20) NOT NULL CHECK (discount_type IN ('PERCENT', 'FIXED_AMOUNT'))`
+  * `discount_value DECIMAL(12,2) NOT NULL`: Giá trị giảm (% hoặc số tiền)
+  * `min_order_value DECIMAL(12,2) NOT NULL DEFAULT 0`: Giá trị đơn hàng tối thiểu
+  * `max_discount_amount DECIMAL(12,2) NULL`: Số tiền giảm tối đa (nếu giảm theo %)
+  * `start_date DATE NOT NULL`
+  * `end_date DATE NOT NULL`
+  * `usage_limit INTEGER NULL`: Số lượt sử dụng tối đa (NULL: không giới hạn)
+  * `used_count INTEGER NOT NULL DEFAULT 0`
+  * `is_active BOOLEAN NOT NULL DEFAULT TRUE`
+  * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+#### 2.4. `community_classes` (Lớp tập cộng đồng - Aerobic, Yoga, Cardio)
+- **Mục đích:** Quản lý lịch tập nhóm tập trung do phòng gym tổ chức và thuê giáo viên hướng dẫn.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `branch_id UUID NOT NULL REFERENCES branches(id)`
+  * `title VARCHAR(200) NOT NULL`: Tên lớp tập (ví dụ: `Aerobic Buổi Sáng`, `Cardio Đốt Mỡ`)
+  * `instructor_name VARCHAR(150) NOT NULL`: Tên giáo viên / HLV đứng lớp
+  * `class_date DATE NOT NULL`: Ngày diễn ra buổi tập
+  * `start_time TIME NOT NULL`: Giờ bắt đầu
+  * `end_time TIME NOT NULL`: Giờ kết thúc
+  * `max_slots INTEGER NOT NULL DEFAULT 40`: Số lượng hội viên tối đa
+  * `enrolled_slots INTEGER NOT NULL DEFAULT 0`: Số lượng đã đăng ký
+  * `status VARCHAR(20) NOT NULL DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'OPEN', 'COMPLETED', 'CANCELLED'))`
+  * `description TEXT NULL`
+  * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+#### 2.5. `community_class_registrations` (Danh sách đăng ký lớp cộng đồng)
+- **Mục đích:** Theo dõi từng hội viên đăng ký giữ chỗ tham gia lớp cộng đồng qua ứng dụng Mobile.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `class_id UUID NOT NULL REFERENCES community_classes(id)`
+  * `member_id UUID NOT NULL REFERENCES member_profiles(id)`
+  * `registration_date TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+  * `status VARCHAR(20) NOT NULL DEFAULT 'CONFIRMED' CHECK (status IN ('CONFIRMED', 'CANCELLED', 'ATTENDED'))`
+  * `UNIQUE(class_id, member_id)`
+
+#### 2.6. `group_pt_members` (Thành viên nhóm gói PT 1-Nhiều)
+- **Mục đích:** Quản lý các thành viên được mời tham gia cùng tập trong gói PT 1-Nhiều.
+- **Điều kiện:** Mọi thành viên bắt buộc phải có gói Gym còn hiệu lực.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `registration_id UUID NOT NULL REFERENCES registrations(id)`
+  * `member_id UUID NOT NULL REFERENCES member_profiles(id)`
+  * `inviter_member_id UUID NOT NULL REFERENCES member_profiles(id)`: Người đại diện mời
+  * `invitation_status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (invitation_status IN ('PENDING', 'ACCEPTED', 'REJECTED'))`
+  * `joined_at TIMESTAMPTZ NULL`
+  * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+  * `UNIQUE(registration_id, member_id)`
+
+#### 2.7. `package_freezes` (Lịch sử đóng băng gói tập)
+- **Mục đích:** Ghi nhận các yêu cầu tạm ngừng (đóng băng) gói tập của hội viên và số ngày được cộng lùi thời hạn.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `registration_id UUID NOT NULL REFERENCES registrations(id)`
+  * `start_date DATE NOT NULL`: Ngày bắt đầu đóng băng
+  * `end_date DATE NOT NULL`: Ngày kết thúc đóng băng
+  * `freeze_days INTEGER NOT NULL`: Số ngày đóng băng
+  * `reason TEXT NOT NULL`: Lý do (đi công tác, chấn thương...)
+  * `approved_by_account_id UUID NOT NULL REFERENCES accounts(id)`: Nhân viên tiếp nhận duyệt
+  * `status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('SCHEDULED', 'ACTIVE', 'ENDED', 'CANCELLED'))`: Trạng thái đợt đóng băng (`SCHEDULED`: Chờ đóng băng / Lên lịch tương lai, `ACTIVE`: Đang bảo lưu đóng băng, `ENDED`: Đã mở lại/kết thúc, `CANCELLED`: Đã hủy)
+  * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+#### 2.8. `package_transfers` (Lịch sử chuyển nhượng quyền gói tập)
+- **Mục đích:** Lưu vết giao dịch chuyển nhượng hợp đồng gói tập từ Hội viên A sang Hội viên B tại quầy.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `registration_id UUID NOT NULL REFERENCES registrations(id)`: Gói tập được chuyển nhượng
+  * `from_member_id UUID NOT NULL REFERENCES member_profiles(id)`: Hội viên chuyển nhượng (A)
+  * `to_member_id UUID NOT NULL REFERENCES member_profiles(id)`: Hội viên thụ hưởng nhận chuyển nhượng (B)
+  * `transfer_fee DECIMAL(12,2) NOT NULL DEFAULT 0`: Phí dịch vụ chuyển nhượng (nếu có)
+  * `reason TEXT NULL`: Ghi chú lý do chuyển nhượng
+  * `approved_by_account_id UUID NOT NULL REFERENCES accounts(id)`: Nhân viên quầy xử lý
+  * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+#### 2.9. `holidays` (Quản lý lịch ngày lễ)
+- **Mục đích:** Cấu hình các ngày nghỉ lễ toàn hệ thống hoặc theo chi nhánh; tự động chặn xếp lịch PT và thông báo cho hội viên.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `branch_id UUID NULL REFERENCES branches(id)` (NULL: áp dụng toàn chuỗi)
+  * `holiday_date DATE NOT NULL`
+  * `title VARCHAR(200) NOT NULL`: Tên ngày lễ (ví dụ: `Nghỉ Tết Nguyên Đán`, `Quốc Khánh 02/09`)
+  * `is_closed BOOLEAN NOT NULL DEFAULT TRUE`: Chi nhánh đóng cửa hoàn toàn hay mở giờ đặc biệt
+  * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+#### 2.10. `discounts` (Quản lý chương trình khuyến mãi & Mã giảm giá)
+- **Mục đích:** Quản lý danh mục voucher, mã giảm giá % hoặc số tiền mặt, cấu hình áp dụng theo một hoặc nhiều chi nhánh hoặc toàn chuỗi.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `branch_id UUID NULL REFERENCES branches(id)`: Khóa ngoại chi nhánh duy nhất (tương thích ngược; NULL khi áp dụng toàn chuỗi hoặc đa chi nhánh)
+  * `branch_ids UUID[] NULL`: Mảng danh sách các chi nhánh áp dụng (NULL: áp dụng toàn chuỗi; có phần tử: áp dụng đúng các chi nhánh được chọn)
+  * `code VARCHAR(50) NOT NULL UNIQUE`: Mã code voucher viết hoa không dấu (ví dụ: `SUMMER2026`)
+  * `title VARCHAR(200) NOT NULL`: Tên chương trình khuyến mãi
+  * `discount_type VARCHAR(20) NOT NULL CHECK (discount_type IN ('PERCENT', 'FIXED_AMOUNT'))`: Hình thức giảm (% hoặc tiền)
+  * `discount_value DECIMAL(12,2) NOT NULL`: Giá trị giảm (1-100 nếu %, hoặc số tiền > 0)
+  * `min_order_value DECIMAL(12,2) NOT NULL DEFAULT 0`: Giá trị đơn hàng tối thiểu để áp dụng mã
+  * `max_discount_amount DECIMAL(12,2) NULL`: Mức giảm tối đa (VNĐ) khi giảm theo %
+  * `start_date DATE NOT NULL`: Ngày bắt đầu hiệu lực
+  * `end_date DATE NOT NULL`: Ngày kết thúc hiệu lực (end_date >= start_date)
+  * `usage_limit INTEGER NULL`: Giới hạn tổng số lượt sử dụng toàn hệ thống (NULL: không giới hạn)
+  * `used_count INTEGER NOT NULL DEFAULT 0`: Số lượt đã sử dụng thực tế (tự động cộng dồn khi thanh toán thành công)
+  * `is_active BOOLEAN NOT NULL DEFAULT TRUE`: Trạng thái bật/tắt của mã
+  * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+
+---
+
+## PT Commission Payout Upgrade (Migration 009, 2026-09-20)
+
+Nâng cấp cơ sở dữ liệu hỗ trợ quy trình chi trả hoa hồng PT minh bạch, an toàn và chống thất thoát:
+- **Tài khoản ngân hàng thụ hưởng (`pt_profiles`):** Bổ sung `bank_name`, `bank_account_no`, `bank_account_name` phục vụ quét mã VietQR và đối soát tài khoản nhận lương/thù lao.
+- **Chứng từ và kiểm toán chi trả (`pt_commissions`):** Bổ sung `payout_method` (`BANK_TRANSFER`, `CASH`), `payout_ref` (mã FT ngân hàng hoặc số phiếu chi tiền mặt), `payout_note` và `paid_by_account_id` (FK trỏ tới `accounts(id)` người thực hiện chi trả).
+- **Ràng buộc nghiệp vụ:** Nghiêm cấm chi trả khoản hoa hồng $\le 0$đ (chặn cả frontend và backend HTTP 400); tự động sinh thông báo in-app `COMMISSION_PAID` tới tài khoản PT sau khi xác nhận chi trả.
+

@@ -30,6 +30,8 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 - [LT-W04-US03 — Xem danh sách các đăng ký](./LT-W04-Đăng ký & gia hạn/LT-W04-US03-Xem danh sách các đăng ký.md)
 - [LT-W04-US04 — Xem chi tiết lượt đăng ký gói](./LT-W04-Đăng ký & gia hạn/LT-W04-US04-Xem chi tiết lượt đăng ký gói.md)
 - [LT-W04-US05 — Gán PT phụ trách cho gói đăng ký](./LT-W04-Đăng ký & gia hạn/LT-W04-US05-Gán PT phụ trách cho gói đăng ký.md)
+- [LT-W04-US06 — Đóng băng gói tập](./LT-W04-Đăng ký & gia hạn/LT-W04-US06-Đóng băng gói tập.md)
+- [LT-W04-US07 — Chuyển nhượng quyền gói tập](./LT-W04-Đăng ký & gia hạn/LT-W04-US07-Chuyển nhượng quyền gói tập.md)
 
 ## LT-W05 · Huấn luyện viên
 
@@ -58,7 +60,15 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 
 - [LT-W09-US01 — Tra cứu lịch sử gửi thông báo chi nhánh](./LT-W09-Thông báo/LT-W09-US01-Tra cứu lịch sử gửi thông báo chi nhánh.md)
 
-**Tổng số:** 21 User Story canonical.
+## LT-W14 · Chăm sóc & thông báo
+
+- [LT-W14-US01 — Tác nghiệp Chăm sóc khách hàng tại quầy](./LT-W14-Chăm sóc & thông báo/LT-W14-US01-Tác nghiệp Chăm sóc khách hàng tại quầy.md)
+
+## LT-W16 · Lớp tập cộng đồng
+
+- [LT-W16-US01 — Đăng ký lớp tập cộng đồng tại quầy](./LT-W16-Lớp tập cộng đồng/LT-W16-US01-Đăng ký lớp tập cộng đồng tại quầy.md)
+
+**Tổng số:** 25 User Story canonical.
 
 ## Boundary
 

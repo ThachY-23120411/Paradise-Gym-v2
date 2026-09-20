@@ -157,10 +157,13 @@ window.SystemModule = (function () {
     const wrapper = $('<div>').addClass('filter-bar').css({ display: 'block', width: '100%' }).appendTo(host);
     return $('<div>').css({ width: '100%' }).appendTo(wrapper).dxForm({ formData: data, labelLocation: 'top', colCountByScreen: { xs: 1, sm: 2, md: 3, lg: 4 }, items, onFieldDataChanged: changed }).dxForm('instance');
   }
-  function dateFields() { return ['date_from', 'date_to'].map((key, i) => field(key, i ? 'Đến ngày' : 'Từ ngày', 'dxDateBox', true, { type: 'date', displayFormat: 'dd/MM/yyyy', useMaskBehavior: true })); }
+  function dateFields() { return ['date_from', 'date_to'].map((key, i) => field(key, i ? 'Đến ngày' : 'Từ ngày', 'dxDateBox', false, { type: 'date', displayFormat: 'dd/MM/yyyy', useMaskBehavior: true, showClearButton: true, placeholder: i ? '...đến nay' : 'Từ trước...' })); }
   function withDates(data) {
-    if (!data.date_from || !data.date_to) throw new Error('Vui lòng chọn Từ ngày và Đến ngày.');
-    return { ...data, date_from: dateKey(data.date_from), date_to: dateKey(data.date_to) };
+    if (data.date_from && data.date_to && dateKey(data.date_from) > dateKey(data.date_to)) throw new Error('Từ ngày phải nhỏ hơn hoặc bằng Đến ngày.');
+    const res = { ...data };
+    if (res.date_from) res.date_from = dateKey(res.date_from); else delete res.date_from;
+    if (res.date_to) res.date_to = dateKey(res.date_to); else delete res.date_to;
+    return res;
   }
   async function page(containerId, title, adminOnly, context, render) {
     const root = $('<section>').addClass('system-view').appendTo($(document.getElementById(containerId)).empty());
@@ -287,25 +290,123 @@ window.SystemModule = (function () {
     const dialog = popup(ctx, record ? 'Sửa mẫu thông báo' : 'Thêm mẫu thông báo');
     await load(dialog.body, () => record ? api(`/notifications/templates/${encoded(record.id)}`, {}, ctx) : Promise.resolve({}), saved => {
       const data = { template_name: '', event_code: null, title_template: '', body_template: '', ...saved };
-      let form; let variableHost; let selection = [0, 0];
-      function showVariables() {
-        if (!variableHost || !form) return; variableHost.empty();
-        variablesFor(events, form.option('formData').event_code).forEach(variable => button(variableHost, variable.label, 'add', () => {
-          const editor = form.getEditor('body_template'); const value = editor.option('value') || ''; const token = `{{${variable.key}}}`;
-          const [start, end] = selection; const next = value.slice(0, start) + token + value.slice(end);
-          if (next.length > 1000) throw new Error('Nội dung tối đa 1.000 ký tự.');
-          editor.option('value', next); const input = $(editor.element()).find('textarea')[0];
-          input?.focus(); input?.setSelectionRange(start + token.length, start + token.length); selection = [start + token.length, start + token.length];
-        }));
+      let form; let variableHost;
+      let lastFocusedField = 'body_template';
+      let titleSelection = [0, 0];
+      let bodySelection = [0, 0];
+
+      function insertVariable(variable) {
+        const targetField = lastFocusedField === 'title_template' ? 'title_template' : 'body_template';
+        const editor = form.getEditor(targetField);
+        if (!editor) return;
+        const value = editor.option('value') || '';
+        const token = `{{${variable.key}}}`;
+        const selection = targetField === 'title_template' ? titleSelection : bodySelection;
+        const [start, end] = selection;
+        const next = value.slice(0, start) + token + value.slice(end);
+        const maxLen = targetField === 'title_template' ? 150 : 1000;
+        if (next.length > maxLen) {
+          DevExpress.ui.notify(`Vượt quá độ dài tối đa (${maxLen} ký tự).`, 'warning', 2500);
+          return;
+        }
+        editor.option('value', next);
+        const input = $(editor.element()).find(targetField === 'title_template' ? 'input' : 'textarea')[0];
+        if (input) {
+          input.focus();
+          input.setSelectionRange(start + token.length, start + token.length);
+        }
+        if (targetField === 'title_template') {
+          titleSelection = [start + token.length, start + token.length];
+        } else {
+          bodySelection = [start + token.length, start + token.length];
+        }
       }
+
+      function renderChips(code) {
+        if (!variableHost) return;
+        variableHost.empty();
+        if (!code) return;
+
+        const vars = variablesFor(events, code);
+        if (!vars.length) return;
+
+        const chipsWrap = $('<div>').css({ display: 'flex', flexWrap: 'wrap', gap: '6px', width: '100%' }).appendTo(variableHost);
+
+        vars.forEach(variable => {
+          $('<div>').appendTo(chipsWrap).dxButton({
+            text: `${variable.label} {{${variable.key}}}`,
+            icon: 'add',
+            stylingMode: 'outlined',
+            type: 'default',
+            elementAttr: { style: 'font-size: 12px; border-radius: 4px; padding: 2px 6px; font-weight: 500;' },
+            hint: `Chèn {{${variable.key}}}`,
+            onClick: () => insertVariable(variable)
+          });
+        });
+      }
+
+      function showVariables(targetCode) {
+        const code = targetCode !== undefined 
+          ? targetCode 
+          : (form?.getEditor('event_code')?.option('value') || form?.option('formData')?.event_code);
+
+        if (!code) {
+          // Chưa chọn sự kiện áp dụng -> Ẩn khối biến nội dung (chọn sự kiện trước mới hiển thị biến)
+          if (form) form.itemOption('variables', 'visible', false);
+          if (variableHost) variableHost.empty();
+          return;
+        }
+
+        // Đã chọn sự kiện áp dụng -> Hiển thị khối biến và nạp các biến thuộc sự kiện đó
+        if (form && !form.itemOption('variables', 'visible')) {
+          form.itemOption('variables', 'visible', true);
+        }
+        renderChips(code);
+      }
+
       const editor = editForm(dialog, data, [
         field('template_name', 'Tên mẫu thông báo', 'dxTextBox', true, { maxLength: 100 }),
-        field('event_code', 'Sự kiện áp dụng', 'dxSelectBox', true, { ...select(events, 'event_code', 'event_name'), onValueChanged: () => showVariables() }),
-        { name: 'variables', label: { text: 'Biến nội dung' }, template: (_, element) => { variableHost = $('<div>').css({ display: 'flex', flexWrap: 'wrap', gap: 6 }).appendTo(element); } },
-        field('title_template', 'Tiêu đề thông báo', 'dxTextBox', true, { maxLength: 150 }),
-        field('body_template', 'Nội dung thông báo', 'dxTextArea', true, { maxLength: 1000, height: 160, valueChangeEvent: 'input', onInitialized: e => {
-          $(e.element).on('focusout keyup mouseup input', 'textarea', function () { selection = [this.selectionStart, this.selectionEnd]; });
-        } })
+        field('event_code', 'Sự kiện áp dụng', 'dxSelectBox', true, {
+          ...select(events, 'event_code', 'event_name'),
+          onValueChanged: e => {
+            if (form) {
+              form.option('formData').event_code = e.value;
+            }
+            showVariables(e.value);
+          }
+        }),
+        {
+          name: 'variables',
+          label: { text: 'Biến nội dung' },
+          visible: !!data.event_code,
+          template: (_, element) => {
+            variableHost = $('<div>').css({ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }).appendTo(element);
+            const curCode = form ? (form.getEditor('event_code')?.option('value') || form.option('formData')?.event_code) : data.event_code;
+            if (curCode) renderChips(curCode);
+          }
+        },
+        field('title_template', 'Tiêu đề thông báo', 'dxTextBox', true, {
+          maxLength: 150,
+          onFocusIn: () => { lastFocusedField = 'title_template'; },
+          onInitialized: e => {
+            $(e.element).on('focusout keyup mouseup input focus', 'input', function () {
+              lastFocusedField = 'title_template';
+              titleSelection = [this.selectionStart, this.selectionEnd];
+            });
+          }
+        }),
+        field('body_template', 'Nội dung thông báo', 'dxTextArea', true, {
+          maxLength: 1000,
+          height: 160,
+          valueChangeEvent: 'input',
+          onFocusIn: () => { lastFocusedField = 'body_template'; },
+          onInitialized: e => {
+            $(e.element).on('focusout keyup mouseup input focus', 'textarea', function () {
+              lastFocusedField = 'body_template';
+              bodySelection = [this.selectionStart, this.selectionEnd];
+            });
+          }
+        })
       ], async values => {
         const allowed = new Set(variablesFor(events, values.event_code).map(v => v.key));
         for (const name of ['template_name', 'title_template', 'body_template']) if (!String(values[name] || '').trim()) throw new Error('Vui lòng nhập đầy đủ tên mẫu, tiêu đề và nội dung thông báo.');

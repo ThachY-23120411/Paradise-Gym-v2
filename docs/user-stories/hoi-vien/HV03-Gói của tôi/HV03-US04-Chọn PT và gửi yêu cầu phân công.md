@@ -1,93 +1,80 @@
-# HV03-US04 - Chọn PT và gửi yêu cầu phân công
+# HV03-US04 - Liên hệ Lễ tân chọn PT phụ trách qua Popup
 
 ## Preconditions
-- Hội viên đã đăng nhập Mobile bằng tài khoản hợp lệ.
-- Hội viên có gói PT/Combo đã thanh toán 100%, còn hiệu lực và chưa có PT phụ trách.
+- Hội viên đã đăng nhập thành công vào ứng dụng Mobile Hội viên.
+- Hội viên có gói tập hình thức PT hoặc Combo đã thanh toán 100%, đang ở trạng thái hiệu lực (`ACTIVE` hoặc `SCHEDULED`) nhưng chưa có Huấn luyện viên phụ trách (`assigned_pt_id` là null).
 
 ## Trigger
-- Hội viên bấm nút **`[ Chọn PT phụ trách ]`** trên Card gói PT/Combo chưa gán HLV tại menu HV03.
-- Màn hình liên quan: Mobile App — Tab `HV03 · Gói của tôi`, màn hình Chọn PT phụ trách.
+- Hội viên bấm nút **`[ Chọn PT phụ trách ]`** trên thẻ gói tập hoặc nút **`[ Liên hệ Lễ tân ]`** trong Modal Chi tiết gói tại menu **HV03 · Gói của tôi**.
+- Màn hình liên quan: Mobile Hội viên — Tab `HV03 · Gói của tôi`, Popup **Liên hệ Lễ tân Chi nhánh**.
 
 ## Main Flow
 
-1. Hội viên mở màn hình **Chọn PT phụ trách** từ gói PT/Combo hợp lệ (gói đã thanh toán 100%).
-2. SYS nạp và hiển thị danh sách các HLV (PT) đang hoạt động thuộc chi nhánh phục vụ của gói.
-3. Trên Card của HLV mong muốn, Hội viên bấm nút **`[ Gửi yêu cầu ]`**.
-4. SYS hiển thị **Popup Xác nhận Chọn PT**.
-5. Hội viên chọn **`Xác nhận`** trên Popup.
-6. SYS khởi tạo yêu cầu phân công `PT_ASSIGNMENT_REQUEST` ở trạng thái `PENDING` (Chờ duyệt), tự động gửi thông báo cho PT được chọn và hoàn tất gửi yêu cầu.
+1. Hội viên mở sub-tab **Gói của tôi** và bấm nút **`[ Chọn PT phụ trách ]`** trên thẻ gói PT/Combo chưa có HLV (hoặc bấm nút **`[ Liên hệ Lễ tân ]`** trong modal Chi tiết gói).
+2. SYS nạp thông tin chi nhánh phục vụ của gói tập (`branches`).
+3. SYS mở popup modal **Liên Hệ Lễ Tân Chi Nhánh**:
+   - Hiển thị thông điệp tư vấn nghiệp vụ: *"Để đảm bảo chất lượng huấn luyện và sắp xếp lịch tập phù hợp nhất với thể trạng & mục tiêu của bạn, việc phân công Huấn luyện viên phụ trách sẽ do Lễ tân chi nhánh trực tiếp hỗ trợ."*
+   - Hiển thị thông tin tóm tắt hợp đồng: Tên gói tập, Mã hợp đồng, Cơ sở tập luyện, Địa chỉ chi nhánh và Số điện thoại Lễ tân chi nhánh.
+   - Hiển thị ghi chú hướng dẫn: Quý hội viên vui lòng liên hệ trực tiếp quầy Lễ tân chi nhánh hoặc gọi vào số điện thoại bên dưới để tiến hành chọn PT phụ trách.
+   - Hiển thị nút hành động: **`[ Gọi Lễ tân (<SĐT>) ]`** (liên kết cuộc gọi `tel:...`) và nút **`[ Đóng ]`**.
+4. Hội viên chọn bấm nút **`[ Gọi Lễ tân ]`** để quay số gọi trực tiếp đến quầy lễ tân chi nhánh, hoặc đến quầy để Lễ tân tiến hành xếp HLV trên hệ thống Web.
 
 - **Business rules / logic:**
-  - Màn hình này chỉ mở cho các gói PT/Combo đã thanh toán 100%, còn hiệu lực và chưa có PT phụ trách.
-  - Mỗi gói tập chỉ có duy nhất 1 yêu cầu phân công PT ở trạng thái `PENDING` tại một thời điểm.
-  - Quyền đặt lịch tập ở menu HV02 chỉ được mở sau khi PT bấm **Chấp nhận (`ACCEPTED`)** yêu cầu phân công này.
-  - Thao tác gửi yêu cầu luôn qua bước Popup xác nhận để tránh bấm nhầm HLV.
+  - Hội viên không còn được tự chọn PT phụ trách trực tiếp trên ứng dụng Mobile nhằm đảm bảo tính khả thi về chuyên môn, phân bổ đồng đều lớp học và tránh việc học viên chọn PT đã kín lịch.
+  - Toàn bộ việc gán và đổi HLV phụ trách do Lễ tân hoặc Quản trị viên chi nhánh thao tác trên Web Admin/Lễ tân (menu W04).
+  - Nút bấm trên app đóng vai trò là cổng hướng dẫn và kết nối trực tiếp học viên với Lễ tân cơ sở.
 
-### Field-level specification — Màn hình Chọn PT phụ trách
+### Field-level specification — Popup Liên Hệ Lễ Tân Chi Nhánh
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Thông tin gói tập cần gán PT** | `Card / Summary info` | `PREFILL` + `READONLY` | required | Không | Hiển thị tóm tắt gói tập: `[Tên gói] · [Số buổi PT] · Chi nhánh: [Tên chi nhánh]` |
-| **Thẻ HLV (PT Card)** | `Card list item` | `READONLY` | required | `DYNAMIC`: Lấy từ danh sách PT đang hoạt động thuộc chi nhánh của gói | Mỗi thẻ HLV bao gồm: Avatar/Chữ cái đại diện (`TL`, `VM`...), Họ và tên PT (in đậm), Chuyên môn & Chi nhánh (`Cardio, HIIT · Quận 1`) |
-| **Nút [ Gửi yêu cầu ] trên từng Card** | `Button / CTA` | `USER-INPUT` | required | Không | Nút chữ màu xanh lá ở góc phải trên mỗi thẻ HLV; bấm để mở Popup Xác nhận Chọn PT |
-
-### Field-level specification — Popup Xác nhận Chọn PT
-| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Thông tin HLV được chọn** | `Typography / Subtitle` | `PREFILL` + `READONLY` | required | Không | Hiển thị họ tên và chuyên môn của PT: `HLV [Tên PT] ([Chuyên môn])` |
-| **Thông tin gói tập áp dụng** | `Typography / Text` | `PREFILL` + `READONLY` | required | Không | Hiển thị tên gói tập đang thực hiện gán PT |
-| **Thông báo xác nhận** | `Typography / Helper text` | `READONLY` | required | Không | Đoạn text: *"Bạn có chắc chắn muốn gửi yêu cầu phân công HLV này không? Yêu cầu sẽ được gửi tới HLV để xác nhận."* |
+| **Thông điệp tư vấn phân công PT** | `Banner / Heading` | `READONLY` | required | Không | Thông điệp thông báo việc phân công HLV do Lễ tân chi nhánh trực tiếp hỗ trợ |
+| **Tên gói tập** | `Typography` | `PREFILL` + `READONLY` | required | Không | Tên gói PT/Combo đang cần phân công HLV (`package_name_snapshot`) |
+| **Mã hợp đồng** | `Typography` | `PREFILL` + `READONLY` | required | Không | Mã hợp đồng gói tập (`reg_code`) |
+| **Cơ sở tập luyện** | `Typography` | `PREFILL` + `READONLY` | required | Không | Tên chi nhánh phục vụ của hợp đồng (`branch_name`) |
+| **Địa chỉ chi nhánh** | `Typography` | `PREFILL` + `READONLY` | conditional | `CONDITIONAL`: Hiện khi chi nhánh có dữ liệu địa chỉ; Ẩn khi dữ liệu địa chỉ trống | Địa chỉ cơ sở phòng tập của chi nhánh |
+| **Số điện thoại Lễ tân** | `Typography / Text` | `PREFILL` + `READONLY` | required | Không | Số điện thoại liên hệ hotline / quầy lễ tân chi nhánh |
+| **Ghi chú hướng dẫn** | `Alert Box / Note` | `READONLY` | required | Không | Đoạn ghi chú nhắc nhở hội viên liên hệ quầy hoặc gọi hotline để xếp PT |
 
 ## Alternate Flows
 
-### AF-01 — Hủy thao tác trên Popup xác nhận
-1. SYS hiển thị Popup Xác nhận Chọn PT.
-2. Hội viên bấm Hủy hoặc đóng Popup.
-3. SYS đóng Popup và giữ nguyên màn hình Chọn PT phụ trách.
-
-### AF-02 — PT từ chối yêu cầu
-1. PT được chọn bấm Từ chối (`REJECTED`) trên ứng dụng PT.
-2. SYS cập nhật trạng thái yêu cầu sang `REJECTED`, gửi thông báo cho Hội viên và hiển thị lại nút `[ Chọn PT phụ trách ]` để Hội viên chọn HLV khác.
-
-### AF-03 — PT chấp nhận yêu cầu
-1. PT được chọn bấm Chấp nhận (`ACCEPTED`) trên ứng dụng PT.
-2. SYS gắn HLV đó thành PT phụ trách chính thức của gói và mở quyền đặt lịch cho Hội viên ở menu HV02.
+### AF-01 — Đóng popup liên hệ Lễ tân
+1. Tại Popup Liên hệ Lễ tân, Hội viên bấm nút **`[ Đóng ]`** hoặc chạm ngoài vùng modal.
+2. SYS đóng popup và giữ nguyên màn hình sub-tab `Gói của tôi`.
 
 ## Exception Flows
 
-- Lỗi kết nối mạng: SYS hiển thị thông báo gửi yêu cầu không thành công và hoàn tác trạng thái.
+- **Lỗi kết nối mạng:** Không nạp được thông tin chi nhánh. SYS hiển thị thông báo lỗi và cho phép bấm thử lại.
 
 ## Activity Diagram — Swimlane
-**Trigger:** Hội viên bấm nút Chọn PT phụ trách trên Card gói tập.
+**Trigger:** Hội viên bấm nút [ Chọn PT phụ trách ] trên thẻ gói tập.
 
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — Mobile App Hội viên / HV03 · Chọn PT phụ trách"]
+  subgraph B["Boundary — Mobile App Hội viên / HV03 · Liên hệ Lễ tân chọn PT"]
     subgraph L0["Swimlane — Hội viên"]
       I01(("Initial"))
-      A01["Mở màn hình Chọn PT phụ trách từ gói PT/Combo"]
-      A02["Bấm nút [ Gửi yêu cầu ] trên Card HLV mong muốn"]
-      D01{"Xác nhận trên Popup Chọn PT?"}
-      A03["Bấm nút [ Xác nhận ] trên Popup"]
-      E01["Bấm [ Hủy ] đóng Popup"]
-      F01((("Final — Yêu cầu chọn PT được gửi (PENDING)")))
-      F02((("Final — Giữ nguyên màn hình chọn PT")))
-
-      I01 --> A01
-      A01 --> A02
-      D01 -->|Xác nhận| A03
-      D01 -->|Hủy| E01 --> F02
+      A01["Bấm nút [ Chọn PT phụ trách ] trên thẻ gói tập"]
+      D01{"Hội viên thao tác trên Popup?"}
+      A02["Bấm nút [ Gọi Lễ tân (SĐT) ]"]
+      A03["Bấm nút [ Đóng ] modal"]
+      F01((("Final — Ứng dụng kích hoạt cuộc gọi điện thoại")))
+      F02((("Final — Đóng popup và quay lại danh sách gói")))
     end
 
-    subgraph L1["Swimlane — PT"]
-      P01["PT nhận thông báo có yêu cầu phân công nhận lớp"]
+    subgraph L1["Swimlane — SYS"]
+      S01["Nạp thông tin chi nhánh và hiển thị Popup Liên hệ Lễ tân chi nhánh"]
+      S02["Chuyển giao sang ứng dụng gọi điện thoại của thiết bị"]
+      S03["Đóng Popup và giữ nguyên màn hình danh sách gói"]
     end
 
-    subgraph L2["Swimlane — SYS"]
-      S01["Hiển thị Popup Xác nhận Chọn PT"]
-      S02["Khởi tạo PT_ASSIGNMENT_REQUEST ở trạng thái PENDING và gửi thông báo cho PT"]
-
-      A02 --> S01 --> D01
-      A03 --> S02 --> P01 --> F01
-    end
+    I01 --> A01
+    A01 --> S01
+    S01 --> D01
+    D01 -->|Gọi điện| A02
+    A02 --> S02
+    S02 --> F01
+    D01 -->|Đóng| A03
+    A03 --> S03
+    S03 --> F02
   end
 ```

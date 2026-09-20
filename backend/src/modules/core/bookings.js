@@ -34,7 +34,8 @@ router.get('/pt-bookings/available-slots',route(async req=>{
   const weekday=new Date(`${day}T12:00:00Z`).getUTCDay();const working=p.work_days!=='MON_TO_FRI'||(weekday>0&&weekday<6);
   const b=await row(pool,'branches',p.branch_id);
   const result=slots.map(s=>({...s,is_available:working&&p.status==='ACTIVE'&&b.status==='ACTIVE'&&moment({booking_date:day,...s})>new Date()&&!existing.some(e=>e.start_time.slice(0,5)<s.end_time&&e.end_time.slice(0,5)>s.start_time)}));
-  return {pt:await trainerView(req,p),date:day,slots:result,available_slots:result.filter(s=>s.is_available),work_days:p.work_days};
+  const busySlots=existing.map(e=>({start_time:e.start_time.slice(0,5),end_time:e.end_time.slice(0,5)}));
+  return {pt:await trainerView(req,p),date:day,slots:result,available_slots:result.filter(s=>s.is_available),busy_slots:busySlots,work_days:p.work_days};
 }));
 router.post('/pt-bookings',route(async req=>{
   role(req,'QTV','RECEPTIONIST','MEMBER');return transaction(async db=>{
@@ -43,16 +44,28 @@ router.post('/pt-bookings',route(async req=>{
     if(req.body.member_id&&req.body.member_id!==m.id)fail(400,'Member does not own registration');
     const branchId=req.body.branch_id||p.branch_id;if(isStaff(req))branch(req,branchId);await activeBranch(db,branchId);
     if(p.status!=='ACTIVE'||m.status!=='ACTIVE'||p.id!==r.assigned_pt_id||p.branch_id!==branchId)fail(409,'Active assigned PT at this branch is required');
-    const day=date(req.body.booking_date);const start=String(req.body.start_time||'').slice(0,5),slot=slots.find(s=>s.start_time===start);
-    if(!slot||req.body.end_time&&String(req.body.end_time).slice(0,5)!==slot.end_time)fail(400,'Choose a fixed two-hour PT slot');
-    const weekday=new Date(`${day}T12:00:00Z`).getUTCDay();if(p.work_days==='MON_TO_FRI'&&(weekday===0||weekday===6))fail(409,'PT works Monday through Friday');
-    if(moment({booking_date:day,...slot})<=new Date())fail(409,'Cannot book in the past');
-    if(effective(r)!=='ACTIVE'||r.start_date>day||(r.end_date&&r.end_date<day)||!r.total_pt_sessions_snapshot||r.remaining_pt_sessions<=0)fail(409,'No available PT entitlement');
-    if(!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND status='COMPLETED' AND amount=$2",[r.id,r.price_snapshot])).rowCount)fail(409,'Full payment required');
-    if(!(await db.query('SELECT 1 FROM registration_allowed_branches WHERE registration_id=$1 AND branch_id=$2',[r.id,branchId])).rowCount)fail(409,'Branch not covered by entitlement');
-    if((await db.query("SELECT 1 FROM pt_bookings WHERE (pt_id=$1 OR member_id=$2) AND booking_date=$3 AND status<>'CANCELLED' AND start_time<$5::time AND end_time>$4::time",[p.id,m.id,day,slot.start_time,slot.end_time])).rowCount)fail(409,'PT or member already booked in this slot');
+    const day=date(req.body.booking_date);const start=String(req.body.start_time||'').slice(0,5);
+    if(!/^\d{2}:\d{2}$/.test(start))fail(400,'Giờ bắt đầu không đúng định dạng (HH:mm)');
+    const [sh, sm]=start.split(':').map(Number);
+    if(sh<6||sh>22)fail(400,'Giờ tập nằm ngoài thời gian hoạt động của phòng tập (06:00 - 22:00)');
+    const pkgDuration=(await db.query('SELECT session_duration_minutes FROM packages WHERE id=$1',[r.package_id])).rows[0]?.session_duration_minutes||60;
+    const durationMinutes=Number(req.body.session_duration_minutes)||Number(r.session_duration_minutes)||pkgDuration;
+    let end=req.body.end_time?String(req.body.end_time).slice(0,5):null;
+    if(!end){
+      const totalMinutes=sh*60+sm+durationMinutes;
+      const eh=Math.floor(totalMinutes/60)%24,em=totalMinutes%60;
+      end=`${String(eh).padStart(2,'0')}:${String(em).padStart(2,'0')}`;
+    }
+    if(end<=start)fail(400,'Giờ kết thúc phải sau giờ bắt đầu');
+    const weekday=new Date(`${day}T12:00:00Z`).getUTCDay();if(p.work_days==='MON_TO_FRI'&&(weekday===0||weekday===6))fail(409,'HLV chỉ nhận lịch từ thứ Hai đến thứ Sáu');
+    if(new Date(`${day}T${start}:00+07:00`)<=new Date())fail(409,'Không thể đặt lịch ở thời điểm trong quá khứ');
+    if(!['ACTIVE','SCHEDULED_FREEZE'].includes(effective(r))||r.start_date>day||(r.end_date&&r.end_date<day)||!r.total_pt_sessions_snapshot||r.remaining_pt_sessions<=0)fail(409,'Gói tập không còn số buổi hoặc đã hết hạn sử dụng');
+    if((await db.query("SELECT 1 FROM package_freezes WHERE registration_id=$1 AND status IN ('ACTIVE','SCHEDULED') AND start_date <= $2 AND end_date >= $2",[r.id,day])).rowCount)fail(409,'Gói tập đang hoặc đã lên lịch đóng băng trong ngày được chọn');
+    if(!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND status='COMPLETED' AND (amount + COALESCE(discount_amount,0)) >= $2",[r.id,r.price_snapshot])).rowCount)fail(409,'Gói tập chưa hoàn tất thanh toán 100%');
+    if(!(await db.query('SELECT 1 FROM registration_allowed_branches WHERE registration_id=$1 AND branch_id=$2',[r.id,branchId])).rowCount)fail(409,'Chi nhánh phục vụ không thuộc phạm vi áp dụng của gói tập (Branch not covered by entitlement)');
+    if((await db.query("SELECT 1 FROM pt_bookings WHERE (pt_id=$1 OR member_id=$2) AND booking_date=$3 AND status<>'CANCELLED' AND start_time<$5::time AND end_time>$4::time",[p.id,m.id,day,start,end])).rowCount)fail(409,'HLV hoặc Hội viên đã có lịch tập khác trong khung giờ này');
     const sequence=Number((await db.query('SELECT COALESCE(MAX(session_number),0)+1 n FROM pt_bookings WHERE registration_id=$1',[r.id])).rows[0].n);
-    const booking=(await db.query(`INSERT INTO pt_bookings(registration_id,member_id,pt_id,branch_id,booking_date,start_time,end_time,session_number,workout_notes,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,[r.id,m.id,p.id,branchId,day,slot.start_time,slot.end_time,sequence,text(req.body.workout_notes||req.body.note,'workout_notes',2000,false),req.user.account_id])).rows[0];
+    const booking=(await db.query(`INSERT INTO pt_bookings(registration_id,member_id,pt_id,branch_id,booking_date,start_time,end_time,session_duration_minutes,session_number,workout_notes,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,[r.id,m.id,p.id,branchId,day,start,end,durationMinutes,sequence,text(req.body.workout_notes||req.body.note,'workout_notes',2000,false),req.user.account_id])).rows[0];
     await db.query('UPDATE registrations SET booked_pt_sessions=booked_pt_sessions+1,remaining_pt_sessions=remaining_pt_sessions-1,updated_at=NOW() WHERE id=$1',[r.id]);
     await audit(db,req,'pt_bookings',booking.id,'BOOKING_CREATED',null,booking,branchId);
     await bookingEvent(db,booking,'BOOKING_CREATED');return booking;

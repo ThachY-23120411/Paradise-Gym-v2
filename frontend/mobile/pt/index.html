@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#185740">
   <title>Paradise Gym - Mobile HLV (PT)</title>
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
   
   <!-- Font Awesome 6 Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -17,7 +18,7 @@
   <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.2.5/css/dx.light.css">
   
   <!-- App Stylesheet -->
-  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/app.css?v=20260920">
 </head>
 <body>
 
@@ -33,6 +34,7 @@
                class="header-pt-avatar" 
                id="headerAvatar">
           <div class="header-info">
+            <div class="pt-brand">PARADISE <b>GYM</b></div>
             <h2 id="headerCoachName"></h2>
             <div class="header-subtitle" id="headerBranchName">
               <i class="fa-solid fa-location-dot"></i>
@@ -52,7 +54,7 @@
       </header>
 
       <!-- App Toast Container -->
-      <div class="toast-container" id="toastContainer"></div>
+      <div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
 
       <!-- Main Views Container -->
       <main class="app-content" id="mainContent">
@@ -140,7 +142,7 @@
 
             <div class="pref-row">
               <span style="font-size: 12px; color: var(--text-muted);"><i class="fa-solid fa-clock" style="width: 18px;"></i> Ca trực cố định:</span>
-              <span style="font-size: 12px; font-weight: 600; color: var(--primary-light);" id="profileWorkShift">Chưa cập nhật</span>
+              <span style="font-size: 12px; font-weight: 600; color: var(--primary);" id="profileWorkShift">Chưa cập nhật</span>
             </div>
           </div>
 
@@ -257,10 +259,6 @@
           <div class="nav-indicator"></div>
         </div>
 
-        <div class="nav-item" data-tab="notifications" role="button" tabindex="0" aria-label="Thông báo">
-          <i class="fa-solid fa-bell"></i>
-          <span>Thông báo</span>
-        </div>
         <div class="nav-item" data-tab="profile">
           <i class="fa-solid fa-circle-user"></i>
           <span>Tài khoản</span>
@@ -292,10 +290,10 @@
         <!-- Segmented Navigation for Login Methods -->
         <div class="segmented-nav" id="loginMethodNav">
           <div class="segmented-tab active" data-login-mode="password">
-            <i class="fa-solid fa-lock" style="font-size: 11px;"></i> Bằng Mật khẩu
+            <i class="fa-solid fa-lock" style="font-size: 12px;"></i> Bằng Mật khẩu
           </div>
           <div class="segmented-tab" data-login-mode="otp">
-            <i class="fa-solid fa-mobile-screen-button" style="font-size: 11px;"></i> Bằng mã OTP
+            <i class="fa-solid fa-mobile-screen-button" style="font-size: 12px;"></i> Bằng mã OTP
           </div>
         </div>
 
@@ -368,7 +366,7 @@
                    id="loginOtpCode" 
                    placeholder="Nhập 6 số OTP SMS" 
                    maxlength="6"
-                   style="letter-spacing: 4px; font-weight: 700; text-align: center;">
+                   style="letter-spacing: 0; font-weight: 700; text-align: center;">
           </div>
 
           <div style="margin-top: 16px;">
@@ -381,7 +379,7 @@
         <!-- Activation Text Link (PT05-US02) -->
         <div style="text-align: center; margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--border-color);">
           <span style="font-size: 12px; color: var(--text-muted);">HLV mới nhận việc lần đầu? </span>
-          <a href="javascript:void(0)" id="linkOpenActivation" style="font-size: 13px; font-weight: 700; color: var(--primary-light); text-decoration: none;">
+          <a href="javascript:void(0)" id="linkOpenActivation" style="font-size: 13px; font-weight: 700; color: var(--primary); text-decoration: none;">
             Kích hoạt tài khoản PT
           </a>
         </div>
@@ -457,11 +455,11 @@
 
         <!-- Card thông tin xác nhận HLV (Conditional) -->
         <div class="gym-card" id="actProfilePreviewCard" style="display: none; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 12px; margin-bottom: 14px;">
-          <div style="font-size: 11px; font-weight: 700; color: var(--primary-light); margin-bottom: 6px;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 6px;">
             <i class="fa-solid fa-circle-check"></i> Hồ sơ nhân sự hợp lệ
           </div>
-          <div style="font-size: 13px; font-weight: 700; color: #fff;" id="actPreviewName">HLV</div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+          <div style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="actPreviewName">HLV</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
             Mã: <span id="actPreviewCode" style="color: var(--accent-gold); font-weight: 700;">-</span> • Chi nhánh: <span id="actPreviewBranch">-</span>
           </div>
         </div>
@@ -471,7 +469,7 @@
           <div style="font-size: 24px; color: var(--accent-warning); margin-bottom: 8px;">
             <i class="fa-solid fa-circle-info"></i>
           </div>
-          <div style="font-size: 13px; font-weight: 700; color: #fff; line-height: 1.5;" id="actAlreadyActiveMsg">
+          <div style="font-size: 13px; font-weight: 700; color: var(--text-main); line-height: 1.5;" id="actAlreadyActiveMsg">
             Tài khoản HLV đã được kích hoạt. Vui lòng quay lại màn hình Đăng nhập để truy cập ứng dụng.
           </div>
           <div style="margin-top: 14px;">
@@ -494,7 +492,7 @@
 
           <div class="form-group" id="actGroupOtp" style="display: none;">
             <label class="form-label" for="actOtpCode">Mã xác thực OTP (6 chữ số)</label>
-            <input type="text" class="form-control no-icon" id="actOtpCode" placeholder="Nhập 6 số OTP SMS" maxlength="6" style="letter-spacing: 4px; text-align: center; font-weight: 700;">
+            <input type="text" class="form-control no-icon" id="actOtpCode" placeholder="Nhập 6 số OTP SMS" maxlength="6" style="letter-spacing: 0; text-align: center; font-weight: 700;">
           </div>
 
           <div class="form-group">
@@ -541,7 +539,7 @@
           <div class="sheet-handle"></div>
           <div class="modal-header">
             <div class="modal-title">
-              <i class="fa-solid fa-bell" style="color: var(--primary-light);"></i> Thông báo của HLV
+              <i class="fa-solid fa-bell" style="color: var(--primary);"></i> Thông báo của HLV
             </div>
             <button class="modal-close-btn" id="btnCloseNotificationSheet">
               <i class="fa-solid fa-xmark"></i>
@@ -605,7 +603,7 @@
             <div style="width: 54px; height: 54px; border-radius: 50%; background: var(--accent-danger-bg); color: var(--accent-danger); display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 12px;">
               <i class="fa-solid fa-arrow-right-from-bracket"></i>
             </div>
-            <h3 style="font-size: 17px; font-weight: 800; color: #fff;">Xác nhận đăng xuất</h3>
+            <h3 style="font-size: 17px; font-weight: 800; color: var(--text-main);">Xác nhận đăng xuất</h3>
             <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.5;">
               Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng PT Paradise Gym không? Phiên làm việc hiện tại trên thiết bị này sẽ kết thúc.
             </p>
@@ -625,7 +623,7 @@
         <div class="center-modal-box" style="max-height: 85vh; overflow-y: auto;">
           <div class="modal-header">
             <div class="modal-title">
-              <i class="fa-solid fa-user-pen" style="color: var(--primary-light);"></i> Chỉnh sửa hồ sơ HLV
+              <i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> Chỉnh sửa hồ sơ HLV
             </div>
             <button class="modal-close-btn" id="btnCloseEditProfileModal">
               <i class="fa-solid fa-xmark"></i>
@@ -640,34 +638,34 @@
                 <div id="editAvatarFallback" class="coach-avatar-lg" style="width: 80px; height: 80px; font-size: 28px; margin: 0 auto;">
                   <i class="fa-solid fa-user"></i>
                 </div>
-                <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-light); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.4);">
+                <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-light); color: var(--text-main); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: none;">
                   <i class="fa-solid fa-camera"></i>
                 </div>
               </div>
               <input type="file" id="inputAvatarFile" accept="image/png,image/jpeg,image/webp" style="display: none;">
-              <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Chạm vào ảnh để đổi avatar (PNG, JPG, WebP &le; 5MB)</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Chạm vào ảnh để đổi avatar (PNG, JPG, WebP &le; 5MB)</div>
             </div>
 
             <!-- Readonly info -->
             <div class="form-group">
               <label class="form-label">Họ và tên HLV (Cố định)</label>
-              <input type="text" class="form-control no-icon" id="editFullName" readonly style="opacity: 0.7; background: rgba(255,255,255,0.05);">
+              <input type="text" class="form-control no-icon" id="editFullName" readonly style="opacity: 0.7; background: var(--border-color);">
             </div>
 
             <div style="display: flex; gap: 8px;">
               <div class="form-group" style="flex: 1;">
                 <label class="form-label">Mã PT</label>
-                <input type="text" class="form-control no-icon" id="editPtCode" readonly style="opacity: 0.7; background: rgba(255,255,255,0.05);">
+                <input type="text" class="form-control no-icon" id="editPtCode" readonly style="opacity: 0.7; background: var(--border-color);">
               </div>
               <div class="form-group" style="flex: 1;">
                 <label class="form-label">Chi nhánh</label>
-                <input type="text" class="form-control no-icon" id="editBranch" readonly style="opacity: 0.7; background: rgba(255,255,255,0.05);">
+                <input type="text" class="form-control no-icon" id="editBranch" readonly style="opacity: 0.7; background: var(--border-color);">
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Số điện thoại (Cố định)</label>
-              <input type="text" class="form-control no-icon" id="editPhone" readonly style="opacity: 0.7; background: rgba(255,255,255,0.05);">
+              <input type="text" class="form-control no-icon" id="editPhone" readonly style="opacity: 0.7; background: var(--border-color);">
             </div>
 
             <!-- Editable fields -->
@@ -695,6 +693,78 @@
           </form>
         </div>
       </div>
+      <!-- ==================================================== -->
+      <!-- MONTHLY COMMISSION MODAL (PT06-US02)                -->
+      <!-- ==================================================== -->
+      <div class="modal-backdrop center-mode" id="commissionModalBackdrop" role="dialog" aria-modal="true" aria-label="Bảng kê hoa hồng PT" style="display: none;">
+        <div class="center-modal-box" style="max-height: 88vh; overflow-y: auto; width: 95%; max-width: 440px;">
+          <div class="modal-header" style="position: sticky; top: 0; background: var(--bg-card); z-index: 2; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+            <div class="modal-title">
+              <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent-gold);"></i> Bảng kê hoa hồng PT
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button type="button" class="btn-icon-circle" id="btnRefreshCommSheet" title="Làm mới" style="width: 32px; height: 32px; font-size: 13px;">
+                <i class="fa-solid fa-rotate-right"></i>
+              </button>
+              <button type="button" class="modal-close-btn" id="btnCloseCommissionModal" title="Đóng bảng kê" aria-label="Đóng bảng kê">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Period Filter Chips / Month Picker (PT06-US02 TRIGGER) -->
+          <div style="margin: 12px 0 8px;">
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <button type="button" class="pt-comm-chip active" data-filter="this_month">Tháng này</button>
+              <button type="button" class="pt-comm-chip" data-filter="last_month">Tháng trước</button>
+              <button type="button" class="pt-comm-chip" data-filter="custom">Tháng khác</button>
+            </div>
+            <div id="commCustomMonthWrap" style="display: none; margin-bottom: 8px;">
+              <input type="month" id="commMonthInput" class="form-control no-icon" style="font-size: 12px; padding: 6px 10px;">
+            </div>
+          </div>
+
+          <!-- Highlight Summary Card -->
+          <div class="pt-comm-summary-card" style="background: var(--bg-card); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+              <div>
+                <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0;">Tổng hoa hồng ước tính</span>
+                <div style="font-size: 24px; font-weight: 800; color: #996217; margin-top: 2px;" id="commTotalAmount">0 <small style="font-size: 14px; font-weight: 600; color: #996217;">VNĐ</small></div>
+              </div>
+              <span id="commStatusBadge" class="badge" style="padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: var(--radius-full); background: rgba(245, 158, 11, 0.2); color: #996217;">Chờ duyệt</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+              <div>
+                <div style="font-size: 12px; color: var(--text-muted);">Tỷ lệ áp dụng</div>
+                <div style="font-size: 13px; font-weight: 700; color: #237b58;" id="commRate">--%</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--text-muted);">Số buổi dạy</div>
+                <div style="font-size: 13px; font-weight: 700; color: #286aa4;" id="commSessionsCount">0 buổi</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--text-muted);">Phần PT cơ sở</div>
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="commBaseRevenue">0 đ</div>
+              </div>
+            </div>
+            <div id="commPaidDateWrap" style="display: none; margin-top: 8px; font-size: 12px; color: #237b58;">
+              <i class="fa-solid fa-circle-check"></i> Đã nhận tiền ngày: <strong id="commPaidDate">--</strong>
+            </div>
+          </div>
+
+          <!-- Section title -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="font-size: 13px; color: var(--text-main);"><i class="fa-solid fa-list-check"></i> Chi tiết buổi dạy trong kỳ</strong>
+            <span style="font-size: 12px; color: var(--text-muted);" id="commListSub">0 ca tập</span>
+          </div>
+
+          <!-- Sessions List / Empty State -->
+          <div id="commSessionsList" style="display: flex; flex-direction: column; gap: 8px; min-height: 120px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -708,11 +778,11 @@
   <script src="../../shared/apiClient.js"></script>
   <!-- PT Module Scripts -->
   <script src="js/auth.js"></script>
-  <script src="js/profile.js"></script>
-  <script src="js/overview.js"></script>
-  <script src="js/schedule.js"></script>
-  <script src="js/clients.js"></script>
-  <script src="js/notifications.js"></script>
+  <script src="js/profile.js?v=20260920"></script>
+  <script src="js/overview.js?v=20260920"></script>
+  <script src="js/schedule.js?v=20260920"></script>
+  <script src="js/clients.js?v=20260920"></script>
+  <script src="js/notifications.js?v=20260920"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

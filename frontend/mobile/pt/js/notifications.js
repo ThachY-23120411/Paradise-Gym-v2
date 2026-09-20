@@ -170,13 +170,13 @@
             let targetScreen = 'PT01_SCHEDULE';
             let icon = 'fa-bell';
             let iconBg = 'rgba(59, 130, 246, 0.15)';
-            let iconColor = '#3B82F6';
+            let iconColor = '#286aa4';
 
             if (item.reference_type === 'PT_ASSIGNMENT' || title.includes('phân công') || content.includes('phân công')) {
               targetScreen = 'PT02_REQUESTS';
               icon = 'fa-user-plus';
               iconBg = 'rgba(245, 158, 11, 0.15)';
-              iconColor = '#F59E0B';
+              iconColor = '#996217';
             } else if (item.reference_type === 'PT_CONFIRMATION' || title.includes('xác nhận') || content.includes('xác nhận')) {
               targetScreen = 'PT01_RESULT_MODAL';
               icon = 'fa-clipboard-check';
@@ -186,12 +186,12 @@
               targetScreen = 'PT01_SCHEDULE';
               icon = 'fa-calendar-xmark';
               iconBg = 'rgba(239, 68, 68, 0.15)';
-              iconColor = '#EF4444';
+              iconColor = '#c43d40';
             } else if (title.includes('Nhắc') || content.includes('Nhắc')) {
               targetScreen = 'PT01_SCHEDULE';
               icon = 'fa-clock';
               iconBg = 'rgba(16, 185, 129, 0.15)';
-              iconColor = '#10B981';
+              iconColor = '#237b58';
             }
 
             dynamicItems.push({
@@ -235,7 +235,7 @@
                   isRead: readSet.has(notifId),
                   icon: 'fa-user-plus',
                   iconBg: 'rgba(245, 158, 11, 0.15)',
-                  iconColor: '#F59E0B'
+                  iconColor: '#996217'
                 });
               }
             });
@@ -296,7 +296,7 @@
                   isRead: readSet.has(notifId),
                   icon: 'fa-calendar-xmark',
                   iconBg: 'rgba(239, 68, 68, 0.15)',
-                  iconColor: '#EF4444'
+                  iconColor: '#c43d40'
                 });
               }
 
@@ -315,7 +315,7 @@
                   isRead: readSet.has(notifId),
                   icon: 'fa-clock',
                   iconBg: 'rgba(16, 185, 129, 0.15)',
-                  iconColor: '#10B981'
+                  iconColor: '#237b58'
                 });
               }
 
@@ -334,7 +334,7 @@
                   isRead: readSet.has(notifId),
                   icon: 'fa-calendar-plus',
                   iconBg: 'rgba(59, 130, 246, 0.15)',
-                  iconColor: '#3B82F6'
+                  iconColor: '#286aa4'
                 });
               }
             });
@@ -815,7 +815,7 @@
         isRead: false,
         icon: 'fa-user-check',
         iconBg: 'rgba(16, 185, 129, 0.15)',
-        iconColor: '#10B981'
+        iconColor: '#237b58'
       });
     }
 
@@ -864,12 +864,12 @@
         background: var(--bg-surface, #131D2E);
         border-top-left-radius: 28px;
         border-top-right-radius: 28px;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-top: 1px solid var(--border-color);
         display: flex;
         flex-direction: column;
         overflow: hidden;
         animation: drawerSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+        box-shadow: none;
       }
       @keyframes drawerSlideUp {
         from { transform: translateY(100%); }
@@ -881,7 +881,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 0 18px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        border-bottom: 1px solid var(--border-color);
         flex-shrink: 0;
       }
       .pt-notif-title-wrap {
@@ -890,30 +890,30 @@
         gap: 8px;
       }
       .pt-notif-title-icon {
-        color: var(--primary, #10B981);
+        color: var(--primary, #237b58);
         font-size: 16px;
       }
       .pt-notif-title {
         font-size: 17px;
         font-weight: 700;
-        color: #F8FAFC;
+        color: var(--text-main);
       }
       .pt-notif-header-badge {
         background: rgba(239, 68, 68, 0.2);
-        color: #EF4444;
+        color: #c43d40;
         border: 1px solid rgba(239, 68, 68, 0.35);
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
         padding: 2px 7px;
-        border-radius: 20px;
+        border-radius: 8px;
       }
       .pt-notif-close-btn {
-        background: rgba(255, 255, 255, 0.06);
+        background: var(--border-color);
         border: none;
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        color: #94A3B8;
+        color: #65736d;
         font-size: 14px;
         cursor: pointer;
         display: flex;
@@ -922,8 +922,8 @@
         transition: all 0.2s ease;
       }
       .pt-notif-close-btn:active {
-        background: rgba(255, 255, 255, 0.12);
-        color: #FFFFFF;
+        background: var(--border-color);
+        color: var(--text-main);
       }
       .pt-notif-toolbar {
         display: flex;
@@ -931,7 +931,7 @@
         justify-content: space-between;
         padding: 10px 18px;
         background: rgba(0, 0, 0, 0.15);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid var(--border-color);
         flex-shrink: 0;
       }
       .pt-notif-filter-tabs {
@@ -941,7 +941,7 @@
       .pt-notif-tab {
         background: transparent;
         border: none;
-        color: #94A3B8;
+        color: #65736d;
         font-size: 13px;
         font-weight: 600;
         padding: 6px 12px;
@@ -954,12 +954,12 @@
       }
       .pt-notif-tab.active {
         background: rgba(16, 185, 129, 0.15);
-        color: var(--primary, #10B981);
+        color: var(--primary, #237b58);
       }
       .pt-notif-tab-count {
-        background: #EF4444;
-        color: #fff;
-        font-size: 10px;
+        background: #c43d40;
+        color: var(--text-main);
+        font-size: 12px;
         font-weight: 700;
         padding: 1px 5px;
         border-radius: 8px;
@@ -968,7 +968,7 @@
       .pt-notif-mark-all-btn {
         background: transparent;
         border: none;
-        color: #CBD5E1;
+        color: var(--text-main);
         font-size: 12px;
         font-weight: 500;
         cursor: pointer;
@@ -978,7 +978,7 @@
         padding: 4px 6px;
       }
       .pt-notif-mark-all-btn:active {
-        color: var(--primary, #10B981);
+        color: var(--primary, #237b58);
       }
       .pt-notif-list-scroll {
         flex: 1;
@@ -994,9 +994,9 @@
         display: flex;
         gap: 12px;
         padding: 14px;
-        border-radius: 14px;
+        border-radius: 8px;
         background: var(--bg-surface-elevated, #1E293B);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border-color);
         cursor: pointer;
         position: relative;
         transition: all 0.2s ease;
@@ -1017,7 +1017,7 @@
       .pt-notif-type-icon {
         width: 38px;
         height: 38px;
-        border-radius: 10px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1037,17 +1037,17 @@
       .pt-notif-card-title {
         font-size: 14px;
         font-weight: 700;
-        color: #F8FAFC;
+        color: var(--text-main);
         line-height: 1.3;
       }
       .pt-notif-card-time {
-        font-size: 11px;
-        color: #64748B;
+        font-size: 12px;
+        color: #65736d;
         white-space: nowrap;
       }
       .pt-notif-card-text {
         font-size: 12px;
-        color: #CBD5E1;
+        color: var(--text-main);
         line-height: 1.45;
         margin-bottom: 8px;
       }
@@ -1055,9 +1055,9 @@
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
-        color: var(--primary, #10B981);
+        color: var(--primary, #237b58);
       }
       .pt-notif-unread-dot {
         position: absolute;
@@ -1066,8 +1066,8 @@
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #10B981;
-        box-shadow: 0 0 8px #10B981;
+        background: #237b58;
+        box-shadow: none;
       }
       .pt-notif-empty {
         padding: 60px 20px;
@@ -1081,12 +1081,12 @@
       .pt-notif-empty-title {
         font-size: 15px;
         font-weight: 700;
-        color: #E2E8F0;
+        color: var(--text-main);
         margin-bottom: 6px;
       }
       .pt-notif-empty-desc {
         font-size: 12px;
-        color: #94A3B8;
+        color: #65736d;
         line-height: 1.4;
       }
     `;

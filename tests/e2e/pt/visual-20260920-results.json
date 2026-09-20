@@ -1,0 +1,923 @@
+{
+  "results": [
+    {
+      "us": "PT01-US01",
+      "name": "step-01-schedule-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Tháng 9 Năm 2026\nT3\n01\nT4\n02\nT5\n03\nT6\n04\nT7\n05\nCN\n06\nT2\n07\nT3\n08\nT4\n09\nT5\n10\nT6\n11\nT7\n12\nCN\n13\nT2\n14\nT3\n15\nT4\n16\nT5\n17\nT6\n18\nT7\n19\nCN\n20\nT2\n21\nT3\n22\nT4\n23\nT5\n24\nT6\n25\nT7\n26\nCN\n27\nT2\n28\nT3\n29\nT4\n30\n Mở rộng lịch cả tháng",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT01-US01",
+      "name": "step-02-expanded-calendar",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "tháng 9 năm 2026\nThứ 2\tThứ 3\tThứ 4\tThứ 5\tThứ 6\tThứ 7\tCN\n\n31\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\t\n5\n\t\n6\n\n\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\n\t\n12\n\t\n13\n\n\n14\n\t\n15\n\t\n16\n\t\n17\n\t\n18\n\t\n19\n\t\n20\n\n\n21\n\t\n22\n\t\n23\n\t\n24\n\t\n25\n\t\n26\n\t\n27\n\n\n28\n\t\n29\n\t\n30\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\n\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\nThứ 2\tThứ 3\tThứ 4\tThứ 5\tThứ 6\tThứ 7\tCN\n\n27\n\t\n28\n\t\n29\n\t\n30\n\t\n31\n\t\n1\n\t\n2\n\n\n3\n\t\n4\n\t\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\n\n10\n\t\n11\n\t\n12\n\t\n13\n\t\n14\n\t\n15\n\t\n16\n\n\n17\n\t\n18\n\t\n19\n\t\n20\n\t\n21\n\t\n22\n\t\n23\n\n\n24\n\t\n25\n\t\n26\n\t\n27\n\t\n28\n\t\n29\n\t\n30\n\n\n31\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\t\n5\n\t\n6\nThứ 2\tThứ 3\tThứ 4\tTh",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT06-US01",
+      "name": "step-01-overview-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Học viên phụ trách\n2\nĐang phụ trách\nBuổi đã hoàn thành\n7\nĐã xác nhận\nBuổi đã được book\n2\nSắp dạy\nBuổi chờ xác nhận\n1\nChờ xác nhận\nYêu cầu phân công mới\n0\nChờ phản hồi\nXem & duyệt",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT06-US02",
+      "name": "step-01-commission-dialog",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Bảng kê hoa hồng PT\nTháng này\nTháng trước\nTháng khác\nTỔNG HOA HỒNG ƯỚC TÍNH\n468.771 VNĐ\nChờ duyệt\nTỷ lệ áp dụng\n25%\nSố buổi dạy\n6 buổi\nPhần PT cơ sở\n1.875.083 đ\n Chi tiết buổi dạy trong kỳ\n7 ca tập\n10:00 - 11:30 • 19/9/2026\nBuổi #2\nTrần Thị Bình (HV002)\nGói PT Giảm Mỡ 12 buổi\n+21 đ\nGiá trị: 83 đ\n10:00 - 11:30 • 18/9/2026\nBuổi #1\nTrần Thị Bình (HV002)\nGói PT Giảm Mỡ 12 buổi\n+21 đ\nGiá trị: 83 đ\n15:00 - 16:30 • 17/9/2026\nBuổi #5\nLê Hoàng Nam (HV001)\nGói Combo VIP (Gym 30 buổi + PT 12 buổi)\n+93.750 ",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT06-US02",
+      "name": "step-02-custom-month",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT02-US01",
+      "name": "step-01-clients-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Đang phụ trách\n(2)\nYêu cầu phân công\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nPT 30 buổi\n·\nHSD: Chưa cập nhật\nBuổi PT còn lại\n30 Buổi PT\nLần cuối\n-\nĐã tập 0 / 30 buổi\n0%\nXem lộ trình & lịch sử tập\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\n·\nHSD: 14/10/2026\nBuổi PT còn lại\n6 Buổi PT\nLần cuối\n27/07/2026\nĐã tập 6 / 12 buổi\n50%\nXem lộ trình & lịch sử tập\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nGói PT 20 buổi theo nhóm\n·\nHSD: Chưa",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT02-US02",
+      "name": "step-01-client-detail",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Lộ trình tập luyện\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\n Paradise Gym Quận 1\nPT 30 buổi\nĐang hoạt động\nTổng số buổi:\n30 buổi\nHạn sử dụng:\nChưa cập nhật\nĐã tập 0 / 30 buổi\nCòn lại 30 buổi\nTiến độ hoàn thành: 0%\nLịch sử các buổi đã hoàn thành (0)\nHọc viên chưa có buổi tập hoàn thành nào trong lộ trình\nTiến độ hiện tại là 0 / 30 buổi. Khi bạn và học viên hoàn tất buổi tập đầu tiên, giáo án và ghi chú thể lực sẽ được ghi nhận tại đây.",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT02-US01",
+      "name": "step-02-empty-search",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Không tìm thấy học viên phù hợp\nThử tìm kiếm với tên hoặc số điện thoại khác.",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT02-US03",
+      "name": "step-01-assignment-requests",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Không có yêu cầu phân công nào đang chờ xử lý\nTất cả các yêu cầu ghép PT mới từ học viên đã được bạn tiếp nhận hoặc điều phối thành công.",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT04-US01",
+      "name": "step-01-profile-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Nguyễn Văn Thể\nPT001\nParadise Gym Quận 1",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT04-US02",
+      "name": "step-01-edit-profile-dialog",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Chạm vào ảnh để đổi avatar (PNG, JPG, WebP ≤ 5MB)\nHọ và tên HLV (Cố định)\nMã PT\nChi nhánh\nSố điện thoại (Cố định)\nEmail liên hệ\nChuyên môn huấn luyện\nGiới thiệu bản thân (Tối đa 1.000 ký tự)",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT04-US02",
+      "name": "step-02-invalid-email-input",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT04-US02",
+      "name": "step-03-email-validation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Email liên hệ không hợp lệ.",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT04-US01",
+      "name": "step-02-password-dialog",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Mật khẩu hiện tại\nMật khẩu mới\nXác nhận mật khẩu mới",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT05-US03",
+      "name": "step-01-logout-confirmation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng PT Paradise Gym không? Phiên làm việc hiện tại trên thiết bị này sẽ kết thúc.",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT03-US01",
+      "name": "step-01-notifications",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visible": true,
+      "text": "Thông báo PT\n8 mới\nTất cả\nChưa đọc (8)\nĐọc tất cả\nNhắc lịch dạy sắp tới\nHôm nay\nNhắc lịch dạy: Bạn có buổi tập với Học viên Trần Thị Bình vào lúc [16:30 - 18:00] hôm nay\nChạm để xử lý\nĐặt lịch PT mới\n15:00\nLịch dạy mới: Học viên Trần Thị Bình đã đặt lịch tập vào [14:00 - 15:30] ngày [22/09/2026]\nChạm để xử lý\nĐặt lịch PT mới\n15:00\nLịch dạy mới: Học viên Trần Thị Bình đã đặt lịch tập vào [09:30 - 11:00] ngày [21/09/2026]\nChạm để xử lý\nĐặt lịch PT mới\n15:00\nLịch dạy mới: Học viên Trần Thị Bình đã ",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT01-US01",
+      "name": "responsive-375-schedule",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "text": "Lịch Huấn Luyện\nKhung cố định: 08:00 - 18:00 (T2 - T6)\nTháng 9 Năm 2026\ntháng 9 năm 2026\nThứ 2\tThứ 3\tThứ 4\tThứ 5\tThứ 6\tThứ 7\tCN\n\n31\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\t\n5\n\t\n6\n\n\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\n\t\n12\n\t\n13\n\n\n14\n\t\n15\n\t\n16\n\t\n17\n\t\n18\n\t\n19\n\t\n20\n\n\n21\n\t\n22\n\t\n23\n\t\n24\n\t\n25\n\t\n26\n\t\n27\n\n\n28\n\t\n29\n\t\n30\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\n\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\nThứ 2\tThứ 3\tThứ 4\tThứ 5\tThứ 6\tThứ 7\tCN\n\n27\n\t\n28\n\t\n29\n\t\n30\n\t\n31\n\t\n1\n\t\n2\n\n\n3\n\t\n4\n\t\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\n\n10\n\t\n11\n\t\n12\n\t\n13\n\t\n14\n\t\n15\n\t\n16\n\n\n17\n\t\n18\n\t\n19\n\t\n20\n\t\n21\n\t\n22\n\t\n23\n\n\n24\n\t\n25\n\t\n",
+      "layout": {
+        "width": 375,
+        "scrollWidth": 375,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT06-US01",
+      "name": "responsive-375-overview",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "text": "Tổng quan\nTuần này\nTháng này\nTháng trước\nHọc viên phụ trách\n2\nĐang phụ trách\nBuổi đã hoàn thành\n7\nĐã xác nhận\nBuổi đã được book\n2\nSắp dạy\nBuổi chờ xác nhận\n1\nChờ xác nhận\nYêu cầu phân công mới\n0\nChờ phản hồi\nXem & duyệt\nThù lao & hoa hồng\nHoa hồng ước tính tháng này\n468.771 VNĐ\nChờ duyệt\n25% hoa hồng\nThao tác nghiệp vụ nhanh\nLịch dạy hôm nay\nXem lịch ca dạy & điểm danh buổi tập\nDuyệt phân công\nYêu cầu chọn HLV từ Hội viên\nBảng kê hoa hồng tháng\nChi tiết thù lao buổi dạy & trạng thái chi trả",
+      "layout": {
+        "width": 375,
+        "scrollWidth": 375,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT02-US01",
+      "name": "responsive-375-members",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "text": "Đang phụ trách\n(2)\nYêu cầu phân công\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nPT 30 buổi\n·\nHSD: Chưa cập nhật\nBuổi PT còn lại\n30 Buổi PT\nLần cuối\n-\nĐã tập 0 / 30 buổi\n0%\nXem lộ trình & lịch sử tập\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\n·\nHSD: 14/10/2026\nBuổi PT còn lại\n6 Buổi PT\nLần cuối\n27/07/2026\nĐã tập 6 / 12 buổi\n50%\nXem lộ trình & lịch sử tập\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nGói PT 20 buổi theo nhóm\n·\nHSD: Chưa",
+      "layout": {
+        "width": 375,
+        "scrollWidth": 375,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT04-US01",
+      "name": "responsive-375-profile",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "text": "Nguyễn Văn Thể\nPT001\nParadise Gym Quận 1\n2\nHỌC VIÊN\nChỉnh sửa hồ sơ cá nhân\nThông tin liên hệ nhân sự\n Số điện thoại:\n0900000003\n Email làm việc:\nthe.nguyen.updated@paradise.vn\n Ca trực cố định:\n08:00 - 18:00 (ALL_WEEK)\nChuyên môn đào tạo\nHLV Thể hình\nSức mạnh & Dinh dưỡng nâng cao (Master Trainer CSCS)\nCài đặt thông báo & Ứng dụng\nNhận thông báo lịch mới\nThông báo khi có ca tập mới hoặc học viên đổi lịch\nNhắc ghi kết quả buổi học\nNhắc nhở cập nhật bài tập và chỉ số sau ca dạy\nHiển thị SĐT cho h",
+      "layout": {
+        "width": 375,
+        "scrollWidth": 375,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT01-US01",
+      "name": "responsive-412-schedule",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "visible": true,
+      "text": "Lịch Huấn Luyện\nKhung cố định: 08:00 - 18:00 (T2 - T6)\nTháng 9 Năm 2026\ntháng 9 năm 2026\nThứ 2\tThứ 3\tThứ 4\tThứ 5\tThứ 6\tThứ 7\tCN\n\n31\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\t\n5\n\t\n6\n\n\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\n\t\n12\n\t\n13\n\n\n14\n\t\n15\n\t\n16\n\t\n17\n\t\n18\n\t\n19\n\t\n20\n\n\n21\n\t\n22\n\t\n23\n\t\n24\n\t\n25\n\t\n26\n\t\n27\n\n\n28\n\t\n29\n\t\n30\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\n\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\nThứ 2\tThứ 3\tThứ 4\tThứ 5\tThứ 6\tThứ 7\tCN\n\n27\n\t\n28\n\t\n29\n\t\n30\n\t\n31\n\t\n1\n\t\n2\n\n\n3\n\t\n4\n\t\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\n\n10\n\t\n11\n\t\n12\n\t\n13\n\t\n14\n\t\n15\n\t\n16\n\n\n17\n\t\n18\n\t\n19\n\t\n20\n\t\n21\n\t\n22\n\t\n23\n\n\n24\n\t\n25\n\t\n",
+      "layout": {
+        "width": 412,
+        "scrollWidth": 412,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT06-US01",
+      "name": "responsive-412-overview",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "visible": true,
+      "text": "Tổng quan\nTuần này\nTháng này\nTháng trước\nHọc viên phụ trách\n2\nĐang phụ trách\nBuổi đã hoàn thành\n7\nĐã xác nhận\nBuổi đã được book\n2\nSắp dạy\nBuổi chờ xác nhận\n1\nChờ xác nhận\nYêu cầu phân công mới\n0\nChờ phản hồi\nXem & duyệt\nThù lao & hoa hồng\nHoa hồng ước tính tháng này\n468.771 VNĐ\nChờ duyệt\n25% hoa hồng\nThao tác nghiệp vụ nhanh\nLịch dạy hôm nay\nXem lịch ca dạy & điểm danh buổi tập\nDuyệt phân công\nYêu cầu chọn HLV từ Hội viên\nBảng kê hoa hồng tháng\nChi tiết thù lao buổi dạy & trạng thái chi trả",
+      "layout": {
+        "width": 412,
+        "scrollWidth": 412,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT02-US01",
+      "name": "responsive-412-members",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "visible": true,
+      "text": "Đang phụ trách\n(2)\nYêu cầu phân công\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nPT 30 buổi\n·\nHSD: Chưa cập nhật\nBuổi PT còn lại\n30 Buổi PT\nLần cuối\n-\nĐã tập 0 / 30 buổi\n0%\nXem lộ trình & lịch sử tập\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\n·\nHSD: 14/10/2026\nBuổi PT còn lại\n6 Buổi PT\nLần cuối\n27/07/2026\nĐã tập 6 / 12 buổi\n50%\nXem lộ trình & lịch sử tập\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nGói PT 20 buổi theo nhóm\n·\nHSD: Chưa",
+      "layout": {
+        "width": 412,
+        "scrollWidth": 412,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT04-US01",
+      "name": "responsive-412-profile",
+      "viewport": {
+        "width": 412,
+        "height": 915
+      },
+      "visible": true,
+      "text": "Nguyễn Văn Thể\nPT001\nParadise Gym Quận 1\n2\nHỌC VIÊN\nChỉnh sửa hồ sơ cá nhân\nThông tin liên hệ nhân sự\n Số điện thoại:\n0900000003\n Email làm việc:\nthe.nguyen.updated@paradise.vn\n Ca trực cố định:\n08:00 - 18:00 (ALL_WEEK)\nChuyên môn đào tạo\nHLV Thể hình\nSức mạnh & Dinh dưỡng nâng cao (Master Trainer CSCS)\nCài đặt thông báo & Ứng dụng\nNhận thông báo lịch mới\nThông báo khi có ca tập mới hoặc học viên đổi lịch\nNhắc ghi kết quả buổi học\nNhắc nhở cập nhật bài tập và chỉ số sau ca dạy\nHiển thị SĐT cho h",
+      "layout": {
+        "width": 412,
+        "scrollWidth": 412,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT01-US01",
+      "name": "responsive-768-schedule",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "visible": true,
+      "text": "Lịch Huấn Luyện\nKhung cố định: 08:00 - 18:00 (T2 - T6)\nTháng 9 Năm 2026\ntháng 9 năm 2026\nThứ 2\tThứ 3\tThứ 4\tThứ 5\tThứ 6\tThứ 7\tCN\n\n31\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\t\n5\n\t\n6\n\n\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\n\t\n12\n\t\n13\n\n\n14\n\t\n15\n\t\n16\n\t\n17\n\t\n18\n\t\n19\n\t\n20\n\n\n21\n\t\n22\n\t\n23\n\t\n24\n\t\n25\n\t\n26\n\t\n27\n\n\n28\n\t\n29\n\t\n30\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\n\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\nThứ 2\tThứ 3\tThứ 4\tThứ 5\tThứ 6\tThứ 7\tCN\n\n27\n\t\n28\n\t\n29\n\t\n30\n\t\n31\n\t\n1\n\t\n2\n\n\n3\n\t\n4\n\t\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\n\n10\n\t\n11\n\t\n12\n\t\n13\n\t\n14\n\t\n15\n\t\n16\n\n\n17\n\t\n18\n\t\n19\n\t\n20\n\t\n21\n\t\n22\n\t\n23\n\n\n24\n\t\n25\n\t\n",
+      "layout": {
+        "width": 768,
+        "scrollWidth": 768,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT06-US01",
+      "name": "responsive-768-overview",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "visible": true,
+      "text": "Tổng quan\nTuần này\nTháng này\nTháng trước\nHọc viên phụ trách\n2\nĐang phụ trách\nBuổi đã hoàn thành\n7\nĐã xác nhận\nBuổi đã được book\n2\nSắp dạy\nBuổi chờ xác nhận\n1\nChờ xác nhận\nYêu cầu phân công mới\n0\nChờ phản hồi\nXem & duyệt\nThù lao & hoa hồng\nHoa hồng ước tính tháng này\n468.771 VNĐ\nChờ duyệt\n25% hoa hồng\nThao tác nghiệp vụ nhanh\nLịch dạy hôm nay\nXem lịch ca dạy & điểm danh buổi tập\nDuyệt phân công\nYêu cầu chọn HLV từ Hội viên\nBảng kê hoa hồng tháng\nChi tiết thù lao buổi dạy & trạng thái chi trả",
+      "layout": {
+        "width": 768,
+        "scrollWidth": 768,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT02-US01",
+      "name": "responsive-768-members",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "visible": true,
+      "text": "Đang phụ trách\n(2)\nYêu cầu phân công\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nPT 30 buổi\n·\nHSD: Chưa cập nhật\nBuổi PT còn lại\n30 Buổi PT\nLần cuối\n-\nĐã tập 0 / 30 buổi\n0%\nXem lộ trình & lịch sử tập\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\n·\nHSD: 14/10/2026\nBuổi PT còn lại\n6 Buổi PT\nLần cuối\n27/07/2026\nĐã tập 6 / 12 buổi\n50%\nXem lộ trình & lịch sử tập\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nGói PT 20 buổi theo nhóm\n·\nHSD: Chưa",
+      "layout": {
+        "width": 768,
+        "scrollWidth": 768,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT04-US01",
+      "name": "responsive-768-profile",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "visible": true,
+      "text": "Nguyễn Văn Thể\nPT001\nParadise Gym Quận 1\n2\nHỌC VIÊN\nChỉnh sửa hồ sơ cá nhân\nThông tin liên hệ nhân sự\n Số điện thoại:\n0900000003\n Email làm việc:\nthe.nguyen.updated@paradise.vn\n Ca trực cố định:\n08:00 - 18:00 (ALL_WEEK)\nChuyên môn đào tạo\nHLV Thể hình\nSức mạnh & Dinh dưỡng nâng cao (Master Trainer CSCS)\nCài đặt thông báo & Ứng dụng\nNhận thông báo lịch mới\nThông báo khi có ca tập mới hoặc học viên đổi lịch\nNhắc ghi kết quả buổi học\nNhắc nhở cập nhật bài tập và chỉ số sau ca dạy\nHiển thị SĐT cho h",
+      "layout": {
+        "width": 768,
+        "scrollWidth": 768,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT01-US01",
+      "name": "responsive-1440-schedule",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visible": true,
+      "text": "Lịch Huấn Luyện\nKhung cố định: 08:00 - 18:00 (T2 - T6)\nTháng 9 Năm 2026\ntháng 9 năm 2026\nThứ 2\tThứ 3\tThứ 4\tThứ 5\tThứ 6\tThứ 7\tCN\n\n31\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\t\n5\n\t\n6\n\n\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\n\t\n12\n\t\n13\n\n\n14\n\t\n15\n\t\n16\n\t\n17\n\t\n18\n\t\n19\n\t\n20\n\n\n21\n\t\n22\n\t\n23\n\t\n24\n\t\n25\n\t\n26\n\t\n27\n\n\n28\n\t\n29\n\t\n30\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\n\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\nThứ 2\tThứ 3\tThứ 4\tThứ 5\tThứ 6\tThứ 7\tCN\n\n27\n\t\n28\n\t\n29\n\t\n30\n\t\n31\n\t\n1\n\t\n2\n\n\n3\n\t\n4\n\t\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\n\n10\n\t\n11\n\t\n12\n\t\n13\n\t\n14\n\t\n15\n\t\n16\n\n\n17\n\t\n18\n\t\n19\n\t\n20\n\t\n21\n\t\n22\n\t\n23\n\n\n24\n\t\n25\n\t\n",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT06-US01",
+      "name": "responsive-1440-overview",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visible": true,
+      "text": "Tổng quan\nTuần này\nTháng này\nTháng trước\nHọc viên phụ trách\n2\nĐang phụ trách\nBuổi đã hoàn thành\n7\nĐã xác nhận\nBuổi đã được book\n2\nSắp dạy\nBuổi chờ xác nhận\n1\nChờ xác nhận\nYêu cầu phân công mới\n0\nChờ phản hồi\nXem & duyệt\nThù lao & hoa hồng\nHoa hồng ước tính tháng này\n468.771 VNĐ\nChờ duyệt\n25% hoa hồng\nThao tác nghiệp vụ nhanh\nLịch dạy hôm nay\nXem lịch ca dạy & điểm danh buổi tập\nDuyệt phân công\nYêu cầu chọn HLV từ Hội viên\nBảng kê hoa hồng tháng\nChi tiết thù lao buổi dạy & trạng thái chi trả",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT02-US01",
+      "name": "responsive-1440-members",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visible": true,
+      "text": "Đang phụ trách\n(2)\nYêu cầu phân công\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nPT 30 buổi\n·\nHSD: Chưa cập nhật\nBuổi PT còn lại\n30 Buổi PT\nLần cuối\n-\nĐã tập 0 / 30 buổi\n0%\nXem lộ trình & lịch sử tập\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\n·\nHSD: 14/10/2026\nBuổi PT còn lại\n6 Buổi PT\nLần cuối\n27/07/2026\nĐã tập 6 / 12 buổi\n50%\nXem lộ trình & lịch sử tập\nLN\nLê Hoàng Nam\nHV001\n·\n0987 654 321\nĐang hoạt động\nGói PT 20 buổi theo nhóm\n·\nHSD: Chưa",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT04-US01",
+      "name": "responsive-1440-profile",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visible": true,
+      "text": "Nguyễn Văn Thể\nPT001\nParadise Gym Quận 1\n2\nHỌC VIÊN\nChỉnh sửa hồ sơ cá nhân\nThông tin liên hệ nhân sự\n Số điện thoại:\n0900000003\n Email làm việc:\nthe.nguyen.updated@paradise.vn\n Ca trực cố định:\n08:00 - 18:00 (ALL_WEEK)\nChuyên môn đào tạo\nHLV Thể hình\nSức mạnh & Dinh dưỡng nâng cao (Master Trainer CSCS)\nCài đặt thông báo & Ứng dụng\nNhận thông báo lịch mới\nThông báo khi có ca tập mới hoặc học viên đổi lịch\nNhắc ghi kết quả buổi học\nNhắc nhở cập nhật bài tập và chỉ số sau ca dạy\nHiển thị SĐT cho h",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT04-US02",
+      "name": "responsive-375-edit-profile",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "text": "Chạm vào ảnh để đổi avatar (PNG, JPG, WebP ≤ 5MB)\nHọ và tên HLV (Cố định)\nMã PT\nChi nhánh\nSố điện thoại (Cố định)\nEmail liên hệ\nChuyên môn huấn luyện\nGiới thiệu bản thân (Tối đa 1.000 ký tự)",
+      "layout": {
+        "width": 375,
+        "scrollWidth": 375,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT06-US01",
+      "name": "step-02-api-error",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "text": "Không thể nạp dữ liệu thống kê, vui lòng kiểm tra kết nối mạng\nThử lại",
+      "layout": {
+        "width": 375,
+        "scrollWidth": 375,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    },
+    {
+      "us": "PT06-US01",
+      "name": "step-03-api-retry",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "text": "Học viên phụ trách\n2\nĐang phụ trách\nBuổi đã hoàn thành\n7\nĐã xác nhận\nBuổi đã được book\n2\nSắp dạy\nBuổi chờ xác nhận\n1\nChờ xác nhận\nYêu cầu phân công mới\n0\nChờ phản hồi\nXem & duyệt",
+      "layout": {
+        "width": 375,
+        "scrollWidth": 375,
+        "bodyBg": "rgb(244, 246, 245)",
+        "bodyColor": "rgb(38, 51, 46)",
+        "navItems": 4
+      }
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "url": "notifications?",
+      "status": 200
+    },
+    {
+      "url": "notifications?",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings/assignment-requests",
+      "status": 200
+    },
+    {
+      "url": "auth/me",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings/assignment-requests",
+      "status": 200
+    },
+    {
+      "url": "notifications?",
+      "status": 200
+    },
+    {
+      "url": "mobile/profile",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings/assignment-requests",
+      "status": 200
+    },
+    {
+      "url": "mobile/preferences",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings",
+      "status": 200
+    },
+    {
+      "url": "mobile/pt/statistics?period=month",
+      "status": 200
+    },
+    {
+      "url": "pt/my-commissions?month=9&year=2026",
+      "status": 200
+    },
+    {
+      "url": "pt/my-commissions?month=9&year=2026",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings/assignment-requests?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "members?limit=1000",
+      "status": 200
+    },
+    {
+      "url": "mobile/profile",
+      "status": 200
+    },
+    {
+      "url": "mobile/preferences",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "notifications?",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings/assignment-requests",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "mobile/pt/statistics?period=month",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings",
+      "status": 200
+    },
+    {
+      "url": "pt/my-commissions?month=9&year=2026",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "members?limit=1000",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings/assignment-requests?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "mobile/profile",
+      "status": 200
+    },
+    {
+      "url": "mobile/preferences",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings",
+      "status": 200
+    },
+    {
+      "url": "mobile/pt/statistics?period=month",
+      "status": 200
+    },
+    {
+      "url": "pt/my-commissions?month=9&year=2026",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings/assignment-requests?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "members?limit=1000",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "mobile/profile",
+      "status": 200
+    },
+    {
+      "url": "mobile/preferences",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings",
+      "status": 200
+    },
+    {
+      "url": "mobile/pt/statistics?period=month",
+      "status": 200
+    },
+    {
+      "url": "pt/my-commissions?month=9&year=2026",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings/assignment-requests?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "members?limit=1000",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "mobile/profile",
+      "status": 200
+    },
+    {
+      "url": "mobile/preferences",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "mobile/pt/statistics?period=month",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings",
+      "status": 200
+    },
+    {
+      "url": "pt/my-commissions?month=9&year=2026",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings/assignment-requests?pt_id=50000000-0000-0000-0000-000000000001",
+      "status": 200
+    },
+    {
+      "url": "members?limit=1000",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "mobile/profile",
+      "status": 200
+    },
+    {
+      "url": "mobile/preferences",
+      "status": 200
+    },
+    {
+      "url": "registrations",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings",
+      "status": 200
+    },
+    {
+      "url": "pt-bookings",
+      "status": 200
+    },
+    {
+      "url": "mobile/pt/statistics?period=month",
+      "status": 200
+    },
+    {
+      "url": "pt/my-commissions?month=9&year=2026",
+      "status": 200
+    }
+  ],
+  "blockedWrites": []
+}

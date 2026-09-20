@@ -13,12 +13,12 @@ function deviceView(d){
   let connection='INACTIVE';
   if(d.enabled&&d.status!=='INACTIVE'){
     if(heartbeat===null)connection='PENDING_SYNC';
-    else if(!Number.isFinite(heartbeat)||heartbeat<=now-120000||heartbeat>now)connection='OFFLINE';
+    else if(!Number.isFinite(heartbeat)||heartbeat<=now-120000||heartbeat>now+3000)connection='OFFLINE';
     else connection=d.last_error?.trim()?'ERROR':'ONLINE';
   }
   // Configuration can restrict operation, but only telemetry can establish connectivity.
   const status=connection==='ONLINE'?d.status:connection;
-  return {...d,configured_status:d.status,connection_status:connection,status,last_heartbeat:d.last_heartbeat_at,location:d.location_description,telemetry_available:heartbeat!==null&&Number.isFinite(heartbeat)&&heartbeat<=now,last_test_result:null};
+  return {...d,configured_status:d.status,connection_status:connection,status,last_heartbeat:d.last_heartbeat_at,location:d.location_description,telemetry_available:heartbeat!==null&&Number.isFinite(heartbeat)&&heartbeat<=now+3000,last_test_result:null};
 }
 async function deviceList(req){role(req,'QTV','RECEPTIONIST');return search((await pool.query('SELECT d.*,b.branch_name FROM devices d JOIN branches b ON b.id=d.branch_id WHERE ($1::uuid[] IS NULL OR d.branch_id=ANY($1)) ORDER BY d.device_code',[scope(req)])).rows.map(deviceView),req.query,['device_code','device_name','location_description']);}
 async function deviceDetail(req){

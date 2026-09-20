@@ -22,15 +22,17 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 - [HV02-US02 — Đặt lịch PT từ slot trống](./HV02-Lịch tập/HV02-US02-Đặt lịch PT từ slot trống.md)
 - [HV02-US03 — Hủy lịch buổi PT](./HV02-Lịch tập/HV02-US03-Hủy lịch buổi PT.md)
 - [HV02-US04 — Xác nhận hoàn thành buổi PT](./HV02-Lịch tập/HV02-US04-Xác nhận hoàn thành buổi PT.md)
+- [HV02-US05 — Đăng ký tham gia lớp tập cộng đồng](./HV02-Lịch tập/HV02-US05-Đăng ký tham gia lớp tập cộng đồng.md)
 
 ## HV03 · Gói của tôi
 
 - [HV03-US01 — Xem gói, quyền lợi và tiến độ sử dụng](./HV03-Gói của tôi/HV03-US01-Xem gói, quyền lợi và tiến độ sử dụng.md)
 - [HV03-US02 — Xem chi tiết và quyền lợi gói đang bán](./HV03-Gói của tôi/HV03-US02-Xem chi tiết và quyền lợi gói đang bán.md)
 - [HV03-US03 — Mua gói và khởi tạo thanh toán Mobile](./HV03-Gói của tôi/HV03-US03-Mua gói và khởi tạo thanh toán Mobile.md)
-- [HV03-US04 — Chọn PT và gửi yêu cầu phân công](./HV03-Gói của tôi/HV03-US04-Chọn PT và gửi yêu cầu phân công.md)
-- [HV03-US05 — Theo dõi yêu cầu phân công PT](./HV03-Gói của tôi/HV03-US05-Theo dõi yêu cầu phân công PT.md)
 - [HV03-US06 — Xem lịch sử thanh toán](./HV03-Gói của tôi/HV03-US06-Xem lịch sử thanh toán.md)
+- [HV03-US07 — Mời thành viên tham gia gói PT 1-Nhiều](./HV03-Gói của tôi/HV03-US07-Mời thành viên tham gia gói PT 1-Nhiều.md)
+
+*(Lưu ý: Luồng tự chọn PT US04/US05 được thay thế bằng cơ chế Lễ tân/QTV gán trực tiếp PT tại quầy theo feedback sếp Cường).*
 
 ## HV04 · Tài khoản
 
@@ -48,7 +50,7 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 - [HV06-US03 — Tạo tài khoản và đăng ký hồ sơ mới](./HV06-Đăng%20nhập/HV06-US03-Tạo%20tài%20khoản%20và%20đăng%20ký%20hồ%20sơ%20mới.md)
 - [HV06-US04 — Đăng xuất tài khoản Mobile](./HV06-Đăng%20nhập/HV06-US04-Đăng%20xuất%20tài%20khoản%20Mobile.md)
 
-**Tổng số:** 6 Epic, 17 User Story canonical.
+**Tổng số:** 6 Epic, 17 User Story canonical hoạt động.
 
 ## Boundary
 

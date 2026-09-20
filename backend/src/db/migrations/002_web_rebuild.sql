@@ -74,7 +74,7 @@ DECLARE expected NUMERIC; owner_id UUID; sale_branch UUID;
 BEGIN
   SELECT price_snapshot,member_id,sold_branch_id INTO expected,owner_id,sale_branch
   FROM registrations WHERE id=NEW.registration_id FOR UPDATE;
-  IF NEW.amount IS DISTINCT FROM expected OR NEW.member_id IS DISTINCT FROM owner_id OR NEW.branch_id IS DISTINCT FROM sale_branch THEN
+  IF (NEW.amount + COALESCE(NEW.discount_amount, 0)) IS DISTINCT FROM expected OR NEW.member_id IS DISTINCT FROM owner_id OR NEW.branch_id IS DISTINCT FROM sale_branch THEN
     RAISE EXCEPTION 'Payment must match the entire registration snapshot' USING ERRCODE='23514';
   END IF;
   IF NEW.status='COMPLETED' AND EXISTS(SELECT 1 FROM payments WHERE registration_id=NEW.registration_id AND status='COMPLETED' AND id<>NEW.id) THEN

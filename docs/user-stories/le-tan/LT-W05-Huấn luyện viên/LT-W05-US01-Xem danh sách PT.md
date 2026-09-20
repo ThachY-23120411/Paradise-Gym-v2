@@ -19,7 +19,7 @@
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Mã PT | `Readonly Text` | `READONLY` | required | Không | SYS sinh tự động duy nhất từ `PT_PROFILE.code` (ví dụ: "PT001", "PT002") |
-| Họ và tên | `Readonly Text` | `READONLY` | required | Không | Họ và tên của huấn luyện viên từ `PT_PROFILE.full_name` (ví dụ: "Nguyễn Văn Hùng") |
+| Họ và tên | `Readonly Text + Image` | `READONLY` | required | Không | Hiển thị ảnh Avatar tròn (nếu có URL) hoặc huy hiệu viết tắt chữ cái đầu (initials badge) kèm họ và tên của huấn luyện viên từ `PT_PROFILE.full_name` và `PT_PROFILE.avatar_url` (ví dụ: "Nguyễn Văn Hùng") |
 | Số điện thoại | `Readonly Text (Phone)` | `READONLY` | required | Không | Số điện thoại định danh duy nhất của PT từ `PT_PROFILE.phone` (ví dụ: "0909 888 777") |
 | Email | `Readonly Text` | `READONLY` | optional | Không | Địa chỉ email của PT từ `PT_PROFILE.email` (ví dụ: "pt.hung@paradise.vn"); hiển thị `--` nếu chưa cập nhật |
 | Chi nhánh phục vụ | `Readonly Text` | `READONLY` | required | Không | Tên chi nhánh nơi Lễ tân và PT đang cùng công tác từ `BRANCH.name` (ví dụ: "Quận 1") |

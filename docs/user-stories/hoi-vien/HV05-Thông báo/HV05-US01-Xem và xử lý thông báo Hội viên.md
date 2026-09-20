@@ -5,12 +5,12 @@
 - Hội viên có các thông báo in-app được hệ thống (SYS) phát tự động từ các sự kiện nghiệp vụ liên quan (Thanh toán gói, Yêu cầu phân công PT, Đặt/Đổi/Hủy lịch PT, Buổi PT hoàn thành, Nhắc hạn gói, Sinh nhật).
 
 ## Trigger
-- Hội viên bấm chọn menu footer `HV05 · Thông báo` (hoặc biểu tượng chuông thông báo trên Header) trên ứng dụng Mobile Hội viên.
-- Màn hình liên quan: Mobile App Hội viên — Tab `HV05 · Thông báo`.
+- Hội viên bấm chọn biểu tượng chuông thông báo trên Header của ứng dụng Mobile Hội viên (có chấm đỏ báo hiệu khi có thông báo chưa đọc).
+- Màn hình liên quan: Mobile App Hội viên — Màn hình `HV05 · Thông báo`.
 
 ## Main Flow
 
-1. Hội viên mở menu footer **HV05 · Thông báo**.
+1. Hội viên bấm vào biểu tượng chuông thông báo trên Header.
 2. Hệ thống nạp danh sách các thông báo dành riêng cho Hội viên hiện hành, bao gồm 6 nhóm thông báo chính:
    - **Thông báo Thanh toán & Kích hoạt gói:** Phát khi thanh toán gói tập thành công (`HV03-US03`, `LT-W08-US01`, `QTV-W08-US01`). Nội dung: *"Thanh toán thành công: Gói tập [Tên gói] đã được kích hoạt. Thời hạn đến [DD/MM/YYYY]"*.
    - **Thông báo Kết quả xử lý Yêu cầu PT:** Phát khi PT chấp nhận hoặc từ chối yêu cầu phân công (`PT02-US03`). Nội dung: *"HLV [Tên PT] đã chấp nhận yêu cầu hướng dẫn gói [Tên gói]. Bạn có thể đặt lịch tập ngay!"* hoặc *"HLV [Tên PT] đã từ chối yêu cầu phân công"*.

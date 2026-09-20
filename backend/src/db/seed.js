@@ -77,6 +77,20 @@ async function runSeed() {
     const seedSql = fs.readFileSync(seedPath, 'utf8');
     await client.query(seedSql);
     await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '002_web_rebuild.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '003_mobile_preferences.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '004_device_sessions.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '005_remove_pt_certificates.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '006_boss_feedback_schema_upgrade.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '007_commission_configs_uniqueness_and_history.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '008_branch_default_commission_rate.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '009_pt_commission_payout_details.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '010_scheduled_package_freezes.sql'), 'utf8'));
+    
+    // 3.1. Execute Boss Feedback Extensions Seed Data
+    const bossSeedPath = path.join(__dirname, 'seeds', '002_boss_feedback_seed.sql');
+    console.log(`⏳ Executing Boss Feedback Seed Data: ${bossSeedPath}`);
+    await client.query(fs.readFileSync(bossSeedPath, 'utf8'));
+
     await repairPlaceholderPasswords(client);
     console.log('✅ Seed SQL executed successfully.');
 
@@ -86,7 +100,8 @@ async function runSeed() {
       'member_profiles', 'pt_profiles', 'packages', 'package_branches',
       'registrations', 'registration_allowed_branches', 'pt_assignment_requests',
       'payments', 'receipts', 'pt_bookings', 'devices', 'access_logs',
-      'notification_templates', 'notifications', 'audit_logs'
+      'notification_templates', 'notifications', 'audit_logs',
+      'discounts', 'pt_commission_configs', 'community_classes', 'holidays'
     ];
 
     console.log('\n📊 SEED DATA VERIFICATION SUMMARY:');

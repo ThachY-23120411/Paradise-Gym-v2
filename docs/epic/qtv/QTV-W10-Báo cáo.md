@@ -5,31 +5,34 @@
 - **Menu:** `W10`
 - **Goal:** Cung cấp bức tranh quản trị 360 độ toàn diện về doanh thu tài chính, sản lượng bán gói, tiến độ đào tạo PT và đối chiếu dòng tiền thực thu theo từng kỳ (Tháng / Quý / Năm) và phạm vi chi nhánh phân quyền.
 - **Scope:** 
-  1. **Thanh điều khiển & Chuyển kỳ báo cáo:** Chuyển đổi nhanh giữa các kỳ phân tích (`Tháng`, `Quý`, `Năm`), theo dõi phạm vi chi nhánh áp dụng và xuất dữ liệu báo cáo ra file Excel.
+  1. **Thanh điều khiển & Chuyển kỳ báo cáo:** Chuyển đổi nhanh giữa các kỳ phân tích (`Tháng`, `Quý`, `Năm`), chọn Năm và Tháng/Quý linh hoạt, theo dõi phạm vi chi nhánh áp dụng và xuất dữ liệu báo cáo ra file Excel đa sheet.
   2. **Hàng 4 Thẻ KPI cốt lõi (Metric Cards):** Đo lường tức thì 4 chỉ số sinh mệnh phòng gym: Tiền thực thu 100%, Tổng giá trị gói đã bán, Tổng số gói bán ra và Tổng số buổi tập PT đã hoàn thành.
-  3. **Biểu đồ doanh thu & Phân tích cơ cấu gói (Charts & Distribution):** Biểu đồ cột so sánh trực quan doanh thu 3 kỳ gần nhất và thanh tiến trình tỷ trọng phần trăm từng gói tập bán chạy.
-  4. **Bảng tổng hợp doanh thu (Revenue Datagridview):** Bảng gom dòng duy nhất cho mỗi mốc thời gian (theo từng Ngày khi xem Tháng; theo từng Tháng khi xem Quý/Năm), hiển thị Tổng số gói bán, Phân rã theo dịch vụ và Doanh thu thực thu 100%.
+  3. **Hệ thống 3 Tab Phân tích Chuyên sâu (Executive BI Tabs):**
+     - *Tab 1: Doanh thu & Dòng tiền:* Spline Area Chart xu hướng thực thu theo ngày + Bar Chart so sánh 3 kỳ + Bảng tổng hợp dòng tiền.
+     - *Tab 2: Cơ cấu Gói & Dịch vụ:* Doughnut Chart tỷ trọng gói bán chạy có tâm tròn + Stacked Bar Chart phân rã Gym/PT/Combo + Bảng chi tiết từng gói.
+     - *Tab 3: Hiệu suất Đào tạo PT:* Bar Chart bảng xếp hạng số buổi dạy HLV + Cụm thẻ chỉ số đào tạo + Bảng chi tiết kết quả từng HLV.
+  4. **Xuất báo cáo Excel chuyên nghiệp (ExcelJS):** Xuất toàn bộ số liệu 4 sheet: Tổng hợp, Doanh thu & Dòng tiền, Cơ cấu gói tập, và Hiệu suất PT.
 
 ---
 
 ## Thành phần giao diện (UI Components & Layout)
 
-Màn hình `W10 · Báo cáo` được thiết kế dưới dạng Dashboard quản trị kinh doanh & vận hành tập trung (dựa trên thiết kế chuẩn tại `screenshot/qtv/light-web-W10-bao-cao.png`):
+Màn hình `W10 · Báo cáo` được thiết kế dưới dạng Dashboard quản trị kinh doanh & vận hành tập trung:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ [Tháng] [Quý] [Năm]   [Tiền thực thu · Chi nhánh được cấp]           [📥 Xuất báo cáo] │
+│ [Tháng] [Quý] [Năm] [Năm 2026] [Tháng 9]   [Tiền thực thu · Chi nhánh] [📥 Xuất báo cáo]│
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ ┌────────────────┐ ┌────────────────┐ ┌────────────────┐ ┌───────────────────────────┐ │
 │ │ Tiền thực thu  │ │ Giá trị gói bán│ │  Gói đã bán    │ │ Buổi PT đã dạy            │ │
-│ │ 18.200.000 đ   │ │ 21.300.000 đ   │ │  12            │ │ 64                        │ │
+│ │ 12.800 đ       │ │ 17.314.000 đ   │ │  6             │ │ 5                         │ │
 │ └────────────────┘ └────────────────┘ └────────────────┘ └───────────────────────────┘ │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ [ 💰 Doanh thu & Dòng tiền ]   [ 📦 Cơ cấu Gói & Dịch vụ ]   [ 🏋️‍♂️ Hiệu suất Đào tạo PT ] │
 ├───────────────────────────────────────────────────────┬────────────────────────────────┤
-│ DOANH THU 3 THÁNG GẦN NHẤT                            │ GÓI TẬP ĐÃ BÁN (CƠ CẤU %)      │
-│ [Biểu đồ cột so sánh T7, T8, T9]                      │ [Progress Bars: PT 20, 3T, 1T] │
+│ TAB 1 / TAB 2 / TAB 3 (Biểu đồ tương ứng)             │ BIỂU ĐỒ BỔ TRỢ / SUMMARY CARDS │
 ├───────────────────────────────────────────────────────┴────────────────────────────────┤
-│ BẢNG TỔNG HỢP DOANH THU                                                                │
-│ [Mốc thời gian (Ngày/Tháng) | Tổng số gói bán | Phân rã theo dịch vụ | Thực thu (100%)]│
+│ BẢNG DỮ LIỆU CHI TIẾT TƯƠNG ỨNG CỦA TAB                                                │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 

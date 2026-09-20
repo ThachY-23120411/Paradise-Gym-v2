@@ -40,15 +40,21 @@ router.get('/members/:id',route(async req=>{
 }));
 router.post('/members',route(async req=>{
   role(req,'QTV','RECEPTIONIST');
-  only(req.body,['full_name','phone','email','date_of_birth','home_branch_id']);
+  only(req.body,['full_name','phone','email','date_of_birth','home_branch_id','avatar_url','face_enrolled','qr_code']);
   return transaction(async db=>{
     const branchId=selected(req,req.body.home_branch_id);await activeBranch(db,branchId);
     const name=text(req.body.full_name,'full_name',150),tel=phone(req.body.phone),birth=req.body.date_of_birth?date(req.body.date_of_birth):null;
     if(birth>today())fail(400,'Date of birth cannot be in the future');
-    const account=(await db.query("INSERT INTO accounts(login_phone,full_name,status) VALUES($1,$2,'PENDING_ACTIVATION') RETURNING id",[tel,name])).rows[0];
+    const avatarUrl=req.body.avatar_url||null;
+    if(avatarUrl!=null){try{const url=new URL(avatarUrl);if(!['http:','https:'].includes(url.protocol)||avatarUrl.length>500)throw new Error();}catch{fail(400,'URL ảnh đại diện không hợp lệ.');}}
+    const faceEnrolled=req.body.face_enrolled===true;
+    const mCode=await code(db,'member_profiles','member_code','HV');
+    const qrCodeVal=req.body.qr_code||`QR-${mCode}-${tel}`;
+
+    const account=(await db.query("INSERT INTO accounts(login_phone,full_name,status,avatar_url) VALUES($1,$2,'PENDING_ACTIVATION',$3) RETURNING id",[tel,name,avatarUrl])).rows[0];
     await db.query("INSERT INTO account_roles(account_id,role_id) SELECT $1,id FROM roles WHERE role_code='MEMBER'",[account.id]);
-    const m=(await db.query(`INSERT INTO member_profiles(account_id,home_branch_id,member_code,full_name,phone,email,date_of_birth,created_by)
-      VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,[account.id,branchId,await code(db,'member_profiles','member_code','HV'),name,tel,email(req.body.email),birth,req.user.account_id])).rows[0];
+    const m=(await db.query(`INSERT INTO member_profiles(account_id,home_branch_id,member_code,full_name,phone,email,date_of_birth,created_by,avatar_url,face_enrolled,qr_code)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,[account.id,branchId,mCode,name,tel,email(req.body.email),birth,req.user.account_id,avatarUrl,faceEnrolled,qrCodeVal])).rows[0];
     await audit(db,req,'member_profiles',m.id,'MEMBER_CREATED',null,m,branchId);return m;
   });
 }));
@@ -56,12 +62,15 @@ router.put('/members/:id',route(async req=>{
   return transaction(async db=>{
     const m=await row(db,'member_profiles',req.params.id,true);await canMember(req,m,db);
     if(req.user.active_role==='PT')fail(403,'PT cannot edit members','FORBIDDEN');
-    const allowed=isStaff(req)?['full_name','email','date_of_birth']:['full_name','email','date_of_birth','gender','avatar_url'];only(req.body,allowed);
+    const allowed=isStaff(req)?['full_name','email','date_of_birth','avatar_url','face_enrolled']:['full_name','email','date_of_birth','gender','avatar_url'];only(req.body,allowed);
     const next={...m,...req.body};next.full_name=text(next.full_name,'full_name',150);next.email=email(next.email);next.date_of_birth=next.date_of_birth?date(next.date_of_birth):null;
     if(next.gender!=null)choice(next.gender,['NAM','NU','KHAC','MALE','FEMALE','OTHER'],'gender');
     if(next.avatar_url!=null){try{const url=new URL(next.avatar_url);if(!['http:','https:'].includes(url.protocol)||next.avatar_url.length>500)throw new Error();}catch{fail(400,'URL ảnh đại diện không hợp lệ.');}}
     if(next.date_of_birth>today())fail(400,'Date of birth cannot be in the future');
-    const updated=(await db.query('UPDATE member_profiles SET full_name=$2,email=$3,date_of_birth=$4,gender=$5,avatar_url=$6,updated_at=NOW() WHERE id=$1 RETURNING *',[m.id,next.full_name,next.email,next.date_of_birth,next.gender,next.avatar_url])).rows[0];
+    const faceEnrolled=req.body.face_enrolled!==undefined?Boolean(req.body.face_enrolled):m.face_enrolled;
+
+    const updated=(await db.query('UPDATE member_profiles SET full_name=$2,email=$3,date_of_birth=$4,gender=$5,avatar_url=$6,face_enrolled=$7,updated_at=NOW() WHERE id=$1 RETURNING *',[m.id,next.full_name,next.email,next.date_of_birth,next.gender,next.avatar_url,faceEnrolled])).rows[0];
+    if(m.account_id&&next.avatar_url)await db.query('UPDATE accounts SET avatar_url=$2,updated_at=NOW() WHERE id=$1',[m.account_id,next.avatar_url]);
     await audit(db,req,'member_profiles',m.id,'MEMBER_UPDATED',m,updated,m.home_branch_id);return updated;
   });
 }));
@@ -84,7 +93,7 @@ async function packageList(req,db=pool) {
 router.get('/packages',route(req=>packageList(req)));
 router.get('/packages/:id',route(async req=>{const p=(await packageList(req)).find(x=>x.id===req.params.id);if(!p)fail(404,'Package not found');return p;}));
 async function savePackage(req) {
-  role(req,'QTV');only(req.body,['package_name','package_type','limit_type','price','duration_days','total_gym_sessions','total_pt_sessions','branch_ids','description','status']);
+  role(req,'QTV');only(req.body,['package_name','package_type','limit_type','price','duration_days','total_gym_sessions','total_pt_sessions','branch_ids','description','status','gym_price','pt_price','combo_price','session_duration_minutes','package_mode','max_group_members']);
   return transaction(async db=>{
     const old=req.params.id?await row(db,'packages',req.params.id,true):null;
     if(old) {const ids=(await db.query('SELECT branch_id FROM package_branches WHERE package_id=$1',[old.id])).rows.map(x=>x.branch_id);ids.forEach(id=>branch(req,id));}
@@ -97,14 +106,24 @@ async function savePackage(req) {
     p.package_name=text(p.package_name,'package_name',150);
     p.price=Number(p.price);if(!Number.isFinite(p.price)||p.price<=0||p.price>9999999999)fail(400,'Price must be positive');
     const duration=p.duration_days==null||p.duration_days===''?null:integer(p.duration_days,'duration_days');
-    if(duration===null&&p.package_type!=='GYM_SESSION')fail(400,'Duration is required');
+    if(duration===null&&!['GYM_SESSION','PT_SESSION'].includes(p.package_type))fail(400,'Duration is required');
     const gym=p.package_type==='GYM_SESSION'?integer(p.total_gym_sessions,'total_gym_sessions'):old?.package_type==='COMBO'&&!Object.hasOwn(req.body,'total_gym_sessions')?old.total_gym_sessions:null;
     const pt=['PT_SESSION','COMBO'].includes(p.package_type)?integer(p.total_pt_sessions,'total_pt_sessions'):null;
     const branchIds=p.branch_ids||(old?(await db.query('SELECT branch_id FROM package_branches WHERE package_id=$1',[old.id])).rows.map(x=>x.branch_id):[]);
     if(!Array.isArray(branchIds)||!branchIds.length)fail(400,'Select at least one branch');
     for(const id of branchIds){branch(req,id);await row(db,'branches',id);}
-    const values=[p.package_name,p.price,duration,gym,pt,choice(p.status||'ACTIVE',['ACTIVE','INACTIVE'],'status'),text(p.description,'description',3000,false)];
-    const saved=old?(await db.query('UPDATE packages SET package_name=$1,price=$2,duration_days=$3,total_gym_sessions=$4,total_pt_sessions=$5,status=$6,description=$7,updated_at=NOW() WHERE id=$8 RETURNING *',[...values,old.id])).rows[0]:(await db.query('INSERT INTO packages(package_name,price,duration_days,total_gym_sessions,total_pt_sessions,status,description,package_type,package_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',[...values,p.package_type,await code(db,'packages','package_code','G')])).rows[0];
+
+    const gymPrice = p.gym_price != null ? Number(p.gym_price) : (p.package_type.startsWith('GYM') ? p.price : (p.package_type === 'COMBO' ? Math.round(p.price * 0.3) : 0));
+    const ptPrice = p.pt_price != null ? Number(p.pt_price) : (p.package_type === 'PT_SESSION' ? p.price : (p.package_type === 'COMBO' ? Math.round(p.price * 0.7) : 0));
+    const comboPrice = p.combo_price != null ? Number(p.combo_price) : (p.package_type === 'COMBO' ? p.price : 0);
+    const sessionDuration = parseInt(p.session_duration_minutes, 10) || 60;
+    const pkgMode = p.package_mode || 'INDIVIDUAL';
+    const maxGroupMembers = ['GROUP_1_N', 'GROUP_PT'].includes(pkgMode)
+      ? (p.max_group_members != null && p.max_group_members !== '' ? integer(p.max_group_members, 'max_group_members', 2, 50) : 3)
+      : null;
+
+    const values=[p.package_name,p.price,duration,gym,pt,choice(p.status||'ACTIVE',['ACTIVE','INACTIVE'],'status'),text(p.description,'description',3000,false),gymPrice,ptPrice,comboPrice,sessionDuration,pkgMode,maxGroupMembers];
+    const saved=old?(await db.query('UPDATE packages SET package_name=$1,price=$2,duration_days=$3,total_gym_sessions=$4,total_pt_sessions=$5,status=$6,description=$7,gym_price=$8,pt_price=$9,combo_price=$10,session_duration_minutes=$11,package_mode=$12,max_group_members=$13,updated_at=NOW() WHERE id=$14 RETURNING *',[...values,old.id])).rows[0]:(await db.query('INSERT INTO packages(package_name,price,duration_days,total_gym_sessions,total_pt_sessions,status,description,gym_price,pt_price,combo_price,session_duration_minutes,package_mode,max_group_members,package_type,package_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *',[...values,p.package_type,await code(db,'packages','package_code','G')])).rows[0];
     await db.query('DELETE FROM package_branches WHERE package_id=$1',[saved.id]);
     for(const id of new Set(branchIds))await db.query('INSERT INTO package_branches VALUES($1,$2)',[saved.id,id]);
     await audit(db,req,'packages',saved.id,old?'PACKAGE_UPDATED':'PACKAGE_CREATED',old,saved,branchIds[0]);return {...saved,branch_ids:branchIds};
@@ -116,7 +135,7 @@ router.put('/packages/:id/status',route(async req=>{only(req.body,['status']);re
 
 async function trainerList(req,db=pool) {
   const member=req.user.active_role==='MEMBER';
-  const items=(await db.query(`SELECT p.*,b.branch_name,p.specialties specialty,a.avatar_url,
+  const items=(await db.query(`SELECT p.*,b.branch_name,p.specialties specialty,COALESCE(p.avatar_url, a.avatar_url) avatar_url,
     EXISTS(SELECT 1 FROM registrations r WHERE r.assigned_pt_id=p.id AND r.member_id=$2) assigned_to_member
     FROM pt_profiles p JOIN branches b ON b.id=p.branch_id LEFT JOIN accounts a ON a.id=p.account_id
     WHERE ($1::uuid[] IS NULL OR p.branch_id=ANY($1) OR ($2::uuid IS NOT NULL AND EXISTS(SELECT 1 FROM registrations r WHERE r.member_id=$2 AND (r.sold_branch_id=p.branch_id OR r.assigned_pt_id=p.id))))
@@ -128,25 +147,28 @@ async function trainerView(req,p,db=pool){
   if(!p)return null;
   const copy={...p};
   if(req.user.active_role==='MEMBER'&&(!p.show_phone_to_members||!(await db.query('SELECT 1 FROM registrations WHERE assigned_pt_id=$1 AND member_id=$2',[p.id,req.user.member_profile_id])).rowCount))copy.phone=null;
-  copy.avatar_url=(await db.query('SELECT avatar_url FROM accounts WHERE id=$1',[p.account_id])).rows[0]?.avatar_url||null;
+  copy.avatar_url=p.avatar_url||(await db.query('SELECT avatar_url FROM accounts WHERE id=$1',[p.account_id])).rows[0]?.avatar_url||null;
   return copy;
 }
 router.get('/pt-bookings/trainers',route(req=>trainerList(req)));
 router.get('/pt-bookings/trainers/check-phone',route(async req=>{role(req,'QTV');return {exists:!!(await pool.query('SELECT 1 FROM accounts WHERE login_phone=$1',[phone(req.query.phone)])).rowCount};}));
 router.get('/pt-bookings/trainers/:id',route(async req=>{const p=(await trainerList({user:req.user,headers:req.headers,query:{}})).find(p=>p.id===req.params.id);if(!p)fail(404,'Trainer not found');return p;}));
 async function saveTrainer(req) {
-  role(req,'QTV');only(req.body,['full_name','phone','email','branch_id','specialties','specialty','bio']);
+  role(req,'QTV');only(req.body,['full_name','phone','email','branch_id','specialties','specialty','bio','avatar_url','face_enrolled']);
   return transaction(async db=>{
     const old=req.params.id?await row(db,'pt_profiles',req.params.id,true):null;
     if(old)branch(req,old.branch_id);
     const p={...old,...req.body},branchId=branch(req,p.branch_id||selected(req));await activeBranch(db,branchId);
     const name=text(p.full_name,'full_name',150),tel=phone(p.phone);
     if(old&&tel!==old.phone)fail(400,'Phone is immutable');
+    const avatarUrl=req.body.avatar_url||old?.avatar_url||null;
+    const faceEnrolled=req.body.face_enrolled!==undefined?Boolean(req.body.face_enrolled):(old?.face_enrolled||false);
     let accountId=old?.account_id;
-    if(!old){accountId=(await db.query("INSERT INTO accounts(login_phone,full_name,status) VALUES($1,$2,'PENDING_ACTIVATION') RETURNING id",[tel,name])).rows[0].id;
+    if(!old){accountId=(await db.query("INSERT INTO accounts(login_phone,full_name,status,avatar_url) VALUES($1,$2,'PENDING_ACTIVATION',$3) RETURNING id",[tel,name,avatarUrl])).rows[0].id;
       await db.query("INSERT INTO account_roles(account_id,role_id) SELECT $1,id FROM roles WHERE role_code='PT'",[accountId]);}
-    const values=[name,email(p.email),branchId,text(p.specialties??p.specialty,'specialties',2000,false),text(p.bio,'bio',2000,false)];
-    const saved=old?(await db.query('UPDATE pt_profiles SET full_name=$1,email=$2,branch_id=$3,specialties=$4,bio=$5,updated_at=NOW() WHERE id=$6 RETURNING *',[...values,old.id])).rows[0]:(await db.query('INSERT INTO pt_profiles(full_name,email,branch_id,specialties,bio,phone,account_id,pt_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',[...values,tel,accountId,await code(db,'pt_profiles','pt_code','PT')])).rows[0];
+    else if(avatarUrl){await db.query('UPDATE accounts SET avatar_url=$2 WHERE id=$1',[accountId,avatarUrl]);}
+    const values=[name,email(p.email),branchId,text(p.specialties??p.specialty,'specialties',2000,false),text(p.bio,'bio',2000,false),avatarUrl,faceEnrolled];
+    const saved=old?(await db.query('UPDATE pt_profiles SET full_name=$1,email=$2,branch_id=$3,specialties=$4,bio=$5,avatar_url=$6,face_enrolled=$7,updated_at=NOW() WHERE id=$8 RETURNING *',[...values,old.id])).rows[0]:(await db.query('INSERT INTO pt_profiles(full_name,email,branch_id,specialties,bio,avatar_url,face_enrolled,phone,account_id,pt_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',[...values,tel,accountId,await code(db,'pt_profiles','pt_code','PT')])).rows[0];
     await db.query('INSERT INTO account_branch_scopes(account_id,branch_id) VALUES($1,$2) ON CONFLICT DO NOTHING',[accountId,branchId]);
     await audit(db,req,'pt_profiles',saved.id,old?'PT_UPDATED':'PT_CREATED',old,saved,branchId);return saved;
   });
@@ -161,13 +183,59 @@ function trainerStatus(req,res,next){return route(async req=>{
   });
 })(req,res,next);}
 
+// POST /pt-bookings/trainers/:id/handover - Xử lý PT nghỉ việc / chuyển giao toàn bộ học viên sang PT mới (QTV)
+router.post('/pt-bookings/trainers/:id/handover', route(async req => {
+  role(req, 'QTV');
+  return transaction(async db => {
+    const fromPt = await row(db, 'pt_profiles', req.params.id, true);
+    const toPtId = req.body.to_pt_id;
+    if (!toPtId) fail(400, 'Vui lòng chọn HLV tiếp nhận chuyển giao');
+    if (toPtId === fromPt.id) fail(400, 'Không thể chuyển giao cho chính HLV này');
+
+    const toPt = await row(db, 'pt_profiles', toPtId);
+    if (toPt.status !== 'ACTIVE') fail(409, 'HLV tiếp nhận không còn hoạt động');
+
+    // Chuyển giao các hợp đồng đang phụ trách
+    const reassignedRegs = await db.query(`
+      UPDATE registrations
+      SET assigned_pt_id = $2, updated_at = NOW()
+      WHERE assigned_pt_id = $1 AND status IN ('ACTIVE', 'SCHEDULED')
+      RETURNING id
+    `, [fromPt.id, toPt.id]);
+
+    // Chuyển giao các lịch tập sắp diễn ra
+    const reassignedBookings = await db.query(`
+      UPDATE pt_bookings
+      SET pt_id = $2, substitute_pt_id = $2, updated_at = NOW()
+      WHERE pt_id = $1 AND status IN ('BOOKED', 'PENDING_COMPLETION') AND booking_date >= CURRENT_DATE
+      RETURNING id
+    `, [fromPt.id, toPt.id]);
+
+    // Chuyển trạng thái HLV cũ sang INACTIVE nếu được yêu cầu
+    if (req.body.deactivate_old_pt !== false) {
+      await db.query("UPDATE pt_profiles SET status = 'INACTIVE', updated_at = NOW() WHERE id = $1", [fromPt.id]);
+    }
+
+    const note = text(req.body.note || 'Bàn giao học viên do HLV nghỉ việc', 'note', 255);
+    await audit(db, req, 'pt_profiles', fromPt.id, 'PT_HANDOVER', fromPt, { to_pt_id: toPt.id, registrations_transferred: reassignedRegs.rowCount, bookings_transferred: reassignedBookings.rowCount }, fromPt.branch_id, note);
+
+    return {
+      success: true,
+      from_pt: fromPt.full_name,
+      to_pt: toPt.full_name,
+      registrations_transferred: reassignedRegs.rowCount,
+      bookings_transferred: reassignedBookings.rowCount
+    };
+  });
+}));
+
 router.get('/branches',route(async req=>{
   const items=(await pool.query('SELECT * FROM branches WHERE ($1::uuid[] IS NULL OR id=ANY($1)) ORDER BY branch_code',[scope(req)])).rows;
   return search(items,req.query,['branch_name','branch_code']);
 }));
 router.get('/branches/:id',route(async req=>{branch(req,req.params.id);return row(pool,'branches',req.params.id);}));
 async function saveBranch(req) {
-  globalAdmin(req);only(req.body,['branch_name','phone','address','open_time','close_time','timezone','status']);
+  globalAdmin(req);only(req.body,['branch_name','phone','address','open_time','close_time','timezone','status','default_pt_commission_percentage']);
   return transaction(async db=>{
     const old=req.params.id?await row(db,'branches',req.params.id,true):null,p={...old,...req.body};
     const name=text(p.branch_name,'branch_name',100),address=text(p.address,'address',255),tel=phone(p.phone,true);
@@ -177,8 +245,14 @@ async function saveBranch(req) {
     const tz=p.timezone||'Asia/Ho_Chi_Minh';try{new Intl.DateTimeFormat('en',{timeZone:tz});}catch{fail(400,'Invalid timezone');}
     await db.query("SELECT pg_advisory_xact_lock(hashtext('branch-name'))");
     if((await db.query('SELECT 1 FROM branches WHERE lower(branch_name)=lower($1) AND ($2::uuid IS NULL OR id<>$2)',[name,old?.id||null])).rowCount)fail(409,'Branch name already exists');
+    let initCommission = 20.00;
+    if (req.body.default_pt_commission_percentage != null && req.body.default_pt_commission_percentage !== '') {
+      const parsed = Number(req.body.default_pt_commission_percentage);
+      if (isNaN(parsed) || parsed < 0 || parsed > 100) fail(400, 'Tỷ lệ hoa hồng PT mặc định phải từ 0% đến 100%');
+      initCommission = Number(parsed.toFixed(2));
+    }
     const vals=[name,address,tel,p.open_time,p.close_time,tz,choice(p.status||'ACTIVE',['ACTIVE','INACTIVE'],'status')];
-    const saved=old?(await db.query('UPDATE branches SET branch_name=$1,address=$2,phone=$3,open_time=$4,close_time=$5,timezone=$6,status=$7,updated_at=NOW() WHERE id=$8 RETURNING *',[...vals,old.id])).rows[0]:(await db.query('INSERT INTO branches(branch_name,address,phone,open_time,close_time,timezone,status,branch_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',[...vals,await code(db,'branches','branch_code','CN')])).rows[0];
+    const saved=old?(await db.query('UPDATE branches SET branch_name=$1,address=$2,phone=$3,open_time=$4,close_time=$5,timezone=$6,status=$7,updated_at=NOW() WHERE id=$8 RETURNING *',[...vals,old.id])).rows[0]:(await db.query('INSERT INTO branches(branch_name,address,phone,open_time,close_time,timezone,status,branch_code,default_pt_commission_percentage) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',[...vals,await code(db,'branches','branch_code','CN'),initCommission])).rows[0];
     await audit(db,req,'branches',saved.id,old?'BRANCH_UPDATED':'BRANCH_CREATED',old,saved,saved.id);return saved;
   });
 }

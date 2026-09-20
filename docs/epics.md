@@ -21,11 +21,11 @@ Role → Platform → Epic/Menu → User Story → Activity Diagram → UI Scree
 
 ### QTV — Web
 
-QTV có toàn bộ menu Web: W01–W13. Danh sách Epic canonical theo từng menu xem [`docs/epic/qtv/README.md`](epic/qtv/README.md); User Story và activity diagram xem [`docs/user-stories/qtv/README.md`](user-stories/qtv/README.md). Chi tiết capability dùng chung và mapping legacy xem [`docs/epics-menu-catalog.md`](epics-menu-catalog.md).
+QTV có toàn bộ menu Web: W01–W17 (bao gồm 4 menu mới: W14 Chăm sóc & thông báo, W15 Quản lý hoa hồng PT, W16 Lớp tập cộng đồng, W17 Khuyến mãi & giảm giá). Danh sách Epic canonical theo từng menu xem [`docs/epic/qtv/README.md`](epic/qtv/README.md); User Story và activity diagram xem [`docs/user-stories/qtv/README.md`](user-stories/qtv/README.md).
 
 ### Lễ tân — Web
 
-Lễ tân chỉ dùng các menu Web vận hành được cấp: W01, W02, W04, W06, W07, W08, W09. Danh sách Epic canonical theo từng menu xem [`docs/epic/le-tan/README.md`](epic/le-tan/README.md); User Story và activity diagram xem [`docs/user-stories/le-tan/README.md`](user-stories/le-tan/README.md).
+Lễ tân chỉ dùng các menu Web vận hành được cấp: W01 (Tổng quan), W02 (Hội viên), W04 (Đăng ký & gia hạn), W05 (Huấn luyện viên), W06 (Lịch PT), W07 (Ra vào/Check-in), W08 (Thu tiền), W09 (Thông báo), W10/W14 (Chăm sóc khách hàng), W16 (Lớp tập cộng đồng). Danh sách Epic canonical theo từng menu xem [`docs/epic/le-tan/README.md`](epic/le-tan/README.md); User Story và activity diagram xem [`docs/user-stories/le-tan/README.md`](user-stories/le-tan/README.md).
 
 ### Hội viên — Mobile footer
 

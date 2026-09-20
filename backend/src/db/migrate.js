@@ -11,6 +11,11 @@ async function migrate() {
     await db.query(fs.readFileSync(path.join(__dirname, 'migrations/003_mobile_preferences.sql'), 'utf8'));
     await db.query(fs.readFileSync(path.join(__dirname, 'migrations/004_device_sessions.sql'), 'utf8'));
     await db.query(fs.readFileSync(path.join(__dirname, 'migrations/005_remove_pt_certificates.sql'), 'utf8'));
+    await db.query(fs.readFileSync(path.join(__dirname, 'migrations/006_boss_feedback_schema_upgrade.sql'), 'utf8'));
+    await db.query(fs.readFileSync(path.join(__dirname, 'migrations/007_commission_configs_uniqueness_and_history.sql'), 'utf8'));
+    await db.query(fs.readFileSync(path.join(__dirname, 'migrations/008_branch_default_commission_rate.sql'), 'utf8'));
+    await db.query(fs.readFileSync(path.join(__dirname, 'migrations/009_pt_commission_payout_details.sql'), 'utf8'));
+    await db.query(fs.readFileSync(path.join(__dirname, 'migrations/010_scheduled_package_freezes.sql'), 'utf8'));
   });
 }
 if (require.main === module) migrate().then(() => console.log('Additive web migration applied; existing records preserved.')).catch(err => {

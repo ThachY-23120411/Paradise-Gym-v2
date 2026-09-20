@@ -19,7 +19,7 @@
       rel="stylesheet"
       href="https://cdn3.devexpress.com/jslib/23.2.5/css/dx.light.css"
     />
-    <link rel="stylesheet" href="css/member.css" />
+    <link rel="stylesheet" href="css/member.css?v=10" />
   </head>
   <body>
     <div id="memberApp">
@@ -28,15 +28,27 @@
           ><i class="fa-solid fa-dumbbell" aria-hidden="true"></i
           ><span>PARADISE <b>GYM</b></span></a
         >
-        <button
-          id="refreshPage"
-          class="icon-button"
-          title="Tải lại"
-          aria-label="Tải lại"
-          hidden
-        >
-          <i class="fa-solid fa-rotate-right"></i>
-        </button>
+        <div class="header-actions">
+          <button
+            id="btnHeaderNotifications"
+            class="icon-button"
+            title="Thông báo"
+            aria-label="Thông báo"
+            hidden
+          >
+            <i class="fa-regular fa-bell"></i>
+            <span id="unreadBellDot" class="bell-badge-dot" hidden></span>
+          </button>
+          <button
+            id="refreshPage"
+            class="icon-button"
+            title="Tải lại"
+            aria-label="Tải lại"
+            hidden
+          >
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
       </header>
       <main id="main" tabindex="-1">
         <div class="state" role="status">Đang kết nối...</div>
@@ -56,8 +68,8 @@
         <button data-route="packages">
           <i class="fa-solid fa-ticket"></i><span>Gói của tôi</span>
         </button>
-        <button data-route="notifications">
-          <i class="fa-regular fa-bell"></i><span>Thông báo</span>
+        <button data-route="payments">
+          <i class="fa-solid fa-credit-card"></i><span>Thanh toán</span>
         </button>
         <button data-route="account">
           <i class="fa-regular fa-user"></i><span>Tài khoản</span>
@@ -69,9 +81,9 @@
     <script src="https://cdn3.devexpress.com/jslib/23.2.5/js/dx.all.js"></script>
     <script src="https://cdn3.devexpress.com/jslib/23.2.5/js/localization/dx.messages.vi.js"></script>
     <script src="../../shared/apiClient.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/auth-account.js"></script>
-    <script src="js/home-schedule.js"></script>
-    <script src="js/packages-notifications.js"></script>
+    <script src="js/app.js?v=3"></script>
+    <script src="js/auth-account.js?v=2"></script>
+    <script src="js/home-schedule.js?v=10"></script>
+    <script src="js/packages-notifications.js?v=11"></script>
   </body>
 </html>

@@ -229,10 +229,10 @@
     async refreshMemberCount(ptId) {
       if (!ptId || !window.apiClient || !window.apiClient.registrations) return;
       try {
-        const res = await window.apiClient.registrations.list({ status: 'ACTIVE' });
+        const res = await window.apiClient.registrations.list();
         if (window.ptApp?.currentUser?.pt_profile_id !== ptId) return;
         if (res && res.data && Array.isArray(res.data)) {
-          const myRegs = res.data.filter(r => r.assigned_pt_id === ptId);
+          const myRegs = res.data.filter(r => r.assigned_pt_id === ptId && ['ACTIVE', 'SCHEDULED'].includes(r.status));
           $('#profileMembersKpi').text(new Set(myRegs.map(r => r.member_id)).size);
         }
       } catch (e) {
@@ -321,7 +321,7 @@
       const $host = $('<div id="ptEditProfileDxPopupHost">').appendTo('body');
       this.editPopupInstance = $host.dxPopup({
         title: 'Chỉnh sửa hồ sơ HLV',
-        width: () => Math.min(360, window.innerWidth - 24),
+        width: () => Math.min(520, window.innerWidth - 24),
         height: 'auto',
         maxHeight: '90vh',
         shadingColor: 'rgba(0, 0, 0, 0.65)',
@@ -334,54 +334,54 @@
               <!-- Avatar Picker -->
               <div style="text-align: center; margin-bottom: 14px;">
                 <div style="position: relative; display: inline-block; cursor: pointer;" id="dxBtnPickAvatar">
-                  <img id="dxEditAvatarPreview" style="${avatarUrl ? '' : 'display:none;'} width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light, #10b981);" src="${avatarUrl || ''}" alt="Avatar preview">
-                  <div id="dxEditAvatarFallback" class="coach-avatar-lg" style="${avatarUrl ? 'display:none;' : ''} width: 72px; height: 72px; border-radius: 50%; background: #064e3b; color: #34d399; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto; border: 2px solid var(--primary-light, #10b981);">
+                  <img id="dxEditAvatarPreview" style="${avatarUrl ? '' : 'display:none;'} width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light, #237b58);" src="${avatarUrl || ''}" alt="Avatar preview">
+                  <div id="dxEditAvatarFallback" class="coach-avatar-lg" style="display: ${avatarUrl ? 'none' : 'flex'}; width: 72px; height: 72px; border-radius: 50%; background: var(--primary-light); color: var(--primary); align-items: center; justify-content: center; font-size: 24px; margin: 0 auto; border: 2px solid var(--border-color);">
                     <i class="fa-solid fa-user"></i>
                   </div>
-                  <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-light, #10b981); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.4);">
+                  <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-light, #237b58); color: var(--text-main); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: none;">
                     <i class="fa-solid fa-camera"></i>
                   </div>
                 </div>
                 <input type="file" id="dxInputAvatarFile" accept="image/png,image/jpeg,image/webp" style="display: none;">
-                <div style="font-size: 11px; color: var(--text-muted, #94a3b8); margin-top: 4px;">Chạm vào ảnh để đổi avatar (PNG, JPG, WebP &le; 5MB)</div>
+                <div style="font-size: 12px; color: var(--text-muted, #65736d); margin-top: 4px;">Chạm vào ảnh để đổi avatar (PNG, JPG, WebP &le; 5MB)</div>
               </div>
 
               <!-- Readonly info -->
               <div class="form-group" style="margin-bottom: 8px;">
-                <label class="form-label" style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block; margin-bottom: 2px;">Họ và tên HLV (Cố định)</label>
-                <input type="text" class="form-control" value="${$('<span>').text(fullName).html()}" readonly style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                <label class="form-label" style="font-size: 12px; color: var(--text-muted, #65736d); display: block; margin-bottom: 2px;">Họ và tên HLV (Cố định)</label>
+                <input type="text" class="form-control" value="${$('<span>').text(fullName).html()}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
               </div>
 
               <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                 <div style="flex: 1;">
-                  <label class="form-label" style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block; margin-bottom: 2px;">Mã PT</label>
-                  <input type="text" class="form-control" value="${$('<span>').text(ptCode).html()}" readonly style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                  <label class="form-label" style="font-size: 12px; color: var(--text-muted, #65736d); display: block; margin-bottom: 2px;">Mã PT</label>
+                  <input type="text" class="form-control" value="${$('<span>').text(ptCode).html()}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
                 </div>
                 <div style="flex: 1;">
-                  <label class="form-label" style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block; margin-bottom: 2px;">Chi nhánh</label>
-                  <input type="text" class="form-control" value="${$('<span>').text(branchName).html()}" readonly style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                  <label class="form-label" style="font-size: 12px; color: var(--text-muted, #65736d); display: block; margin-bottom: 2px;">Chi nhánh</label>
+                  <input type="text" class="form-control" value="${$('<span>').text(branchName).html()}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
                 </div>
               </div>
 
               <div class="form-group" style="margin-bottom: 8px;">
-                <label class="form-label" style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block; margin-bottom: 2px;">Số điện thoại (Cố định)</label>
-                <input type="text" class="form-control" value="${$('<span>').text(phone).html()}" readonly style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                <label class="form-label" style="font-size: 12px; color: var(--text-muted, #65736d); display: block; margin-bottom: 2px;">Số điện thoại (Cố định)</label>
+                <input type="text" class="form-control" value="${$('<span>').text(phone).html()}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
               </div>
 
               <!-- Editable fields -->
               <div class="form-group" style="margin-bottom: 8px;">
-                <label class="form-label" for="dxEditEmail" style="font-size: 11px; color: #cbd5e1; display: block; margin-bottom: 2px;">Email liên hệ</label>
-                <input type="email" class="form-control" id="dxEditEmail" value="${$('<span>').text(email).html()}" placeholder="Nhập email liên hệ" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                <label class="form-label" for="dxEditEmail" style="font-size: 12px; color: var(--text-main); display: block; margin-bottom: 2px;">Email liên hệ</label>
+                <input type="email" class="form-control" id="dxEditEmail" value="${$('<span>').text(email).html()}" placeholder="Nhập email liên hệ" style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 8px; border-radius: 6px; font-size: 12px;">
               </div>
 
               <div class="form-group" style="margin-bottom: 8px;">
-                <label class="form-label" for="dxEditSpecialties" style="font-size: 11px; color: #cbd5e1; display: block; margin-bottom: 2px;">Chuyên môn huấn luyện</label>
-                <input type="text" class="form-control" id="dxEditSpecialties" value="${$('<span>').text(specialties).html()}" placeholder="Ví dụ: Tăng cơ giảm mỡ, Boxing..." style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                <label class="form-label" for="dxEditSpecialties" style="font-size: 12px; color: var(--text-main); display: block; margin-bottom: 2px;">Chuyên môn huấn luyện</label>
+                <input type="text" class="form-control" id="dxEditSpecialties" value="${$('<span>').text(specialties).html()}" placeholder="Ví dụ: Tăng cơ giảm mỡ, Boxing..." style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 8px; border-radius: 6px; font-size: 12px;">
               </div>
 
               <div class="form-group" style="margin-bottom: 8px;">
-                <label class="form-label" for="dxEditBio" style="font-size: 11px; color: #cbd5e1; display: block; margin-bottom: 2px;">Giới thiệu bản thân (Tối đa 1.000 ký tự)</label>
-                <textarea class="form-control" id="dxEditBio" rows="3" maxlength="1000" placeholder="Mô tả kinh nghiệm, thế mạnh huấn luyện..." style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 12px; resize: vertical;">${$('<span>').text(bio).html()}</textarea>
+                <label class="form-label" for="dxEditBio" style="font-size: 12px; color: var(--text-main); display: block; margin-bottom: 2px;">Giới thiệu bản thân (Tối đa 1.000 ký tự)</label>
+                <textarea class="form-control" id="dxEditBio" rows="3" maxlength="1000" placeholder="Mô tả kinh nghiệm, thế mạnh huấn luyện..." style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 8px; border-radius: 6px; font-size: 12px; resize: vertical;">${$('<span>').text(bio).html()}</textarea>
               </div>
             </div>
           `);
@@ -558,15 +558,15 @@
             <div class="pt-dx-changepass-content" style="padding: 4px 0;">
               <div class="form-group" style="margin-bottom: 12px;">
                 <label class="form-label" for="dxCpCurrentPassword" style="display: block; font-size: 12px; margin-bottom: 4px; font-weight: 600;">Mật khẩu hiện tại</label>
-                <input type="password" class="form-control" id="dxCpCurrentPassword" placeholder="Nhập mật khẩu hiện tại" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px; border-radius: 6px; font-size: 13px;">
+                <input type="password" class="form-control" id="dxCpCurrentPassword" placeholder="Nhập mật khẩu hiện tại" style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 13px;">
               </div>
               <div class="form-group" style="margin-bottom: 12px;">
                 <label class="form-label" for="dxCpNewPassword" style="display: block; font-size: 12px; margin-bottom: 4px; font-weight: 600;">Mật khẩu mới</label>
-                <input type="password" class="form-control" id="dxCpNewPassword" placeholder="Tối thiểu 8 ký tự" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px; border-radius: 6px; font-size: 13px;">
+                <input type="password" class="form-control" id="dxCpNewPassword" placeholder="Tối thiểu 8 ký tự" style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 13px;">
               </div>
               <div class="form-group" style="margin-bottom: 12px;">
                 <label class="form-label" for="dxCpConfirmPassword" style="display: block; font-size: 12px; margin-bottom: 4px; font-weight: 600;">Xác nhận mật khẩu mới</label>
-                <input type="password" class="form-control" id="dxCpConfirmPassword" placeholder="Nhập lại mật khẩu mới" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px; border-radius: 6px; font-size: 13px;">
+                <input type="password" class="form-control" id="dxCpConfirmPassword" placeholder="Nhập lại mật khẩu mới" style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 13px;">
               </div>
             </div>
           `);

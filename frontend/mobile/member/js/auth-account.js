@@ -476,8 +476,27 @@
     if (!alive()) return;
     A.profile = p;
     A.heading(root, "Tài khoản", "Hồ sơ hội viên");
+    const headingEl = root.querySelector(".page-heading");
+    if (headingEl) {
+      headingEl.classList.add("text-center");
+      headingEl.style.textAlign = "center";
+      const eyebrow = headingEl.querySelector(".eyebrow");
+      if (eyebrow) eyebrow.style.textAlign = "center";
+    }
+
     const header = document.createElement("div");
-    header.innerHTML = `${A.avatar(p.full_name, p.avatar_url)}<div><h2>${A.value(p.full_name)}</h2><p class="muted">${A.value(p.member_code)} · ${A.value(p.phone)}</p></div>`;
+    header.className = "account-profile-card";
+    header.innerHTML = `
+      <div class="account-avatar-wrap">
+        ${A.avatar(p.full_name, p.avatar_url)}
+      </div>
+      <h2 class="account-profile-name">${A.value(p.full_name)}</h2>
+      <p class="account-profile-meta">
+        <span class="badge info">${A.value(p.member_code)}</span>
+        <span class="dot">·</span>
+        <span>${A.value(p.phone)}</span>
+      </p>
+    `;
     root.append(header);
     const active = sub === "settings" ? "settings" : "profile";
     A.segments(

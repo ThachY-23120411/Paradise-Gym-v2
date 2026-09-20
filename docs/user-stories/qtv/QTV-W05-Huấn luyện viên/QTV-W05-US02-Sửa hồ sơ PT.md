@@ -24,6 +24,7 @@
 | Email | `Textbox (Email Input)` | `USER-INPUT (PREFILL)` | optional | Không | Giá trị hiện tại nạp sẵn; QTV cập nhật địa chỉ email (validate đúng định dạng email RFC nếu có nhập) |
 | Chi nhánh phục vụ | `Select Dropdown` | `USER-INPUT (PREFILL)` | required | Không | Giá trị hiện tại nạp sẵn; QTV có thể chọn điều chuyển PT sang chi nhánh khác trong phạm vi phân quyền (`branch scope`) của tài khoản QTV |
 | Chuyên môn / Ghi chú | `Textarea` | `USER-INPUT (PREFILL)` | optional | Không | Giá trị hiện tại nạp sẵn; QTV cập nhật mô tả chuyên môn hoặc ghi chú |
+| Avatar & Ảnh chân dung PT | `Avatar Uploader / Camera / URL` | `USER-INPUT (PREFILL)` | optional | Không | Nạp sẵn ảnh chân dung hiện tại của PT. Cho phép chụp lại từ camera, tải file ảnh mới thay thế (PNG, JPG, WebP $\le$ 5MB) hoặc dán link URL mới. Nút xóa ảnh khi muốn gỡ |
 
 - **Business rules / logic:**
   - Không cho phép sửa đổi số điện thoại để đảm bảo tính toàn vẹn của dữ liệu định danh và tài khoản.

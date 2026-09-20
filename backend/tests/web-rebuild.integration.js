@@ -34,8 +34,8 @@ async function main(){
   await admin.connect();await admin.query(`CREATE DATABASE "${dbName}"`);databaseCreated=true;
   const tempUrl=new URL(originalUrl);tempUrl.pathname='/'+dbName;process.env.DATABASE_URL=tempUrl.toString();process.env.NODE_ENV='test';process.env.AUTH_OTP_MODE='development';
   db=new Client({connectionString:process.env.DATABASE_URL});await db.connect();
-  for(const file of ['001_create_tables.sql','002_web_rebuild.sql','003_mobile_preferences.sql','004_device_sessions.sql','005_remove_pt_certificates.sql'])await db.query(fs.readFileSync(path.join(__dirname,'../src/db/migrations',file),'utf8'));
-  await db.query(fs.readFileSync(path.join(__dirname,'../src/db/migrations/002_web_rebuild.sql'),'utf8'));
+  const migrationFiles = fs.readdirSync(path.join(__dirname, '../src/db/migrations')).filter(f => f.endsWith('.sql')).sort();
+  for (const file of migrationFiles) await db.query(fs.readFileSync(path.join(__dirname, '../src/db/migrations', file), 'utf8'));
   for(const r of ['QTV','RECEPTIONIST','PT','MEMBER'])await db.query('INSERT INTO roles(role_code,role_name) VALUES($1,$1)',[r]);
   const b1=randomUUID(),b2=randomUUID();
   for(const [id,name] of [[b1,'Branch A'],[b2,'Branch B']])await db.query("INSERT INTO branches(id,branch_code,branch_name,phone,address,open_time,close_time) VALUES($1,$2,$2,'0909999999','Test address','00:00','23:59')",[id,name]);

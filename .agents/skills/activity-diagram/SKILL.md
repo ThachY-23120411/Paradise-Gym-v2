@@ -55,6 +55,33 @@ Use these node types consistently:
 | Swimlane | `subgraph Lx["Swimlane — ..."]` | Role, external actor, device, or SYS boundary. |
 | Boundary | Outer `subgraph B["Boundary — ..."]` | Platform, app, modal, or feature boundary. |
 
+---
+
+## Node Arity & Edge Topology Rules (Quy Tắc Bất Biến Về Số Mũi Tên Vào / Ra Của Từng Node)
+
+> [!CAUTION]
+> **QUY TẮC CỐT LÕI BẮT BUỘC (MANDATORY UML TOPOLOGY RULES):**
+> Trong sơ đồ Activity Diagram, mỗi loại node có ngữ nghĩa và số lượng mũi tên vào (`IN`) / ra (`OUT`) cố định. Tuyệt đối không được vi phạm các quy tắc sau:
+
+| Node Type | Ký hiệu Mermaid | Số mũi tên vào (`IN`) | Số mũi tên ra (`OUT`) | Mục đích & Ràng buộc hành vi |
+| :--- | :--- | :---: | :---: | :--- |
+| **Initial Node** | `(("Initial"))` | **0 IN** | **1 OUT** | Điểm bắt đầu duy nhất của toàn bộ luồng quy trình. |
+| **Action Node** | `["..."]` *(hình chữ nhật)* | **ĐÚNG 1 IN** | **ĐÚNG 1 OUT** | **1 VÀO + 1 RA (KHÔNG HƠN KHÔNG KÉM)**.<br>• **CẤM TUYỆT ĐỐI** dùng Action node để rẽ nhánh (nhiều mũi tên ra). Muốn rẽ nhánh BẮT BUỘC dùng Decision node `{"..."}`.<br>• **CẤM TUYỆT ĐỐI** nhiều mũi tên cùng trỏ vào một Action node. Muốn gom nhiều luồng về một BẮT BUỘC dùng Merge node hoặc Join node.<br>• **CẤM TUYỆT ĐỐI** kết thúc quy trình tại Action node hoặc để Action node bị đứt đoạn không có mũi tên đi ra (0 OUT). Điểm kết thúc của mọi path BẮT BUỘC phải là Final node. |
+| **Decision Node** | `{"..."}` *(hình thoi)* | **1 IN** | **N OUT** ($N \ge 2$) | Rẽ nhánh điều kiện logic.<br>• Bắt buộc gán nhãn điều kiện rõ ràng trên **100% các mũi tên đi ra** (ví dụ: `-->|Hợp lệ|`, `-->|Không hợp lệ|`, `-->|Có|`, `-->|Không|`).<br>• Cấm để Decision node chỉ có 1 mũi tên ra. |
+| **Merge Node** | `{"Merge — ..."}` hoặc `(("Merge — ..."))` | **N IN** ($N \ge 2$) | **1 OUT** | Gom các nhánh rẽ điều kiện (mutually exclusive) hội tụ lại một luồng chung.<br>• **Ngữ nghĩa OR**: Chỉ cần 1 trong các nhánh tới là kích hoạt bước tiếp theo.<br>• Cấm nối thẳng nhiều mũi tên vào một Action node tiếp theo mà không qua Merge node. |
+| **Join Node** | `{{"Join — ..."}}` *(hình lục giác)* | **N IN** ($N \ge 2$) | **1 OUT** | Đồng bộ hóa các luồng chạy song song (parallel branches).<br>• **Ngữ nghĩa AND**: Bắt buộc phải chờ **TẤT CẢ** các nhánh song song cùng hoàn thành mới được đi tiếp. |
+| **Final Node** | `((("Final — ...")))` *(hình tròn viền kép)* | **1 IN** | **0 OUT** | **ĐIỂM KẾT THÚC DUY NHẤT HỢP LỆ CỦA MỘT PATH**.<br>• Mọi nhánh rẽ, luồng chính, luồng thay thế và luồng ngoại lệ đều phải dẫn đến một Final node (hoặc vòng lặp trở lại điểm hợp lệ đã xác định).<br>• Phân biệt rõ: Final Thành công, Final Hủy bỏ, Final Báo lỗi ngoại lệ. |
+
+### Cảnh báo lỗi đứt đoạn thường gặp (Anti-Patterns to Avoid):
+1. **Lỗi đứt đoạn / Treo lơ lửng (Dangling Action Node):** Khai báo một Action node (ví dụ: `SYS["Mở modal..."]`) nhưng không vẽ mũi tên đi ra từ node này $\rightarrow$ Luồng bị đứt đoạn, người đọc không biết bước tiếp theo là gì.
+2. **Lỗi nối tắt nội bộ sai lệch (False Sequence Chain):** Khai báo tuần tự người dùng trong Swimlane của Role (ví dụ: `A01 --> A02 --> A03`) rồi lại nối chéo `A01 --> S01` trong Swimlane của SYS $\rightarrow$ Khiến cho `A01` có 2 mũi tên ra (vi phạm quy tắc Action = 1 IN + 1 OUT) và `S01` bị bỏ rơi không có mũi tên ra!
+3. **Cách khắc phục chuẩn:** Luồng tương tác giữa Người dùng và Hệ thống phải được kết nối tuần tự thực tế qua lại giữa các Swimlane:
+   ```text
+   Initial --> A01 (User click) --> S01 (SYS mở modal) --> A02 (User nhập) --> S02 (SYS validate) --> Decision
+   ```
+
+---
+
 ## Swimlane rules
 
 - Give the primary role its own lane.
@@ -111,9 +138,10 @@ Before completing a diagram, verify:
 - written Main/Alternate/Exception flows are still present;
 - initial, action, decision, merge, join, final, swimlane, and boundary nodes
   are used where the flow requires them;
-- every decision edge is labeled;
-- every parallel branch has a matching join when synchronization is required;
-- every alternate/exception path reaches a final or a documented return point;
+- **Action Node Arity:** Every Action node `["..."]` has EXACTLY 1 incoming and 1 outgoing edge (`1 IN + 1 OUT`), no branching, no converging, and never acts as a final path termination;
+- **Decision Node Arity:** Every Decision node `{"..."}` has 1 incoming and N outgoing edges ($N \ge 2$), and every decision edge is clearly labeled;
+- **Merge/Join Node Arity:** Multiple incoming branches converge at a Merge node (`N IN + 1 OUT`, OR logic) or a Join node (`N IN + 1 OUT`, AND logic), never directly into an Action node;
+- **Final Node Termination:** Every alternate/exception/success path reaches a Final node `((("Final — ...")))` (or a documented return loop); no path is left dangling or truncated;
 - primary role, supporting actors, platform, and data scope match the User Story;
 - form/modal fields satisfy the field-level rule in `docs-sync.md`;
 - the Mermaid block has valid balanced fences and unique node IDs.

@@ -26,6 +26,7 @@
 | Email | `Textbox (Email Input)` | `USER-INPUT` | optional | Không | QTV nhập (ví dụ: "pt.hung@paradise.vn"); kiểm tra đúng định dạng email RFC nếu có nhập, không bắt buộc |
 | Chi nhánh phục vụ | `Select Dropdown` | `USER-INPUT (PREFILL)` | required | Không | Tự động chọn sẵn chi nhánh hiện tại của QTV; cho phép chọn chi nhánh khác trong phạm vi phân quyền (`branch scope`) của tài khoản QTV (ví dụ: "Quận 1", "Quận 3") |
 | Chuyên môn / Ghi chú | `Textarea` | `USER-INPUT` | optional | Không | QTV nhập mô tả chuyên môn hoặc ghi chú về PT (ví dụ: "HLV Thể hình & Cardio, Boxing, Giảm cân") |
+| Avatar & Ảnh chân dung PT | `Avatar Uploader / Camera / URL` | `USER-INPUT` | optional | Không | Hỗ trợ chụp ảnh trực tiếp từ webcam/camera quầy, tải file ảnh (PNG, JPG, WebP $\le$ 5MB) hoặc dán link URL. Nút xóa ảnh khi cần gỡ. Dùng làm avatar hồ sơ và nhận diện khuôn mặt |
 
 - **Business rules / logic:**
   - Hồ sơ PT mới bắt buộc có họ tên, số điện thoại và chi nhánh phục vụ; email và chuyên môn/ghi chú là tùy chọn.

@@ -37,6 +37,8 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 - [QTV-W04-US03 — Xem danh sách các đăng ký](./QTV-W04-Đăng ký & gia hạn/QTV-W04-US03-Xem danh sách các đăng ký.md)
 - [QTV-W04-US04 — Xem chi tiết lượt đăng ký gói](./QTV-W04-Đăng ký & gia hạn/QTV-W04-US04-Xem chi tiết lượt đăng ký gói.md)
 - [QTV-W04-US05 — Gán PT phụ trách cho gói đăng ký](./QTV-W04-Đăng ký & gia hạn/QTV-W04-US05-Gán PT phụ trách cho gói đăng ký.md)
+- [QTV-W04-US06 — Đóng băng gói tập](./QTV-W04-Đăng ký & gia hạn/QTV-W04-US06-Đóng băng gói tập.md)
+- [QTV-W04-US07 — Chuyển nhượng quyền gói tập](./QTV-W04-Đăng ký & gia hạn/QTV-W04-US07-Chuyển nhượng quyền gói tập.md)
 
 ## QTV-W05 · Huấn luyện viên
 
@@ -44,6 +46,7 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 - [QTV-W05-US02 — Sửa hồ sơ PT](./QTV-W05-Huấn luyện viên/QTV-W05-US02-Sửa hồ sơ PT.md)
 - [QTV-W05-US03 — Cập nhật trạng thái hồ sơ PT](./QTV-W05-Huấn luyện viên/QTV-W05-US03-Cập nhật trạng thái hồ sơ PT.md)
 - [QTV-W05-US04 — Xem danh sách PT](./QTV-W05-Huấn luyện viên/QTV-W05-US04-Xem danh sách PT.md)
+- [QTV-W05-US05 — Xử lý PT nghỉ ngang và chuyển giao học viên](./QTV-W05-Huấn luyện viên/QTV-W05-US05-Xử lý PT nghỉ ngang và chuyển giao học viên.md)
 
 ## QTV-W06 · Lịch tập & buổi PT
 
@@ -51,6 +54,7 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 - [QTV-W06-US02 — Đặt lịch PT](./QTV-W06-Lịch tập & buổi PT/QTV-W06-US02-Đặt lịch PT.md)
 - [QTV-W06-US03 — Xác nhận hoàn thành buổi học](./QTV-W06-Lịch tập & buổi PT/QTV-W06-US03-Xác nhận hoàn thành buổi học.md)
 - [QTV-W06-US04 — Hủy lịch PT](./QTV-W06-Lịch tập & buổi PT/QTV-W06-US04-Hủy lịch PT.md)
+- [QTV-W06-US05 — Quản lý lịch ngày lễ](./QTV-W06-Lịch tập & buổi PT/QTV-W06-US05-Quản lý lịch ngày lễ.md)
 
 ## QTV-W07 · Ra vào & check-in
 
@@ -93,7 +97,24 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 - [QTV-W13-US01 — Xem danh sách tài khoản và thống kê KPI](./QTV-W13-Tài khoản & phân quyền/QTV-W13-US01-Xem danh sách tài khoản và thống kê KPI.md)
 - [QTV-W13-US02 — Sửa tài khoản](./QTV-W13-Tài khoản & phân quyền/QTV-W13-US02-Sửa tài khoản.md)
 
-**Tổng số:** 41 User Story canonical.
+## QTV-W14 · Chăm sóc & thông báo
+
+- [QTV-W14-US01 — Quản lý tác nghiệp Chăm sóc khách hàng](./QTV-W14-Chăm sóc & thông báo/QTV-W14-US01-Quản lý tác nghiệp Chăm sóc khách hàng.md)
+
+## QTV-W15 · Quản lý hoa hồng PT
+
+- [QTV-W15-US01 — Cấu hình tỷ lệ hoa hồng PT](./QTV-W15-Quản lý hoa hồng PT/QTV-W15-US01-Cấu hình tỷ lệ hoa hồng PT.md)
+- [QTV-W15-US02 — Tính và duyệt bảng kê hoa hồng PT theo tháng](./QTV-W15-Quản lý hoa hồng PT/QTV-W15-US02-Tính và duyệt bảng kê hoa hồng PT theo tháng.md)
+
+## QTV-W16 · Lớp tập cộng đồng
+
+- [QTV-W16-US01 — Lập lịch và quản lý lớp tập cộng đồng](./QTV-W16-Lớp tập cộng đồng/QTV-W16-US01-Lập lịch và quản lý lớp tập cộng đồng.md)
+
+## QTV-W17 · Khuyến mãi & giảm giá
+
+- [QTV-W17-US01 — Quản lý chương trình khuyến mãi và mã giảm giá](./QTV-W17-Khuyến mãi & giảm giá/QTV-W17-US01-Quản lý chương trình khuyến mãi và mã giảm giá.md)
+
+**Tổng số:** 51 User Story canonical.
 
 ## Boundary
 

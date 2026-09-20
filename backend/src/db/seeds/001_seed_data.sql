@@ -71,10 +71,10 @@ ON CONFLICT DO NOTHING;
 -- 6. PT Profiles (Huấn luyện viên cá nhân)
 INSERT INTO pt_profiles (id, account_id, branch_id, pt_code, full_name, phone, email, gender, bio, specialties, status, work_start_time, work_end_time, work_days)
 VALUES
-    ('50000000-0000-0000-0000-000000000001', '99999999-9999-9999-9999-999999999994', '11111111-1111-1111-1111-111111111111', 'PT001', 'Nguyễn Văn Thể', '0900000003', 'pt.the@paradisegym.vn', 'NAM', 'HLV 6 năm kinh nghiệm thể hình chuyên sâu, chứng chỉ NASM quốc tế', 'Tăng cơ, Giảm mỡ cấp tốc, Boxing', 'ACTIVE', '08:00:00', '18:00:00', 'MON_TO_FRI'),
-    ('50000000-0000-0000-0000-000000000002', '99999999-9999-9999-9999-999999999993', '22222222-2222-2222-2222-222222222222', 'PT002', 'Lê Văn Hùng', '0900000004', 'pt.hung@paradisegym.vn', 'NAM', 'Cựu VĐV Thể hình, 5 năm kinh nghiệm huấn luyện Combo Gym & PT', 'Tăng cơ chuyên sâu, Siết mỡ, Thể hình', 'ACTIVE', '08:00:00', '18:00:00', 'MON_TO_FRI'),
-    ('50000000-0000-0000-0000-000000000003', '99999999-9999-9999-9999-999999999995', '22222222-2222-2222-2222-222222222222', 'PT003', 'Đặng Minh Tuấn', '0900000005', 'pt.tuan@paradisegym.vn', 'NAM', 'Chuyên gia phục hồi chức năng và chỉnh tư thế cột sống, 6 năm kinh nghiệm', 'Thể hình thi đấu, Phục hồi chức năng', 'ACTIVE', '08:00:00', '18:00:00', 'MON_TO_FRI'),
-    ('50000000-0000-0000-0000-000000000004', '99999999-9999-9999-9999-999999999984', '22222222-2222-2222-2222-222222222222', 'PT004', 'Trần Thị Mai', '0900000006', 'pt.mai@paradisegym.vn', 'NU', 'HLV nữ tận tâm, chuyên siết eo thon dáng đồng hồ cát, 3 năm kinh nghiệm', 'Giảm cân nữ, Pilates Mat, Dẻo dai', 'ACTIVE', '08:00:00', '18:00:00', 'MON_TO_FRI')
+    ('50000000-0000-0000-0000-000000000001', '99999999-9999-9999-9999-999999999994', '11111111-1111-1111-1111-111111111111', 'PT001', 'Nguyễn Văn Thể', '0900000003', 'pt.the@paradisegym.vn', 'NAM', 'HLV 6 năm kinh nghiệm thể hình chuyên sâu, chứng chỉ NASM quốc tế', 'Tăng cơ, Giảm mỡ cấp tốc, Boxing', 'ACTIVE', '08:00:00', '18:00:00', 'ALL_WEEK'),
+    ('50000000-0000-0000-0000-000000000002', '99999999-9999-9999-9999-999999999993', '22222222-2222-2222-2222-222222222222', 'PT002', 'Lê Văn Hùng', '0900000004', 'pt.hung@paradisegym.vn', 'NAM', 'Cựu VĐV Thể hình, 5 năm kinh nghiệm huấn luyện Combo Gym & PT', 'Tăng cơ chuyên sâu, Siết mỡ, Thể hình', 'ACTIVE', '08:00:00', '18:00:00', 'ALL_WEEK'),
+    ('50000000-0000-0000-0000-000000000003', '99999999-9999-9999-9999-999999999995', '22222222-2222-2222-2222-222222222222', 'PT003', 'Đặng Minh Tuấn', '0900000005', 'pt.tuan@paradisegym.vn', 'NAM', 'Chuyên gia phục hồi chức năng và chỉnh tư thế cột sống, 6 năm kinh nghiệm', 'Thể hình thi đấu, Phục hồi chức năng', 'ACTIVE', '08:00:00', '18:00:00', 'ALL_WEEK'),
+    ('50000000-0000-0000-0000-000000000004', '99999999-9999-9999-9999-999999999984', '22222222-2222-2222-2222-222222222222', 'PT004', 'Trần Thị Mai', '0900000006', 'pt.mai@paradisegym.vn', 'NU', 'HLV nữ tận tâm, chuyên siết eo thon dáng đồng hồ cát, 3 năm kinh nghiệm', 'Giảm cân nữ, Pilates Mat, Dẻo dai', 'ACTIVE', '08:00:00', '18:00:00', 'ALL_WEEK')
 ON CONFLICT (phone) DO NOTHING;
 
 -- 7. Member Profiles (Hồ sơ hội viên)
@@ -95,9 +95,9 @@ VALUES
     ('30000000-0000-0000-0000-000000000001', 'GYM-1M', 'Gói Gym Tiêu Chuẩn 1 Tháng', 'GYM_TIME', 1000.00, 30, NULL, NULL, 'ACTIVE', 'Tập Gym không giới hạn số lần tại chi nhánh đăng ký trong 30 ngày (Giá test 1.000 đ)'),
     ('30000000-0000-0000-0000-000000000002', 'GYM-3M', 'Gói Gym Năng Động 3 Tháng', 'GYM_TIME', 2000.00, 90, NULL, NULL, 'ACTIVE', 'Tập Gym không giới hạn toàn hệ thống 90 ngày, tặng 1 buổi định hướng (Giá test 2.000 đ)'),
     ('30000000-0000-0000-0000-000000000003', 'VIP-YEAR', 'Gói VIP Hoàng Gia 1 Năm Đa Chi Nhánh', 'GYM_TIME', 2000.00, 365, NULL, NULL, 'ACTIVE', 'Tập Gym toàn chuỗi 365 ngày kèm tủ khóa riêng, xông hơi và nước uống miễn phí (Giá test 2.000 đ)'),
-    ('30000000-0000-0000-0000-000000000004', 'PT-20S', 'Gói PT Cao Cấp 20 buổi', 'PT_SESSION', 2000.00, 90, NULL, 20, 'ACTIVE', '20 buổi kèm 1-1 chuyên sâu cùng HLV thể hình quốc tế NASM (Giá test 2.000 đ)'),
-    ('30000000-0000-0000-0000-000000000005', 'PT-36S', 'Gói PT Tăng Cơ 36 buổi', 'PT_SESSION', 2000.00, 120, NULL, 36, 'ACTIVE', '36 buổi huấn luyện chuyên sâu tăng cơ, cải thiện vóc dáng toàn diện (Giá test 2.000 đ)'),
-    ('30000000-0000-0000-0000-000000000006', 'PT-12S', 'Gói PT Giảm Mỡ 12 buổi', 'PT_SESSION', 1000.00, 60, NULL, 12, 'ACTIVE', '12 buổi tập kèm 1-1 cùng HLV cá nhân chuyên nghiệp, hạn dùng 60 ngày (Giá test 1.000 đ)'),
+    ('30000000-0000-0000-0000-000000000004', 'PT-20S', 'Gói PT Cao Cấp 20 buổi', 'PT_SESSION', 2000.00, NULL, NULL, 20, 'ACTIVE', '20 buổi kèm 1-1 chuyên sâu cùng HLV thể hình quốc tế NASM (Giá test 2.000 đ)'),
+    ('30000000-0000-0000-0000-000000000005', 'PT-36S', 'Gói PT Tăng Cơ 36 buổi', 'PT_SESSION', 2000.00, NULL, NULL, 36, 'ACTIVE', '36 buổi huấn luyện chuyên sâu tăng cơ, cải thiện vóc dáng toàn diện (Giá test 2.000 đ)'),
+    ('30000000-0000-0000-0000-000000000006', 'PT-12S', 'Gói PT Giảm Mỡ 12 buổi', 'PT_SESSION', 1000.00, NULL, NULL, 12, 'ACTIVE', '12 buổi tập kèm 1-1 cùng HLV cá nhân chuyên nghiệp (Giá test 1.000 đ)'),
     ('55555555-5555-5555-5555-555555555554', 'COMBO-VIP', 'Gói Combo VIP (Gym 30 buổi + PT 12 buổi)', 'COMBO', 2000.00, 90, 30, 12, 'ACTIVE', 'Gói kết hợp Gym 30 buổi và 12 buổi tập 1-1 cùng Huấn luyện viên cá nhân (Giá test 2.000 đ)')
 ON CONFLICT (package_code) DO UPDATE SET price = EXCLUDED.price, description = EXCLUDED.description;
 

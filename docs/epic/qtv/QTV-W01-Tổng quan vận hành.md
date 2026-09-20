@@ -20,31 +20,32 @@ Giao diện `W01 · Tổng quan vận hành` được tổ chức khoa học the
 - **Bên trái — Tiêu đề trang:** Chữ in đậm nổi bật `Tổng quan`, dòng phụ thể hiện chi nhánh làm việc hiện tại (`dữ liệu theo chi nhánh`).
 - **Bên phải — Ô chọn ngày tác nghiệp (Date Picker):** Hộp nhập kèm icon lịch `[ 📅 dd/mm/yyyy ]`, mặc định nạp ngày hiện tại. QTV có thể click mở popup lịch chọn ngày bất kỳ trong quá khứ hoặc hôm nay. Khi chọn ngày mới, toàn bộ dữ liệu các khối bên dưới tự động làm mới đồng bộ theo ngày được chọn.
 
-### 2. Hàng 4 Thẻ KPI Vận hành (Metric Cards)
-Được bố trí thành một hàng ngang gồm 4 thẻ chỉ số nạp theo ngày được chọn:
-- **Thẻ Hội viên đang hoạt động:** Hiển thị icon thành viên (xanh dương), tổng lượng hội viên có hồ sơ `ACTIVE`, dòng phụ chú thích *Không gộp với trạng thái thanh toán*.
-- **Thẻ Tiền thực thu trong ngày:** Hiển thị icon thẻ tiền (xanh lá), tổng số tiền thu được trong ngày được chọn khớp đúng 100% giá trị đăng ký (ví dụ: `5.650.000 đ`), dòng phụ chú thích *Giao dịch đã xác nhận* (loại bỏ hoàn toàn công nợ).
-- **Thẻ Gói sắp hết hạn:** Hiển thị icon cảnh báo (tam giác vàng), số lượng gói tập sẽ hết hạn trong 14 ngày tới tính từ mốc ngày đang xem.
-- **Thẻ Buổi PT trong ngày:** Hiển thị icon lịch hẹn (tím), tổng số ca tập PT được xếp lịch trong ngày được chọn, dòng phụ chú thích số lượng *buổi sắp tới* (nếu là ngày hôm nay) hoặc tổng số buổi đã diễn ra (nếu là ngày quá khứ).
+### 2. Hàng 4 Thẻ KPI Vận hành chung (Interactive Metric Cards)
+Được bố trí thành một hàng ngang gồm 4 thẻ chỉ số nạp theo ngày được chọn (có thể bấm để mở màn hình chuyên trách):
+- **Thẻ Hội viên đang hoạt động:** Hiển thị icon thành viên (xanh lá), tổng lượng hội viên có hồ sơ `ACTIVE`, dòng phụ chú thích *Hồ sơ đang hoạt động*; click mở màn hình Hội viên (W02).
+- **Thẻ Tiền thực thu hôm nay:** Hiển thị icon ví tiền (xanh dương), tổng số tiền đã thanh toán đủ 100% trong ngày (ví dụ: `8.850.000 đ`), dòng phụ chú thích *Dòng tiền đã xác nhận*; click mở màn hình Thu ngân (W08).
+- **Thẻ Lượt check-in hôm nay:** Hiển thị icon cửa ra vào (teal), tổng lượt quét thẻ/nhận diện tại chi nhánh trong ngày; click mở Cổng kiểm soát ra vào (W07).
+- **Thẻ Buổi PT trong ngày:** Hiển thị icon tạ tay (coral), tổng số ca tập PT được xếp lịch trong ngày được chọn; click mở Lịch tập PT (W06).
 
-### 3. Khối Ra/vào (Recent Check-ins)
-Hiển thị danh sách các lượt quét mã/nhận diện ra vào cổng trong ngày được chọn:
-- **Header khối:** Tiêu đề `Ra/vào`, dòng mô tả *Phân biệt nhận diện, điều kiện gói và ghi thủ công*.
-- **Danh sách lượt check-in trong ngày:**
-  + *Badge chiều:* Huy hiệu `VÀO` màu xanh mint nổi bật.
-  + *Thông tin hội viên:* Họ tên in đậm (ví dụ: `Nguyễn Văn An`, `Phạm Thu Dung`).
-  + *Dòng phụ:* `<Mã HV> · <Tên gói> · <Điểm check-in Gate>` (ví dụ: `HV001 · Gói 3 tháng · Gate-Q1-01`).
-  + *Thời gian & Kết quả:* Mốc thời gian quẹt thẻ (`09:42`) kèm Badge trạng thái kiểm soát: `Hợp lệ` (xanh lá), `Sắp hết hạn` (vàng cam), `Không đủ điều kiện` (đỏ).
+### 3. Khối Hôm nay cần xử lý — Chăm sóc khách hàng & Vận hành (Hàng 4 Thẻ KPI Chuyên Trách)
+Được thiết kế đồng bộ theo giao diện thẻ KPI (tương tự như thẻ Hội viên đang hoạt động) với biểu tượng màu, số đếm nổi bật, chú thích hành động và hỗ trợ click điều hướng trực tiếp:
+- **Sinh nhật hôm nay:** Số hội viên có sinh nhật đúng ngày hôm nay; click chuyển sang tab Sinh nhật của Chăm sóc khách hàng (W14) để gửi lời chúc hoặc tặng quà.
+- **Gói sắp hết hạn (<= 4 ngày):** Số lượng gói tập sẽ hết hạn trong vòng 4 ngày tới (tone đỏ cảnh báo nếu > 0); click chuyển sang tab Nhắc sắp hết hạn của W14.
+- **Chờ nhắc gia hạn (14 ngày qua):** Số gói tập đã hết hạn trong 14 ngày gần nhất chưa gia hạn lại; click chuyển sang tab Chờ gia hạn của W14.
+- **Đăng ký mới hôm nay:** Số hợp đồng mua gói mới hoặc gia hạn phát sinh trong ngày; click chuyển sang tab Đăng ký trong ngày của W14.
 
-### 4. Khối Lịch PT trong ngày (PT Schedule)
-Bảng hiển thị các ca huấn luyện viên cá nhân theo dòng thời gian của ngày được chọn:
-- **Header khối:** Tiêu đề `Lịch PT · <Thứ, Ngày/Tháng/Năm>` cập nhật theo ngày đang chọn.
-- **Dải thẻ ca tập theo giờ (Timeline Cards Grid):** Các thẻ ca tập xếp theo thứ tự mốc giờ trong ngày:
-  + *Khung giờ:* Mốc giờ bắt đầu in đậm (ví dụ: `07:00`, `08:00`, `09:00`, `10:00`).
-  + *Học viên:* Họ tên hội viên đặt lịch in đậm.
-  + *HLV phụ trách:* Họ tên huấn luyện viên cá nhân phụ trách buổi tập.
-  + *Badge trạng thái ca:* `Đã ghi nhận` (xanh lá nhạt), `Đang diễn ra` (vàng cam), `Sắp tới` (xanh dương nhạt).
-  + Thao tác: Click vào thẻ ca tập để xem chi tiết buổi dạy hoặc điều hướng sang phân hệ Lịch tập (`W06`).
+### 4. Khối Đăng ký mới hôm nay (New Registrations)
+Hiển thị danh sách các hợp đồng gói tập vừa được tạo và thu tiền trong ngày:
+- Thông tin hội viên, tên gói, số tiền thực thu, thời gian thanh toán và nhân viên thu ngân. Giúp chủ phòng tập nắm bắt chính xác dòng tiền thu về từ từng khách hàng.
+
+### 5. Khối Ra/vào gần đây (Recent Check-ins)
+Hiển thị danh sách các lượt quét mã/nhận diện ra vào cổng:
+- Hỗ trợ 3 phương thức: **Nhận diện khuôn mặt (FaceID)**, **Quét mã QR Mobile**, và **Ghi nhận thủ công**.
+- Hiển thị: Họ tên, giờ check-in, tên gói, cửa check-in, badge kết quả (`Hợp lệ`, `Sắp hết hạn <= 4 ngày`, `Không đủ điều kiện`).
+
+### 6. Khối Lịch PT hôm nay (PT Schedule)
+Bảng hiển thị các ca huấn luyện viên cá nhân theo timeline linh động trong ngày:
+- Giờ bắt đầu, học viên, HLV phụ trách, trạng thái ca tập (`Đã ghi nhận`, `Đang diễn ra`, `Sắp tới`). Click vào ca tập để mở chi tiết buổi dạy hoặc điều hướng sang W06.
 
 ---
 

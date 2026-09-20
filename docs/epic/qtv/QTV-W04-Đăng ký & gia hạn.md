@@ -43,7 +43,7 @@ Menu `W04 · Đăng ký & gia hạn` là màn hình quản lý hợp đồng đ�
   1. `Mã`: Mã đăng ký (ví dụ: `DK001`, `DK002`), hiển thị văn bản mã đăng ký.
   2. `Hội viên`: Họ tên hội viên (chữ đậm nổi bật); dòng phụ bên dưới hiển thị `{Mã HV} · {Chi nhánh}` (ví dụ: `Nguyễn Văn An`<br>`HV001 · Quận 1`, `Trần Thị Bình`<br>`HV002 · Quận 1`).
   3. `Gói đăng ký`: Tên gói đăng ký niêm yết (ví dụ: `Gói 3 tháng`, `Gói PT 20 buổi`).
-  4. `Kỳ hiệu lực`: Khoảng thời gian từ ngày bắt đầu đến ngày kết thúc `{start_date} → {end_date}` theo định dạng `DD/MM/YYYY` (ví dụ: `15/07/2026 → 15/10/2026`).
+  4. `Kỳ hiệu lực`: Với gói có thời hạn ngày (`GYM_TIME`, `COMBO`), hiển thị khoảng thời gian `{start_date} - {end_date}` theo định dạng `DD/MM/YYYY` (ví dụ: `15/07/2026 - 15/10/2026`); với gói tính theo buổi vô thời hạn (`PT_SESSION`, `GYM_SESSION`), hiển thị `Từ {start_date}` (không giới hạn số ngày).
   5. `Số tiền`: Tổng giá trị thanh toán 100% của gói (ví dụ: `1.350.000 đ`, `3.800.000 đ`); hệ thống áp dụng thanh toán 100% 1 lần duy nhất, không áp dụng công nợ.
   6. `PT phụ trách`: Huấn luyện viên phụ trách gói:
      - Gói GYM: Hiển thị dấu gạch ngang `--`.

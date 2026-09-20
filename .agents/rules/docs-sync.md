@@ -103,6 +103,13 @@ join, control-flow, and final nodes where the flow requires them. Every
 reachable branch must have a documented outcome, and every decision edge
 must be labeled.
 
+Tuân thủ nghiêm ngặt Quy tắc Bất Biến về Số Mũi Tên (Node Arity & Topology):
+- Action Node `["..."]`: Bắt buộc đúng `1 IN + 1 OUT` (không rẽ nhánh, không gom nhánh, không làm điểm kết thúc đứt đoạn).
+- Decision Node `{"..."}`: `1 IN + N OUT` ($N \ge 2$), có nhãn rõ ràng trên mọi nhánh.
+- Merge Node `{"Merge"}` / `(("Merge"))`: `N IN + 1 OUT` (OR logic - chỉ cần 1 nhánh tới).
+- Join Node `{{"Join"}}`: `N IN + 1 OUT` (AND logic - phải chờ tất cả nhánh song song).
+- Final Node `((("Final — ...")))`: `1 IN + 0 OUT` (Điểm kết thúc duy nhất hợp lệ của mọi path).
+
 ## Rules
 
 Never modify only the UI when the change alters documented behavior.

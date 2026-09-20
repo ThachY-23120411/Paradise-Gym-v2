@@ -128,6 +128,12 @@ For changes to Product Spec, Epics, User Stories, business rules, features, work
 - Quy ước mô tả trường `CONDITIONAL` trong bảng Field-level specification:
   + Bắt buộc phải ghi rõ điều kiện cụ thể hai chiều: **Hiện khi** TRIGGER nhận giá trị gì, và **Ẩn khi** TRIGGER nhận giá trị gì (hoặc **Bắt buộc khi nào / Tùy chọn khi nào** nếu trường thay đổi tính bắt buộc theo TRIGGER).
 - When creating or updating an Activity Diagram, always read and apply `.agents/skills/activity-diagram/SKILL.md`; keep the written Main Flow, Alternate Flows, and Exception Flows and use explicit UML-style nodes, control flow, boundary, and role-based swimlanes.
+- **Quy tắc Bất Biến về Số Mũi Tên trong Activity Diagram (Node Arity & Topology):**
+  + **Action Node `["..."]`:** BẮT BUỘC ĐÚNG `1 IN + 1 OUT` (không hơn không kém). Cấm dùng Action node để rẽ nhánh, cấm nhiều mũi tên vào Action node, và tuyệt đối cấm đứt đoạn / kết thúc tại Action node.
+  + **Decision Node `{"..."}`:** `1 IN + N OUT` ($N \ge 2$), bắt buộc có nhãn điều kiện trên 100% các nhánh rẽ.
+  + **Merge Node `{"Merge"}` / `(("Merge"))`:** `N IN + 1 OUT` (OR logic - chỉ cần 1 nhánh tới).
+  + **Join Node `{{"Join"}}`:** `N IN + 1 OUT` (AND logic - phải chờ tất cả nhánh song song).
+  + **Final Node `((("Final — ...")))`:** `1 IN + 0 OUT` (Điểm kết thúc duy nhất hợp lệ của một path).
 - Keep all affected documentation and UI consistent.
 - Inspect only related artifacts.
 - Do not scan or rewrite unrelated files.
@@ -136,9 +142,24 @@ For changes to Product Spec, Epics, User Stories, business rules, features, work
 
 ## 3. UI Changes
 
+> [!CAUTION]
+> **QUY TẮC BẮT BUỘC KHI CHỈNH SỬA HOẶC THÊM MỚI GIAO DIỆN (MANDATORY UI WORKFLOW):**
+> **Cứ chỉnh sửa gì ở UI hoặc thêm mới bất kỳ thành phần nào trên UI (màn hình, form, modal, datagrid, metric cards, nút bấm, trường nhập liệu...) đều BẮT BUỘC PHẢI ĐỌC LẠI KỸ NĂNG `.agents/skills/qtv-ui-design-system/SKILL.md` TRƯỚC KHI THỰC HIỆN.**
+> - Đảm bảo tính đồng nhất 100% về:
+>   + **Visual style & Tokens màu sắc:** Administrative Forest Clean (`--primary: #237b58`, `--primary-dark: #185740`, `--primary-light: #eaf4ee`, `--border-color: #dfe6e2`). Tuyệt đối không dùng màu tùy tiện hoặc style inline khác biệt.
+>   + **Cấu hình Form chuẩn hóa (`dxForm`):** Luôn có `labelLocation: 'top'`, `showColonAfterLabel: false`. Cấm để dấu hai chấm (`:`) sau nhãn trường. Không gõ cứng dấu sao (`*`) vào chữ của nhãn khi đã có validationRule `required`.
+>   + **Nút bấm & Hộp thoại Popup (`dxPopup`):** Nút lưu dữ liệu bắt buộc màu xanh lá (`type: 'default'`, `stylingMode: 'contained'`, icon `save`), nút hủy bỏ dạng viền (`stylingMode: 'outlined'`).
+>   + **CẤM TUYỆT ĐỐI GỢI Ý, CHÚ THÍCH, HỘP GIẢI THÍCH (INFO CALLOUTS / HINTS / TIPS / PHỤ ĐỀ MÔ TẢ) TRÊN GIAO DIỆN:** Tuyệt đối không bao giờ được đặt các hộp thông tin gợi ý (`info-card`, callout banner, `💡 Gợi ý:...`, `[i] Tỷ lệ hoa hồng mới sẽ chính thức áp dụng...`) hay các đoạn văn bản chú thích, mô tả phụ đề dài dòng bên trong form/modal hay màn hình. Giao diện Web Admin dành cho nhân sự quản lý chuyên nghiệp, cần sự tinh gọn, sạch sẽ và tối giản 100%, chỉ hiển thị đúng các trường dữ liệu và nút thao tác cần thiết.
+
 For UI design or UI modification:
 
+- **Bắt buộc đọc kỹ năng `.agents/skills/qtv-ui-design-system/SKILL.md`** cho toàn bộ phân hệ Web Admin (QTV/LT) trước khi viết hay sửa bất kỳ dòng code UI nào.
 - Follow `.agents/rules/ui-design-system.md`.
+- **Bắt buộc áp dụng kỹ năng `.agents/skills/ui-docs-sync/SKILL.md`**: Mỗi khi thực hiện bất kỳ thay đổi nào trên giao diện người dùng (thêm/sửa trường nhập liệu, nút bấm, modal, form, bảng DataGrid, logic dynamic/conditional ẩn hiện, luồng tương tác), Agent **bắt buộc phải đồng bộ hóa ngay lập tức 100%** vào tài liệu đặc tả:
+  + Bảng Field-level specification của User Story (chuẩn hóa `TRIGGER`, `DYNAMIC`, `CONDITIONAL`, `Required: conditional`, `USER-INPUT`, `AUTO-FILL`, `PREFILL`, `READONLY`).
+  + Main Flow, Alternate Flows, Exception Flows.
+  + Sơ đồ Swimlane Activity Diagram chuẩn UML (`.agents/skills/activity-diagram/SKILL.md`).
+  + Epic và Product Spec liên đới nếu có quy tắc nghiệp vụ mới.
 - Identify the related User Story, Epic, and Product Spec when the UI change affects documented behavior.
 - Reuse existing UI patterns and components when possible (DevExtreme jQuery components: `dxDataGrid`, `dxForm`, `dxScheduler`, `dxPopup`, `dxDrawer`, `dxChart`).
 

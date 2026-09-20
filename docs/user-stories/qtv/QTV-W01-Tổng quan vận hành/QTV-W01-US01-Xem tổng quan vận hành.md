@@ -7,65 +7,66 @@
 
 ## Trigger
 - QTV chọn menu **W01 · Tổng quan vận hành** trên thanh điều hướng chính của Web Portal.
-- Màn hình liên quan: Web QTV — Màn hình `W01 · Tổng quan vận hành` (`screenshot/qtv/light-web-W01-tong-quan.png`).
+- Màn hình liên quan: Web QTV — Màn hình `W01 · Tổng quan vận hành`.
 
 ## Main Flow
 
 1. QTV truy cập menu **W01 · Tổng quan vận hành**.
 2. Hệ thống (SYS) xác thực vai trò, quyền hạn tài chính và phạm vi chi nhánh của QTV; mặc định nạp mốc thời gian là ngày làm việc hiện tại (`Hôm nay - dd/mm/yyyy`).
-3. SYS truy vấn cơ sở dữ liệu thời gian thực và hiển thị đồng bộ giao diện Tổng quan gồm ô chọn ngày và 3 khối giám sát chính:
-   - **Thanh tiêu đề & Ô chọn ngày tác nghiệp:**
-     + Tiêu đề trang `Tổng quan` kèm thông tin chi nhánh đang phục vụ.
-     + Ô chọn ngày `[ 📅 dd/mm/yyyy ]` (Date Picker) ở góc phải, mặc định nạp ngày hiện tại (`Hôm nay`).
-   - **Khối 1 — Hàng 4 Thẻ KPI Vận hành (Metric Cards):**
-     + `Hội viên đang hoạt động`: Đếm tổng số lượng hội viên có hồ sơ `ACTIVE` tại chi nhánh (chú thích *Không gộp với trạng thái thanh toán*).
-     + `Tiền thực thu trong ngày`: Tổng số tiền đã thanh toán đủ 100% trong ngày được chọn (chú thích *Giao dịch đã xác nhận*, không công nợ).
-     + `Gói sắp hết hạn`: Số lượng gói tập sẽ hết hạn trong 14 ngày tới tính từ mốc ngày đang xem.
-     + `Buổi PT trong ngày`: Tổng số ca dạy PT được xếp lịch trong ngày được chọn kèm số buổi sắp tới (nếu là hôm nay) hoặc số buổi đã hoàn thành (nếu là quá khứ).
-   - **Khối 2 — Ra/vào (Recent Check-ins):**
-     + Tiêu đề khối kèm mô tả *Phân biệt nhận diện, điều kiện gói và ghi thủ công*.
-     + Danh sách các lượt quẹt thẻ/nhận diện ra vào trong ngày được chọn: Badge `VÀO`, Họ tên hội viên in đậm, mã HV · tên gói · cửa check-in, giờ quẹt thẻ và Badge kết quả (`Hợp lệ` - xanh lá, `Sắp hết hạn` - vàng, `Không đủ điều kiện` - đỏ).
-   - **Khối 3 — Lịch PT trong ngày (PT Schedule):**
-     + Tiêu đề khối kèm ngày làm việc đang xem: `Lịch PT · <Thứ, Ngày/Tháng/Năm>`.
-     + Dải thẻ các ca tập PT theo dòng thời gian trong ngày: Mốc giờ bắt đầu (`07:00`, `08:00`...), Họ tên học viên in đậm, Tên PT phụ trách, Badge trạng thái ca (`Đã ghi nhận`, `Đang diễn ra`, `Sắp tới`).
-4. QTV có thể thay đổi ngày xem tác nghiệp bằng cách chọn ngày bất kỳ trên ô Date Picker; SYS tự động làm mới đồng bộ dữ liệu của các khối theo mốc ngày mới.
-5. QTV có thể bấm vào thẻ ca tập PT để điều hướng đến phân hệ Quản lý lịch tập (`W06`) xem chi tiết buổi dạy.
+3. SYS truy vấn cơ sở dữ liệu thời gian thực và hiển thị đồng bộ giao diện Tổng quan tập trung vào Dòng tiền & Chăm sóc khách hàng gồm:
+   - **Thanh tiêu đề & Ô chọn ngày tác nghiệp:** Tiêu đề `Tổng quan`, tên chi nhánh đang chọn, ô Date Picker `[ 📅 dd/mm/yyyy ]` và nút Làm mới.
+   - **Khối 1 — Hàng 4 Thẻ KPI Vận hành chung (Interactive Metric Cards):**
+     + `Hội viên đang hoạt động`: Số hội viên `ACTIVE` tại chi nhánh; click điều hướng đến màn hình Hội viên (W02).
+     + `Tiền thực thu hôm nay`: Dòng tiền thanh toán 100% thu được trong ngày; click điều hướng đến màn hình Thu ngân / Bán hàng (W08).
+     + `Lượt check-in hôm nay`: Tổng lượt quét tại chi nhánh; click điều hướng đến Cổng kiểm soát ra vào (W07).
+     + `Buổi PT trong ngày`: Tổng số ca tập PT được xếp lịch trong ngày; click điều hướng đến Lịch PT (W06).
+   - **Khối 2 — Hôm nay cần xử lý (Hàng 4 Thẻ KPI Chăm sóc khách hàng & Vận hành):** Thiết kế đồng bộ chuẩn thẻ KPI như Khối 1 (có icon màu, số đếm nổi bật, chú thích hành động và click điều hướng trực tiếp):
+     + `Sinh nhật hôm nay`: Số hội viên có ngày sinh nhật hôm nay; click chuyển sang tab Sinh nhật của Chăm sóc khách hàng (W14).
+     + `Gói sắp hết hạn (<= 4 ngày)`: Số gói tập cận hạn cần liên hệ gia hạn gấp (tone đỏ cảnh báo nếu > 0); click chuyển sang tab Nhắc sắp hết hạn của W14.
+     + `Chờ nhắc gia hạn (14 ngày qua)`: Số gói đã hết hạn trong 14 ngày gần nhất chưa gia hạn; click chuyển sang tab Chờ gia hạn của W14.
+     + `Đăng ký mới hôm nay`: Số hợp đồng đăng ký mới tạo trong ngày; click chuyển sang tab Đăng ký trong ngày của W14.
+   - **Khối 3 — Thanh thao tác nhanh (Quick Actions):** Các nút hành động tắt gồm: `[+ Thêm hội viên]`, `[+ Tạo đăng ký]`, `[+ Đặt lịch PT]`, `[Lớp cộng đồng]`, `[Ghi nhận ra/vào]`.
+   - **Khối 4 — Ra/vào gần nhất:** Danh sách 8 lượt quẹt thẻ/nhận diện gần nhất: Họ tên, avatar, mã HV, gói tập, giờ quét, kết quả (`Hợp lệ`, `Sắp hết hạn`, `Không đủ điều kiện`).
+   - **Khối 5 — Lịch PT theo ngày:** Danh sách ca dạy PT sắp xếp theo giờ bắt đầu trong ngày: Giờ, tên HV, tên PT, trạng thái (`Sắp tới`, `Đang diễn ra`, `Đã ghi nhận`, `Chờ xác nhận`).
+4. QTV có thể bấm trực tiếp vào bất kỳ thẻ KPI nào để chuyển nhanh đến màn hình tác nghiệp chuyên biệt.
+5. QTV có thể đổi ngày trên Date Picker để xem lại số liệu doanh thu và nhật ký của ngày trong quá khứ.
 
 ### Field-level specification — Màn hình Tổng quan vận hành (W01)
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Ô chọn ngày tác nghiệp (Date Picker) | `Date Input / Picker` | `USER-INPUT (PREFILL)` | required | `TRIGGER` | Hộp chọn ngày định dạng `dd/mm/yyyy`; mặc định ngày hôm nay; click mở lịch popup chọn ngày bất kỳ trong quá khứ hoặc hôm nay để nạp lại dữ liệu toàn màn hình |
-| Thẻ KPI Hội viên đang hoạt động | `Metric Card` | `READONLY` | required | `DYNAMIC` | Đếm số lượng hội viên có trạng thái hồ sơ `ACTIVE` tại chi nhánh |
-| Thẻ KPI Tiền thực thu trong ngày | `Metric Card` | `READONLY` | conditional | `CONDITIONAL` | Hiện khi tài khoản QTV có quyền xem tài chính (`permission.view_financial = true`); Ẩn khi tài khoản không có quyền tài chính (`permission.view_financial = false`). Tổng tiền thanh toán 100% đã xác nhận trong ngày được chọn |
-| Thẻ KPI Gói sắp hết hạn | `Metric Card` | `READONLY` | required | `DYNAMIC` | Đếm số lượng gói tập có ngày kết thúc nằm trong 14 ngày tới tính từ ngày đang xem |
-| Thẻ KPI Buổi PT trong ngày | `Metric Card` | `READONLY` | required | `DYNAMIC` | Tổng số lượng ca tập PT được xếp lịch trong ngày được chọn kèm chú thích số ca |
-| Lượt check-in — Badge chiều | `Status Badge` | `READONLY` | required | `DYNAMIC` | Huy hiệu chiều ra vào: `VÀO` (xanh mint) |
-| Lượt check-in — Thông tin hội viên | `Text (Bold) + Subtext` | `READONLY` | required | `DYNAMIC` | Họ tên in đậm kèm dòng phụ `<Mã HV> · <Tên gói> · <Điểm check-in Gate>` (ví dụ: `HV001 · Gói 3 tháng · Gate-Q1-01`) |
-| Lượt check-in — Thời gian & Kết quả | `Time + Status Badge` | `READONLY` | required | `DYNAMIC` | Giờ quẹt thẻ (`hh:mm`) kèm badge kết quả: `Hợp lệ` (xanh lá), `Sắp hết hạn` (vàng cam), `Không đủ điều kiện` (đỏ) |
-| Ca tập PT — Khung giờ | `Time Label` | `READONLY` | required | `DYNAMIC` | Mốc giờ bắt đầu ca tập (ví dụ: `07:00`, `08:00`, `09:00`, `10:00`) |
-| Ca tập PT — Thông tin buổi dạy | `Text (Bold) + Subtext` | `READONLY` | required | `DYNAMIC` | Tên học viên in đậm kèm tên huấn luyện viên PT phụ trách ở dòng phụ |
-| Ca tập PT — Trạng thái ca tập | `Status Badge` | `READONLY` | required | `DYNAMIC` | Trạng thái buổi tập: `Đã ghi nhận` (xanh lá nhạt), `Đang diễn ra` (vàng cam), `Sắp tới` (xanh dương nhạt) |
-| Ca tập PT — Thao tác click | `Clickable Card` | `USER-INPUT` | optional | Không | Thẻ ca tập có thể click; click mở chi tiết ca tập hoặc điều hướng sang Quản lý lịch tập (`W06`) |
+| Ô chọn ngày tác nghiệp (Date Picker) | `Date Input / Picker` | `USER-INPUT (PREFILL)` | required | `TRIGGER` | Mặc định hôm nay; chọn ngày nạp lại toàn bộ dữ liệu |
+| Nút Làm mới tổng quan | `Action Button` | `USER-INPUT` | optional | `Không` | Bấm nạp lại dữ liệu tổng quan thời gian thực |
+| Thẻ KPI Hội viên đang hoạt động | `Metric Card` | `READONLY` | required | `DYNAMIC` | Đếm tổng số hội viên có trạng thái `ACTIVE`; click mở W02 |
+| Thẻ KPI Tiền thực thu hôm nay | `Metric Card` | `READONLY` | conditional | `CONDITIONAL` | **Hiện khi**: tài khoản có quyền `view_financial = true`; **Ẩn khi**: không có quyền tài chính. Click mở W08 |
+| Thẻ KPI Lượt check-in hôm nay | `Metric Card` | `READONLY` | required | `DYNAMIC` | Tổng lượt quét thành công tại chi nhánh trong ngày; click mở W07 |
+| Thẻ KPI Buổi PT trong ngày | `Metric Card` | `READONLY` | required | `DYNAMIC` | Tổng số ca tập PT được xếp lịch trong ngày; click mở W06 |
+| Nút Mở CSKH | `Action Button` | `USER-INPUT` | optional | `Không` | Nút trên header khối Hôm nay cần xử lý; click mở menu W14 |
+| Thẻ KPI CSKH — Sinh nhật hôm nay | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số hội viên có sinh nhật hôm nay; click mở tab birthdays W14 |
+| Thẻ KPI CSKH — Gói sắp hết hạn (<= 4 ngày) | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói hết hạn trong <= 4 ngày (tone đỏ nếu > 0); click mở tab expiring W14 |
+| Thẻ KPI CSKH — Chờ nhắc gia hạn | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói hết hạn trong 14 ngày qua chưa gia hạn; click mở tab pending-renewals W14 |
+| Thẻ KPI CSKH — Đăng ký mới hôm nay | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số hợp đồng tạo trong ngày; click mở tab today-regs W14 |
+| Nút Quick Action — Thêm hội viên | `Action Button` | `USER-INPUT` | optional | `Không` | Bấm mở popup Thêm hội viên mới (`QTV-W02-US01`) |
+| Nút Quick Action — Tạo đăng ký | `Action Button` | `USER-INPUT` | optional | `Không` | Bấm mở popup Tạo đăng ký gói mới (`QTV-W04-US01`) |
+| Nút Quick Action — Đặt lịch PT | `Action Button` | `USER-INPUT` | optional | `Không` | Bấm mở popup Đặt lịch tập PT (`QTV-W06-US02`) |
+| Nút Quick Action — Lớp cộng đồng | `Action Button` | `USER-INPUT` | optional | `Không` | Bấm chuyển đến menu Lớp tập cộng đồng (`QTV-W16`) |
+| Nút Quick Action — Ghi nhận ra/vào | `Action Button` | `USER-INPUT` | optional | `Không` | Bấm chuyển đến Cổng kiểm soát ra vào (`QTV-W07`) |
+| Danh sách Ra/vào gần nhất | `List Item` | `READONLY` | required | `DYNAMIC` | Hiển thị 8 lượt ra vào gần nhất kèm trạng thái check-in |
+| Danh sách Lịch PT theo ngày | `List Item / Button` | `READONLY` | required | `DYNAMIC` | Hiển thị danh sách ca PT theo mốc giờ; click xem chi tiết ca tập |
 
 ## Alternate Flows
 
-### AF-01 — QTV thay đổi ngày xem tác nghiệp qua Date Picker
-1. QTV click vào ô lịch **`[ 📅 dd/mm/yyyy ]`** (Date Picker) và chọn một ngày cụ thể trong quá khứ hoặc hôm nay.
-2. SYS nhận diện mốc ngày mới, gửi truy vấn CSDL và làm mới dữ liệu cho các khối:
-   - Thẻ `Tiền thực thu trong ngày`: Tính tổng tiền thanh toán 100% thu được trong ngày đó.
-   - Thẻ `Buổi PT trong ngày`: Nạp các ca PT diễn ra trong ngày đó.
-   - Khối `Ra/vào`: Hiển thị nhật ký quẹt thẻ check-in của ngày đó.
-   - Khối `Lịch PT trong ngày`: Hiển thị dải thẻ các ca PT của ngày đó.
+### AF-01 — QTV bấm nút Gọi điện hoặc Ghi nhận liên hệ tại khối CSKH
+1. QTV click nút **`Gọi`** tại dòng hội viên có sinh nhật hoặc sắp hết hạn gói.
+2. Thiết bị kích hoạt cuộc gọi; sau khi gọi, QTV bấm **`Liên hệ`** để nhập ghi chú (ví dụ: *"Hội viên đồng ý gia hạn gói 6 tháng vào ngày mai"*).
+3. SYS lưu lịch sử tương tác vào nhật ký chăm sóc khách hàng.
 
-### AF-02 — QTV bấm xem chi tiết ca tập PT
-1. QTV click vào một thẻ ca tập PT trong khối **Lịch PT trong ngày**.
-2. SYS điều hướng sang phân hệ Quản lý lịch tập (`W06 · Lịch tập & buổi PT`) hiển thị chi tiết thông tin ca dạy.
+### AF-02 — QTV thay đổi ngày xem tác nghiệp qua Date Picker
+1. QTV chọn một ngày trong quá khứ trên Date Picker.
+2. SYS nạp lại doanh thu thực thu, danh sách đăng ký mới và lượt check-in của ngày đó.
 
 ## Exception Flows
-- **Tài khoản thiếu quyền xem tài chính:** SYS tự động ẩn Thẻ KPI `Tiền thực thu trong ngày` khỏi màn hình Dashboard và co giãn hàng thẻ cho cân đối.
-- **Ngày được chọn không phát sinh dữ liệu:**
-  + Khối Ra/vào hiển thị *"Không có lượt ra vào nào được ghi nhận trong ngày này"*.
-  + Khối Lịch PT hiển thị *"Không có lịch tập PT nào trong ngày này"*.
+- **Tài khoản thiếu quyền xem tài chính:** SYS tự động ẩn Thẻ KPI `Tiền thực thu hôm nay` và danh sách Đăng ký mới hôm nay khỏi Dashboard.
+- **Ngày xem không có dữ liệu:** Các khối hiển thị trạng thái rỗng (*"Không phát sinh dữ liệu trong ngày này"*).
 
 ## Activity Diagram — Swimlane
 **Trigger:** QTV chọn menu W01 · Tổng quan vận hành trên thanh điều hướng chính của Web Portal.
@@ -76,26 +77,30 @@ flowchart TB
     subgraph L0["Swimlane — Quản trị viên (QTV)"]
       I01(("Initial"))
       A01["Truy cập menu W01 · Tổng quan vận hành"]
-      A02["Xem 4 thẻ KPI, ra/vào và lịch PT theo ngày mặc định"]
+      A02["Xem KPI dòng tiền, khối CSKH cần xử lý, đăng ký mới, check-in và lịch PT"]
       A03{"Chọn hành động"}
-      A04["Chọn ngày bất kỳ trên Date Picker"]
-      A05["Bấm thẻ ca tập PT"]
-      F01((("Final — Xem Dashboard theo mốc ngày mới")))
-      F02((("Final — Xem chi tiết lịch tập (W06)")))
+      A04["Chọn ngày khác trên Date Picker"]
+      A05["Bấm Gọi điện / Ghi nhận CSKH"]
+      A06["Bấm thẻ ca PT hoặc đơn đăng ký mới"]
+      F01((("Final — Nạp dữ liệu ngày mới")))
+      F02((("Final — Hoàn tất ghi nhận CSKH")))
+      F03((("Final — Xem chi tiết nghiệp vụ")))
     end
 
     subgraph L1["Swimlane — SYS"]
       S01["Xác thực quyền hạn và gán ngày mặc định là Hôm nay"]
-      S02["Truy vấn CSDL: tính 4 thẻ KPI, nhật ký check-in và ca PT theo ngày"]
-      S03["Hiển thị màn hình Tổng quan vận hành W01"]
+      S02["Truy vấn CSDL: tính tiền thực thu, gói hết hạn <=4 ngày, sinh nhật, đăng ký mới, check-in và ca PT"]
+      S03["Hiển thị Dashboard Tổng quan vận hành W01"]
       S04["Truy vấn lại dữ liệu theo ngày mới"]
-      S05["Điều hướng mở phân hệ Quản lý lịch tập"]
+      S05["Lưu lịch sử tương tác chăm sóc khách hàng"]
+      S06["Điều hướng mở chi tiết đơn đăng ký hoặc ca PT"]
 
       I01 --> A01
       A01 --> S01 --> S02 --> S03 --> A02
       A02 --> A03
       A03 -->|Đổi ngày xem| A04 --> S04 --> F01
-      A03 -->|Xem ca PT| A05 --> S05 --> F02
+      A03 -->|Tác nghiệp CSKH| A05 --> S05 --> F02
+      A03 -->|Xem chi tiết| A06 --> S06 --> F03
     end
   end
 ```
