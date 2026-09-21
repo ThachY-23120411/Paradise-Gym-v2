@@ -1,17 +1,21 @@
 const express=require('express');
 const {transaction}=require('../../db/postgres');
 const {bookingList}=require('./bookings');
+const {isExpiring,registrationState,listExpiring}=require('./registrationState');
 const {pool,route,fail,text,date,today,addDays,choice,role,financial,globalAdmin,branch,scope,selected,row,audit}=require('./http');
 const router=express.Router();
 async function accessLogs(req,db=pool) {
   role(req,'QTV','RECEPTIONIST');const day=req.query.date?date(req.query.date):req.history?null:today();
   const from=req.query.date_from?date(req.query.date_from):day,to=req.query.date_to?date(req.query.date_to):day;
   return (await db.query(`SELECT l.*,m.full_name member_name,m.member_code,m.phone member_phone,r.package_name_snapshot,r.package_name_snapshot package_name,r.end_date registration_end_date,
+    CASE WHEN r.id IS NOT NULL THEN to_jsonb(r)||jsonb_build_object(
+      'is_paid',EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id),
+      'has_scheduled_freeze',EXISTS(SELECT 1 FROM package_freezes f WHERE f.registration_id=r.id AND f.status='SCHEDULED')) END expiry_context,
     COALESCE(l.device_code_snapshot,d.device_code,'Quầy lễ tân') device_code,COALESCE(l.device_code_snapshot,d.device_name,'Quầy lễ tân') scan_point,
     COALESCE(a.full_name,a.login_phone,'Hệ thống') actor_name,COALESCE(a.full_name,a.login_phone,'Hệ thống') performed_by_name,
     l.access_method source,l.check_in_time event_time,COALESCE(l.denial_reason,l.manual_reason) reason,b.branch_name
     FROM access_logs l JOIN member_profiles m ON m.id=l.member_id JOIN branches b ON b.id=l.branch_id LEFT JOIN registrations r ON r.id=l.registration_id LEFT JOIN devices d ON d.id=l.device_id LEFT JOIN accounts a ON a.id=l.manual_recorded_by
-    WHERE ($1::uuid[] IS NULL OR l.branch_id=ANY($1)) AND ($2::date IS NULL OR (l.check_in_time AT TIME ZONE b.timezone)::date>=$2) AND ($3::date IS NULL OR (l.check_in_time AT TIME ZONE b.timezone)::date<=$3) AND ($4::uuid IS NULL OR l.member_id=$4) ORDER BY l.check_in_time DESC,l.recorded_at DESC LIMIT 1000`,[scope(req),from,to,req.query.member_id||null])).rows;
+    WHERE ($1::uuid[] IS NULL OR l.branch_id=ANY($1)) AND ($2::date IS NULL OR (l.check_in_time AT TIME ZONE b.timezone)::date>=$2) AND ($3::date IS NULL OR (l.check_in_time AT TIME ZONE b.timezone)::date<=$3) AND ($4::uuid IS NULL OR l.member_id=$4) ORDER BY l.check_in_time DESC,l.recorded_at DESC LIMIT 1000`,[scope(req),from,to,req.query.member_id||null])).rows.map(({expiry_context,...log})=>({...log,is_expiring:isExpiring(expiry_context)}));
 }
 router.get('/access-gate/today-logs',route(req=>accessLogs(req)));
 router.get('/access-gate/logs',route(req=>{req.history=true;return accessLogs(req);}));
@@ -32,7 +36,7 @@ router.get('/access-gate/members',route(async req=>{
 }));
 router.get('/access-gate/member/:id',route(async req=>{
   role(req,'QTV','RECEPTIONIST');const b=selected(req),m=await gateMember(req,req.params.id,b);
-  const registrations=(await pool.query(`SELECT r.id,r.reg_code,r.package_name_snapshot,r.package_type_snapshot,r.status,r.start_date,r.end_date,r.remaining_gym_sessions,r.remaining_pt_sessions,EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id AND p.status='COMPLETED' AND p.amount=r.price_snapshot) is_paid FROM registrations r JOIN registration_allowed_branches a ON a.registration_id=r.id WHERE r.member_id=$1 AND a.branch_id=$2 ORDER BY r.created_at DESC`,[m.id,b])).rows;
+  const registrations=(await pool.query(`SELECT r.id,r.reg_code,r.package_name_snapshot,r.package_type_snapshot,r.status,r.start_date,r.end_date,r.remaining_gym_sessions,r.remaining_pt_sessions,r.total_gym_sessions_snapshot,r.is_frozen,EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id AND (p.amount+p.discount_amount)=r.price_snapshot) is_paid FROM registrations r JOIN registration_allowed_branches a ON a.registration_id=r.id WHERE r.member_id=$1 AND a.branch_id=$2 ORDER BY r.created_at DESC`,[m.id,b])).rows;
   return {...m,registrations,allowed_registrations:registrations,...await presence(m.id,b)};
 }));
 router.get('/access-gate/presence',route(async req=>{
@@ -72,7 +76,7 @@ router.post('/access-gate/manual-checkin',route(async req=>{
         if(!r.branch_allowed)invalid=['WRONG_BRANCH','Gói không có quyền sử dụng tại chi nhánh này.'];
         else if(r.is_frozen)invalid=['PACKAGE_FROZEN','Gói tập đang trong thời gian đóng băng bảo lưu.'];
         else if(r.package_type_snapshot.startsWith('PT'))invalid=['GYM_ENTITLEMENT_REQUIRED','Gói chỉ có quyền tập PT, không bao gồm quyền vào tập Gym.'];
-        else if(!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND status='COMPLETED' AND (amount + COALESCE(discount_amount,0)) >= $2",[r.id,r.price_snapshot])).rowCount)invalid=['PAYMENT_REQUIRED','Đăng ký chưa được thanh toán đủ 100%.'];
+        else if(!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND (amount + COALESCE(discount_amount,0)) >= $2",[r.id,r.price_snapshot])).rowCount)invalid=['PAYMENT_REQUIRED','Đăng ký chưa được thanh toán đủ 100%.'];
         else if(!['ACTIVE','SCHEDULED','EXPIRED'].includes(r.status))invalid=['REGISTRATION_INACTIVE','Đăng ký không ở trạng thái được phép sử dụng.'];
         else if(r.start_date>local.day)invalid=['REGISTRATION_NOT_STARTED','Gói chưa đến ngày bắt đầu hiệu lực.'];
         else if(r.end_date&&r.end_date<local.day)invalid=['REGISTRATION_EXPIRED','Gói đã hết hạn tại thời điểm vào tập.'];
@@ -88,7 +92,7 @@ router.post('/access-gate/manual-checkin',route(async req=>{
     const accessMethod = req.body.access_method || (checkinMethod === 'QR' ? 'QR_CODE' : 'MANUAL');
     const saved=(await db.query(`INSERT INTO access_logs(member_id,registration_id,branch_id,direction,access_method,checkin_method,status,denial_reason,is_duplicate_warning,is_gym_session_deducted,manual_recorded_by,manual_reason,check_in_time)
       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,[m.id,reg?.id||null,b.id,direction,accessMethod,checkinMethod,denial?'DENIED':'ALLOWED',denial,denialCode==='DUPLICATE_SCAN',!denial&&deduct,req.user.account_id,reason,event])).rows[0];
-    if(!denial&&deduct)await db.query('UPDATE registrations SET remaining_gym_sessions=remaining_gym_sessions-1,updated_at=NOW() WHERE id=$1',[reg.id]);
+    if(!denial&&deduct){await db.query('UPDATE registrations SET remaining_gym_sessions=remaining_gym_sessions-1,updated_at=NOW() WHERE id=$1',[reg.id]);reg.remaining_gym_sessions-=1;}
     await audit(db,req,'access_logs',saved.id,'MANUAL_ACCESS',null,{direction,status:saved.status,event_time:event,member_id:m.id,denial_code:denialCode},b.id,reason);
     
     // Kiosk greeting payload (chúc mừng sinh nhật & cảnh báo sắp hết hạn <= 4 ngày)
@@ -97,13 +101,17 @@ router.post('/access-gate/manual-checkin',route(async req=>{
       new Date(m.date_of_birth).getDate() === new Date().getDate()
     ) : false;
     const daysLeft = reg?.end_date ? Math.floor((Date.parse(reg.end_date) - Date.parse(today())) / 86400000) : null;
-    const isExpiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 4;
+    const isExpiringSoon = isExpiring(reg);
 
     const kioskGreeting = {
       is_birthday_today: isBirthday,
       birthday_message: isBirthday ? `Chúc mừng sinh nhật ${m.full_name}! Paradise Gym chúc bạn tuổi mới ngập tràn năng lượng và sức khỏe!` : null,
       is_expiring_soon: isExpiringSoon,
-      expiring_message: isExpiringSoon ? `Gói tập ${reg?.package_name_snapshot} của bạn sẽ hết hạn trong ${daysLeft} ngày nữa. Vui lòng liên hệ Lễ tân để gia hạn!` : null,
+      is_expiring: isExpiringSoon,
+      days_remaining: daysLeft,
+      remaining_pt_sessions: Number(reg?.total_pt_sessions_snapshot)>0 ? reg.remaining_pt_sessions : null,
+      remaining_gym_sessions: Number(reg?.total_gym_sessions_snapshot)>0 ? reg.remaining_gym_sessions : null,
+      expiring_message: isExpiringSoon ? 'Gói tập sắp hết hạn. Vui lòng liên hệ Lễ tân để gia hạn!' : null,
       days_left: daysLeft,
       avatar_url: m.avatar_url
     };
@@ -161,7 +169,7 @@ router.post('/access-gate/qr-checkin', route(async req => {
         if (!r.branch_allowed) invalid = ['WRONG_BRANCH', 'Gói không có quyền sử dụng tại chi nhánh này.'];
         else if (r.is_frozen) invalid = ['PACKAGE_FROZEN', 'Gói tập đang trong thời gian đóng băng bảo lưu.'];
         else if (r.package_type_snapshot.startsWith('PT')) invalid = ['GYM_ENTITLEMENT_REQUIRED', 'Gói chỉ có quyền tập PT, không bao gồm quyền vào tập Gym.'];
-        else if (!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND status='COMPLETED' AND (amount + COALESCE(discount_amount,0)) >= $2", [r.id, r.price_snapshot])).rowCount) invalid = ['PAYMENT_REQUIRED', 'Đăng ký chưa được thanh toán đủ 100%.'];
+        else if (!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND (amount + COALESCE(discount_amount,0)) >= $2", [r.id, r.price_snapshot])).rowCount) invalid = ['PAYMENT_REQUIRED', 'Đăng ký chưa được thanh toán đủ 100%.'];
         else if (!['ACTIVE', 'SCHEDULED'].includes(r.status)) invalid = ['REGISTRATION_INACTIVE', 'Đăng ký không ở trạng thái được phép sử dụng.'];
         else if (r.start_date > local.day) invalid = ['REGISTRATION_NOT_STARTED', 'Gói chưa đến ngày bắt đầu hiệu lực.'];
         else if (r.end_date && r.end_date < local.day) invalid = ['REGISTRATION_EXPIRED', 'Gói đã hết hạn tại thời điểm vào tập.'];
@@ -179,14 +187,14 @@ router.post('/access-gate/qr-checkin', route(async req => {
       RETURNING *
     `, [m.id, reg?.id || null, b.id, direction, denial ? 'DENIED' : 'ALLOWED', denial, denialCode === 'DUPLICATE_SCAN', !denial && deduct, req.user.account_id, event])).rows[0];
 
-    if (!denial && deduct) await db.query('UPDATE registrations SET remaining_gym_sessions = remaining_gym_sessions - 1, updated_at = NOW() WHERE id = $1', [reg.id]);
+    if (!denial && deduct) {await db.query('UPDATE registrations SET remaining_gym_sessions = remaining_gym_sessions - 1, updated_at = NOW() WHERE id = $1', [reg.id]);reg.remaining_gym_sessions-=1;}
 
     const isBirthday = m.date_of_birth ? (
       new Date(m.date_of_birth).getMonth() === new Date().getMonth() &&
       new Date(m.date_of_birth).getDate() === new Date().getDate()
     ) : false;
     const daysLeft = reg?.end_date ? Math.floor((Date.parse(reg.end_date) - Date.parse(today())) / 86400000) : null;
-    const isExpiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 4;
+    const isExpiringSoon = isExpiring(reg);
 
     return {
       allowed: !denial,
@@ -199,7 +207,11 @@ router.post('/access-gate/qr-checkin', route(async req => {
         is_birthday_today: isBirthday,
         birthday_message: isBirthday ? `Chúc mừng sinh nhật ${m.full_name}! Paradise Gym chúc bạn tuổi mới ngập tràn năng lượng và sức khỏe!` : null,
         is_expiring_soon: isExpiringSoon,
-        expiring_message: isExpiringSoon ? `Gói tập ${reg?.package_name_snapshot} của bạn sẽ hết hạn trong ${daysLeft} ngày nữa. Vui lòng liên hệ Lễ tân để gia hạn!` : null,
+        is_expiring: isExpiringSoon,
+        days_remaining: daysLeft,
+        remaining_pt_sessions: Number(reg?.total_pt_sessions_snapshot)>0 ? reg.remaining_pt_sessions : null,
+        remaining_gym_sessions: Number(reg?.total_gym_sessions_snapshot)>0 ? reg.remaining_gym_sessions : null,
+        expiring_message: isExpiringSoon ? 'Gói tập sắp hết hạn. Vui lòng liên hệ Lễ tân để gia hạn!' : null,
         days_left: daysLeft,
         avatar_url: m.avatar_url
       }
@@ -216,14 +228,14 @@ router.get('/access-gate/kiosk-greeting/:memberId', route(async req => {
   ) : false;
 
   const reg = (await pool.query(`
-    SELECT r.*, (r.end_date - CURRENT_DATE) AS days_left
+    SELECT r.*, (r.end_date - CURRENT_DATE) AS days_left, EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id) is_paid
     FROM registrations r
-    WHERE r.member_id = $1 AND r.status = 'ACTIVE' AND r.end_date >= CURRENT_DATE
+    WHERE r.member_id = $1 AND r.status IN ('ACTIVE','SCHEDULED') AND r.start_date<=CURRENT_DATE AND (r.end_date IS NULL OR r.end_date >= CURRENT_DATE)
     ORDER BY r.end_date ASC LIMIT 1
   `, [m.id])).rows[0];
 
-  const daysLeft = reg ? parseInt(reg.days_left, 10) : null;
-  const isExpiringSoon = daysLeft !== null && daysLeft <= 4;
+  const daysLeft = reg?.days_left == null ? null : Number(reg.days_left);
+  const isExpiringSoon = isExpiring(reg);
 
   return {
     member_id: m.id,
@@ -235,7 +247,11 @@ router.get('/access-gate/kiosk-greeting/:memberId', route(async req => {
     is_birthday_today: isBirthday,
     birthday_message: isBirthday ? `Chúc mừng sinh nhật ${m.full_name}! Paradise Gym chúc bạn tuổi mới ngập tràn năng lượng và sức khỏe!` : null,
     is_expiring_soon: isExpiringSoon,
-    expiring_message: isExpiringSoon ? `Gói tập của bạn sẽ hết hạn trong ${daysLeft} ngày nữa. Vui lòng liên hệ Lễ tân để gia hạn!` : null
+    is_expiring: isExpiringSoon,
+    days_remaining: daysLeft,
+    remaining_pt_sessions: Number(reg?.total_pt_sessions_snapshot)>0 ? reg.remaining_pt_sessions : null,
+    remaining_gym_sessions: Number(reg?.total_gym_sessions_snapshot)>0 ? reg.remaining_gym_sessions : null,
+    expiring_message: isExpiringSoon ? 'Gói tập sắp hết hạn. Vui lòng liên hệ Lễ tân để gia hạn!' : null
   };
 }));
 
@@ -247,7 +263,7 @@ async function branchStats(req,db=pool) {
     (SELECT COUNT(*)::int FROM (SELECT DISTINCT ON(member_id) direction FROM access_logs WHERE branch_id=$1 AND status='ALLOWED' AND (check_in_time AT TIME ZONE $2)::date=(NOW() AT TIME ZONE $2)::date ORDER BY member_id,check_in_time DESC,recorded_at DESC) l WHERE direction='IN') currently_training,
     (SELECT COUNT(*)::int FROM access_logs WHERE branch_id=$1 AND status='ALLOWED' AND direction='IN' AND date_trunc('month',check_in_time AT TIME ZONE $2)=date_trunc('month',NOW() AT TIME ZONE $2)) monthly_checkins,
     (SELECT COUNT(*)::int FROM pt_bookings WHERE branch_id=$1 AND status='COMPLETED' AND date_trunc('month',booking_date)=date_trunc('month',NOW() AT TIME ZONE $2)) monthly_completed_pt`,[b.id,b.timezone])).rows[0];
-  const active=(await db.query(`SELECT r.package_type_snapshot type,COUNT(*)::int count FROM registrations r JOIN member_profiles m ON m.id=r.member_id WHERE m.home_branch_id=$1 AND r.status IN ('ACTIVE','SCHEDULED') AND r.start_date<=CURRENT_DATE AND (r.end_date IS NULL OR r.end_date>=CURRENT_DATE) AND EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id AND p.status='COMPLETED') GROUP BY r.package_type_snapshot`,[b.id])).rows;
+  const active=(await db.query(`SELECT r.package_type_snapshot type,COUNT(*)::int count FROM registrations r JOIN member_profiles m ON m.id=r.member_id WHERE m.home_branch_id=$1 AND r.status IN ('ACTIVE','SCHEDULED') AND r.start_date<=CURRENT_DATE AND (r.end_date IS NULL OR r.end_date>=CURRENT_DATE) AND EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id) GROUP BY r.package_type_snapshot`,[b.id])).rows;
   const parts={gym:0,pt:0,combo:0};for(const a of active)parts[a.type==='COMBO'?'combo':a.type.startsWith('PT')?'pt':'gym']+=a.count;
   return {...b,...counts,active_packages:parts};
 }
@@ -256,12 +272,12 @@ router.get('/dashboard',route(async req=>{
   role(req,'QTV','RECEPTIONIST');const day=date(req.query.date||today()),ids=scope(req);
   const metrics=(await pool.query(`SELECT
     (SELECT COUNT(*)::int FROM member_profiles WHERE status='ACTIVE' AND ($1::uuid[] IS NULL OR home_branch_id=ANY($1))) active_members,
-    (SELECT COALESCE(SUM(amount),0) FROM payments WHERE status='COMPLETED' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date=$2) cash_received,
-    (SELECT COUNT(*)::int FROM registrations WHERE status IN ('ACTIVE','SCHEDULED') AND ($1::uuid[] IS NULL OR sold_branch_id=ANY($1)) AND end_date BETWEEN $2::date AND $2::date+14) expiring_packages,
+    (SELECT COALESCE(SUM(amount),0) FROM payments WHERE ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date=$2) cash_received,
     (SELECT COUNT(*)::int FROM pt_bookings WHERE status<>'CANCELLED' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND booking_date=$2) pt_bookings,
     (SELECT COUNT(*)::int FROM access_logs WHERE status='ALLOWED' AND direction='IN' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND (check_in_time AT TIME ZONE 'Asia/Ho_Chi_Minh')::date=$2) checkins,
     (SELECT COUNT(*)::int FROM registrations WHERE status='PENDING_PAYMENT' AND ($1::uuid[] IS NULL OR sold_branch_id=ANY($1))) pending_registrations,
     (SELECT COUNT(*)::int FROM pt_assignment_requests a JOIN registrations r ON r.id=a.registration_id WHERE a.status='PENDING' AND ($1::uuid[] IS NULL OR r.sold_branch_id=ANY($1))) pending_requests`,[ids,day])).rows[0];
+  metrics.expiring_packages=(await listExpiring(pool,ids,day)).length;
   if(req.user.active_role!=='QTV'||!req.user.permissions.view_financial)delete metrics.cash_received;
   const tasks=(await pool.query(`SELECT
     (SELECT COUNT(*)::int FROM pt_bookings WHERE status='BOOKED' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND (booking_date+start_time)>(NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')) upcoming_bookings,
@@ -280,11 +296,11 @@ router.get('/reports',route(async req=>{
   const ids=scope(req),bucket=period==='month'?'YYYY-MM-DD':'YYYY-MM';
   const revenue=(await pool.query(`SELECT to_char(p.confirmed_at AT TIME ZONE b.timezone,$4) period,COUNT(*)::int packages_sold,SUM(p.amount) cash_received,
     COUNT(*) FILTER(WHERE r.package_type_snapshot LIKE 'GYM%')::int gym,COUNT(*) FILTER(WHERE r.package_type_snapshot LIKE 'PT%')::int pt,COUNT(*) FILTER(WHERE r.package_type_snapshot='COMBO')::int combo
-    FROM payments p JOIN registrations r ON r.id=p.registration_id JOIN branches b ON b.id=p.branch_id WHERE p.status='COMPLETED' AND ($1::uuid[] IS NULL OR p.branch_id=ANY($1)) AND (p.confirmed_at AT TIME ZONE b.timezone)::date BETWEEN $2 AND $3 GROUP BY 1 ORDER BY 1`,[ids,start,end,bucket])).rows.map(r=>({...r,service_breakdown:`Gym: ${r.gym} | PT: ${r.pt} | Combo: ${r.combo}`,service_counts:{gym:r.gym,pt:r.pt,combo:r.combo}}));
+    FROM payments p JOIN registrations r ON r.id=p.registration_id JOIN branches b ON b.id=p.branch_id WHERE ($1::uuid[] IS NULL OR p.branch_id=ANY($1)) AND (p.confirmed_at AT TIME ZONE b.timezone)::date BETWEEN $2 AND $3 GROUP BY 1 ORDER BY 1`,[ids,start,end,bucket])).rows.map(r=>({...r,service_breakdown:`Gym: ${r.gym} | PT: ${r.pt} | Combo: ${r.combo}`,service_counts:{gym:r.gym,pt:r.pt,combo:r.combo}}));
   const metrics={cash_received:revenue.reduce((a,r)=>a+r.cash_received,0),packages_sold:revenue.reduce((a,r)=>a+r.packages_sold,0)};
   metrics.package_value=Number((await pool.query("SELECT COALESCE(SUM(price_snapshot),0) value FROM registrations WHERE status<>'CANCELLED' AND ($1::uuid[] IS NULL OR sold_branch_id=ANY($1)) AND (created_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3",[ids,start,end])).rows[0].value);
   metrics.completed_pt=Number((await pool.query("SELECT COUNT(*) FROM pt_bookings WHERE status='COMPLETED' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND booking_date BETWEEN $2 AND $3",[ids,start,end])).rows[0].count);
-  const distribution = (await pool.query(`SELECT r.package_name_snapshot package_name, COALESCE(r.package_type_snapshot, 'GYM') package_type, COUNT(*)::int count, COALESCE(SUM(p.amount), 0) revenue FROM payments p JOIN registrations r ON r.id=p.registration_id WHERE p.status='COMPLETED' AND ($1::uuid[] IS NULL OR p.branch_id=ANY($1)) AND (p.confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3 GROUP BY 1, 2 ORDER BY 3 DESC`, [ids, start, end])).rows.map(r => ({ ...r, percentage: metrics.packages_sold ? Math.round(r.count / metrics.packages_sold * 10000) / 100 : 0 }));
+  const distribution = (await pool.query(`SELECT r.package_name_snapshot package_name, COALESCE(r.package_type_snapshot, 'GYM') package_type, COUNT(*)::int count, COALESCE(SUM(p.amount), 0) revenue FROM payments p JOIN registrations r ON r.id=p.registration_id WHERE ($1::uuid[] IS NULL OR p.branch_id=ANY($1)) AND (p.confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3 GROUP BY 1, 2 ORDER BY 3 DESC`, [ids, start, end])).rows.map(r => ({ ...r, percentage: metrics.packages_sold ? Math.round(r.count / metrics.packages_sold * 10000) / 100 : 0 }));
   const pt_performance = (await pool.query(`
     SELECT pt.id, pt.full_name AS pt_name, pt.pt_code, pt.phone,
            COUNT(b.id)::int AS completed_sessions,
@@ -301,7 +317,7 @@ router.get('/reports',route(async req=>{
   const comparison = [];
   for (let i = 2; i >= 0; i--) {
     const a = new Date(Date.UTC(year, firstMonth - 1 - i * months, 1)).toISOString().slice(0, 10), z = new Date(Date.UTC(year, firstMonth - 1 + (1 - i) * months, 1)).toISOString().slice(0, 10);
-    const value = (await pool.query("SELECT COALESCE(SUM(amount),0) cash_received FROM payments WHERE status='COMPLETED' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date >= $2 AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date < $3", [ids, a, z])).rows[0].cash_received;
+    const value = (await pool.query("SELECT COALESCE(SUM(amount),0) cash_received FROM payments WHERE ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date >= $2 AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date < $3", [ids, a, z])).rows[0].cash_received;
     comparison.push({ period: period === 'year' ? a.slice(0, 4) : period === 'quarter' ? `${a.slice(0, 4)} Q${Math.ceil(Number(a.slice(5, 7)) / 3)}` : a.slice(0, 7), cash_received: value });
   }
   return { metrics, revenue, comparison, distribution, pt_performance, start_date: start, end_date: end };

@@ -5,12 +5,11 @@
  * ==========================================================================
  * - PT06-US01: Dashboard tổng quan năng suất huấn luyện của PT trong kỳ
  * - Bộ lọc mốc thời gian: Tuần này / Tháng này (mặc định) / Tháng trước
- * - Cụm 5 thẻ chỉ số KPI hiệu suất theo spec chuẩn hóa:
+ * - Cụm 4 thẻ chỉ số KPI hiệu suất:
  *   1) Học viên phụ trách: Tổng số học viên có hợp đồng PT ACTIVE
  *   2) Buổi đã hoàn thành: Số ca tập đạt đủ xác nhận kép DONE trong kỳ
  *   3) Buổi đã được book (sắp dạy): Số ca tập trạng thái UPCOMING trong tương lai
  *   4) Buổi chờ xác nhận: Số ca tập trạng thái AWAITING_CONFIRMATION
- *   5) Yêu cầu phân công mới: Số yêu cầu ghép PT trạng thái PENDING
  * - QUY TẮC BẮT BUỘC: Tuyệt đối KHÔNG hiển thị ca dạy tiếp theo hay doanh thu tại PT06.
  * ==========================================================================
  */
@@ -28,6 +27,9 @@
   'use strict';
 
   // State quản lý cục bộ của Module PT06
+  let commissionRequest = 0;
+  let statsRequest = 0;
+  const escapeHtml = value => $('<span>').text(value ?? '').html();
   const OverviewState = {
     currentPeriod: 'this_month', // 'this_week' | 'this_month' (mặc định) | 'last_month'
     isLoading: false,
@@ -186,20 +188,6 @@
           </div>
         </div>
 
-        <!-- 5) Yêu cầu phân công mới (PENDING) -->
-        <div class="pt-kpi-card card-gold card-fullwidth" id="cardKpiAssignments" title="Xem yêu cầu phân công">
-          <div class="pt-kpi-card-header">
-            <span class="pt-kpi-label">Yêu cầu phân công mới</span>
-            <div class="pt-kpi-icon-wrap icon-gold">
-              <i class="fa-solid fa-user-plus"></i>
-            </div>
-          </div>
-          <div class="pt-kpi-number" id="kpiPendingAssignments">--</div>
-          <div class="pt-kpi-footer">
-            <span class="pt-kpi-pill pill-gold">Chờ phản hồi</span>
-            <span class="pt-kpi-action-link">Xem & duyệt <i class="fa-solid fa-arrow-right"></i></span>
-          </div>
-        </div>
       </div>
 
       <!-- Thẻ Thù lao & Hoa hồng tháng (PT06-US02) -->
@@ -211,7 +199,7 @@
           <div class="pt-comm-card-left">
             <span class="pt-comm-card-title">Hoa hồng ước tính tháng này</span>
             <div class="pt-comm-card-amount" id="overviewCommAmount">-- <small>VNĐ</small></div>
-            <div class="pt-comm-card-sub" id="overviewCommStatus"><span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #996217; font-size: 12px; padding: 2px 8px; border-radius: 999px;">Chờ duyệt</span></div>
+            <div class="pt-comm-card-sub" id="overviewCommStatus"><span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #996217; font-size: 12px; padding: 2px 8px; border-radius: 999px;">Chờ chi trả</span></div>
           </div>
           <div class="pt-comm-card-right">
             <div class="pt-comm-btn-circle">
@@ -240,13 +228,13 @@
             <i class="fa-solid fa-chevron-right pt-quick-btn-arrow"></i>
           </button>
 
-          <button type="button" class="pt-quick-btn" id="btnQuickAssignments">
+          <button type="button" class="pt-quick-btn" id="btnQuickBooking">
             <div class="pt-quick-btn-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-gold);">
               <i class="fa-solid fa-user-clock"></i>
             </div>
             <div class="pt-quick-btn-text">
-              <strong>Duyệt phân công</strong>
-              <small>Yêu cầu chọn HLV từ Hội viên</small>
+              <strong>Đặt lịch cho học viên</strong>
+
             </div>
             <i class="fa-solid fa-chevron-right pt-quick-btn-arrow"></i>
           </button>
@@ -298,11 +286,20 @@
    * Gắn sự kiện chuyển đổi thời gian, điều hướng và thử lại
    */
   function bindEvents() {
+    let refreshTouch = null;
+    $('#mainContent').off('.ptPullRefresh')
+      .on('touchstart.ptPullRefresh', function (event) {
+        const touch = event.originalEvent.touches;
+        refreshTouch = window.ptApp?.currentTab === 'commissions' && this.scrollTop === 0 && touch.length === 1 ? { x: touch[0].clientX, y: touch[0].clientY } : null;
+      }).on('touchend.ptPullRefresh', function (event) {
+        const touch = event.originalEvent.changedTouches[0];
+        if (refreshTouch && touch && this.scrollTop === 0 && touch.clientY - refreshTouch.y >= 70 && Math.abs(touch.clientX - refreshTouch.x) < 45) {
+          loadCommissionDetails(OverviewState.commMonth, OverviewState.commYear);
+        }
+        refreshTouch = null;
+      }).on('touchcancel.ptPullRefresh', () => { refreshTouch = null; });
     $('.pt-kpi-card').attr({ role: 'button', tabindex: '0' });
     $(document).off('keydown.ptOverview').on('keydown.ptOverview', function (e) {
-      if (e.key === 'Escape' && $('#commissionModalBackdrop').hasClass('active')) {
-        closeCommissionModal();
-      }
       if ((e.key === 'Enter' || e.key === ' ') && $(e.target).is('.pt-kpi-card, #cardPtCommissions')) {
         e.preventDefault();
         $(e.target).trigger('click');
@@ -356,25 +353,16 @@
       }
     });
 
-    // 5. Chạm thẻ Yêu cầu / Nút nhanh Duyệt phân công -> Tab Học viên (Mở đúng Sub-tab Yêu cầu)
-    $(document).off('click', '#cardKpiAssignments, #btnQuickAssignments')
-      .on('click', '#cardKpiAssignments, #btnQuickAssignments', function () {
-        navigateToAssignments();
-      });
+    $(document).off('click', '#btnQuickBooking').on('click', '#btnQuickBooking', async function () {
+      await window.ptApp.switchTab('schedule');
+      window.ParadisePTSchedule.openBookingModal();
+    });
 
     // 6. Chạm thẻ Hoa hồng hoặc Nút nhanh Bảng kê hoa hồng (PT06-US02)
     $(document).off('click', '#cardPtCommissions, #btnQuickCommissions')
       .on('click', '#cardPtCommissions, #btnQuickCommissions', function () {
         openCommissionModal();
       });
-
-    // 7. Đóng modal Bảng kê hoa hồng
-    $(document).off('click', '#btnCloseCommissionModal').on('click', '#btnCloseCommissionModal', function () {
-      closeCommissionModal();
-    });
-    $(document).off('click', '#commissionModalBackdrop').on('click', '#commissionModalBackdrop', function (e) {
-      if (e.target === this) closeCommissionModal();
-    });
 
     // 8. Chuyển đổi kỳ thù lao (Chips: Tháng này / Tháng trước / Tháng khác)
     $(document).off('click', '.pt-comm-chip').on('click', '.pt-comm-chip', function () {
@@ -422,7 +410,7 @@
   /**
    * Điều hướng chính xác đến ca tập theo trạng thái được chọn (UPCOMING / AWAITING / DONE)
    */
-  function navigateToTargetBooking(targetStatus) {
+  async function navigateToTargetBooking(targetStatus) {
     if (!window.ptApp || typeof ptApp.switchTab !== 'function') return;
 
     const allBookings = OverviewState.rawBookings || window.ParadisePTSchedule?.getState()?.bookings || [];
@@ -459,7 +447,7 @@
     }
 
     // Chuyển sang Tab Lịch
-    ptApp.switchTab('schedule');
+    await ptApp.switchTab('schedule');
 
     if (matchedBookings.length > 0) {
       const target = matchedBookings[0];
@@ -467,9 +455,7 @@
       const targetDate = rawDate ? rawDate.split('T')[0] : null;
 
       if (targetDate && window.ParadisePTSchedule && typeof window.ParadisePTSchedule.selectDate === 'function') {
-        setTimeout(() => {
-          window.ParadisePTSchedule.selectDate(targetDate, target.id, targetStatus);
-        }, 80);
+        window.ParadisePTSchedule.selectDate(targetDate, target.id, targetStatus);
       }
 
       const labelMap = {
@@ -526,6 +512,7 @@
    * Hiệu ứng số nhảy mượt mà
    */
   function animateCount(elementId, targetValue) {
+    const version = statsRequest;
     const $el = $('#' + elementId);
     if (!$el.length) return;
 
@@ -541,10 +528,10 @@
         duration: 350,
         easing: 'swing',
         step: function () {
-          $el.text(Math.floor(this.count));
+          if (version === statsRequest) $el.text(Math.floor(this.count));
         },
         complete: function () {
-          $el.text(targetValue);
+          if (version === statsRequest) $el.text(targetValue);
         }
       }
     );
@@ -571,18 +558,21 @@
   async function fetchStats() {
     const ptId = window.ptApp?.currentUser?.pt_profile_id;
     if (!ptId) return;
+    const version = ++statsRequest;
     const selected = OverviewState.currentPeriod;
     const period = { this_week: 'week', this_month: 'month', last_month: 'last_month' }[selected];
     OverviewState.isLoading = true;
     OverviewState.hasError = false;
     hideErrorBanner();
     $('.pt-kpi-number').text('--');
+    $('#overviewCommAmount, #overviewCommRate').text('--');
+    $('#overviewCommStatus').text('Đang tải');
     try {
       const [res, bookings] = await Promise.all([
         apiClient.mobile.ptStatistics(period),
         apiClient.pt.listBookings()
       ]);
-      if (window.ptApp?.currentUser?.pt_profile_id !== ptId || OverviewState.currentPeriod !== selected) return;
+      if (version !== statsRequest || window.ptApp?.currentUser?.pt_profile_id !== ptId || OverviewState.currentPeriod !== selected) return;
       const m = res.data.metrics;
       OverviewState.kpiData[selected] = {
         assignedMembers: m.active_students, completedSessions: m.completed_sessions,
@@ -598,27 +588,35 @@
         const curMonth = curDate.getMonth() + 1;
         const curYear = curDate.getFullYear();
         const commRes = await apiClient.pt.getMyCommissions({ month: curMonth, year: curYear });
+        if (version !== statsRequest || window.ptApp?.currentUser?.pt_profile_id !== ptId || OverviewState.currentPeriod !== selected) return;
         const commSummary = commRes.data?.summary || commRes.summary;
+        if (!commSummary) throw new Error('Missing commission summary');
         if (commSummary) {
           const amt = formatVnd(commSummary.total_commission_amount || 0);
           $('#overviewCommAmount').html(`${amt} <small>VNĐ</small>`);
           $('#overviewCommRate').text(`${commSummary.commission_percentage || 0}% hoa hồng`);
           const stMap = {
-            PENDING: { label: 'Chờ duyệt', bg: 'rgba(245, 158, 11, 0.2)', color: '#996217' },
-            APPROVED: { label: 'Đã duyệt', bg: 'rgba(59, 130, 246, 0.2)', color: '#286aa4' },
+            PENDING: { label: 'Chờ chi trả', bg: 'rgba(245, 158, 11, 0.2)', color: '#996217' },
+            APPROVED: { label: 'Chờ chi trả', bg: 'rgba(59, 130, 246, 0.2)', color: '#286aa4' },
             PAID: { label: 'Đã chi trả', bg: 'rgba(16, 185, 129, 0.2)', color: '#237b58' }
           };
           const curSt = stMap[commSummary.status] || stMap.PENDING;
           $('#overviewCommStatus').html(`<span class="badge" style="background: ${curSt.bg}; color: ${curSt.color}; font-size: 12px; padding: 2px 8px; border-radius: 999px;">${curSt.label}</span>`);
         }
       } catch (cErr) {
+        if (version !== statsRequest) return;
+        $('#overviewCommAmount, #overviewCommRate').text('--');
+        $('#overviewCommStatus').text('Không thể tải');
         console.warn('Could not fetch commission summary for overview:', cErr);
       }
     } catch (err) {
+      if (version !== statsRequest || window.ptApp?.currentUser?.pt_profile_id !== ptId || OverviewState.currentPeriod !== selected) return;
+      $('#overviewCommAmount, #overviewCommRate').text('--');
+      $('#overviewCommStatus').text('Không thể tải');
       OverviewState.hasError = true;
       $('#kpiAssignedMembers, #kpiCompletedSessions, #kpiUpcomingBookings, #kpiAwaitingConfirmation, #kpiPendingAssignments').text('--');
       showErrorBanner('Không thể nạp dữ liệu thống kê, vui lòng kiểm tra kết nối mạng');
-    } finally { OverviewState.isLoading = false; }
+    } finally { if (version === statsRequest) OverviewState.isLoading = false; }
   }
 
   /**
@@ -651,35 +649,28 @@
   }
 
   /**
-   * Mở modal Bảng kê hoa hồng tháng (PT06-US02)
+   * Existing overview entry points now navigate to the dedicated commission page.
    */
   function openCommissionModal() {
-    $('#commissionModalBackdrop').addClass('active').fadeIn(150);
-    $('#btnCloseCommissionModal').trigger('focus');
-    const now = new Date();
-    OverviewState.commMonth = now.getMonth() + 1;
-    OverviewState.commYear = now.getFullYear();
-
-    // Reset chip active state to 'this_month'
-    $('.pt-comm-chip').removeClass('active').css({ background: 'var(--bg-surface)', color: 'var(--text-muted)' });
-    $('.pt-comm-chip[data-filter="this_month"]').addClass('active').css({ background: 'var(--primary)', color: '#FFFFFF' });
-    $('#commCustomMonthWrap').hide();
-
-    loadCommissionDetails(OverviewState.commMonth, OverviewState.commYear);
+    return window.ptApp.switchTab('commissions');
   }
 
   /**
-   * Đóng modal Bảng kê hoa hồng tháng
+   * Compatibility entry point for returning to overview.
    */
   function closeCommissionModal() {
-    $('#commissionModalBackdrop').removeClass('active').fadeOut(150);
-    $('#cardPtCommissions').trigger('focus');
+    if (window.ptApp?.currentTab === 'commissions') window.ptApp.switchTab('overview');
   }
 
   /**
    * Nạp chi tiết Bảng kê hoa hồng từ Backend API (PT06-US02 Main Flow)
    */
   async function loadCommissionDetails(month, year) {
+    const version = ++commissionRequest;
+    $('#commReconciliationError').hide().empty();
+    $('#commTotalAmount, #commRate, #commSessionsCount, #commBaseRevenue, #commListSub').text('--');
+    $('#commStatusBadge').text('Đang tải');
+    $('#commPaidDateWrap').hide();
     const $list = $('#commSessionsList');
     $list.html(`
       <div style="text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 12px;">
@@ -690,19 +681,19 @@
 
     try {
       const res = await apiClient.pt.getMyCommissions({ month, year });
+      if (version !== commissionRequest) return;
       const summary = res.data?.summary || res.summary;
       const sessions = res.data?.sessions || res.sessions;
 
       if (!summary) {
-        $('#commTotalAmount').html(`0 <small style="font-size: 14px; color: #996217;">VNĐ</small>`);
+        $('#commTotalAmount').text('--');
         $('#commRate').text('--%');
-        $('#commSessionsCount').text('0 buổi');
-        $('#commBaseRevenue').text('0 đ');
-        $('#commStatusBadge').text('Chưa có cấu hình').css({ background: 'rgba(239, 68, 68, 0.2)', color: '#c43d40' });
+        $('#commSessionsCount, #commBaseRevenue').text('--');
+        $('#commStatusBadge').text('Chưa có dữ liệu').css({ background: 'rgba(239, 68, 68, 0.2)', color: '#c43d40' });
         $list.html(`
           <div style="text-align: center; padding: 24px 12px; color: #c43d40; font-size: 12px;">
             <i class="fa-solid fa-circle-exclamation" style="font-size: 24px; margin-bottom: 6px;"></i>
-            <p>Chưa có cấu hình tỷ lệ hoa hồng từ quản lý. Vui lòng liên hệ QTV</p>
+            <p>Chưa nhận được bảng kê hoa hồng. Vui lòng thử lại hoặc liên hệ QTV.</p>
           </div>
         `);
         return;
@@ -720,8 +711,8 @@
       $('#commBaseRevenue').text(`${formatVnd(baseRev)} đ`);
 
       const statusMap = {
-        PENDING: { label: 'Chờ duyệt', bg: 'rgba(245, 158, 11, 0.2)', color: '#996217' },
-        APPROVED: { label: 'Đã duyệt', bg: 'rgba(59, 130, 246, 0.2)', color: '#286aa4' },
+        PENDING: { label: 'Chờ chi trả', bg: 'rgba(245, 158, 11, 0.2)', color: '#996217' },
+        APPROVED: { label: 'Chờ chi trả', bg: 'rgba(59, 130, 246, 0.2)', color: '#286aa4' },
         PAID: { label: 'Đã chi trả', bg: 'rgba(16, 185, 129, 0.2)', color: '#237b58' }
       };
       const st = statusMap[status] || statusMap.PENDING;
@@ -736,7 +727,16 @@
       }
 
       const items = Array.isArray(sessions) ? sessions : [];
+      if (status === 'PAID' && (res.data?.details_snapshot_available ?? res.details_snapshot_available) === false) {
+        $('#commListSub').text('Chưa có bản chốt chi tiết');
+        $list.html('<p class="pt-empty-desc">Bảng kê này đã chi trả trước khi hệ thống lưu chi tiết từng buổi. Số tổng đã chốt được giữ nguyên; không có bản chốt chi tiết để đối chiếu.</p>');
+        return;
+      }
       $('#commListSub').text(`${items.length} ca tập`);
+      const sum = key => items.reduce((total, item) => total + Number(item[key]), 0);
+      if (items.length !== Number(sessionsCount) || !Number.isFinite(sum('session_pt_value')) || !Number.isFinite(sum('session_commission')) || Math.abs(sum('session_pt_value') - baseRev) > 0.011 || Math.abs(sum('session_commission') - totalComm) > 0.011) {
+        $('#commReconciliationError').text('Chưa đối soát được: số tổng và chi tiết không khớp. Vui lòng làm mới hoặc liên hệ QTV.').show();
+      }
 
       if (items.length === 0) {
         $list.html(`
@@ -761,13 +761,13 @@
               <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px;">
                 <i class="fa-regular fa-clock" style="color: var(--primary);"></i>
                 <span>${timeStr} • ${dateStr}</span>
-                <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #237b58; font-size: 12px; padding: 1px 6px;">Buổi #${s.session_number || (idx + 1)}</span>
+                <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #237b58; font-size: 12px; padding: 1px 6px;">Buổi #${s.session_number ?? '--'}</span>
               </div>
               <div style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                ${s.member_name || 'Hội viên'} <small style="color: var(--text-muted); font-weight: 400;">(${s.member_code || '--'})</small>
+                ${escapeHtml(s.member_name || 'Hội viên')} <small style="color: var(--text-muted); font-weight: 400;">(${escapeHtml(s.member_code || '--')})</small>
               </div>
               <div style="font-size: 12px; color: var(--text-sub); margin-top: 1px;">
-                ${s.package_name_snapshot || 'Gói tập PT'}
+                ${escapeHtml(s.package_name_snapshot || 'Gói tập PT')}
               </div>
             </div>
             <div style="text-align: right; flex-shrink: 0;">
@@ -784,11 +784,14 @@
 
       $list.html(rowsHtml);
     } catch (err) {
+      if (version !== commissionRequest) return;
+      const missingConfig = err.data?.code === 'BRANCH_DEFAULT_COMMISSION_NOT_CONFIGURED';
+      $('#commStatusBadge').text(missingConfig ? 'Chưa có cấu hình' : 'Không thể tải');
       console.error('Error loading commission details:', err);
       $list.html(`
         <div style="text-align: center; padding: 24px 12px; color: #c43d40; font-size: 12px;">
           <i class="fa-solid fa-circle-exclamation" style="font-size: 24px; margin-bottom: 6px;"></i>
-          <p>Chưa có cấu hình tỷ lệ hoa hồng từ quản lý. Vui lòng liên hệ QTV</p>
+          <p>${missingConfig ? 'Chưa có cấu hình tỷ lệ hoa hồng từ quản lý. Vui lòng liên hệ QTV.' : 'Không thể tải bảng kê. Vui lòng bấm Làm mới để thử lại.'}</p>
         </div>
       `);
     }
@@ -1175,7 +1178,7 @@
       }
       .pt-comm-chip.active {
         background: var(--primary) !important;
-        color: var(--text-main) !important;
+        color: #ffffff !important;
       }
     `;
     document.head.appendChild(style);
@@ -1189,12 +1192,21 @@
   return {
     init,
     reset: () => {
+      commissionRequest++;
+      statsRequest++;
+      const now = new Date();
+      OverviewState.commMonth = now.getMonth() + 1;
+      OverviewState.commYear = now.getFullYear();
+      $('.pt-comm-chip').removeClass('active').css({ background: 'var(--bg-surface)', color: 'var(--text-muted)' });
+      $('.pt-comm-chip[data-filter="this_month"]').addClass('active');
+      $('#commCustomMonthWrap').hide();
+      $('#commSessionsList').empty();
       OverviewState.rawBookings = [];
       OverviewState.kpiData = { this_week: null, this_month: null, last_month: null };
       $('#kpiAssignedMembers, #kpiCompletedSessions, #kpiUpcomingBookings, #kpiAwaitingConfirmation, #kpiPendingAssignments').text('--');
       $('#overviewCommAmount').html('-- <small>VNĐ</small>');
       $('#overviewCommRate').text('--% hoa hồng');
-      $('#overviewCommStatus').html('<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #996217; font-size: 12px; padding: 2px 8px; border-radius: 999px;">Chờ duyệt</span>');
+      $('#overviewCommStatus').html('<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #996217; font-size: 12px; padding: 2px 8px; border-radius: 999px;">Chờ chi trả</span>');
     },
     setPeriod,
     fetchStats,
@@ -1203,6 +1215,7 @@
     openCommissionModal,
     closeCommissionModal,
     loadCommissionDetails,
+    refreshCommissions: () => loadCommissionDetails(OverviewState.commMonth, OverviewState.commYear),
     getState: () => OverviewState
   };
 });

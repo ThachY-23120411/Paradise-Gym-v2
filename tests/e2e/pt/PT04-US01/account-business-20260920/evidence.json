@@ -1,0 +1,1498 @@
+{
+  "database": "paradise_test_21800_1789924490086",
+  "base": "http://127.0.0.1:63421",
+  "steps": [
+    {
+      "action": "Toggle new booking notifications",
+      "expected": "PT04-US01 Main Flow 3: Save enabled for changed value",
+      "actual": "notify_new_bookings=false; Save enabled",
+      "status": "PASS",
+      "file": "step-01-toggle-preference.png"
+    },
+    {
+      "action": "Click Save preferences",
+      "expected": "PT04-US01 Main Flow 5: success only after API persistence",
+      "actual": "Đã lưu cài đặt.",
+      "status": "PASS",
+      "file": "step-02-save-preference.png"
+    },
+    {
+      "action": "Reload account preferences",
+      "expected": "Saved switch survives reload",
+      "actual": "notify_new_bookings=false",
+      "status": "PASS",
+      "file": "step-03-reload-preference.png"
+    },
+    {
+      "action": "Change toggle before offline submission",
+      "expected": "Input captured before submit",
+      "actual": "notify_new_bookings=true",
+      "status": "PASS",
+      "file": "step-04-offline-preference-input.png"
+    },
+    {
+      "action": "Save while browser network is offline (no mocked response)",
+      "expected": "PT04-US01 Exception Flow: error and restore last saved switch",
+      "actual": "Failed to fetch",
+      "status": "PASS",
+      "file": "step-05-offline-preference-reverted.png"
+    },
+    {
+      "action": "Open independent second PT session",
+      "expected": "Same PT is authenticated before password change",
+      "actual": "PT Account Audit",
+      "status": "PASS",
+      "file": "step-07-password-second-session-before.png"
+    },
+    {
+      "action": "Open change password",
+      "expected": "PT04-US01 change password control opens form",
+      "actual": "Three password inputs visible",
+      "status": "PASS",
+      "file": "step-08-open-change-password.png"
+    },
+    {
+      "action": "Enter weak-password password field 1 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-09-weak-password-input-1.png"
+    },
+    {
+      "action": "Enter weak-password password field 2 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-10-weak-password-input-2.png"
+    },
+    {
+      "action": "Enter weak-password password field 3 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-11-weak-password-input-3.png"
+    },
+    {
+      "action": "Submit weak-password",
+      "expected": "User-requested password constraints: inline error, form retained, no mutation",
+      "actual": "Mật khẩu cần ít nhất 8 ký tự, tối đa 72 byte, gồm chữ hoa, chữ thường và số hoặc ký tự đặc biệt.",
+      "status": "PASS",
+      "file": "step-12-weak-password-rejected.png"
+    },
+    {
+      "action": "Enter missing-uppercase password field 1 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-13-missing-uppercase-input-1.png"
+    },
+    {
+      "action": "Enter missing-uppercase password field 2 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-14-missing-uppercase-input-2.png"
+    },
+    {
+      "action": "Enter missing-uppercase password field 3 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-15-missing-uppercase-input-3.png"
+    },
+    {
+      "action": "Submit missing-uppercase",
+      "expected": "User-requested password constraints: inline error, form retained, no mutation",
+      "actual": "Mật khẩu cần ít nhất 8 ký tự, tối đa 72 byte, gồm chữ hoa, chữ thường và số hoặc ký tự đặc biệt.",
+      "status": "PASS",
+      "file": "step-16-missing-uppercase-rejected.png"
+    },
+    {
+      "action": "Enter over-72-bytes password field 1 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-17-over-72-bytes-input-1.png"
+    },
+    {
+      "action": "Enter over-72-bytes password field 2 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-18-over-72-bytes-input-2.png"
+    },
+    {
+      "action": "Enter over-72-bytes password field 3 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-19-over-72-bytes-input-3.png"
+    },
+    {
+      "action": "Submit over-72-bytes",
+      "expected": "User-requested password constraints: inline error, form retained, no mutation",
+      "actual": "Mật khẩu cần ít nhất 8 ký tự, tối đa 72 byte, gồm chữ hoa, chữ thường và số hoặc ký tự đặc biệt.",
+      "status": "PASS",
+      "file": "step-20-over-72-bytes-rejected.png"
+    },
+    {
+      "action": "Enter confirmation-mismatch password field 1 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-21-confirmation-mismatch-input-1.png"
+    },
+    {
+      "action": "Enter confirmation-mismatch password field 2 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-22-confirmation-mismatch-input-2.png"
+    },
+    {
+      "action": "Enter confirmation-mismatch password field 3 (masked)",
+      "expected": "Input recorded separately before submit",
+      "actual": "Masked input matches requested boundary case",
+      "status": "PASS",
+      "file": "step-23-confirmation-mismatch-input-3.png"
+    },
+    {
+      "action": "Submit confirmation-mismatch",
+      "expected": "User-requested password constraints: inline error, form retained, no mutation",
+      "actual": "Mật khẩu xác nhận không trùng khớp!",
+      "status": "PASS",
+      "file": "step-24-confirmation-mismatch-rejected.png"
+    },
+    {
+      "action": "Fill password field (redacted)",
+      "expected": "Entered value captured before submission; field remains masked",
+      "actual": "Password input populated and masked",
+      "status": "PASS",
+      "file": "step-25-fill-dxcpcurrentpassword.png"
+    },
+    {
+      "action": "Fill password field (redacted)",
+      "expected": "Entered value captured before submission; field remains masked",
+      "actual": "Password input populated and masked",
+      "status": "PASS",
+      "file": "step-26-fill-dxcpnewpassword.png"
+    },
+    {
+      "action": "Fill password field (redacted)",
+      "expected": "Entered value captured before submission; field remains masked",
+      "actual": "Password input populated and masked",
+      "status": "PASS",
+      "file": "step-27-fill-dxcpconfirmpassword.png"
+    },
+    {
+      "action": "Submit change password",
+      "expected": "Requested regression: current session retained; old peer session revoked",
+      "actual": "Đã đổi mật khẩu thành công.; current /auth/me=200; peer /auth/me=401",
+      "status": "PASS",
+      "file": "step-28-change-password-success.png"
+    },
+    {
+      "action": "Reload current device after password change",
+      "expected": "Current UI remains authenticated",
+      "actual": "PT Account Audit",
+      "status": "PASS",
+      "file": "step-29-password-current-reload-kept.png"
+    }
+  ],
+  "downstream": [
+    {
+      "action": "Other roles",
+      "expected": "Account-local notification preference",
+      "actual": "N/A: only notify_new_bookings changed; no phone visibility/2FA changes.",
+      "status": "N/A"
+    },
+    {
+      "action": "Reload second device",
+      "expected": "Revoked peer returns to login",
+      "actual": "Login UI at http://localhost:3000/mobile/: PARADISE GYM\n\nHệ Thống Quản Trị Chuỗi Phòng Tập Thể Hình\n\nĐăng nhập Hội viên & Huấn luyện viên (PT)\nBằng Mật Khẩu\nBằng Mã OTP\nSố điện thoại hoặc Mã PT *\nMật khẩu *\nĐĂNG NHẬP NGAY\nChưa có mật khẩu? Kích hoạt tài khoản\nHội viên mới? Đăng ký tham gia ng",
+      "status": "PASS",
+      "file": "downstream-30-password-peer-revoked.png"
+    }
+  ],
+  "state": [
+    "Preference success and offline rollback compared with actual checkbox DOM. No role privacy setting changed.",
+    "Old password rejected by real login API; current token accepted, peer token revoked.",
+    "Cleanup verified: {\"databaseDropped\":true,\"serverClosed\":true,\"browserClosed\":true,\"errors\":[],\"ownedUiServerClosed\":true,\"avatarDirectoryRemoved\":true}"
+  ],
+  "issues": [],
+  "browserErrors": [],
+  "network": [
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers/3f0589ed-a556-43a8-952c-0c3da2107f42",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/mobile/avatar",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers/3f0589ed-a556-43a8-952c-0c3da2107f42",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/notifications/f507a39a-0938-49d6-b0b4-4e81cd3eb0b9/read",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/change-password",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout-current",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/sessions",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout-all",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    }
+  ],
+  "screenshotHashes": [
+    {
+      "file": "downstream-30-password-peer-revoked.png",
+      "sha256": "9331f323953be5baecb3e656666b098ebd5f62f4962b7816a0607323f38491fa"
+    },
+    {
+      "file": "step-01-password-second-session-before.png",
+      "sha256": "38404263bb1d1a6a72b1b47e430a678ad9cb87a46fa8d231435b384448c39926"
+    },
+    {
+      "file": "step-01-toggle-preference.png",
+      "sha256": "4d1e9b2a3ae3dc90603f96af8a7d5cf7b07cbfbc3e8de2ba8ef959174e67bb88"
+    },
+    {
+      "file": "step-02-save-preference.png",
+      "sha256": "03d220351fa543442d051e1774f4e413e994ee02a25d2abed197938606f36d40"
+    },
+    {
+      "file": "step-03-reload-preference.png",
+      "sha256": "79e6eb537811150074344966885d81a2347a3248628c26d3aac5de8a3fe497b4"
+    },
+    {
+      "file": "step-04-offline-preference-input.png",
+      "sha256": "b344591a7061c3ea1ad693badf011a77e2528ed96b56c602c9e2bdfc821b9717"
+    },
+    {
+      "file": "step-05-offline-preference-reverted.png",
+      "sha256": "230805ee4ee6651ddf7be139e459d63bbb45545d2be620e0c07404db0dcb249f"
+    },
+    {
+      "file": "step-07-password-second-session-before.png",
+      "sha256": "aa342dea636172e5529208b5abb777b87542e74ab36265f4d61aeabc1459d0b4"
+    },
+    {
+      "file": "step-08-open-change-password.png",
+      "sha256": "55207b34afe8ac86347910a27c1b2b5c95b2efc8244e53e715f7b4a8f74d27a9"
+    },
+    {
+      "file": "step-09-weak-password-input-1.png",
+      "sha256": "878763f10b8d76247839eaaef8ecaf8aa7728aac6383ad587ae52b45580f34d1"
+    },
+    {
+      "file": "step-10-weak-password-input-2.png",
+      "sha256": "ea92aab552bc267f92f8fc29f1b5f0612a40d04b4d892a917b8a8eabccb8a2a9"
+    },
+    {
+      "file": "step-11-weak-password-input-3.png",
+      "sha256": "d612f7830c202946c391e47f6037dc99885822dc8f3c4b4d0f338896dca9bd77"
+    },
+    {
+      "file": "step-12-weak-password-rejected.png",
+      "sha256": "aca5c8d7a8ca521def82e2b0fd22616eb89256be14687e5628f82d197acb22e0"
+    },
+    {
+      "file": "step-13-missing-uppercase-input-1.png",
+      "sha256": "f58c64a6a69d43ccfa419c929b54f32a7c66a8c984ab4904d5ac3d913e424a71"
+    },
+    {
+      "file": "step-14-missing-uppercase-input-2.png",
+      "sha256": "e32d99a17b0de7e2cda4aaaca80571e80207add30c8ce18c21891f8b146b7ccd"
+    },
+    {
+      "file": "step-15-missing-uppercase-input-3.png",
+      "sha256": "6e9bbe82c71ea7bd4569e4303ae42435aa94cfb98ebb5f3eb3ff16c4dae54325"
+    },
+    {
+      "file": "step-16-missing-uppercase-rejected.png",
+      "sha256": "ef9fa102b92671e33b8c4e55b290ef0850816403377e3cb264187b7313b73819"
+    },
+    {
+      "file": "step-17-over-72-bytes-input-1.png",
+      "sha256": "430a21507e16f3e6a85a9b1f7129132efa97c41e731c86a58369bb400403ac73"
+    },
+    {
+      "file": "step-18-over-72-bytes-input-2.png",
+      "sha256": "85cf8adb89ef8f21cef8aed2f9fb89efe43e26defb3c699e4fb643a8e1387a9b"
+    },
+    {
+      "file": "step-19-over-72-bytes-input-3.png",
+      "sha256": "bbbf1c6f27309ce138a3df45cfdb3fff35305f1e0afea027b65b53611c8980e4"
+    },
+    {
+      "file": "step-20-over-72-bytes-rejected.png",
+      "sha256": "494ec62facb277639415deb4dd046d6caab4e34c349bd7834d2cda6c3a2c5eb0"
+    },
+    {
+      "file": "step-21-confirmation-mismatch-input-1.png",
+      "sha256": "99d6506a4f8acb953bdf7c0f9015feb894d1afeb7093c2b8eb66276f903e70e6"
+    },
+    {
+      "file": "step-22-confirmation-mismatch-input-2.png",
+      "sha256": "b7f6efe3f83cfb340529700b4be779a1cce8814731aa9f083fcf6257d5a89263"
+    },
+    {
+      "file": "step-23-confirmation-mismatch-input-3.png",
+      "sha256": "d9002d4e645bb356f5925066282acca19046f8f69b634486824e6216622a498c"
+    },
+    {
+      "file": "step-24-confirmation-mismatch-rejected.png",
+      "sha256": "cb55e3c98ab68aa67259e212e49bb75dbe85765cfb61872318f1ef6f49c18a17"
+    },
+    {
+      "file": "step-25-fill-dxcpcurrentpassword.png",
+      "sha256": "508b37fbfe3480407b66aa898756e0e8f3574a1004f258b554408deb0a606b03"
+    },
+    {
+      "file": "step-26-fill-dxcpnewpassword.png",
+      "sha256": "a8aa4669a0cc688c9de8f19b0f6ded6f8da8b80c28dbd575b7dffffba3d1b714"
+    },
+    {
+      "file": "step-27-fill-dxcpconfirmpassword.png",
+      "sha256": "815f583f309e57e59d06e9572e49e993d33f8f4a39eaa9cd996ba3b489d1f2fc"
+    },
+    {
+      "file": "step-28-change-password-success.png",
+      "sha256": "e8b772c73d2b74018c4986d8e3c65b35cf2d27b105380dc2c311bac63e643101"
+    },
+    {
+      "file": "step-29-password-current-reload-kept.png",
+      "sha256": "cbdf6e5d55fa97c10ba8206379c00edb84ab001d02c84229a49c680caebc46a5"
+    }
+  ]
+}

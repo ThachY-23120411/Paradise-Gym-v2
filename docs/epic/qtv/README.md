@@ -21,7 +21,7 @@ Mỗi Epic dưới đây là một menu Web W01–W17. Các User Story trong Epi
 | [QTV-W11](QTV-W11-Chi nhánh.md) | W11 · Chi nhánh | Danh sách Card, Thêm, Sửa và Xem số liệu chi nhánh | 4 |
 | [QTV-W12](QTV-W12-Hệ thống & thiết bị.md) | W12 · Hệ thống & thiết bị | Thiết bị, consent nhận diện, bật/tắt Simple/Advanced UI | 4 |
 | [QTV-W13](QTV-W13-Tài khoản & phân quyền.md) | W13 · Tài khoản & phân quyền | Xem danh sách tài khoản, 4 thẻ KPI, avatar và Phân quyền | 2 |
-| [QTV-W14](QTV-W14-Chăm sóc & thông báo.md) | W14 · Chăm sóc & thông báo | CSKH: Sinh nhật hôm nay, sắp hết hạn <= 4 ngày, gọi điện, ghi nhận | 1 |
+| [QTV-W14](QTV-W14-Chăm sóc & thông báo.md) | W14 · Chăm sóc & thông báo | CSKH: Sinh nhật hôm nay, sắp hết hạn <= 4 ngày hoặc <= 3 buổi, gọi điện, ghi nhận | 1 |
 | [QTV-W15](QTV-W15-Quản lý hoa hồng PT.md) | W15 · Quản lý hoa hồng PT | Cấu hình tỷ lệ hoa hồng (%), tính bảng kê hoa hồng tháng theo buổi thực dạy | 2 |
 | [QTV-W16](QTV-W16-Lớp tập cộng đồng.md) | W16 · Lớp tập cộng đồng | Lập lịch lớp Cardio/Aerobic, phân công giáo viên, quản lý slot đăng ký | 1 |
 | [QTV-W17](QTV-W17-Khuyến mãi & giảm giá.md) | W17 · Khuyến mãi & giảm giá | Quản lý mã voucher, chương trình ưu đãi, chiết khấu hóa đơn | 1 |

@@ -1,0 +1,53 @@
+{
+  "completedAt": "2026-09-20T17:16:23.278Z",
+  "database": "paradise_test_21800_1789924490086",
+  "server": "http://127.0.0.1:63421",
+  "cleanup": {
+    "databaseDropped": true,
+    "serverClosed": true,
+    "browserClosed": true,
+    "errors": [],
+    "ownedUiServerClosed": true,
+    "avatarDirectoryRemoved": true
+  },
+  "results": [
+    {
+      "us": "PT04-US02",
+      "issues": [],
+      "pass": 18,
+      "fail": 0,
+      "screenshots": 18
+    },
+    {
+      "us": "PT03-US01",
+      "issues": [
+        "notification-sent-time: No sent time in visible dialog. Actual DOM: PT account audit notice\nNotice for PT Audit Branch on 2026-09-20\nOK",
+        "close-notification-content: Dialog closed, but notification list is hidden; profile is displayed instead of the specified return to list."
+      ],
+      "pass": 4,
+      "fail": 2,
+      "screenshots": 6
+    },
+    {
+      "us": "PT04-US01",
+      "issues": [],
+      "pass": 29,
+      "fail": 0,
+      "screenshots": 29
+    },
+    {
+      "us": "PT05-US03",
+      "issues": [],
+      "pass": 8,
+      "fail": 0,
+      "screenshots": 8
+    }
+  ],
+  "exitCode": 1,
+  "uncovered": [
+    "PT05 activation UI",
+    "PT05 password/OTP login UI and login 2FA",
+    "Cloud deployment",
+    "All operational notification event types"
+  ]
+}

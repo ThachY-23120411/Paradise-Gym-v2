@@ -32,7 +32,8 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const READ_STORAGE_PREFIX = 'paradise_pt_notifs_read_';
+  let fetchVersion = 0;
+  const escapeHtml = value => $('<span>').text(value ?? '').html();
 
   // State cục bộ của module Notifications
   const NotificationsState = {
@@ -41,45 +42,6 @@
     notifications: [],
     isLoading: false
   };
-
-  /**
-   * Helper lấy danh sách ID thông báo đã đọc được lưu trữ theo tài khoản PT
-   */
-  function getReadSet() {
-    const user = window.apiClient?.getUser() || window.ptApp?.currentUser;
-    const userId = user?.pt_profile_id || user?.account_id || user?.id || 'default_pt';
-    try {
-      const raw = localStorage.getItem(READ_STORAGE_PREFIX + userId);
-      if (raw) return new Set(JSON.parse(raw));
-    } catch (e) {
-      console.warn('Cannot read notification read set from localStorage', e);
-    }
-    return new Set();
-  }
-
-  /**
-   * Helper đánh dấu ID thông báo đã đọc vào lưu trữ cục bộ
-   */
-  function markIdAsReadInStorage(id) {
-    if (!id) return;
-    const user = window.apiClient?.getUser() || window.ptApp?.currentUser;
-    const userId = user?.pt_profile_id || user?.account_id || user?.id || 'default_pt';
-    const set = getReadSet();
-    set.add(id);
-    try {
-      localStorage.setItem(READ_STORAGE_PREFIX + userId, JSON.stringify([...set]));
-    } catch (e) {
-      console.warn('Cannot save notification read set to localStorage', e);
-    }
-  }
-
-  /**
-   * Kiểm tra thông báo đã đọc chưa
-   */
-  function isNotificationRead(id) {
-    const set = getReadSet();
-    return set.has(id);
-  }
 
   /**
    * Helper format date DD/MM/YYYY
@@ -105,10 +67,10 @@
    * Helper format thời gian hiển thị thân thiện (giờ:phút hoặc ngày)
    */
   function formatTimeOrDate(dateVal) {
-    if (!dateVal) return 'Vừa xong';
+    if (!dateVal) return 'Chưa có thời gian';
     try {
       const d = new Date(dateVal);
-      if (isNaN(d.getTime())) return 'Vừa xong';
+      if (isNaN(d.getTime())) return 'Chưa có thời gian';
 
       const now = new Date();
       const isToday = d.toDateString() === now.toDateString();
@@ -117,7 +79,7 @@
       }
       return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
     } catch (e) {
-      return 'Vừa xong';
+      return 'Chưa có thời gian';
     }
   }
 
@@ -144,50 +106,52 @@
 
   /**
    * Tải và đồng bộ thông báo từ Backend Database PostgreSQL (Dữ liệu động 100%, tuân thủ Rule 5)
-   * Bao gồm cả bảng notifications và 5 nhóm sự kiện vận hành thời gian thực của HLV
+   * Chỉ hiển thị các thông báo được backend phát hành theo cấu hình.
    */
   async function fetchNotifications() {
-    if (!window.apiClient) return;
+    if (!window.apiClient || !window.apiClient.getUser()) return;
 
     NotificationsState.isLoading = true;
     const dynamicItems = [];
-    const readSet = getReadSet();
+    const version = ++fetchVersion;
 
     try {
-      const currentUser = window.apiClient.getUser() || window.ptApp?.currentUser;
-      const currentPtId = currentUser?.pt_profile_id || currentUser?.id;
-
       // 1. Tải thông báo từ bảng notifications (REST API GET /notifications)
       if (typeof window.apiClient.notifications?.list === 'function') {
         const notifRes = await window.apiClient.notifications.list();
         if (notifRes && notifRes.data && Array.isArray(notifRes.data)) {
           notifRes.data.forEach(item => {
-            const isRead = !!item.read_at || !!item.is_read || !!item.isRead || readSet.has(item.id);
+            const isRead = !!item.read_at || !!item.is_read || !!item.isRead;
             const content = item.body || item.message || item.content || '';
             const title = item.title || 'Thông báo hệ thống';
 
             // Phân loại targetScreen và icon dựa theo sự kiện
-            let targetScreen = 'PT01_SCHEDULE';
+            let targetScreen = 'DETAIL';
             let icon = 'fa-bell';
             let iconBg = 'rgba(59, 130, 246, 0.15)';
             let iconColor = '#286aa4';
 
-            if (item.reference_type === 'PT_ASSIGNMENT' || title.includes('phân công') || content.includes('phân công')) {
+            if (item.reference_type === 'REGISTRATION' && item.event_type === 'PT_REQUEST_ACCEPTED') {
+              targetScreen = 'PT02_CLIENT_DETAIL';
+              icon = 'fa-user-check';
+              iconBg = 'rgba(16, 185, 129, 0.15)';
+              iconColor = '#237b58';
+            } else if (item.reference_type === 'PT_ASSIGNMENT' || ['PT_ASSIGNMENT_REQUEST', 'PT_REQUEST_ACCEPTED', 'PT_REQUEST_REJECTED'].includes(item.event_type)) {
               targetScreen = 'PT02_REQUESTS';
               icon = 'fa-user-plus';
               iconBg = 'rgba(245, 158, 11, 0.15)';
               iconColor = '#996217';
-            } else if (item.reference_type === 'PT_CONFIRMATION' || title.includes('xác nhận') || content.includes('xác nhận')) {
+            } else if (item.reference_type === 'PT_CONFIRMATION' || ['PT_SESSION_AWAITING_CONFIRMATION', 'PT_SESSION_CONFIRMED'].includes(item.event_type)) {
               targetScreen = 'PT01_RESULT_MODAL';
               icon = 'fa-clipboard-check';
               iconBg = 'rgba(139, 92, 246, 0.15)';
               iconColor = '#8B5CF6';
-            } else if (title.includes('hủy') || content.includes('hủy')) {
+            } else if (item.event_type === 'BOOKING_CANCELLED') {
               targetScreen = 'PT01_SCHEDULE';
               icon = 'fa-calendar-xmark';
               iconBg = 'rgba(239, 68, 68, 0.15)';
               iconColor = '#c43d40';
-            } else if (title.includes('Nhắc') || content.includes('Nhắc')) {
+            } else if (item.reference_type === 'PT_BOOKING' || ['BOOKING_CREATED', 'BOOKING_REMINDER'].includes(item.event_type)) {
               targetScreen = 'PT01_SCHEDULE';
               icon = 'fa-clock';
               iconBg = 'rgba(16, 185, 129, 0.15)';
@@ -200,147 +164,15 @@
               title,
               content,
               targetScreen: item.target_screen || targetScreen,
-              referenceId: item.reference_id || item.id,
+              referenceId: item.reference_id,
               createdAt: formatTimeOrDate(item.created_at),
-              timestamp: item.created_at ? new Date(item.created_at).getTime() : Date.now(),
+              timestamp: item.created_at ? new Date(item.created_at).getTime() : 0,
               isRead,
               icon,
               iconBg,
               iconColor
             });
           });
-        }
-      }
-
-      // 2. Tải động 5 nhóm sự kiện vận hành từ Database thực tế của HLV
-      // 2.1. Nhóm 1: Yêu cầu phân công PT mới (HV03-US04)
-      if (typeof window.apiClient.pt?.listAssignmentRequests === 'function') {
-        try {
-          const reqRes = await window.apiClient.pt.listAssignmentRequests();
-          if (reqRes && reqRes.data && Array.isArray(reqRes.data)) {
-            reqRes.data.forEach(req => {
-              // Lọc đúng cho PT hiện hành và trạng thái PENDING
-              const isMatchPt = !currentPtId || req.pt_id === currentPtId || (currentUser?.full_name && req.pt_name === currentUser.full_name);
-              if (isMatchPt && req.status === 'PENDING') {
-                const notifId = `NOTIF-REQ-${req.id}`;
-                dynamicItems.push({
-                  id: notifId,
-                  type: 'ASSIGNMENT_REQUEST',
-                  title: 'Yêu cầu phân công PT mới',
-                  content: `Bạn có yêu cầu phân công PT mới từ Học viên ${req.studentName || req.member_name || 'Học viên'} - Gói ${req.packageName || req.package_name || 'Gói tập'}`,
-                  targetScreen: 'PT02_REQUESTS',
-                  referenceId: req.id,
-                  createdAt: formatTimeOrDate(req.requested_at),
-                  timestamp: req.requested_at ? new Date(req.requested_at).getTime() : Date.now(),
-                  isRead: readSet.has(notifId),
-                  icon: 'fa-user-plus',
-                  iconBg: 'rgba(245, 158, 11, 0.15)',
-                  iconColor: '#996217'
-                });
-              }
-            });
-          }
-        } catch (reqErr) {
-          console.warn('Fetch assignment requests for notifs fallback:', reqErr.message);
-        }
-      }
-
-      // 2.2. Nhóm 2, 3, 4, 5 từ Lịch tập pt_bookings (Đặt lịch, Hủy lịch, Xác nhận kết quả, Nhắc lịch)
-      if (typeof window.apiClient.pt?.listBookings === 'function') {
-        try {
-          const bookingsRes = await window.apiClient.pt.listBookings(currentPtId ? { pt_id: currentPtId } : {});
-          if (bookingsRes && bookingsRes.data && Array.isArray(bookingsRes.data)) {
-            const bookings = bookingsRes.data;
-            const todayStr = new Date().toISOString().slice(0, 10);
-
-            bookings.forEach(b => {
-              const isMatchPt = !currentPtId || b.pt_id === currentPtId || (currentUser?.full_name && b.pt_name === currentUser.full_name);
-              if (!isMatchPt) return;
-
-              const memberName = b.memberName || b.member_name || 'Học viên';
-              const timeSlot = b.slot || `${b.start_time ? b.start_time.slice(0, 5) : '08:00'} - ${b.end_time ? b.end_time.slice(0, 5) : '10:00'}`;
-              const dateDisplay = formatDateDisplay(b.booking_date || b.date);
-              const isToday = (b.booking_date || b.date) === todayStr;
-
-              // Nhóm 4: Thông báo Xác nhận hoàn thành từ Học viên (HV02-US04 / PT01-US02)
-              if (b.status === 'AWAITING_CONFIRMATION' || b.status === 'PENDING_COMPLETION') {
-                const notifId = `NOTIF-CONFIRM-${b.id}`;
-                dynamicItems.push({
-                  id: notifId,
-                  type: 'CONFIRM_COMPLETION',
-                  title: 'Cần xác nhận kết quả',
-                  content: `Học viên ${memberName} đã bấm xác nhận hoàn thành buổi tập [${timeSlot}] ngày [${dateDisplay}]. Vui lòng xác nhận kết quả`,
-                  targetScreen: 'PT01_RESULT_MODAL',
-                  referenceId: b.id,
-                  createdAt: formatTimeOrDate(b.member_confirmed_at || b.booking_date),
-                  timestamp: b.member_confirmed_at ? new Date(b.member_confirmed_at).getTime() : Date.now(),
-                  isRead: readSet.has(notifId),
-                  icon: 'fa-clipboard-check',
-                  iconBg: 'rgba(139, 92, 246, 0.15)',
-                  iconColor: '#8B5CF6'
-                });
-              }
-
-              // Nhóm 3: Thông báo Hủy lịch buổi PT (HV02-US03)
-              if (b.status === 'CANCELLED') {
-                const notifId = `NOTIF-CANCEL-${b.id}`;
-                dynamicItems.push({
-                  id: notifId,
-                  type: 'CANCEL_BOOKING',
-                  title: 'Lịch dạy bị hủy',
-                  content: `Lịch dạy bị hủy: Buổi tập với Học viên ${memberName} lúc [${timeSlot}] ngày [${dateDisplay}] đã bị hủy`,
-                  targetScreen: 'PT01_SCHEDULE',
-                  referenceId: b.id,
-                  createdAt: formatTimeOrDate(b.updated_at || b.booking_date),
-                  timestamp: b.updated_at ? new Date(b.updated_at).getTime() : Date.now(),
-                  isRead: readSet.has(notifId),
-                  icon: 'fa-calendar-xmark',
-                  iconBg: 'rgba(239, 68, 68, 0.15)',
-                  iconColor: '#c43d40'
-                });
-              }
-
-              // Nhóm 5: Thông báo Nhắc lịch dạy sắp tới (Trước ca dạy hôm nay)
-              if ((b.status === 'BOOKED' || b.status === 'UPCOMING') && isToday) {
-                const notifId = `NOTIF-REMIND-${b.id}`;
-                dynamicItems.push({
-                  id: notifId,
-                  type: 'UPCOMING_REMINDER',
-                  title: 'Nhắc lịch dạy sắp tới',
-                  content: `Nhắc lịch dạy: Bạn có buổi tập với Học viên ${memberName} vào lúc [${timeSlot}] hôm nay`,
-                  targetScreen: 'PT01_SCHEDULE',
-                  referenceId: b.id,
-                  createdAt: 'Hôm nay',
-                  timestamp: Date.now() - 15 * 60 * 1000,
-                  isRead: readSet.has(notifId),
-                  icon: 'fa-clock',
-                  iconBg: 'rgba(16, 185, 129, 0.15)',
-                  iconColor: '#237b58'
-                });
-              }
-
-              // Nhóm 2: Thông báo Đặt lịch PT mới (HV02-US02)
-              if (b.status === 'BOOKED' || b.status === 'UPCOMING') {
-                const notifId = `NOTIF-BOOKED-${b.id}`;
-                dynamicItems.push({
-                  id: notifId,
-                  type: 'NEW_BOOKING',
-                  title: 'Đặt lịch PT mới',
-                  content: `Lịch dạy mới: Học viên ${memberName} đã đặt lịch tập vào [${timeSlot}] ngày [${dateDisplay}]`,
-                  targetScreen: 'PT01_SCHEDULE',
-                  referenceId: b.id,
-                  createdAt: formatTimeOrDate(b.created_at || b.booking_date),
-                  timestamp: b.created_at ? new Date(b.created_at).getTime() : Date.now(),
-                  isRead: readSet.has(notifId),
-                  icon: 'fa-calendar-plus',
-                  iconBg: 'rgba(59, 130, 246, 0.15)',
-                  iconColor: '#286aa4'
-                });
-              }
-            });
-          }
-        } catch (bErr) {
-          console.warn('Fetch bookings for notifs fallback:', bErr.message);
         }
       }
 
@@ -352,6 +184,8 @@
         }
       });
 
+      if (version !== fetchVersion) return;
+      NotificationsState.hasError = false;
       NotificationsState.notifications = Array.from(uniqueMap.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
       // Cập nhật giao diện an toàn
@@ -362,10 +196,14 @@
       }
     } catch (e) {
       console.warn('Error fetching PT notifications from backend:', e.message);
+      if (version !== fetchVersion) return;
+      NotificationsState.hasError = true;
+      const list = document.getElementById('notifListScroll');
+      if (list) list.innerHTML = renderNotificationList();
       // Exception Flow: Lỗi kết nối mạng
       showToast('Không thể nạp danh sách thông báo, vui lòng kiểm tra kết nối mạng', 'error');
     } finally {
-      NotificationsState.isLoading = false;
+      if (version === fetchVersion) NotificationsState.isLoading = false;
     }
   }
 
@@ -413,6 +251,7 @@
    */
   function updateBellBadge() {
     const unread = getUnreadCount();
+    $('#btnMarkAllRead').toggle(unread > 0);
     const badgeEls = [
       document.getElementById('notifBadge'),
       document.getElementById('topbarNotifBadge'),
@@ -509,11 +348,9 @@
         <!-- Toolbar: Bộ lọc Tất cả / Chưa đọc DevExtreme dxButtonGroup + Nút Đánh dấu tất cả đã đọc -->
         <div class="pt-notif-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
           <div id="dxNotifFilterTabs"></div>
-          ${unreadCount > 0 ? `
-            <button type="button" class="pt-notif-mark-all-btn" id="btnMarkAllRead">
+            <button type="button" class="pt-notif-mark-all-btn" id="btnMarkAllRead" style="display: ${unreadCount > 0 ? 'inline-flex' : 'none'};">
               <i class="fa-solid fa-check-double"></i> Đọc tất cả
             </button>
-          ` : ''}
         </div>
 
         <!-- Danh sách thông báo -->
@@ -556,6 +393,7 @@
    * Render danh sách thông báo theo bộ lọc
    */
   function renderNotificationList() {
+    if (NotificationsState.hasError) return '<div class="pt-notif-empty" role="alert">Không thể tải thông báo. <button class="btn btn-secondary" type="button" onclick="ParadisePTNotifications.fetchNotifications()">Thử lại</button></div>';
     let list = NotificationsState.notifications;
     if (NotificationsState.activeFilter === 'unread') {
       list = list.filter(n => !n.isRead);
@@ -589,10 +427,10 @@
 
             <div class="pt-notif-content-col">
               <div class="pt-notif-card-header">
-                <div class="pt-notif-card-title">${item.title}</div>
+                <div class="pt-notif-card-title">${escapeHtml(item.title)}</div>
                 <div class="pt-notif-card-time">${item.createdAt}</div>
               </div>
-              <div class="pt-notif-card-text">${item.content}</div>
+              <div class="pt-notif-card-text">${escapeHtml(item.content)}</div>
               <div class="pt-notif-action-tag">
                 <span>Chạm để xử lý</span>
                 <i class="fa-solid fa-arrow-right"></i>
@@ -613,22 +451,16 @@
     const item = NotificationsState.notifications.find(n => n.id === notificationId);
     if (!item) return;
 
-    // 1. Đánh dấu đã đọc
     if (!item.isRead) {
-      item.isRead = true;
-      markIdAsReadInStorage(item.id);
-      updateBellBadge();
-
-      // Gọi API qua apiClient nếu có (đối với bản ghi bảng notifications)
-      if (window.apiClient && window.apiClient.notifications && typeof window.apiClient.notifications.markAsRead === 'function' && !item.id.startsWith('NOTIF-')) {
-        try {
-          await window.apiClient.notifications.markAsRead(notificationId);
-        } catch (err) {
-          console.warn('API mark as read fallback:', err);
-        }
+      try {
+        await window.apiClient.notifications.markAsRead(notificationId);
+        item.isRead = true;
+        updateBellBadge();
+      } catch (err) {
+        showToast('Không thể đánh dấu đã đọc. Vui lòng thử lại.', 'error');
+        return;
       }
     }
-
     // Đóng drawer thông báo
     closeModal();
 
@@ -642,58 +474,27 @@
    * - Đặt lịch / Hủy lịch / Nhắc lịch -> PT01 (Lịch tập PT theo ngày)
    * - Xác nhận hoàn thành -> PT01 (Mở modal Ghi nhận kết quả buổi PT)
    */
-  function navigateByTarget(item) {
-    const app = window.ParadisePTApp || window.ptApp;
-
-    switch (item.targetScreen) {
-      // Nhóm PT02: Yêu cầu phân công mới -> chuyển tab Học viên (#view-members), chọn subtab Yêu cầu phân công
-      case 'PT02_REQUESTS':
-        if (app && typeof app.switchTab === 'function') {
-          app.switchTab('members');
-        }
-        setTimeout(() => {
-          if (window.ParadisePTClients && typeof window.ParadisePTClients.switchTab === 'function') {
-            window.ParadisePTClients.switchTab('requests');
-          }
-        }, 150);
-        break;
-
-      // Nhóm PT02: Xem chi tiết học viên mới & lộ trình tập luyện (PT02-US02)
-      case 'PT02_CLIENT_DETAIL':
-        if (app && typeof app.switchTab === 'function') {
-          app.switchTab('members');
-        }
-        setTimeout(() => {
-          if (window.ParadisePTClients && typeof window.ParadisePTClients.openClientDetail === 'function') {
-            window.ParadisePTClients.openClientDetail(item.referenceId);
-          }
-        }, 150);
-        break;
-
-      // Nhóm PT01: Mở modal ghi nhận kết quả buổi PT (PT01-US02)
-      case 'PT01_RESULT_MODAL':
-        if (app && typeof app.switchTab === 'function') {
-          app.switchTab('schedule');
-        }
-        setTimeout(() => {
-          const schedule = window.ParadisePTSchedule;
-          if (schedule) {
-            if (typeof schedule.openConfirmModal === 'function') {
-              schedule.openConfirmModal(item.referenceId);
-            } else if (typeof schedule.openResultModal === 'function') {
-              schedule.openResultModal(item.referenceId);
-            }
-          }
-        }, 150);
-        break;
-
-      // Nhóm PT01: Điều hướng đến màn hình Lịch dạy PT theo ngày (PT01-US01)
-      case 'PT01_SCHEDULE':
-      default:
-        if (app && typeof app.switchTab === 'function') {
-          app.switchTab('schedule');
-        }
-        break;
+  async function navigateByTarget(item) {
+    try {
+      if (item.targetScreen === 'PT02_REQUESTS') {
+        await window.ptApp.switchTab('members');
+        window.ParadisePTClients.switchTab('requests');
+      } else if (item.targetScreen === 'PT02_CLIENT_DETAIL') {
+        await window.ptApp.switchTab('members');
+        window.ParadisePTClients.openClientDetail(item.referenceId);
+      } else if (['PT01_SCHEDULE', 'PT01_RESULT_MODAL'].includes(item.targetScreen) && item.referenceId) {
+        await window.ptApp.switchTab('schedule');
+        await window.ParadisePTSchedule.openBookingFromNotification?.(item.referenceId, item.targetScreen === 'PT01_RESULT_MODAL');
+      } else {
+        const sentAt = item.timestamp ? new Date(item.timestamp).toLocaleString('vi-VN') : 'Chưa có thời gian';
+        await DevExpress.ui.dialog.alert(
+          `<div style="white-space:pre-wrap;overflow-wrap:anywhere">${escapeHtml(item.content)}</div><p class="pt-notif-detail-time">${escapeHtml(sentAt)}</p>`,
+          escapeHtml(item.title)
+        );
+        if (window.apiClient.getUser()) await openModal();
+      }
+    } catch (err) {
+      showToast(err.message || 'Không thể mở nội dung thông báo.', 'error');
     }
   }
 
@@ -701,56 +502,26 @@
    * Đánh dấu tất cả thông báo là đã đọc
    */
   async function markAllAsRead() {
-    NotificationsState.notifications.forEach(n => {
-      n.isRead = true;
-      markIdAsReadInStorage(n.id);
-      if (window.apiClient?.notifications?.markAsRead && !n.id.startsWith('NOTIF-')) {
-        window.apiClient.notifications.markAsRead(n.id).catch(() => {});
-      }
-    });
-
-    updateBellBadge();
-
-    const listScroll = document.getElementById('notifListScroll');
-    if (listScroll) {
-      listScroll.innerHTML = renderNotificationList();
-    }
-
-    const unreadTabBadge = document.getElementById('notifUnreadBadge');
-    if (unreadTabBadge) unreadTabBadge.style.display = 'none';
-
-    const btnMarkAll = document.getElementById('btnMarkAllRead');
-    if (btnMarkAll) btnMarkAll.remove();
-
-    showToast('Đã đánh dấu tất cả thông báo là đã đọc.', 'success');
+    if (NotificationsState.marking) return;
+    NotificationsState.marking = true;
+    try {
+      await window.apiClient.notifications.markAllAsRead();
+      await fetchNotifications();
+      showToast('Đã đánh dấu tất cả thông báo là đã đọc.', 'success');
+    } catch (err) {
+      showToast('Không thể cập nhật thông báo. Vui lòng thử lại.', 'error');
+    } finally { NotificationsState.marking = false; }
   }
 
   /**
    * Đánh dấu đã đọc theo referenceId (Đồng bộ khi schedule.js xác nhận kết quả hoặc clients.js xử lý yêu cầu)
    */
-  function markAsReadByReference(referenceId) {
-    if (!referenceId) return;
-    let changed = false;
-    NotificationsState.notifications.forEach(n => {
-      if (n.referenceId === referenceId || n.id === referenceId || n.id.includes(referenceId)) {
-        if (!n.isRead) {
-          n.isRead = true;
-          markIdAsReadInStorage(n.id);
-          changed = true;
-          if (window.apiClient?.notifications?.markAsRead && !n.id.startsWith('NOTIF-')) {
-            window.apiClient.notifications.markAsRead(n.id).catch(() => {});
-          }
-        }
-      }
-    });
-
-    if (changed) {
-      updateBellBadge();
-      const listScroll = document.getElementById('notifListScroll');
-      if (listScroll) {
-        listScroll.innerHTML = renderNotificationList();
-      }
-    }
+  async function markAsReadByReference(referenceId) {
+    const items = NotificationsState.notifications.filter(n => n.referenceId === referenceId && !n.isRead);
+    try {
+      for (const item of items) await window.apiClient.notifications.markAsRead(item.id);
+      await fetchNotifications();
+    } catch (err) { showToast('Không thể cập nhật trạng thái đã đọc.', 'error'); }
   }
 
   /**
@@ -794,37 +565,7 @@
   /**
    * Callback khi một yêu cầu phân công được chấp nhận hoặc từ chối từ PT02
    */
-  function notifyAssignmentHandled(requestId, status, studentName) {
-    const notifIndex = NotificationsState.notifications.findIndex(n => n.referenceId === requestId || n.id.includes(requestId));
-    if (notifIndex !== -1) {
-      NotificationsState.notifications[notifIndex].isRead = true;
-      markIdAsReadInStorage(NotificationsState.notifications[notifIndex].id);
-    }
-
-    // Thêm thông báo phản hồi nếu được chấp nhận
-    if (status === 'ACCEPTED') {
-      const newNotifId = 'NOTIF-ACCEPTED-' + Date.now();
-      NotificationsState.notifications.unshift({
-        id: newNotifId,
-        type: 'NEW_STUDENT',
-        title: 'Đã tiếp nhận học viên',
-        content: `Bạn đã tiếp nhận học viên ${studentName}. Học viên đã được thêm vào danh sách quản lý của bạn.`,
-        targetScreen: 'PT02_CLIENT_DETAIL',
-        referenceId: requestId,
-        createdAt: 'Vừa xong',
-        isRead: false,
-        icon: 'fa-user-check',
-        iconBg: 'rgba(16, 185, 129, 0.15)',
-        iconColor: '#237b58'
-      });
-    }
-
-    updateBellBadge();
-    const listScroll = document.getElementById('notifListScroll');
-    if (listScroll) {
-      listScroll.innerHTML = renderNotificationList();
-    }
-  }
+  function notifyAssignmentHandled() { return fetchNotifications(); }
 
   /**
    * Chèn styles cho Thông báo
@@ -1113,6 +854,7 @@
     markAllAsRead,
     markAsReadByReference,
     notifyAssignmentHandled,
+    reset: () => { fetchVersion++; NotificationsState.notifications = []; NotificationsState.hasError = false; closeModal(); updateBellBadge(); },
     getState: () => NotificationsState
   };
 });

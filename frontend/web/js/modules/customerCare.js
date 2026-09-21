@@ -1,6 +1,6 @@
 /**
  * W14: Chăm sóc khách hàng (Customer Care Module)
- * Quản lý sinh nhật hôm nay, cảnh báo gói sắp hết hạn (<= 4 ngày), nhắc gia hạn và đăng ký mới.
+ * Quản lý sinh nhật hôm nay, cảnh báo gói sắp hết hạn theo API, nhắc gia hạn và đăng ký mới.
  */
 window.CustomerCareModule = (function () {
   'use strict';
@@ -33,7 +33,7 @@ window.CustomerCareModule = (function () {
       // 2. Tab Navigation setup
       const tabs = [
         { id: 'birthdays', text: `🎂 Sinh nhật hôm nay (${summary.birthdays_today || 0})` },
-        { id: 'expiring', text: `⚠️ Sắp hết hạn <= 4 ngày (${summary.expiring_soon_4days || 0})` },
+        { id: 'expiring', text: `⚠️ Sắp hết hạn (${summary.expiring_soon_4days || 0})` },
         { id: 'pending-renewals', text: `⏳ Chờ nhắc gia hạn (${summary.pending_renewals || 0})` },
         { id: 'today-regs', text: `📝 Đăng ký mới hôm nay (${summary.new_registrations_today || 0})` }
       ];
@@ -60,7 +60,7 @@ window.CustomerCareModule = (function () {
           onClick: () => switchTab('birthdays')
         },
         {
-          label: 'Sắp hết hạn (<= 4 ngày)',
+          label: 'Sắp hết hạn',
           value: summary.expiring_soon_4days || 0,
           caption: (summary.expiring_soon_4days || 0) > 0 ? 'Cần gọi điện nhắc nhở' : 'Không có gói cận hạn',
           icon: 'triangle-exclamation',
@@ -195,13 +195,17 @@ window.CustomerCareModule = (function () {
         }
       },
       { dataField: 'package_name_snapshot', caption: 'Gói tập', minWidth: 200 },
-      { dataField: 'end_date', caption: 'Hết hạn ngày', dataType: 'date', format: 'dd/MM/yyyy', width: 120, alignment: 'center' },
+      { dataField: 'end_date', caption: 'Hết hạn ngày', dataType: 'date', format: 'dd/MM/yyyy', width: 120, alignment: 'center', customizeText: cell => cell.value ? cell.valueText : '--' },
       {
-        dataField: 'days_left', caption: 'Còn lại', width: 110, alignment: 'center',
+        caption: 'Còn lại', width: 170, alignment: 'center',
         cellTemplate: (el, cell) => {
-          const days = cell.value;
-          const badge = days === 0 ? W().badge('Hôm nay', 'danger') : W().badge(`Còn ${days} ngày`, days <= 2 ? 'danger' : 'warning');
-          el.append(badge);
+          const row = cell.data, type = row.package_type_snapshot;
+          const labels = [];
+          if (['GYM_TIME', 'COMBO'].includes(type) && row.days_left != null) labels.push(Number(row.days_left) === 0 ? 'Hôm nay' : `Còn ${row.days_left} ngày`);
+          if (['PT_SESSION', 'COMBO'].includes(type) && row.remaining_pt_sessions != null) labels.push(`Còn ${row.remaining_pt_sessions} buổi PT`);
+          if ((type === 'GYM_SESSION' || (type === 'COMBO' && Number(row.total_gym_sessions_snapshot) > 0)) && row.remaining_gym_sessions != null) labels.push(`Còn ${row.remaining_gym_sessions} lượt Gym`);
+          if (!labels.length) el.text('--');
+          labels.forEach(label => $('<div>').css('margin', '2px 0').append(W().badge(label, 'warning')).appendTo(el));
         }
       },
       { dataField: 'pt_name', caption: 'HLV phụ trách', width: 150, alignment: 'center', calculateCellValue: r => r.pt_name || '--' },

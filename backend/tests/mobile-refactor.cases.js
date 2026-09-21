@@ -149,7 +149,13 @@ module.exports=async function mobileCases({request,db,A,L,M,P,m,pt,ptr,pkg,b1,b2
   await request(`/pt-bookings/${past.id}/pt-confirm`,{token:P,method:'POST',body:{workout_notes:'Actual PT note',fitness_assessment:'Actual assessment'}});
   await request(`/pt-bookings/${past.id}/pt-confirm`,{token:P,method:'POST',body:{workout_notes:'Overwrite'},status:409});
   const done=await request(`/pt-bookings/${past.id}/member-confirm`,{token:M,method:'POST',body:{}});assert(done.is_completed);assert.equal(done.booking.workout_notes,'Actual PT note');
-  await request(`/pt-bookings/${past.id}/member-confirm`,{token:M,method:'POST',body:{},status:409});
+  const beforeRetry=(await db.query('SELECT remaining_pt_sessions,booked_pt_sessions,used_pt_sessions FROM registrations WHERE id=$1',[past.registration_id])).rows[0];
+  const retryDone=await request(`/pt-bookings/${past.id}/member-confirm`,{token:M,method:'POST',body:{}});
+  assert.equal(retryDone.is_completed,true);
+  assert.equal(retryDone.booking.workout_notes,done.booking.workout_notes);
+  assert.equal(retryDone.booking.pt_confirmed_at,done.booking.pt_confirmed_at);
+  assert.equal(retryDone.booking.member_confirmed_at,done.booking.member_confirmed_at);
+  assert.deepEqual((await db.query('SELECT remaining_pt_sessions,booked_pt_sessions,used_pt_sessions FROM registrations WHERE id=$1',[past.registration_id])).rows[0],beforeRetry);
   console.log('PASS 4h cancellation/explicit late-fee acknowledgement and exact-once participant-owned result confirmation');
 
   const {runScheduledNotifications}=require('../src/modules/core/jobs');

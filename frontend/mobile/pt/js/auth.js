@@ -260,10 +260,10 @@
           // Requires 2FA Step
           this.openTwoFaScreen(res.data.temp_token, phone, res.data.dev_otp, res.data.masked_phone);
         } else {
-          // Direct login success -> Final F01: Khởi tạo Session và Mở PT01 · Lịch
+          // Open the overview only after the server has issued a full session.
           this.clearLockout();
           ptApp.showToast('Đăng nhập thành công! Chào mừng HLV trở lại.', 'success');
-          ptApp.initSession(res.data.user, 'schedule');
+          ptApp.initSession(res.data.user, 'overview');
         }
       } catch (err) {
         submitBtn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> ĐĂNG NHẬP');
@@ -359,7 +359,7 @@
         // API decides whether a second factor is required.
         this.clearLockout();
         ptApp.showToast('Đăng nhập bằng mã OTP SMS thành công!', 'success');
-        ptApp.initSession(res.data.user, 'schedule');
+        ptApp.initSession(res.data.user, 'overview');
       } catch (err) {
         submitBtn.prop('disabled', false).html('<i class="fa-solid fa-check"></i> Xác nhận đăng nhập');
         this.recordFailedAttempt(err.data?.message || 'Mã OTP không chính xác');
@@ -492,7 +492,7 @@
         this.clearLockout();
         ptApp.showToast('Xác thực 2 lớp thành công! Đang vào ứng dụng...', 'success');
         this.closeTwoFaScreen();
-        ptApp.initSession(res.data.user, 'schedule');
+        ptApp.initSession(res.data.user, 'overview');
       } catch (err) {
         submitBtn.prop('disabled', false).html('<i class="fa-solid fa-lock-open"></i> Xác nhận 2FA');
         this.recordFailedAttempt(err.data?.message || 'Mã OTP 2FA không chính xác');
@@ -704,7 +704,7 @@
         // Final F01: Chuyển ACTIVE, khởi tạo Session Mobile PT và điều hướng HLV vào màn hình PT01 · Lịch
         ptApp.showToast('Kích hoạt tài khoản PT thành công! Mật khẩu mới đã được thiết lập an toàn.', 'success');
         if (res.data?.requires_2fa) this.openTwoFaScreen(res.data.temp_token, phone, res.data.dev_otp);
-        else ptApp.initSession(res.data.user, 'schedule');
+        else ptApp.initSession(res.data.user, 'overview');
       } catch (err) {
         submitBtn.prop('disabled', false).html('<i class="fa-solid fa-user-shield"></i> Kích hoạt & Đăng nhập');
         // Báo lỗi theo AF-02 & Diagram D02: Mã OTP sai hoặc hết hạn

@@ -12,7 +12,10 @@ async function run() {
   const user = await context(row.account_id, 'PT');
   const token = signAccessToken(user);
   await pool.end();
-  const browser = await chromium.launch({headless:false});
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: 'C:/Users/Admin/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe'
+  });
   const errors = [], requests = [], results = [], blockedWrites = [];
   try {
     const ctx = await browser.newContext({viewport:{width:390,height:844}});
@@ -65,8 +68,14 @@ async function run() {
     if (await page.locator('.pt-client-card').count()) {
       await page.locator('.pt-client-card').first().focus();
       await page.keyboard.press('Enter');
+      if (await page.locator('#memberPackagesSubscreen').isVisible()) {
+        await page.locator('#memberPackagesSubscreen .pt-client-card').first().click();
+      }
       await snap('PT02-US02','step-01-client-detail','#clientDetailSubscreen');
       await page.locator('#clientDetailSubscreen .pt-back-btn').click();
+      if (await page.locator('#memberPackagesSubscreen').isVisible()) {
+        await page.locator('#memberPackagesSubscreen .pt-back-btn').click();
+      }
     }
     await page.locator('#ptClientsSearchInput').fill('zzzz-no-match');
     await page.waitForTimeout(400);

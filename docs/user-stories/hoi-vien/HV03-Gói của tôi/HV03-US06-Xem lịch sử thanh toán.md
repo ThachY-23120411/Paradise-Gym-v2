@@ -2,7 +2,7 @@
 
 ## Preconditions
 - Hội viên đã đăng nhập Mobile bằng tài khoản hợp lệ.
-- Hệ thống đã có dữ liệu lịch sử các giao dịch thanh toán gói tập của Hội viên.
+- Lịch sử thanh toán có thể rỗng.
 
 ## Trigger
 - Hội viên bấm mở mục `Lịch sử thanh toán` từ menu HV03 hoặc từ mục Quản lý tài khoản.
@@ -16,14 +16,13 @@
    - **Mã giao dịch / Mã phiếu thu**: Ví dụ `PAY-202609-001`.
    - **Tên gói tập đã mua**: Ví dụ `Gói PT 20 buổi`, `Gói Gym 3 tháng`.
    - **Thời gian thanh toán**: Giờ và ngày/tháng/năm xác nhận thanh toán.
-   - **Phương thức thanh toán**: `Chuyển khoản Ngân hàng (VietQR)`.
+   - **Phương thức thanh toán**: `Tiền mặt hoặc Chuyển khoản Ngân hàng theo payment đã ghi nhận`.
    - **Số tiền thanh toán**: Chính xác 100% giá trị gói tập (ví dụ `5.000.000 đ`).
-   - **Badge trạng thái**: `Đã thanh toán` (`CONFIRMED` - badge màu xanh lá).
 4. Hội viên xem chi tiết thông tin hóa đơn/phiếu thu giao dịch.
 
 - **Business rules / logic:**
   - Chỉ hiển thị lịch sử giao dịch thuộc chính tài khoản Hội viên đang đăng nhập.
-  - Mọi giao dịch trên Mobile đều thanh toán 100% qua VietQR.
+  - Mua mới trên Mobile dùng VietQR; lịch sử gồm cả CASH thu tại quầy và BANK_TRANSFER của chính hội viên. Payments chỉ chứa giao dịch thành công, không có payment.status; không hiển thị yêu cầu QR chờ/hết hạn.
   - Thông tin lịch sử thanh toán là dữ liệu cố định (Read-only), không chỉnh sửa hoặc xóa từ giao diện Mobile.
 
 ### Field-level specification — Khối / Màn hình Lịch sử thanh toán
@@ -31,7 +30,12 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Tiêu đề khối Lịch sử thanh toán** | `Typography / Heading` | `READONLY` | required | Không | Nhãn tiêu đề cố định: `Lịch sử thanh toán` kèm phụ đề `Các giao dịch mua và thanh toán gói của bạn.` và icon phiếu thu ở góc phải |
 | **Hộp trạng thái rỗng (Empty State)** | `Empty state container` | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào lịch sử giao dịch | - **Hiện khi:** Hội viên chưa có giao dịch mua/thanh toán gói nào. Hiển thị hộp bo góc: `Bạn chưa có giao dịch thanh toán nào.`<br>- **Ẩn khi:** Đã có ít nhất 1 giao dịch thanh toán. |
-| **Thẻ giao dịch thanh toán (Payment Card)** | `Card list item` | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào lịch sử giao dịch | - **Hiện khi:** Có ít nhất 1 giao dịch thanh toán.<br>- **Ẩn khi:** Chưa có giao dịch nào.<br>Mỗi thẻ bao gồm: Mã phiếu thu (`PT00125` - chữ đậm), Số tiền thanh toán (`3.200.000 đ` - chữ đậm màu xanh lục), Tên gói tập & ngày thanh toán, Phương thức (`Chuyển khoản`), Badge trạng thái (`Đã xác nhận` - xanh lá). |
+| **Thẻ giao dịch thanh toán (Payment Card)** | `Card list item` | `READONLY` | conditional | `CONDITIONAL`: Phụ thuộc vào lịch sử giao dịch | - **Hiện khi:** Có ít nhất 1 giao dịch thanh toán.<br>- **Ẩn khi:** Chưa có giao dịch nào.<br>Mỗi thẻ bao gồm: Mã phiếu thu (`PT00125` - chữ đậm), Số tiền thanh toán (`3.200.000 đ` - chữ đậm màu xanh lục), Tên gói tập & ngày thanh toán, Phương thức từ payment (`Tiền mặt` hoặc `Chuyển khoản`). |
+
+### Thao tác trên thẻ giao dịch
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| --- | --- | --- | --- | --- | --- |
+| Xem phiếu thu | Action Button | USER-INPUT | conditional | CONDITIONAL: hiện trên từng thẻ khi có payment; ẩn khi lịch sử rỗng hoặc chưa tải được dữ liệu | Mở phiếu thu từ API /payments/{id}/receipt của đúng giao dịch, chỉ đọc. |
 
 ## Alternate Flows
 
@@ -52,7 +56,7 @@ flowchart TB
     subgraph L0["Swimlane — Hội viên"]
       I01(("Initial"))
       A01["Mở màn hình Lịch sử thanh toán"]
-      A02["Xem danh sách phiếu thu 100% (Mã GD, Tên gói, Ngày, VietQR, Số tiền, Trạng thái)"]
+      A02["Xem danh sách phiếu thu 100% (Mã GD, Tên gói, Ngày, Tiền mặt hoặc Chuyển khoản, Số tiền)"]
       F01((("Final — Kết thúc xem lịch sử thanh toán")))
 
       I01 --> A01
@@ -61,7 +65,7 @@ flowchart TB
 
     subgraph L1["Swimlane — SYS"]
       S01["Nạp danh sách các phiếu thu thanh toán 100% của Hội viên theo thời gian mới nhất"]
-      S02["Hiển thị Mã phiếu thu, Tên gói, Ngày thanh toán, VietQR, Số tiền 100% và Badge Đã thanh toán"]
+      S02["Hiển thị Mã phiếu thu, Tên gói, Ngày thanh toán, VietQR, Số tiền 100%"]
 
       A01 --> S01 --> S02 --> A02
     end

@@ -29,13 +29,13 @@
     }
   },
   "0987654321_MEMBER": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTk2IiwicGhvbmUiOiIwOTg3NjU0MzIxIiwibG9naW5fcGhvbmUiOiIwOTg3NjU0MzIxIiwiZnVsbF9uYW1lIjoiTMOqIEhvw6BuZyBOYW0iLCJhdmF0YXJfdXJsIjpudWxsLCJpc190d29fZmFjdG9yX2VuYWJsZWQiOmZhbHNlLCJyb2xlcyI6WyJNRU1CRVIiXSwicm9sZSI6Ik1FTUJFUiIsImFjdGl2ZV9yb2xlIjoiTUVNQkVSIiwiYnJhbmNoX2lkcyI6WyIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiXSwiaXNfYWxsX2JyYW5jaGVzIjpmYWxzZSwibWVtYmVyX3Byb2ZpbGVfaWQiOiI0MDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDEiLCJwdF9wcm9maWxlX2lkIjpudWxsLCJzZXNzaW9uX3ZlcnNpb24iOjIsInBlcm1pc3Npb25zIjp7InZpZXdfZmluYW5jaWFsIjpmYWxzZSwibWFuYWdlX2RldmljZXMiOmZhbHNlLCJtYW5hZ2VfYWNjb3VudHMiOmZhbHNlfSwic2Vzc2lvbl9pZCI6IjM2NDE1Y2FiLTg4NGMtNGFjYS1hZGNlLWU2YTExOTMzYzdkMCIsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3ODk2OTcwMTMsImV4cCI6MTc4OTc4MzQxM30.4Q5yIqcaiq_X4MKtOif4IiVFSIQMaAdCOOQHcih4RJw",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTk2IiwicGhvbmUiOiIwOTg3NjU0MzIxIiwibG9naW5fcGhvbmUiOiIwOTg3NjU0MzIxIiwiZnVsbF9uYW1lIjoiTMOqIEhvw6BuZyBOYW0iLCJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9pbWFnZXMudW5zcGxhc2guY29tL3Bob3RvLTE1MzQ1Mjg3NDE3NzUtNTM5OTRhNjlkYWViP3c9MzAwJmF1dG89Zm9ybWF0JmZpdD1jcm9wJnE9ODAiLCJpc190d29fZmFjdG9yX2VuYWJsZWQiOmZhbHNlLCJyb2xlcyI6WyJNRU1CRVIiXSwicm9sZSI6Ik1FTUJFUiIsImFjdGl2ZV9yb2xlIjoiTUVNQkVSIiwiYnJhbmNoX2lkcyI6WyIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiXSwiaXNfYWxsX2JyYW5jaGVzIjpmYWxzZSwibWVtYmVyX3Byb2ZpbGVfaWQiOiI0MDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDEiLCJwdF9wcm9maWxlX2lkIjpudWxsLCJzZXNzaW9uX3ZlcnNpb24iOjIsInBlcm1pc3Npb25zIjp7InZpZXdfZmluYW5jaWFsIjpmYWxzZSwibWFuYWdlX2RldmljZXMiOmZhbHNlLCJtYW5hZ2VfYWNjb3VudHMiOmZhbHNlLCJjb21taXNzaW9uX2NvbmZpZyI6ZmFsc2V9LCJzZXNzaW9uX2lkIjoiODcyOTY1MzgtYmVlZC00YWY1LTliNmQtOTVjMjMwOTRiODQ2IiwidG9rZW5fdHlwZSI6ImFjY2VzcyIsImlhdCI6MTc4OTk2MjczMCwiZXhwIjoxNzkwMDQ5MTMwfQ.VApdD1Lnw8PfQALuPydyrTHSOj7URXx6qL6DOJrdRao",
     "user": {
       "account_id": "99999999-9999-9999-9999-999999999996",
       "phone": "0987654321",
       "login_phone": "0987654321",
       "full_name": "Lê Hoàng Nam",
-      "avatar_url": null,
+      "avatar_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
       "is_two_factor_enabled": false,
       "roles": [
         "MEMBER"
@@ -52,12 +52,13 @@
       "permissions": {
         "view_financial": false,
         "manage_devices": false,
-        "manage_accounts": false
+        "manage_accounts": false,
+        "commission_config": false
       }
     }
   },
   "0900000001_QTV": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTkxIiwicGhvbmUiOiIwOTAwMDAwMDAxIiwibG9naW5fcGhvbmUiOiIwOTAwMDAwMDAxIiwiZnVsbF9uYW1lIjoiMDkwMDAwMDAwMSIsImF2YXRhcl91cmwiOm51bGwsImlzX3R3b19mYWN0b3JfZW5hYmxlZCI6dHJ1ZSwicm9sZXMiOlsiUVRWIl0sInJvbGUiOiJRVFYiLCJhY3RpdmVfcm9sZSI6IlFUViIsImJyYW5jaF9pZHMiOlsiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIl0sImlzX2FsbF9icmFuY2hlcyI6dHJ1ZSwibWVtYmVyX3Byb2ZpbGVfaWQiOm51bGwsInB0X3Byb2ZpbGVfaWQiOm51bGwsInNlc3Npb25fdmVyc2lvbiI6MywicGVybWlzc2lvbnMiOnsidmlld19maW5hbmNpYWwiOnRydWUsIm1hbmFnZV9kZXZpY2VzIjp0cnVlLCJtYW5hZ2VfYWNjb3VudHMiOnRydWV9LCJzZXNzaW9uX2lkIjoiOTBhOTU2NjItZDlmNC00ZTQ1LWIzZDgtYmY4MjNjOTViNzYzIiwidG9rZW5fdHlwZSI6ImFjY2VzcyIsImlhdCI6MTc4OTY5NDY1OCwiZXhwIjoxNzg5NzgxMDU4fQ.f4M0MI1G6Zq9x3sy_r2UaKLoa2NmRmQwTe5D0HkNdPY",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTkxIiwicGhvbmUiOiIwOTAwMDAwMDAxIiwibG9naW5fcGhvbmUiOiIwOTAwMDAwMDAxIiwiZnVsbF9uYW1lIjoiMDkwMDAwMDAwMSIsImF2YXRhcl91cmwiOm51bGwsImlzX3R3b19mYWN0b3JfZW5hYmxlZCI6dHJ1ZSwicm9sZXMiOlsiUVRWIl0sInJvbGUiOiJRVFYiLCJhY3RpdmVfcm9sZSI6IlFUViIsImJyYW5jaF9pZHMiOlsiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIl0sImlzX2FsbF9icmFuY2hlcyI6dHJ1ZSwibWVtYmVyX3Byb2ZpbGVfaWQiOm51bGwsInB0X3Byb2ZpbGVfaWQiOm51bGwsInNlc3Npb25fdmVyc2lvbiI6MywicGVybWlzc2lvbnMiOnsidmlld19maW5hbmNpYWwiOnRydWUsIm1hbmFnZV9kZXZpY2VzIjp0cnVlLCJtYW5hZ2VfYWNjb3VudHMiOnRydWUsImNvbW1pc3Npb25fY29uZmlnIjp0cnVlfSwic2Vzc2lvbl9pZCI6IjRmODJjNDA4LWJmODEtNDgyNS05ZDc2LTRhNDdkODdlOWY0YyIsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3ODk5NjM2NjcsImV4cCI6MTc5MDA1MDA2N30.H14eAbRrWEY1tpOkgdlgryJ4JgBDdIAzGVyWDKtvf98",
     "user": {
       "account_id": "99999999-9999-9999-9999-999999999991",
       "phone": "0900000001",
@@ -80,12 +81,13 @@
       "permissions": {
         "view_financial": true,
         "manage_devices": true,
-        "manage_accounts": true
+        "manage_accounts": true,
+        "commission_config": true
       }
     }
   },
   "0900000002_RECEPTIONIST": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTkyIiwicGhvbmUiOiIwOTAwMDAwMDAyIiwibG9naW5fcGhvbmUiOiIwOTAwMDAwMDAyIiwiZnVsbF9uYW1lIjoiMDkwMDAwMDAwMiIsImF2YXRhcl91cmwiOm51bGwsImlzX3R3b19mYWN0b3JfZW5hYmxlZCI6ZmFsc2UsInJvbGVzIjpbIlJFQ0VQVElPTklTVCJdLCJyb2xlIjoiUkVDRVBUSU9OSVNUIiwiYWN0aXZlX3JvbGUiOiJSRUNFUFRJT05JU1QiLCJicmFuY2hfaWRzIjpbIjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJdLCJpc19hbGxfYnJhbmNoZXMiOmZhbHNlLCJtZW1iZXJfcHJvZmlsZV9pZCI6bnVsbCwicHRfcHJvZmlsZV9pZCI6bnVsbCwic2Vzc2lvbl92ZXJzaW9uIjozLCJwZXJtaXNzaW9ucyI6eyJ2aWV3X2ZpbmFuY2lhbCI6dHJ1ZSwibWFuYWdlX2RldmljZXMiOmZhbHNlLCJtYW5hZ2VfYWNjb3VudHMiOmZhbHNlfSwic2Vzc2lvbl9pZCI6IjZhZDFhOTNiLTk1NTItNDM3Yi1iMjk4LTc0ODM4Y2VmZDU2ZSIsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3ODk2OTQ2ODUsImV4cCI6MTc4OTc4MTA4NX0.OQPi3XJlUlG1tv4VjVZ1xi-auPKGPLM-zm4pWOGLLTI",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTkyIiwicGhvbmUiOiIwOTAwMDAwMDAyIiwibG9naW5fcGhvbmUiOiIwOTAwMDAwMDAyIiwiZnVsbF9uYW1lIjoiMDkwMDAwMDAwMiIsImF2YXRhcl91cmwiOm51bGwsImlzX3R3b19mYWN0b3JfZW5hYmxlZCI6ZmFsc2UsInJvbGVzIjpbIlJFQ0VQVElPTklTVCJdLCJyb2xlIjoiUkVDRVBUSU9OSVNUIiwiYWN0aXZlX3JvbGUiOiJSRUNFUFRJT05JU1QiLCJicmFuY2hfaWRzIjpbIjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJdLCJpc19hbGxfYnJhbmNoZXMiOmZhbHNlLCJtZW1iZXJfcHJvZmlsZV9pZCI6bnVsbCwicHRfcHJvZmlsZV9pZCI6bnVsbCwic2Vzc2lvbl92ZXJzaW9uIjo1LCJwZXJtaXNzaW9ucyI6eyJ2aWV3X2ZpbmFuY2lhbCI6dHJ1ZSwibWFuYWdlX2RldmljZXMiOmZhbHNlLCJtYW5hZ2VfYWNjb3VudHMiOmZhbHNlLCJjb21taXNzaW9uX2NvbmZpZyI6ZmFsc2V9LCJzZXNzaW9uX2lkIjoiYTczNzVlMzUtNzZmMS00ZTBlLTg4ZWQtOGJiMzIxYzk1MDZkIiwidG9rZW5fdHlwZSI6ImFjY2VzcyIsImlhdCI6MTc4OTk3MzYxMSwiZXhwIjoxNzkwMDYwMDExfQ.eaE4_LSIig5PEQ4pBetP302PSYO4o8cVY3TxfcKVbrc",
     "user": {
       "account_id": "99999999-9999-9999-9999-999999999992",
       "phone": "0900000002",
@@ -104,22 +106,23 @@
       "is_all_branches": false,
       "member_profile_id": null,
       "pt_profile_id": null,
-      "session_version": 3,
+      "session_version": 5,
       "permissions": {
         "view_financial": true,
         "manage_devices": false,
-        "manage_accounts": false
+        "manage_accounts": false,
+        "commission_config": false
       }
     }
   },
   "0900000003_PT": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTk0IiwicGhvbmUiOiIwOTAwMDAwMDAzIiwibG9naW5fcGhvbmUiOiIwOTAwMDAwMDAzIiwiZnVsbF9uYW1lIjoiTmd1eeG7hW4gVsSDbiBUaOG7gyIsImF2YXRhcl91cmwiOm51bGwsImlzX3R3b19mYWN0b3JfZW5hYmxlZCI6ZmFsc2UsInJvbGVzIjpbIlBUIl0sInJvbGUiOiJQVCIsImFjdGl2ZV9yb2xlIjoiUFQiLCJicmFuY2hfaWRzIjpbIjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJdLCJpc19hbGxfYnJhbmNoZXMiOmZhbHNlLCJtZW1iZXJfcHJvZmlsZV9pZCI6bnVsbCwicHRfcHJvZmlsZV9pZCI6IjUwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlc3Npb25fdmVyc2lvbiI6NCwicGVybWlzc2lvbnMiOnsidmlld19maW5hbmNpYWwiOmZhbHNlLCJtYW5hZ2VfZGV2aWNlcyI6ZmFsc2UsIm1hbmFnZV9hY2NvdW50cyI6ZmFsc2V9LCJzZXNzaW9uX2lkIjoiNjY1NDBhMmUtYTJhNS00ZTM1LThiOGUtZTNjZTg1ZGQzMTYwIiwidG9rZW5fdHlwZSI6ImFjY2VzcyIsImlhdCI6MTc4OTY5NzE5MywiZXhwIjoxNzg5NzgzNTkzfQ.BI-AXMfvQgyFnIldcgttQ94q_15GveWF50nakpB3KIM",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiOTk5OTk5OTktOTk5OS05OTk5LTk5OTktOTk5OTk5OTk5OTk0IiwicGhvbmUiOiIwOTAwMDAwMDAzIiwibG9naW5fcGhvbmUiOiIwOTAwMDAwMDAzIiwiZnVsbF9uYW1lIjoiTmd1eeG7hW4gVsSDbiBUaOG7gyIsImF2YXRhcl91cmwiOiJodHRwczovL2ltYWdlcy51bnNwbGFzaC5jb20vcGhvdG8tMTU2NzAxMzEyNzU0Mi00OTBkNzU3ZTUxZmM_dz0zMDAmYXV0bz1mb3JtYXQmZml0PWNyb3AmcT04MCIsImlzX3R3b19mYWN0b3JfZW5hYmxlZCI6ZmFsc2UsInJvbGVzIjpbIlBUIl0sInJvbGUiOiJQVCIsImFjdGl2ZV9yb2xlIjoiUFQiLCJicmFuY2hfaWRzIjpbIjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJdLCJpc19hbGxfYnJhbmNoZXMiOmZhbHNlLCJtZW1iZXJfcHJvZmlsZV9pZCI6bnVsbCwicHRfcHJvZmlsZV9pZCI6IjUwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsInNlc3Npb25fdmVyc2lvbiI6NCwicGVybWlzc2lvbnMiOnsidmlld19maW5hbmNpYWwiOmZhbHNlLCJtYW5hZ2VfZGV2aWNlcyI6ZmFsc2UsIm1hbmFnZV9hY2NvdW50cyI6ZmFsc2UsImNvbW1pc3Npb25fY29uZmlnIjpmYWxzZX0sInNlc3Npb25faWQiOiI1ZDIxZjcwNS0wOTk2LTRiMTgtOTgwNS0xYjc4NjFmODdjNDkiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTYyNzA2LCJleHAiOjE3OTAwNDkxMDZ9.nO2mpKQyZsYXitUTkNT-3SpCBvHpeF-uRTfAV-sazO4",
     "user": {
       "account_id": "99999999-9999-9999-9999-999999999994",
       "phone": "0900000003",
       "login_phone": "0900000003",
       "full_name": "Nguyễn Văn Thể",
-      "avatar_url": null,
+      "avatar_url": "https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=300&auto=format&fit=crop&q=80",
       "is_two_factor_enabled": false,
       "roles": [
         "PT"
@@ -136,7 +139,8 @@
       "permissions": {
         "view_financial": false,
         "manage_devices": false,
-        "manage_accounts": false
+        "manage_accounts": false,
+        "commission_config": false
       }
     }
   }

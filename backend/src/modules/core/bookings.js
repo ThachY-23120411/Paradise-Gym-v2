@@ -59,9 +59,9 @@ router.post('/pt-bookings',route(async req=>{
     if(end<=start)fail(400,'Giờ kết thúc phải sau giờ bắt đầu');
     const weekday=new Date(`${day}T12:00:00Z`).getUTCDay();if(p.work_days==='MON_TO_FRI'&&(weekday===0||weekday===6))fail(409,'HLV chỉ nhận lịch từ thứ Hai đến thứ Sáu');
     if(new Date(`${day}T${start}:00+07:00`)<=new Date())fail(409,'Không thể đặt lịch ở thời điểm trong quá khứ');
-    if(!['ACTIVE','SCHEDULED_FREEZE'].includes(effective(r))||r.start_date>day||(r.end_date&&r.end_date<day)||!r.total_pt_sessions_snapshot||r.remaining_pt_sessions<=0)fail(409,'Gói tập không còn số buổi hoặc đã hết hạn sử dụng');
-    if((await db.query("SELECT 1 FROM package_freezes WHERE registration_id=$1 AND status IN ('ACTIVE','SCHEDULED') AND start_date <= $2 AND end_date >= $2",[r.id,day])).rowCount)fail(409,'Gói tập đang hoặc đã lên lịch đóng băng trong ngày được chọn');
-    if(!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND status='COMPLETED' AND (amount + COALESCE(discount_amount,0)) >= $2",[r.id,r.price_snapshot])).rowCount)fail(409,'Gói tập chưa hoàn tất thanh toán 100%');
+    if(effective(r)!=='ACTIVE'||r.start_date>day||(r.end_date&&r.end_date<day)||!r.total_pt_sessions_snapshot||r.remaining_pt_sessions<=0)fail(409,'Gói tập không còn số buổi hoặc đã hết hạn sử dụng');
+    if((await db.query("SELECT 1 FROM package_freezes WHERE registration_id=$1 AND status='ACTIVE' AND start_date <= $2 AND end_date >= $2",[r.id,day])).rowCount)fail(409,'Gói tập đang trong thời gian đóng băng trong ngày được chọn');
+    if(!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND (amount + COALESCE(discount_amount,0)) >= $2",[r.id,r.price_snapshot])).rowCount)fail(409,'Gói tập chưa hoàn tất thanh toán 100%');
     if(!(await db.query('SELECT 1 FROM registration_allowed_branches WHERE registration_id=$1 AND branch_id=$2',[r.id,branchId])).rowCount)fail(409,'Chi nhánh phục vụ không thuộc phạm vi áp dụng của gói tập (Branch not covered by entitlement)');
     if((await db.query("SELECT 1 FROM pt_bookings WHERE (pt_id=$1 OR member_id=$2) AND booking_date=$3 AND status<>'CANCELLED' AND start_time<$5::time AND end_time>$4::time",[p.id,m.id,day,start,end])).rowCount)fail(409,'HLV hoặc Hội viên đã có lịch tập khác trong khung giờ này');
     const sequence=Number((await db.query('SELECT COALESCE(MAX(session_number),0)+1 n FROM pt_bookings WHERE registration_id=$1',[r.id])).rows[0].n);
@@ -102,15 +102,41 @@ router.post('/pt-bookings/:id/cancel',route(async req=>transaction(async db=>{
 })));
 async function confirmation(req,side) {
   if(side==='PT')role(req,'PT');else if(side==='MEMBER')role(req,'MEMBER');else role(req,'QTV','RECEPTIONIST');
-  only(req.body,side==='PT'?['workout_notes','fitness_assessment']:[]);
+  const allowed = side === 'PT' ? ['workout_notes','fitness_assessment'] : (side === null ? ['confirm_for','workout_notes','fitness_assessment'] : []);
+  only(req.body, allowed);
   return transaction(async db=>{
     const initial=await row(db,'pt_bookings',req.params.id);canBooking(req,initial);await row(db,'registrations',initial.registration_id,true);
     const b=await row(db,'pt_bookings',initial.id,true);if(!openStatuses.includes(b.status))fail(409,'Booking is no longer open');
     if(moment(b,side!=='PT')>new Date())fail(409,side==='PT'?'Session has not started':'Session has not ended');
-    if((side==='PT'&&b.pt_confirmed_at)||(side==='MEMBER'&&b.member_confirmed_at))fail(409,'Confirmation has already been recorded');
-    const pt=side==='PT'?new Date():b.pt_confirmed_at,member=side==='MEMBER'?new Date():b.member_confirmed_at;
+    
+    let pt = b.pt_confirmed_at;
+    let member = b.member_confirmed_at;
+
+    if(side === 'PT') {
+      if(b.pt_confirmed_at) fail(409,'Confirmation has already been recorded');
+      pt = new Date();
+    } else if(side === 'MEMBER') {
+      if(b.member_confirmed_at) fail(409,'Confirmation has already been recorded');
+      member = new Date();
+    } else {
+      const target = req.body.confirm_for;
+      if(target) choice(target, ['PT', 'MEMBER', 'BOTH'], 'confirm_for');
+      if(target === 'PT') {
+        if(b.pt_confirmed_at) fail(409, 'PT đã xác nhận trước đó rồi');
+        pt = new Date();
+      } else if(target === 'MEMBER') {
+        if(b.member_confirmed_at) fail(409, 'Học viên đã xác nhận trước đó rồi');
+        member = new Date();
+      } else if(target === 'BOTH') {
+        if(b.pt_confirmed_at && b.member_confirmed_at) fail(409, 'Cả hai bên đã xác nhận hoàn thành');
+        pt = b.pt_confirmed_at || new Date();
+        member = b.member_confirmed_at || new Date();
+      }
+    }
+
     const complete=!!pt&&!!member;
-    const updated=(await db.query('UPDATE pt_bookings SET pt_confirmed_at=$2,member_confirmed_at=$3,status=$4,is_deducted=$5,workout_notes=COALESCE($6,workout_notes),fitness_assessment=COALESCE($7,fitness_assessment),updated_at=NOW() WHERE id=$1 RETURNING *',[b.id,pt,member,complete?'COMPLETED':'PENDING_COMPLETION',complete||b.is_deducted,text(req.body.workout_notes,'workout_notes',2000,false),text(req.body.fitness_assessment,'fitness_assessment',2000,false)])).rows[0];
+    const newStatus = complete ? 'COMPLETED' : (pt || member ? 'PENDING_COMPLETION' : b.status);
+    const updated=(await db.query('UPDATE pt_bookings SET pt_confirmed_at=$2,member_confirmed_at=$3,status=$4,is_deducted=$5,workout_notes=COALESCE($6,workout_notes),fitness_assessment=COALESCE($7,fitness_assessment),updated_at=NOW() WHERE id=$1 RETURNING *',[b.id,pt,member,newStatus,complete||b.is_deducted,text(req.body.workout_notes,'workout_notes',2000,false),text(req.body.fitness_assessment,'fitness_assessment',2000,false)])).rows[0];
     if(complete&&!b.is_deducted)await db.query('UPDATE registrations SET booked_pt_sessions=GREATEST(0,booked_pt_sessions-1),used_pt_sessions=used_pt_sessions+1,updated_at=NOW() WHERE id=$1',[b.registration_id]);
     await audit(db,req,'pt_bookings',b.id,side?'BOOKING_CONFIRMED':'BOOKING_RECONCILED',b,updated,b.branch_id);
     const m=await row(db,'member_profiles',b.member_id),p=await row(db,'pt_profiles',b.pt_id),branch=await row(db,'branches',b.branch_id);
@@ -127,7 +153,7 @@ async function confirmation(req,side) {
     };
     if(complete){
       await bookingEvent(db,updated,'PT_SESSION_CONFIRMED');
-    }else if(side==='PT'){
+    }else if((side==='PT'||req.body.confirm_for==='PT') && !b.pt_confirmed_at){
       await emit(db,{
         event:'PT_SESSION_AWAITING_CONFIRMATION',
         branchId:b.branch_id,
@@ -138,7 +164,7 @@ async function confirmation(req,side) {
         title:'Xác nhận kết quả buổi tập PT',
         body:`HLV ${p.full_name} đã ghi nhận hoàn thành buổi tập ngày ${updated.booking_date} (${timeSlot}). Vui lòng vào app kiểm tra và bấm xác nhận kết quả.`
       });
-    }else if(side==='MEMBER'){
+    }else if((side==='MEMBER'||req.body.confirm_for==='MEMBER') && !b.member_confirmed_at){
       await emit(db,{
         event:'PT_SESSION_AWAITING_CONFIRMATION',
         branchId:b.branch_id,
@@ -164,7 +190,7 @@ router.post('/pt-bookings/assignment-request',route(async req=>{
   role(req,'MEMBER');return transaction(async db=>{
     const r=await row(db,'registrations',req.body.registration_id,true);await registrationAccess(req,r);
     if(r.assigned_pt_id||!r.total_pt_sessions_snapshot||!['ACTIVE','SCHEDULED'].includes(effective(r)))fail(409,'Registration cannot request assignment');
-    if(!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1 AND status='COMPLETED'",[r.id])).rowCount)fail(409,'Full payment required');
+    if(!(await db.query("SELECT 1 FROM payments WHERE registration_id=$1",[r.id])).rowCount)fail(409,'Full payment required');
     const p=await row(db,'pt_profiles',req.body.pt_id,true);if(p.status!=='ACTIVE'||p.branch_id!==r.sold_branch_id)fail(409,'Select an active PT at registration branch');
     if((await db.query("SELECT 1 FROM pt_assignment_requests WHERE registration_id=$1 AND status='PENDING'",[r.id])).rowCount)fail(409,'An assignment request is already pending');
     const a=(await db.query('INSERT INTO pt_assignment_requests(registration_id,member_id,pt_id,request_note) VALUES($1,$2,$3,$4) RETURNING *',[r.id,r.member_id,p.id,text(req.body.request_note,'request_note',255,false)])).rows[0];

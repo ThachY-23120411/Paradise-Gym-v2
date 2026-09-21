@@ -138,5 +138,11 @@ window.WebUI = (function () {
       }
     });
   }
-  return { escape, rows, money, dateKey, date, time, badge, page, button, empty, error, loading, grid, metrics, section, popup, memberStore, dispose };
+  function registrationNearExpiry(registration) {
+    if (!registration || registration.is_frozen) return false;
+    const state = registration.registration_status || registration.status;
+    if (state && !['ACTIVE', 'EXPIRING', 'ALLOWED', 'VALID'].includes(state)) return false;
+    return registration.is_expiring === true;
+  }
+  return { escape, rows, money, dateKey, date, time, badge, page, button, empty, error, loading, grid, metrics, section, popup, memberStore, dispose, registrationNearExpiry };
 })();

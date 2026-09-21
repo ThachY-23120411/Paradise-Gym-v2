@@ -7,8 +7,7 @@
  *              tiến độ buổi tập (Progress Bar). Tuyệt đối không hiển thị công nợ.
  * - PT02-US02: Màn hình Chi tiết lộ trình & Lịch sử tập luyện của học viên,
  *              thanh tiến độ, timeline buổi tập kèm ghi chú & đánh giá thể lực PT.
- * - PT02-US03: Sub-tab Yêu cầu phân công PT, Đồng ý tiếp nhận (ACCEPTED),
- *              Từ chối tiếp nhận (REJECTED) kèm Bottom Sheet lý do động.
+ * - PT02-US03: Lịch sử yêu cầu phân công chỉ đọc.
  * ==========================================================================
  */
 
@@ -25,22 +24,73 @@
 
   const escapeHtml = value => $('<span>').text(value ?? '').html();
   const readRows = res => Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
-  // State cục bộ của module Clients
+  // State cục bộ của module Clients (PT02)
   const ClientsState = {
-    currentTab: 'assigned', // 'assigned' | 'requests'
+    currentTab: 'members', // 'members' (Học viên phụ trách) | 'packages' (Gói đang phụ trách) | 'requests'
     searchQuery: '',
     selectedClientId: null,
-    rejectingRequestId: null,
+    selectedMemberId: null,
+    navigationSource: 'members', // 'members' | 'packages'
     isLoading: false,
+    hasError: false,
 
-    // Dữ liệu học viên đang phụ trách (tải động 100% từ Database PostgreSQL)
+    // Dữ liệu hợp đồng gói tập phụ trách (tải động 100% từ Database PostgreSQL)
     clients: [],
     assignmentRequests: []
   };
 
   /**
+   * Helper trích xuất danh sách Học viên duy nhất (Unique Members)
+   * CHỈ chứa các gói mà PT hiện tại phụ trách
+   */
+  function getUniqueAssignedMembers() {
+    const currentPtId = window.ptApp?.currentUser?.pt_profile_id;
+    const map = new Map();
+    ClientsState.clients.forEach(pkg => {
+      if (pkg.assignedPtId && currentPtId && pkg.assignedPtId !== currentPtId) return;
+      const memberId = pkg.memberId || pkg.id;
+      if (!map.has(memberId)) {
+        map.set(memberId, {
+          id: memberId,
+          memberId: memberId,
+          code: pkg.code,
+          fullName: pkg.fullName,
+          phone: pkg.phone,
+          branchName: pkg.branchName,
+          avatarBg: pkg.avatarBg || 'var(--primary-light)',
+          registrationStatus: pkg.registrationStatus,
+          packages: []
+        });
+      }
+      const member = map.get(memberId);
+      member.packages.push(pkg);
+      if (pkg.registrationStatus === 'ACTIVE') {
+        member.registrationStatus = 'ACTIVE';
+      }
+    });
+
+    return Array.from(map.values()).map(m => {
+      const totalRemaining = m.packages.reduce((sum, p) => sum + (p.remainingSessions || 0), 0);
+      const totalSessions = m.packages.reduce((sum, p) => sum + (p.totalSessions || 0), 0);
+      const totalCompleted = m.packages.reduce((sum, p) => sum + (p.completedSessions || 0), 0);
+      const hasExpiring = m.packages.some(p => p.isExpiring);
+      return {
+        ...m,
+        totalRemainingSessions: totalRemaining,
+        totalSessions: totalSessions,
+        completedSessions: totalCompleted,
+        isExpiring: hasExpiring
+      };
+    });
+  }
+
+  /**
    * Helper trích xuất 2 chữ cái đầu của họ tên làm Avatar
    */
+  function registrationLabel(status) {
+    return {ACTIVE:'Đang hoạt động',SCHEDULED:'Chưa bắt đầu',FROZEN:'Đang đóng băng',EXPIRED:'Đã kết thúc'}[status] || status || 'Chưa xác định';
+  }
+
   function getInitials(fullName) {
     if (!fullName) return 'HV';
     const parts = fullName.trim().split(/\s+/);
@@ -61,24 +111,10 @@
   }
 
   /**
-   * Kiểm tra điều kiện gói sắp hết hạn (<= 7 ngày hoặc số buổi còn lại <= 3)
+   * Dùng cùng kết quả sắp hết hạn từ API với Web và Hội viên.
    */
   function isExpiringSoon(client) {
-    if (client.remainingSessions <= 3) return true;
-    if (client.expiryDate) {
-      try {
-        const parts = client.expiryDate.split('/');
-        if (parts.length === 3) {
-          const exp = new Date(parts[2], parts[1] - 1, parts[0]);
-          const now = new Date();
-          const diffDays = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
-          if (diffDays <= 7) return true;
-        }
-      } catch (e) {
-        // fallback
-      }
-    }
-    return false;
+    return client.isExpiring === true;
   }
 
   function formatDateDisplay(dateStr) {
@@ -143,7 +179,7 @@
                       r.package_type === 'PT' || r.package_type === 'COMBO' ||
                       r.package_type_snapshot === 'PT_SESSION' || r.package_type_snapshot === 'COMBO';
         const isAssigned = r.assigned_pt_id === currentPtId;
-        return hasPt && isAssigned && ['ACTIVE', 'SCHEDULED'].includes(r.status);
+        return hasPt && isAssigned && ['ACTIVE', 'SCHEDULED', 'FROZEN', 'EXPIRED'].includes(r.status);
       });
 
       const clientMap = new Map();
@@ -160,7 +196,7 @@
         const completedCount = completedBookings.length;
         const total = reg.total_pt_sessions_snapshot ?? reg.total_pt_sessions ?? 0;
         const used = reg.used_pt_sessions !== undefined ? reg.used_pt_sessions : completedCount;
-        const remaining = reg.remaining_pt_sessions !== undefined ? reg.remaining_pt_sessions : Math.max(0, total - used);
+        const remaining = reg.remaining_pt_sessions !== undefined ? reg.remaining_pt_sessions : Math.max(0, total - used - (reg.booked_pt_sessions || 0));
         
         // Buổi tập hoàn thành gần nhất
         const lastCompletedBooking = completedBookings[0];
@@ -177,12 +213,16 @@
           phone: memberPhone,
           branchName: branchName,
           packageName: reg.package_name || reg.package_name_snapshot || 'Chưa cập nhật',
-          expiryDate: reg.end_date ? formatDateDisplay(reg.end_date) : 'Chưa cập nhật',
+          expiryDate: reg.end_date ? formatDateDisplay(reg.end_date) : 'Không giới hạn',
+          registrationStatus: reg.status,
+          isExpiring: reg.is_expiring === true,
+          bookedSessions: reg.booked_pt_sessions,
           totalSessions: total,
           completedSessions: used,
           remainingSessions: remaining,
           lastSessionDate: lastCompletedBooking ? formatDateDisplay(lastCompletedBooking.booking_date) : '-',
           avatarBg: 'var(--primary-light)',
+          assignedPtId: reg.assigned_pt_id,
           sessions: completedBookings.map((b, bIdx) => ({
             sessionNumber: b.session_number || '-',
             date: formatDateDisplay(b.booking_date),
@@ -248,7 +288,15 @@
   /**
    * Vẽ khung layout chính cho màn hình PT02
    */
+  /**
+   * Vẽ khung layout chính cho màn hình PT02 - Gói phụ trách
+   */
   function renderLayout(containerEl) {
+    const uniqueMembers = getUniqueAssignedMembers();
+    const membersCount = uniqueMembers.length;
+    const packagesCount = ClientsState.clients.length;
+    const requestsCount = ClientsState.assignmentRequests ? ClientsState.assignmentRequests.length : 0;
+
     containerEl.innerHTML = `
       <div class="pt-clients-module">
         <!-- Header Thanh tìm kiếm realtime (PT02-US01) -->
@@ -259,7 +307,7 @@
               type="text" 
               id="ptClientsSearchInput" 
               class="pt-search-input" 
-              placeholder="Tìm học viên được phân công..." 
+              placeholder="${ClientsState.currentTab === 'members' ? 'Tìm học viên được phân công...' : (ClientsState.currentTab === 'packages' ? 'Tìm gói tập, học viên phụ trách...' : 'Tìm yêu cầu phụ trách...')}" 
               value="${escapeHtml(ClientsState.searchQuery)}"
               autocomplete="off"
             />
@@ -269,114 +317,140 @@
           </div>
         </div>
 
-        <!-- Bộ chuyển phân loại tab (Tabs / Segmented Control) -->
+        <!-- Bộ chuyển phân loại 3 tab: Học viên phụ trách, Gói đang phụ trách & Yêu cầu phụ trách -->
         <div class="pt-clients-tabs">
-          <button type="button" class="pt-tab-btn ${ClientsState.currentTab === 'assigned' ? 'active' : ''}" data-tab="assigned" id="tabBtnAssigned">
-            <span>Đang phụ trách</span>
-            <span class="pt-tab-count" id="assignedCountBadge">(${new Set(ClientsState.clients.map(c => c.memberId)).size})</span>
+          <button type="button" class="pt-tab-btn ${ClientsState.currentTab === 'members' ? 'active' : ''}" data-tab="members" id="tabBtnMembers">
+            <span>Học viên phụ trách</span>
+            <span class="pt-tab-count" id="membersCountBadge">(${membersCount})</span>
+          </button>
+          <button type="button" class="pt-tab-btn ${ClientsState.currentTab === 'packages' || ClientsState.currentTab === 'assigned' ? 'active' : ''}" data-tab="packages" id="tabBtnPackages">
+            <span>Gói đang phụ trách</span>
+            <span class="pt-tab-count" id="packagesCountBadge">(${packagesCount})</span>
           </button>
           <button type="button" class="pt-tab-btn ${ClientsState.currentTab === 'requests' ? 'active' : ''}" data-tab="requests" id="tabBtnRequests">
-            <span>Yêu cầu phân công</span>
-            <span class="pt-tab-req-badge" id="requestsCountBadge" style="display: ${ClientsState.assignmentRequests.filter(r => r.status === 'PENDING').length > 0 ? 'inline-flex' : 'none'};">
-              ${ClientsState.assignmentRequests.filter(r => r.status === 'PENDING').length}
-            </span>
+            <span>Yêu cầu phụ trách</span>
+            <span class="pt-tab-count" id="requestsCountBadge">(${requestsCount})</span>
           </button>
+          <!-- Nút tương thích ngược cho test automation cũ -->
+          <button type="button" id="tabBtnAssigned" style="display:none;" data-tab="packages"></button>
         </div>
 
         <!-- Vùng danh sách nội dung thay đổi theo Tab -->
         <div class="pt-clients-content" id="ptClientsContentList">
-          ${ClientsState.currentTab === 'assigned' ? renderAssignedClientsList() : renderAssignmentRequestsList()}
+          ${renderContentListHtml()}
         </div>
 
-        <!-- Màn hình phụ: Chi tiết lộ trình & Lịch sử tập luyện (PT02-US02) -->
-        <div class="pt-subscreen" id="clientDetailSubscreen" style="display: none;">
-          <!-- Render động từ openClientDetail() -->
-        </div>
+        <!-- Màn hình phụ 1: Danh sách các gói của học viên (Tab 1 drill-down) -->
+        <div class="pt-subscreen" id="memberPackagesSubscreen" style="display: none;"></div>
 
-        <!-- Bottom Sheet Xác nhận từ chối yêu cầu phân công (PT02-US03) -->
-        <div class="pt-modal-backdrop" id="rejectBackdrop" style="display: none;">
-          <div class="pt-bottom-sheet" id="rejectBottomSheet">
-            <div class="pt-sheet-handle"></div>
-            <div class="pt-sheet-header">
-              <div class="pt-sheet-title">Từ chối yêu cầu phân công</div>
-              <button type="button" class="pt-sheet-close" id="btnCloseRejectSheet">
-                <i class="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-            
-            <div class="pt-sheet-body">
-              <div class="pt-reject-summary-card" id="rejectSummaryCard">
-                <!-- Tóm tắt HV & Gói -->
-              </div>
+        <!-- Màn hình phụ 2: Chi tiết lộ trình & Lịch sử tập luyện (PT02-US02) -->
+        <div class="pt-subscreen" id="clientDetailSubscreen" style="display: none;"></div>
 
-              <!-- Trường chọn lý do định sẵn (TRIGGER) -->
-              <div class="pt-form-group">
-                <label class="pt-form-label">Lý do từ chối <span class="required-star">*</span></label>
-                <div class="pt-reason-options">
-                  <label class="pt-radio-option">
-                    <input type="radio" name="rejectReason" value="Trùng ca làm việc" checked />
-                    <span class="radio-label">Trùng ca làm việc</span>
-                  </label>
-                  <label class="pt-radio-option">
-                    <input type="radio" name="rejectReason" value="Đã kín ca phụ trách" />
-                    <span class="radio-label">Đã kín ca phụ trách</span>
-                  </label>
-                  <label class="pt-radio-option">
-                    <input type="radio" name="rejectReason" value="Không phù hợp mục tiêu tập luyện" />
-                    <span class="radio-label">Không phù hợp mục tiêu tập luyện</span>
-                  </label>
-                  <label class="pt-radio-option">
-                    <input type="radio" name="rejectReason" value="Khác" id="radioReasonOther" />
-                    <span class="radio-label">Khác (nhập chi tiết)</span>
-                  </label>
-                </div>
-              </div>
+      </div>
+    `;
+  }
 
-              <!-- Chi tiết lý do khác: CONDITIONAL (Hiện khi chọn 'Khác', Ẩn khi chọn lý do khác) -->
-              <div class="pt-form-group" id="otherReasonGroup" style="display: none;">
-                <label class="pt-form-label">Chi tiết lý do khác <span class="required-star">*</span></label>
-                <textarea 
-                  id="rejectOtherReasonText" 
-                  class="pt-textarea" 
-                  rows="3" 
-                  maxlength="255" 
-                  placeholder="Vui lòng nhập lý do cụ thể để chuyển tiếp quản lý..."
-                ></textarea>
-                <div class="char-count"><span id="charCounter">0</span>/255</div>
-              </div>
+  /**
+   * Helper render một thẻ gói tập chi tiết (Dùng cho cả Tab Gói đang phụ trách và Màn hình Gói của học viên)
+   */
+  function renderPackageCard(client, source) {
+    const initials = getInitials(client.fullName);
+    const isExpiring = isExpiringSoon(client);
+    const percent = client.totalSessions > 0 ? Math.round((client.completedSessions / client.totalSessions) * 100) : 0;
 
-              <!-- Nút hành động xác nhận từ chối -->
-              <div class="pt-sheet-actions">
-                <button type="button" class="pt-btn-secondary" id="btnCancelReject">Hủy bỏ</button>
-                <button type="button" class="pt-btn-danger" id="btnConfirmReject">
-                  <i class="fa-solid fa-ban"></i> Xác nhận từ chối
-                </button>
-              </div>
+    return `
+      <div class="pt-client-card" role="button" tabindex="0" onclick="ParadisePTClients.openClientDetail('${client.id}', '${source}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+        <!-- Top Row: Avatar, Tên, Mã & Phone, Badge trạng thái -->
+        <div class="pt-card-top">
+          <div class="pt-avatar" style="background: ${client.avatarBg};">
+            ${escapeHtml(initials)}
+          </div>
+          <div class="pt-client-meta">
+            <div class="pt-client-name">${escapeHtml(client.fullName)}</div>
+            <div class="pt-client-subinfo">
+              <span class="pt-badge-code">${escapeHtml(client.code)}</span>
+              <span class="pt-divider-dot">·</span>
+              <span class="pt-phone-text">${formatPhone(client.phone)}</span>
             </div>
           </div>
+          <div class="pt-status-badge-wrap">
+            ${isExpiring ? `
+              <span class="pt-badge-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i> Sắp hết hạn
+              </span>
+            ` : `
+              <span class="pt-badge-active">
+                <i class="fa-solid fa-circle-check"></i> ${escapeHtml(registrationLabel(client.registrationStatus))}
+              </span>
+            `}
+          </div>
+        </div>
+
+        <!-- Package info -->
+        <div class="pt-card-package">
+          <i class="fa-solid fa-cube pt-pkg-icon"></i>
+          <span class="pt-pkg-name">${escapeHtml(client.packageName)}</span>
+          <span class="pt-divider-dot">·</span>
+          <span class="pt-pkg-exp">HSD: ${client.expiryDate}</span>
+        </div>
+
+        <!-- Key Metrics Row: Buổi PT còn lại | Lần cuối -->
+        <div class="pt-card-stats-grid">
+          <div class="pt-stat-box">
+            <div class="pt-stat-label">Buổi PT còn lại</div>
+            <div class="pt-stat-val highlight">
+              <strong>${client.remainingSessions}</strong> <span class="unit">Buổi PT</span>
+            </div>
+          </div>
+          <div class="pt-stat-box">
+            <div class="pt-stat-label">Lần cuối</div>
+            <div class="pt-stat-val">${client.lastSessionDate || '-'}</div>
+          </div>
+        </div>
+
+        <!-- Progress Bar (Lộ trình tập luyện) -->
+        <div class="pt-card-progress-wrap">
+          <div class="pt-progress-header">
+            <span class="pt-progress-text">Đã tập <strong>${client.completedSessions} / ${client.totalSessions}</strong> buổi</span>
+            <span class="pt-progress-percent">${percent}%</span>
+          </div>
+          <div class="pt-progress-track">
+            <div class="pt-progress-fill" style="width: ${percent}%;"></div>
+          </div>
+          <div class="pt-booked-tag">
+            Đã đặt: ${client.bookedSessions ?? '--'} buổi
+          </div>
+        </div>
+
+        <!-- Footer action link -->
+        <div class="pt-card-footer">
+          <span class="pt-view-roadmap-link">
+            Xem lộ trình & lịch sử tập
+            <i class="fa-solid fa-chevron-right link-icon"></i>
+          </span>
         </div>
       </div>
     `;
   }
 
   /**
-   * Render danh sách Thẻ học viên phụ trách (PT02-US01)
-   * Tuyệt đối không hiển thị công nợ!
+   * TAB 1: Render danh sách Học viên phụ trách (Unique Members)
+   * Mỗi học viên chỉ xuất hiện đúng 1 dòng dù có nhiều gói PT
    */
-  function renderAssignedClientsList() {
-    let filtered = ClientsState.clients;
+  function renderAssignedMembersList() {
+    let uniqueMembers = getUniqueAssignedMembers();
     const query = ClientsState.searchQuery.trim().toLowerCase();
 
     if (query) {
-      filtered = filtered.filter(c => {
-        const nameMatch = c.fullName.toLowerCase().includes(query);
-        const phoneMatch = c.phone.includes(query) || formatPhone(c.phone).includes(query);
-        const codeMatch = c.code.toLowerCase().includes(query);
+      uniqueMembers = uniqueMembers.filter(m => {
+        const nameMatch = m.fullName.toLowerCase().includes(query);
+        const phoneMatch = m.phone.includes(query) || formatPhone(m.phone).includes(query);
+        const codeMatch = m.code.toLowerCase().includes(query);
         return nameMatch || phoneMatch || codeMatch;
       });
     }
 
-    if (filtered.length === 0) {
+    if (uniqueMembers.length === 0) {
       return `
         <div class="pt-empty-state">
           <div class="pt-empty-icon">
@@ -390,24 +464,24 @@
 
     return `
       <div class="pt-client-cards-list">
-        ${filtered.map(client => {
-          const initials = getInitials(client.fullName);
-          const isExpiring = isExpiringSoon(client);
-          const percent = client.totalSessions > 0 ? Math.round((client.completedSessions / client.totalSessions) * 100) : 0;
+        ${uniqueMembers.map(member => {
+          const initials = getInitials(member.fullName);
+          const pkgCount = member.packages.length;
+          const isExpiring = member.isExpiring;
 
           return `
-            <div class="pt-client-card" role="button" tabindex="0" onclick="ParadisePTClients.openClientDetail('${client.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="pt-client-card pt-member-summary-card" role="button" tabindex="0" onclick="ParadisePTClients.openMemberPackages('${member.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
               <!-- Top Row: Avatar, Tên, Mã & Phone, Badge trạng thái -->
               <div class="pt-card-top">
-                <div class="pt-avatar" style="background: ${client.avatarBg};">
-                  ${initials}
+                <div class="pt-avatar" style="background: ${member.avatarBg};">
+                  ${escapeHtml(initials)}
                 </div>
                 <div class="pt-client-meta">
-                  <div class="pt-client-name">${escapeHtml(client.fullName)}</div>
+                  <div class="pt-client-name">${escapeHtml(member.fullName)}</div>
                   <div class="pt-client-subinfo">
-                    <span class="pt-badge-code">${client.code}</span>
+                    <span class="pt-badge-code">${escapeHtml(member.code)}</span>
                     <span class="pt-divider-dot">·</span>
-                    <span class="pt-phone-text">${formatPhone(client.phone)}</span>
+                    <span class="pt-phone-text">${formatPhone(member.phone)}</span>
                   </div>
                 </div>
                 <div class="pt-status-badge-wrap">
@@ -417,51 +491,28 @@
                     </span>
                   ` : `
                     <span class="pt-badge-active">
-                      <i class="fa-solid fa-circle-check"></i> Đang hoạt động
+                      <i class="fa-solid fa-circle-check"></i> ${escapeHtml(registrationLabel(member.registrationStatus))}
                     </span>
                   `}
                 </div>
               </div>
 
-              <!-- Package info -->
-              <div class="pt-card-package">
-                <i class="fa-solid fa-cube pt-pkg-icon"></i>
-                <span class="pt-pkg-name">${escapeHtml(client.packageName)}</span>
-                <span class="pt-divider-dot">·</span>
-                <span class="pt-pkg-exp">HSD: ${client.expiryDate}</span>
+              <!-- Package count & summary -->
+              <div class="pt-card-package" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                <span class="pt-pkg-pill-badge">
+                  <i class="fa-solid fa-boxes-stacked"></i> ${pkgCount} gói PT đang phụ trách
+                </span>
+                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">
+                  Tổng còn: <strong style="color: #237b58;">${member.totalRemainingSessions} buổi</strong>
+                </span>
               </div>
 
-              <!-- 2 Metric Boxes: Buổi PT còn lại & Lần cuối (Tuyệt đối không có công nợ) -->
-              <div class="pt-metrics-grid">
-                <div class="pt-metric-box">
-                  <div class="pt-metric-label">Buổi PT còn lại</div>
-                  <div class="pt-metric-val ${isExpiring ? 'val-warning' : 'val-primary'}">
-                    ${client.remainingSessions} <span class="pt-metric-unit">Buổi PT</span>
-                  </div>
-                </div>
-                <div class="pt-metric-box">
-                  <div class="pt-metric-label">Lần cuối</div>
-                  <div class="pt-metric-val val-secondary">
-                    ${client.lastSessionDate || '-'}
-                  </div>
-                </div>
-              </div>
-
-              <!-- THANH TIẾN ĐỘ BUỔI TẬP (Progress Bar trực quan) -->
-              <div class="pt-progress-section">
-                <div class="pt-progress-labels">
-                  <span class="pt-prog-text">Đã tập <strong>${client.completedSessions} / ${client.totalSessions}</strong> buổi</span>
-                  <span class="pt-prog-percent">${percent}%</span>
-                </div>
-                <div class="pt-progress-track">
-                  <div class="pt-progress-fill" style="width: ${percent}%;"></div>
-                </div>
-              </div>
-
-              <!-- Tap to view hint -->
-              <div class="pt-card-footer-hint">
-                <span>Xem lộ trình & lịch sử tập</span>
-                <i class="fa-solid fa-chevron-right"></i>
+              <!-- Footer action link -->
+              <div class="pt-card-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px dashed var(--border-color); margin-top: 10px;">
+                <span style="font-size: 12px; color: #237b58; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-list-ul"></i> Xem danh sách các gói đang tập
+                </span>
+                <i class="fa-solid fa-chevron-right" style="color: #237b58; font-size: 12px;"></i>
               </div>
             </div>
           `;
@@ -471,10 +522,150 @@
   }
 
   /**
+   * TAB 2: Render danh sách Gói đang phụ trách (Danh sách từng hợp đồng)
+   */
+  function renderAssignedPackagesList() {
+    let filtered = ClientsState.clients;
+    const query = ClientsState.searchQuery.trim().toLowerCase();
+
+    if (query) {
+      filtered = filtered.filter(c => {
+        const nameMatch = c.fullName.toLowerCase().includes(query);
+        const phoneMatch = c.phone.includes(query) || formatPhone(c.phone).includes(query);
+        const codeMatch = c.code.toLowerCase().includes(query);
+        const pkgMatch = (c.packageName || '').toLowerCase().includes(query);
+        return nameMatch || phoneMatch || codeMatch || pkgMatch;
+      });
+    }
+
+    if (filtered.length === 0) {
+      return `
+        <div class="pt-empty-state">
+          <div class="pt-empty-icon">
+            <i class="fa-solid fa-boxes-stacked"></i>
+          </div>
+          <div class="pt-empty-title">${query ? 'Không tìm thấy gói tập phù hợp' : 'Chưa có gói tập nào được phân công'}</div>
+          <div class="pt-empty-desc">${query ? 'Thử tìm kiếm với tên học viên hoặc tên gói khác.' : 'Khi có hợp đồng gói tập mới được phân công, thông tin sẽ hiển thị tại đây.'}</div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="pt-client-cards-list">
+        ${filtered.map(client => renderPackageCard(client, 'packages')).join('')}
+      </div>
+    `;
+  }
+
+  /**
+   * Mở Màn hình Danh sách các gói của một Học viên (Drill-down từ Tab 1)
+   * CHỈ liệt kê các gói của học viên đó mà PT hiện tại đang phụ trách
+   */
+  function openMemberPackages(memberId) {
+    const uniqueMembers = getUniqueAssignedMembers();
+    const member = uniqueMembers.find(m => m.id === memberId || m.memberId === memberId);
+    if (!member) {
+      window.ptApp?.showToast('Học viên không còn trong phạm vi phụ trách.', 'warning');
+      return;
+    }
+    ClientsState.selectedMemberId = memberId;
+    ClientsState.navigationSource = 'members';
+
+    const subscreen = document.getElementById('memberPackagesSubscreen');
+    if (!subscreen) return;
+
+    renderMemberPackagesSubscreen(subscreen, member);
+    subscreen.style.display = 'flex';
+  }
+
+  /**
+   * Đóng Màn hình Danh sách các gói của Học viên
+   */
+  function closeMemberPackages() {
+    const subscreen = document.getElementById('memberPackagesSubscreen');
+    if (subscreen) {
+      subscreen.style.display = 'none';
+      subscreen.innerHTML = '';
+    }
+    ClientsState.selectedMemberId = null;
+    ClientsState.navigationSource = null;
+  }
+
+  /**
+   * Vẽ nội dung Màn hình Danh sách các gói của Học viên
+   */
+  function renderMemberPackagesSubscreen(subscreen, member) {
+    const initials = getInitials(member.fullName);
+    subscreen.innerHTML = `
+      <div class="pt-detail-view-inner">
+        <!-- Top Navigation Bar: Nút Quay lại [←] và Tiêu đề -->
+        <div class="pt-subscreen-header">
+          <button type="button" class="pt-back-btn" title="Quay lại danh sách học viên" aria-label="Quay lại danh sách học viên" onclick="ParadisePTClients.closeMemberPackages()">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <div class="pt-subscreen-title">Gói tập của học viên</div>
+          <div class="pt-subscreen-action">
+            <a href="tel:${member.phone}" class="pt-phone-call-btn" title="Gọi điện cho học viên">
+              <i class="fa-solid fa-phone"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="pt-subscreen-scrollable">
+          <!-- Mini Profile Card của Học viên -->
+          <div class="pt-member-info-banner" style="background: var(--bg-card); padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 14px; display: flex; align-items: center; gap: 14px;">
+            <div class="pt-avatar large" style="background: ${member.avatarBg}; width: 46px; height: 46px; font-size: 17px; font-weight: 700; flex-shrink: 0;">
+              ${escapeHtml(initials)}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 800; font-size: 16px; color: var(--text-main); line-height: 1.3;">${escapeHtml(member.fullName)}</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px; display: flex; gap: 8px; align-items: center;">
+                <span class="pt-badge-code">${escapeHtml(member.code)}</span>
+                <span>·</span>
+                <span>${formatPhone(member.phone)}</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                <i class="fa-solid fa-building-circle-check" style="color: #237b58;"></i> ${escapeHtml(member.branchName)}
+              </div>
+            </div>
+          </div>
+
+          <!-- Section title -->
+          <div style="margin-bottom: 12px; padding: 0 2px;">
+            <div style="font-size: 14px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-boxes-stacked" style="color: #237b58;"></i> Các gói PT đang phụ trách (${member.packages.length})
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+              Bấm vào từng gói để xem lộ trình & tiến độ chi tiết
+            </div>
+          </div>
+
+          <!-- Danh sách các gói tập mà PT này phụ trách cho học viên -->
+          <div class="pt-client-cards-list">
+            ${member.packages.map(pkg => renderPackageCard(pkg, 'members')).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
    * Render danh sách Thẻ yêu cầu phân công PT (PT02-US03)
    */
   function renderAssignmentRequestsList() {
-    const requests = ClientsState.assignmentRequests.filter(r => r.status === 'PENDING');
+    let requests = ClientsState.assignmentRequests || [];
+    const query = ClientsState.searchQuery.trim().toLowerCase();
+
+    if (query) {
+      requests = requests.filter(req => {
+        const nameMatch = (req.studentName || '').toLowerCase().includes(query);
+        const phoneMatch = (req.phone || '').includes(query) || formatPhone(req.phone || '').includes(query);
+        const codeMatch = (req.studentCode || '').toLowerCase().includes(query);
+        const pkgMatch = (req.packageName || '').toLowerCase().includes(query);
+        const branchMatch = (req.branchName || '').toLowerCase().includes(query);
+        return nameMatch || phoneMatch || codeMatch || pkgMatch || branchMatch;
+      });
+    }
 
     if (requests.length === 0) {
       return `
@@ -482,35 +673,31 @@
           <div class="pt-empty-icon success-glow">
             <i class="fa-solid fa-clipboard-check"></i>
           </div>
-          <div class="pt-empty-title">Không có yêu cầu phân công nào đang chờ xử lý</div>
-          <div class="pt-empty-desc">Tất cả các yêu cầu ghép PT mới từ học viên đã được bạn tiếp nhận hoặc điều phối thành công.</div>
+          <div class="pt-empty-title">${query ? 'Không tìm thấy yêu cầu phù hợp' : 'Chưa có yêu cầu phụ trách nào'}</div>
+          <div class="pt-empty-desc">${query ? 'Thử tìm kiếm với từ khóa khác.' : 'Khi có yêu cầu phụ trách mới hoặc lịch sử phân công, thông tin sẽ hiển thị tại đây.'}</div>
         </div>
       `;
     }
 
     return `
       <div class="pt-request-cards-list">
-        <div class="pt-section-hint">
-          <i class="fa-solid fa-circle-info"></i>
-          <span>Bạn có <strong>${requests.length}</strong> yêu cầu chọn PT mới từ hội viên cần phản hồi:</span>
-        </div>
         ${requests.map(req => {
           const initials = getInitials(req.studentName);
           return `
             <div class="pt-request-card" id="req-card-${req.id}">
               <div class="pt-card-top">
                 <div class="pt-avatar" style="background: ${req.avatarBg};">
-                  ${initials}
+                  ${escapeHtml(initials)}
                 </div>
                 <div class="pt-client-meta">
                   <div class="pt-client-name">${escapeHtml(req.studentName)}</div>
                   <div class="pt-client-subinfo">
-                    <span class="pt-badge-code">${req.studentCode}</span>
+                    <span class="pt-badge-code">${escapeHtml(req.studentCode)}</span>
                     <span class="pt-divider-dot">·</span>
                     <span class="pt-phone-text">${formatPhone(req.phone)}</span>
                   </div>
                 </div>
-                <span class="pt-badge-pending">Chờ tiếp nhận</span>
+                <span class="pt-badge-pending">${escapeHtml({PENDING:'Yêu cầu cũ chưa xử lý',ACCEPTED:'Đã tiếp nhận',REJECTED:'Đã từ chối',CANCELLED:'Đã hủy'}[req.status] || req.status)}</span>
               </div>
 
               <div class="pt-req-detail-rows">
@@ -534,15 +721,6 @@
                 ` : ''}
               </div>
 
-              <!-- Cụm 2 nút hành động trực tiếp trên thẻ (PT02-US03) -->
-              <div class="pt-req-actions">
-                <button type="button" class="pt-btn-reject" onclick="ParadisePTClients.openRejectModal('${req.id}')">
-                  <i class="fa-solid fa-xmark"></i> Từ chối
-                </button>
-                <button type="button" class="pt-btn-accept" onclick="ParadisePTClients.acceptRequest('${req.id}')">
-                  <i class="fa-solid fa-check"></i> Đồng ý tiếp nhận
-                </button>
-              </div>
             </div>
           `;
         }).join('')}
@@ -553,13 +731,21 @@
   /**
    * Mở Màn hình Chi tiết lộ trình & Lịch sử tập luyện của học viên (PT02-US02)
    */
-  function openClientDetail(clientId) {
+  function openClientDetail(clientId, source) {
+    if (source) {
+      ClientsState.navigationSource = source;
+    }
     const client = ClientsState.clients.find(c => c.id === clientId || c.memberId === clientId);
-    if (!client) return;
+    if (!client) { window.ptApp?.showToast('Hồ sơ không còn trong phạm vi phụ trách.', 'warning'); return; }
 
     ClientsState.selectedClientId = clientId;
     const subscreen = document.getElementById('clientDetailSubscreen');
     if (!subscreen) return;
+
+    if (ClientsState.navigationSource === 'members') {
+      const pkgSubscreen = document.getElementById('memberPackagesSubscreen');
+      if (pkgSubscreen) pkgSubscreen.style.display = 'none';
+    }
 
     const initials = getInitials(client.fullName);
     const percent = client.totalSessions > 0 ? Math.round((client.completedSessions / client.totalSessions) * 100) : 0;
@@ -569,7 +755,7 @@
       <div class="pt-detail-view-inner">
         <!-- Top Navigation Bar: Nút Quay lại [←] và Tiêu đề -->
         <div class="pt-subscreen-header">
-          <button type="button" class="pt-back-btn" title="Quay lại danh sách học viên" aria-label="Quay lại danh sách học viên" onclick="ParadisePTClients.closeClientDetail()">
+          <button type="button" class="pt-back-btn" title="Quay lại danh sách" aria-label="Quay lại danh sách" onclick="ParadisePTClients.closeClientDetail()">
             <i class="fa-solid fa-arrow-left"></i>
           </button>
           <div class="pt-subscreen-title">Lộ trình tập luyện</div>
@@ -585,12 +771,12 @@
           <div class="pt-detail-profile-card">
             <div class="pt-profile-header">
               <div class="pt-avatar large" style="background: ${client.avatarBg};">
-                ${initials}
+                ${escapeHtml(initials)}
               </div>
               <div class="pt-profile-info">
                 <div class="pt-profile-name">${escapeHtml(client.fullName)}</div>
                 <div class="pt-profile-meta">
-                  <span>${client.code}</span>
+                  <span>${escapeHtml(client.code)}</span>
                   <span class="pt-divider-dot">·</span>
                   <span>${formatPhone(client.phone)}</span>
                 </div>
@@ -603,7 +789,7 @@
             <div class="pt-profile-package-box">
               <div class="pt-pkg-title-row">
                 <span class="pt-pkg-badge-title">${escapeHtml(client.packageName)}</span>
-                ${isExpiring ? `<span class="pt-badge-warning-mini">Sắp hết hạn</span>` : `<span class="pt-badge-active-mini">Đang hoạt động</span>`}
+                ${isExpiring ? `<span class="pt-badge-warning-mini">Sắp hết hạn</span>` : `<span class="pt-badge-active-mini" >${escapeHtml(registrationLabel(client.registrationStatus))}</span>`}
               </div>
               <div class="pt-pkg-stats-row">
                 <div class="pt-pkg-stat">
@@ -626,7 +812,7 @@
               <div class="pt-progress-track large">
                 <div class="pt-progress-fill" style="width: ${percent}%;"></div>
               </div>
-              <div class="pt-roadmap-percent-indicator">Tiến độ hoàn thành: <strong>${percent}%</strong></div>
+              <div class="pt-roadmap-percent-indicator">Tiến độ hoàn thành: <strong>${percent}%</strong> · Đã đặt: ${client.bookedSessions ?? '--'} buổi</div>
             </div>
           </div>
 
@@ -646,7 +832,7 @@
                   <i class="fa-regular fa-calendar-xmark"></i>
                 </div>
                 <div class="empty-hist-title">Học viên chưa có buổi tập hoàn thành nào trong lộ trình</div>
-                <div class="empty-hist-desc">Tiến độ hiện tại là 0 / ${client.totalSessions} buổi. Khi bạn và học viên hoàn tất buổi tập đầu tiên, giáo án và ghi chú thể lực sẽ được ghi nhận tại đây.</div>
+                <div class="empty-hist-desc">Tiến độ hiện tại là 0 / ${client.totalSessions} buổi. Khi bạn và học viên hoàn tất buổi tập đầu tiên, đánh giá của PT sẽ được ghi nhận tại đây.</div>
               </div>
             ` : `
               <div class="pt-session-timeline">
@@ -672,16 +858,9 @@
                       <div class="pt-timeline-card-body">
                         <div class="pt-assessment-block">
                           <div class="block-title">
-                            <i class="fa-solid fa-clipboard-list"></i> Nội dung bài tập & mức tạ:
+                            <i class="fa-solid fa-user-check"></i> Đánh giá của PT:
                           </div>
-                          <div class="block-content">${escapeHtml(sess.notes)}</div>
-                        </div>
-
-                        <div class="pt-assessment-block fitness">
-                          <div class="block-title">
-                            <i class="fa-solid fa-heart-pulse"></i> Đánh giá thể lực PT:
-                          </div>
-                          <div class="block-content">${escapeHtml(sess.fitnessAssessment)}</div>
+                          <div class="block-content">${escapeHtml([sess.notes, sess.fitnessAssessment].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(' · ') || 'Chưa có đánh giá')}</div>
                         </div>
                       </div>
                     </div>
@@ -694,11 +873,11 @@
       </div>
     `;
 
-    subscreen.style.display = 'block';
+    subscreen.style.display = 'flex';
   }
 
   /**
-   * Đóng Màn hình Chi tiết lộ trình
+   * Đóng Màn hình Chi tiết lộ trình (Hỗ trợ điều hướng ngược về đúng màn hình trước đó)
    */
   function closeClientDetail() {
     const subscreen = document.getElementById('clientDetailSubscreen');
@@ -707,302 +886,115 @@
       subscreen.innerHTML = '';
     }
     ClientsState.selectedClientId = null;
-  }
-
-  /**
-   * PT bấm [ Đồng ý tiếp nhận ] yêu cầu phân công (PT02-US03)
-   */
-  async function acceptRequest(requestId) {
-    const reqIndex = ClientsState.assignmentRequests.findIndex(r => r.id === requestId);
-    if (reqIndex === -1) return;
-
-    const req = ClientsState.assignmentRequests[reqIndex];
-    if (req.status !== 'PENDING' || req.submitting) return;
-    req.submitting = true;
-
-    try {
-      // Gọi API cập nhật ACCEPTED trên Backend PostgreSQL
-      if (!window.apiClient?.pt?.respondAssignment) throw new Error('Không thể kết nối máy chủ.');
-      {
-        const res = await window.apiClient.pt.respondAssignment(requestId, 'ACCEPTED', 'PT đã đồng ý tiếp nhận học viên.');
-        if (res && res.error) {
-          throw new Error(res.error);
-        }
+    // Nếu mở từ danh sách gói của học viên (Tab 1), quay lại màn hình danh sách gói của học viên đó
+    if (ClientsState.navigationSource === 'members') {
+      const pkgSubscreen = document.getElementById('memberPackagesSubscreen');
+      if (pkgSubscreen) {
+        pkgSubscreen.style.display = 'flex';
       }
-
-      showToast(`Đã tiếp nhận học viên ${escapeHtml(req.studentName)} thành công!`, 'success');
-
-      // Tải lại dữ liệu trực tiếp từ PostgreSQL để học viên vào danh sách chính thức
-      await fetchClientsData();
-
-      // Đồng bộ sang module Notifications & Header
-      if (window.ParadisePTNotifications && typeof window.ParadisePTNotifications.notifyAssignmentHandled === 'function') {
-        window.ParadisePTNotifications.notifyAssignmentHandled(requestId, 'ACCEPTED', req.studentName);
-      }
-    } catch (err) {
-      console.error('Accept request error:', err);
-      showToast(err.message || 'Không thể tiếp nhận yêu cầu. Vui lòng thử lại.', 'error');
-    } finally { req.submitting = false; }
-  }
-
-  let rejectPopupInstance = null;
-
-  /**
-   * Mở DevExtreme dxPopup Từ chối yêu cầu phân công (PT02-US03)
-   */
-  function openRejectModal(requestId) {
-    const req = ClientsState.assignmentRequests.find(r => r.id === requestId);
-    if (!req) return;
-
-    ClientsState.rejectingRequestId = requestId;
-
-    if (rejectPopupInstance) {
-      rejectPopupInstance.dispose();
-      rejectPopupInstance = null;
     }
-
-    const $popupHost = $('<div id="ptRejectDxPopupHost">').appendTo('body');
-    rejectPopupInstance = $popupHost.dxPopup({
-      title: 'Từ chối yêu cầu phân công',
-      width: () => Math.min(360, window.innerWidth - 24),
-      height: 'auto',
-      maxHeight: '85vh',
-      shadingColor: 'rgba(0, 0, 0, 0.65)',
-      showCloseButton: true,
-      dragEnabled: false,
-      hideOnOutsideClick: true,
-      contentTemplate: function () {
-        return $(`
-          <div class="pt-dx-reject-content" style="padding: 4px 0;">
-            <div class="pt-reject-summary-card" style="margin-bottom: 12px; background: var(--border-color); padding: 10px; border-radius: 8px; font-size: 12px; line-height: 1.5;">
-              <div style="font-weight: 700; color: var(--text-main); margin-bottom: 4px;">${escapeHtml(req.studentName)} <span style="font-weight: 400; color: var(--text-muted, #65736d);">(${req.studentCode})</span></div>
-              <div style="color: var(--text-main); margin-bottom: 2px;"><i class="fa-solid fa-cube" style="color: var(--primary);"></i> ${escapeHtml(req.packageName)}</div>
-              <div style="color: var(--text-muted, #65736d); font-size: 12px;"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(req.branchName)}</div>
-            </div>
-
-            <div class="pt-form-group" style="margin-bottom: 12px;">
-              <label class="pt-form-label" style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 8px;">
-                Lý do từ chối <span style="color: #c43d40;">*</span>
-              </label>
-              <div id="dxRadioGroupRejectReasons" style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                  <input type="radio" name="dxRejectReason" value="Trùng ca làm việc" checked />
-                  <span>Trùng ca làm việc</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                  <input type="radio" name="dxRejectReason" value="Đã kín ca phụ trách" />
-                  <span>Đã kín ca phụ trách</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                  <input type="radio" name="dxRejectReason" value="Không phù hợp mục tiêu tập luyện" />
-                  <span>Không phù hợp mục tiêu tập luyện</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                  <input type="radio" name="dxRejectReason" value="Khác" id="dxRadioReasonOther" />
-                  <span>Khác (nhập chi tiết)</span>
-                </label>
-              </div>
-            </div>
-
-            <div id="dxOtherReasonGroup" style="display: none; margin-bottom: 10px;">
-              <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 4px;">
-                Chi tiết lý do khác <span style="color: #c43d40;">*</span>
-              </label>
-              <textarea 
-                id="dxRejectOtherReasonText" 
-                class="pt-textarea" 
-                rows="3" 
-                maxlength="255" 
-                placeholder="Vui lòng nhập lý do cụ thể để chuyển tiếp quản lý..."
-                style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 8px; font-size: 12px; resize: vertical;"
-              ></textarea>
-              <div style="text-align: right; font-size: 12px; color: var(--text-muted, #65736d); margin-top: 2px;"><span id="dxCharCounter">0</span>/255</div>
-            </div>
-          </div>
-        `);
-      },
-      toolbarItems: [
-        {
-          widget: 'dxButton',
-          toolbar: 'bottom',
-          location: 'after',
-          options: {
-            text: 'Hủy bỏ',
-            stylingMode: 'outlined',
-            type: 'normal',
-            onClick: function () {
-              closeRejectModal();
-            }
-          }
-        },
-        {
-          widget: 'dxButton',
-          toolbar: 'bottom',
-          location: 'after',
-          options: {
-            text: 'Xác nhận từ chối',
-            type: 'danger',
-            icon: 'ban',
-            onClick: async function (btnEvent) {
-              const selectedRadio = $('input[name="dxRejectReason"]:checked').val();
-              const reasonValue = selectedRadio || 'Trùng ca làm việc';
-
-              let finalNote = reasonValue;
-              if (reasonValue === 'Khác') {
-                const customText = $('#dxRejectOtherReasonText').val()?.trim() || '';
-                if (!customText) {
-                  showToast('Vui lòng nhập chi tiết lý do từ chối khi chọn "Khác".', 'warning');
-                  $('#dxRejectOtherReasonText').focus();
-                  return;
-                }
-                if (customText.length > 255) {
-                  showToast('Lý do tối đa 255 ký tự.', 'warning');
-                  return;
-                }
-                finalNote = customText;
-              }
-
-              btnEvent.component.option('disabled', true);
-              btnEvent.component.option('text', 'Đang xử lý...');
-
-              try {
-                if (!window.apiClient?.pt?.respondAssignment) throw new Error('Không thể kết nối máy chủ.');
-                const res = await window.apiClient.pt.respondAssignment(requestId, 'REJECTED', finalNote);
-                if (res && res.error) throw new Error(res.error);
-
-                closeRejectModal();
-                showToast(`Đã từ chối yêu cầu của học viên ${escapeHtml(req.studentName)}.`, 'info');
-                await fetchClientsData();
-
-                if (window.ParadisePTNotifications?.notifyAssignmentHandled) {
-                  window.ParadisePTNotifications.notifyAssignmentHandled(requestId, 'REJECTED', req.studentName);
-                }
-              } catch (err) {
-                btnEvent.component.option('disabled', false);
-                btnEvent.component.option('text', 'Xác nhận từ chối');
-                showToast(err.message || 'Không thể cập nhật trạng thái yêu cầu. Vui lòng thử lại.', 'error');
-              }
-            }
-          }
-        }
-      ],
-      onShown: function () {
-        $('input[name="dxRejectReason"]').on('change', function () {
-          const isOther = $(this).val() === 'Khác';
-          $('#dxOtherReasonGroup').toggle(isOther);
-          if (isOther) $('#dxRejectOtherReasonText').focus();
-        });
-
-        $('#dxRejectOtherReasonText').on('input', function () {
-          $('#dxCharCounter').text($(this).val().length);
-        });
-      },
-      onHidden: function () {
-        if (rejectPopupInstance) {
-          rejectPopupInstance.dispose();
-          rejectPopupInstance = null;
-        }
-        $popupHost.remove();
-        ClientsState.rejectingRequestId = null;
-      }
-    }).dxPopup('instance');
-
-    rejectPopupInstance.show();
   }
 
   /**
-   * Đóng Bottom Sheet Từ chối
+   * Sinh mã HTML danh sách nội dung theo Tab đang kích hoạt
    */
-  function closeRejectModal() {
-    if (rejectPopupInstance) {
-      rejectPopupInstance.hide();
-    }
-    const backdrop = document.getElementById('rejectBackdrop');
-    if (backdrop) backdrop.style.display = 'none';
-    ClientsState.rejectingRequestId = null;
-  }
-
-  /**
-   * Xác nhận từ chối yêu cầu phân công (fallback)
-   */
-  async function confirmReject() {
-    closeRejectModal();
-  }
-
-  /**
-   * Cập nhật danh sách nội dung theo tab hiện tại
-   */
-  function renderContentList() {
-    const contentList = document.getElementById('ptClientsContentList');
-    if (!contentList) return;
-
+  function renderContentListHtml() {
     if (ClientsState.hasError) {
-      contentList.innerHTML = '<div class="pt-empty-state">Không thể tải danh sách học viên. <button type="button" class="btn btn-secondary" id="btnRetryClients" title="Thử lại"><i class="fa-solid fa-rotate-right"></i></button></div>';
-      return;
+      return '<div class="pt-empty-state">Không thể tải danh sách. <button type="button" class="btn btn-secondary" id="btnRetryClients" title="Thử lại"><i class="fa-solid fa-rotate-right"></i> Thử lại</button></div>';
     }
     if (ClientsState.isLoading && ClientsState.clients.length === 0 && ClientsState.assignmentRequests.length === 0) {
-      contentList.innerHTML = `
+      return `
         <div class="pt-empty-state">
           <div class="pt-empty-icon" style="color: var(--primary, #237b58);">
             <i class="fa-solid fa-circle-notch fa-spin"></i>
           </div>
-          <div class="pt-empty-title">Đang nạp dữ liệu học viên...</div>
-
+          <div class="pt-empty-title">Đang nạp dữ liệu...</div>
         </div>
       `;
-      return;
     }
 
-    if (ClientsState.currentTab === 'assigned') {
-      contentList.innerHTML = renderAssignedClientsList();
+    if (ClientsState.currentTab === 'members') {
+      return renderAssignedMembersList();
+    } else if (ClientsState.currentTab === 'packages' || ClientsState.currentTab === 'assigned') {
+      return renderAssignedPackagesList();
     } else {
-      contentList.innerHTML = renderAssignmentRequestsList();
+      return renderAssignmentRequestsList();
     }
+  }
+
+  /**
+   * Cập nhật vùng hiển thị nội dung
+   */
+  function renderContentList() {
+    const contentList = document.getElementById('ptClientsContentList');
+    if (!contentList) return;
+    contentList.innerHTML = renderContentListHtml();
   }
 
   /**
    * Cập nhật badges số lượng trên các tab
    */
   function updateBadges() {
+    const uniqueMembers = getUniqueAssignedMembers();
+    const membersCount = uniqueMembers.length;
+    const packagesCount = ClientsState.clients.length;
+
+    const membersBadge = document.getElementById('membersCountBadge');
+    if (membersBadge) {
+      membersBadge.textContent = `(${membersCount})`;
+    }
     const assignedBadge = document.getElementById('assignedCountBadge');
     if (assignedBadge) {
-      assignedBadge.textContent = `(${new Set(ClientsState.clients.map(c => c.memberId)).size})`;
+      assignedBadge.textContent = `(${membersCount})`;
     }
 
-    const pendingRequests = ClientsState.assignmentRequests.filter(r => r.status === 'PENDING');
+    const packagesBadge = document.getElementById('packagesCountBadge');
+    if (packagesBadge) {
+      packagesBadge.textContent = `(${packagesCount})`;
+    }
+
+    const requestsCount = ClientsState.assignmentRequests ? ClientsState.assignmentRequests.length : 0;
     const reqBadge = document.getElementById('requestsCountBadge');
     if (reqBadge) {
-      reqBadge.textContent = pendingRequests.length;
-      reqBadge.style.display = pendingRequests.length > 0 ? 'inline-flex' : 'none';
+      reqBadge.textContent = `(${requestsCount})`;
+      reqBadge.style.display = 'inline';
     }
 
     // Cập nhật tab bar badge của ứng dụng tổng thể nếu có
     const appClientsTabBadge = document.getElementById('bottomNavClientsBadge');
     if (appClientsTabBadge) {
-      appClientsTabBadge.textContent = pendingRequests.length;
-      appClientsTabBadge.style.display = pendingRequests.length > 0 ? 'inline-flex' : 'none';
+      if (packagesCount > 0) {
+        appClientsTabBadge.textContent = String(packagesCount);
+        appClientsTabBadge.style.display = 'inline-flex';
+      } else {
+        appClientsTabBadge.style.display = 'none';
+      }
     }
   }
 
   /**
-   * Chuyển tab trực tiếp từ bên ngoài (ví dụ từ notification click)
+   * Chuyển tab trực tiếp từ bên ngoài (hoặc khi người dùng click tab)
    */
   function switchTab(tabKey) {
-    if (tabKey !== 'assigned' && tabKey !== 'requests') return;
+    if (tabKey === 'assigned') tabKey = 'packages';
+    if (tabKey !== 'members' && tabKey !== 'packages' && tabKey !== 'requests') return;
     ClientsState.currentTab = tabKey;
     
+    const tabMembers = document.getElementById('tabBtnMembers');
+    const tabPackages = document.getElementById('tabBtnPackages');
     const tabAssigned = document.getElementById('tabBtnAssigned');
     const tabRequests = document.getElementById('tabBtnRequests');
 
-    if (tabAssigned && tabRequests) {
-      if (tabKey === 'assigned') {
-        tabAssigned.classList.add('active');
-        tabRequests.classList.remove('active');
-      } else {
-        tabRequests.classList.add('active');
-        tabAssigned.classList.remove('active');
-      }
+    if (tabMembers) tabMembers.classList.toggle('active', tabKey === 'members');
+    if (tabPackages) tabPackages.classList.toggle('active', tabKey === 'packages');
+    if (tabAssigned) tabAssigned.classList.toggle('active', tabKey === 'packages');
+    if (tabRequests) tabRequests.classList.toggle('active', tabKey === 'requests');
+
+    const searchInput = document.getElementById('ptClientsSearchInput');
+    if (searchInput) {
+      searchInput.placeholder = tabKey === 'members' ? 'Tìm học viên được phân công...' : 'Tìm gói tập, học viên phụ trách...';
     }
+
     renderContentList();
   }
 
@@ -1011,24 +1003,24 @@
    */
   function bindEvents(containerEl) {
     $(containerEl).off('click', '#btnRetryClients').on('click', '#btnRetryClients', fetchClientsData);
+    
     // 1. Chuyển Tab
+    const tabMembers = containerEl.querySelector('#tabBtnMembers');
+    const tabPackages = containerEl.querySelector('#tabBtnPackages');
     const tabAssigned = containerEl.querySelector('#tabBtnAssigned');
     const tabRequests = containerEl.querySelector('#tabBtnRequests');
 
-    if (tabAssigned && tabRequests) {
-      tabAssigned.addEventListener('click', () => {
-        ClientsState.currentTab = 'assigned';
-        tabAssigned.classList.add('active');
-        tabRequests.classList.remove('active');
-        renderContentList();
-      });
-
-      tabRequests.addEventListener('click', () => {
-        ClientsState.currentTab = 'requests';
-        tabRequests.classList.add('active');
-        tabAssigned.classList.remove('active');
-        renderContentList();
-      });
+    if (tabMembers) {
+      tabMembers.addEventListener('click', () => switchTab('members'));
+    }
+    if (tabPackages) {
+      tabPackages.addEventListener('click', () => switchTab('packages'));
+    }
+    if (tabAssigned) {
+      tabAssigned.addEventListener('click', () => switchTab('packages'));
+    }
+    if (tabRequests) {
+      tabRequests.addEventListener('click', () => switchTab('requests'));
     }
 
     // 2. Tìm kiếm realtime
@@ -1041,9 +1033,7 @@
         if (clearBtn) {
           clearBtn.style.display = ClientsState.searchQuery ? 'flex' : 'none';
         }
-        if (ClientsState.currentTab === 'assigned') {
-          renderContentList();
-        }
+        renderContentList();
       });
     }
 
@@ -1055,50 +1045,7 @@
           searchInput.focus();
         }
         clearBtn.style.display = 'none';
-        if (ClientsState.currentTab === 'assigned') {
-          renderContentList();
-        }
-      });
-    }
-
-    // 3. Xử lý hiển thị động textarea khi chọn lý do 'Khác' (CONDITIONAL)
-    const reasonRadios = containerEl.querySelectorAll('input[name="rejectReason"]');
-    const otherGroup = containerEl.querySelector('#otherReasonGroup');
-    const otherText = containerEl.querySelector('#rejectOtherReasonText');
-    const charCounter = containerEl.querySelector('#charCounter');
-
-    reasonRadios.forEach(radio => {
-      radio.addEventListener('change', () => {
-        if (radio.value === 'Khác' && radio.checked) {
-          if (otherGroup) otherGroup.style.display = 'block';
-          if (otherText) otherText.focus();
-        } else {
-          if (otherGroup) otherGroup.style.display = 'none';
-        }
-      });
-    });
-
-    if (otherText && charCounter) {
-      otherText.addEventListener('input', () => {
-        charCounter.textContent = otherText.value.length;
-      });
-    }
-
-    // 4. Modal events
-    const btnCloseSheet = containerEl.querySelector('#btnCloseRejectSheet');
-    const btnCancelReject = containerEl.querySelector('#btnCancelReject');
-    const btnConfirmReject = containerEl.querySelector('#btnConfirmReject');
-    const backdrop = containerEl.querySelector('#rejectBackdrop');
-
-    if (btnCloseSheet) btnCloseSheet.addEventListener('click', closeRejectModal);
-    if (btnCancelReject) btnCancelReject.addEventListener('click', closeRejectModal);
-    if (btnConfirmReject) btnConfirmReject.addEventListener('click', confirmReject);
-
-    if (backdrop) {
-      backdrop.addEventListener('click', (e) => {
-        if (e.target === backdrop) {
-          closeRejectModal();
-        }
+        renderContentList();
       });
     }
   }
@@ -1969,7 +1916,33 @@
       .pt-badge-pending-count { color: #fff; }
       .pt-progress-bar-fill { background: var(--primary); }
       .pt-back-btn, .pt-subscreen-title { color: var(--text-main); }
- `;
+      
+      /* Thẻ học viên tóm tắt (Tab 1: Học viên phụ trách) */
+      .pt-member-summary-card {
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      }
+      .pt-member-summary-card:hover {
+        border-color: #237b58;
+        box-shadow: 0 4px 12px rgba(35, 123, 88, 0.08);
+      }
+      .pt-pkg-pill-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(35, 123, 88, 0.12);
+        color: #185740;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+      }
+      .pt-member-info-banner {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+      }
+  `;
     document.head.appendChild(style);
   }
 
@@ -1980,17 +1953,25 @@
 
   return {
     init,
-    reset: () => { ClientsState.clients = []; ClientsState.assignmentRequests = []; ClientsState.hasError = false; ClientsState.isLoading = false; closeClientDetail(); closeRejectModal(); renderContentList(); updateBadges(); },
+    reset: () => { 
+      ClientsState.clients = []; 
+      ClientsState.assignmentRequests = []; 
+      ClientsState.hasError = false; 
+      ClientsState.isLoading = false; 
+      closeClientDetail(); 
+      closeMemberPackages(); 
+      renderContentList(); 
+      updateBadges(); 
+    },
     refresh: fetchClientsData,
     openClientDetail,
     closeClientDetail,
-    acceptRequest,
-    openRejectModal,
-    closeRejectModal,
-    confirmReject,
+    openMemberPackages,
+    closeMemberPackages,
     switchTab,
-    getPendingRequestsCount: () => ClientsState.assignmentRequests.filter(r => r.status === 'PENDING').length,
+    getPendingRequestsCount: () => 0,
     getClientsCount: () => new Set(ClientsState.clients.map(c => c.memberId)).size,
+    getPackagesCount: () => ClientsState.clients.length,
     getState: () => ClientsState
   };
 });

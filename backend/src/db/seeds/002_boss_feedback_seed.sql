@@ -241,19 +241,4 @@ FROM packages p
 WHERE p.id = r.package_id
   AND (r.pt_price_snapshot IS NULL OR r.pt_price_snapshot = 0);
 
--- 8. Dữ liệu bảng kê hoa hồng PT mẫu tháng 9/2026
-INSERT INTO pt_commissions (id, pt_id, month, year, total_pt_sessions_taught, pt_revenue_share, commission_percentage, total_commission_amount, status)
-VALUES
-    ('49879d76-2124-4330-bcab-1bab8f1e0562', '50000000-0000-0000-0000-000000000001', 9, 2026, 5, 1875000.00, 25.00, 468750.00, 'PENDING'),
-    ('1be721b6-9a16-44b8-a65a-9834fb3f2372', 'bf969011-aecb-438d-9683-6f7ee9384eb7', 9, 2026, 0, 0.00, 20.00, 0.00, 'PENDING')
-ON CONFLICT (pt_id, month, year) DO UPDATE
-SET status = EXCLUDED.status,
-    total_pt_sessions_taught = EXCLUDED.total_pt_sessions_taught,
-    pt_revenue_share = EXCLUDED.pt_revenue_share,
-    commission_percentage = EXCLUDED.commission_percentage,
-    total_commission_amount = EXCLUDED.total_commission_amount,
-    paid_at = NULL,
-    payout_ref = NULL,
-    payout_note = NULL,
-    paid_by_account_id = NULL;
-
+-- Fresh seed has no completed bookings, so there are no earned commissions to seed.

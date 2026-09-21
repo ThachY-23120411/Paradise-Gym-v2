@@ -1,0 +1,1356 @@
+{
+  "result": "PASS (scoped scenarios)",
+  "steps": [
+    {
+      "n": 1,
+      "name": "purchase-catalog",
+      "action": "Open Mua goi",
+      "expected": "HV03-US03 MF1: real API package name, price and purchase action",
+      "actual": "HV Purchase Gym\n\n500.000 đ\n\n30 ngày · Gym không giới hạn lượt\n\nXem chi tiết\nMua gói",
+      "status": "PASS",
+      "file": "step-01-purchase-catalog.png",
+      "section": "source"
+    },
+    {
+      "n": 2,
+      "name": "purchase-buy-dialog",
+      "action": "Click Mua goi",
+      "expected": "MF2: selected package and bank transfer purchase form",
+      "actual": "Mua gói\nHV Purchase Gym\n\n500.000 đ\n\nHình thức thanh toán: Chuyển khoản Ngân hàng (VietQR)\n\n Mã giảm giá / Voucher\n Chọn voucher\nÁp dụng\n Tiếp tục thanh toán (500.000 đ)",
+      "status": "PASS",
+      "file": "step-02-purchase-buy-dialog.png",
+      "section": "source"
+    },
+    {
+      "n": 3,
+      "name": "purchase-empty-voucher",
+      "action": "Apply blank voucher",
+      "expected": "Empty voucher validation leaves price unchanged",
+      "actual": "Vui lòng nhập mã giảm giá",
+      "status": "PASS",
+      "file": "step-03-purchase-empty-voucher.png",
+      "section": "source"
+    },
+    {
+      "n": 4,
+      "name": "purchase-qr",
+      "action": "Continue payment; create registration and intent",
+      "expected": "MF5/6 plus user override: pending registration, 15min QR intent; no final payment",
+      "actual": {
+        "registrationId": "b1777b11-519e-4f6b-9954-df931a9c4751",
+        "intentId": "6bea307c-16b4-4bbe-9df8-de3c608ddf2f",
+        "expiry": "2026-09-21T03:53:50.771Z"
+      },
+      "status": "PASS",
+      "file": "step-04-purchase-qr.png",
+      "section": "source"
+    },
+    {
+      "n": 5,
+      "name": "simulate-transfer-success",
+      "action": "Click Toi da chuyen khoan",
+      "expected": "User-approved simulate-transfer creates one final payment and receipt; activates same registration",
+      "actual": "Thanh toán thành công!",
+      "status": "PASS",
+      "file": "step-05-simulate-transfer-success.png",
+      "section": "source"
+    },
+    {
+      "n": 6,
+      "name": "paid-package-active",
+      "action": "Open Goi cua toi after success",
+      "expected": "Same paid registration active, freeze available",
+      "actual": "HV Purchase Gym\nĐang hoạt động\n\nDK001 · 21/9/2026 - 21/10/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nĐóng băng",
+      "status": "PASS",
+      "file": "step-06-paid-package-active.png",
+      "section": "source"
+    },
+    {
+      "n": 7,
+      "name": "successful-statusless-history",
+      "action": "Open payment history",
+      "expected": "HV03-US06 MF2-4: successful payment renders without status property",
+      "actual": "PT001\n500.000 đ\n\nHV Purchase Gym\n\n10:38:51 21/9/2026 · Chuyển khoản Ngân hàng (VietQR)\n\nXem phiếu thu",
+      "status": "PASS",
+      "file": "step-07-successful-statusless-history.png",
+      "section": "source"
+    },
+    {
+      "n": 8,
+      "name": "receipt",
+      "action": "Open receipt",
+      "expected": "Same member, purchased package and amount",
+      "actual": "Phiếu thu\nMã phiếu thu\nPT001\nTên hội viên\nHV Purchase Member\nGói tập\nHV Purchase Gym\nSố tiền\n500.000 đ\nNgày thanh toán\n10:38:51 21/9/2026",
+      "status": "PASS",
+      "file": "step-08-receipt.png",
+      "section": "source"
+    },
+    {
+      "n": 9,
+      "name": "lt-DK001-Đang",
+      "action": "Open LT registrations for the SAME registration",
+      "expected": "Same member/code and expected registration status",
+      "actual": "DK001\t10:38:50 21/9/2026\tHV Purchase Member\nHV001 · HV Payment Branch A\n\tHV Purchase Gym\t21/09/2026 - 21/10/2026\t500.000 ₫\t--\tĐang hiệu lực\t",
+      "status": "PASS",
+      "file": "downstream-09-lt-DK001-Đang.png",
+      "section": "downstream"
+    },
+    {
+      "n": 10,
+      "name": "pending-catalog",
+      "action": "Open Mua goi",
+      "expected": "HV03-US03 MF1: real API package name, price and purchase action",
+      "actual": "HV Purchase Gym\n\n500.000 đ\n\n30 ngày · Gym không giới hạn lượt\n\nXem chi tiết\nMua gói",
+      "status": "PASS",
+      "file": "step-10-pending-catalog.png",
+      "section": "source"
+    },
+    {
+      "n": 11,
+      "name": "pending-buy-dialog",
+      "action": "Click Mua goi",
+      "expected": "MF2: selected package and bank transfer purchase form",
+      "actual": "Mua gói\nHV Purchase Gym\n\n500.000 đ\n\nHình thức thanh toán: Chuyển khoản Ngân hàng (VietQR)\n\n Mã giảm giá / Voucher\n Chọn voucher\nÁp dụng\n Tiếp tục thanh toán (500.000 đ)",
+      "status": "PASS",
+      "file": "step-11-pending-buy-dialog.png",
+      "section": "source"
+    },
+    {
+      "n": 12,
+      "name": "pending-empty-voucher",
+      "action": "Apply blank voucher",
+      "expected": "Empty voucher validation leaves price unchanged",
+      "actual": "Vui lòng nhập mã giảm giá",
+      "status": "PASS",
+      "file": "step-12-pending-empty-voucher.png",
+      "section": "source"
+    },
+    {
+      "n": 13,
+      "name": "pending-qr",
+      "action": "Continue payment; create registration and intent",
+      "expected": "MF5/6 plus user override: pending registration, 15min QR intent; no final payment",
+      "actual": {
+        "registrationId": "d3dd14f4-702d-45e7-966b-81aeb8a2804c",
+        "intentId": "d5500e44-91e5-4755-bd05-dc54a10cf936",
+        "expiry": "2026-09-21T03:53:57.330Z"
+      },
+      "status": "PASS",
+      "file": "step-13-pending-qr.png",
+      "section": "source"
+    },
+    {
+      "n": 14,
+      "name": "pending-older-than-three-days",
+      "action": "Reload order after isolated 4-day age and QR expiry fixture",
+      "expected": "User override: QR expiry/age never auto-cancels registration; cancel action available",
+      "actual": "HV Purchase Gym\n500.000 đ\n\nMã ĐK: DK002 · Ngày tạo: 17/9/2026\n\nChờ thanh toán 100%\n\nThanh toán ngay (VietQR)\nHủy đơn",
+      "status": "PASS",
+      "file": "step-14-pending-older-than-three-days.png",
+      "section": "source"
+    },
+    {
+      "n": 15,
+      "name": "pending-mine-freeze-blocked",
+      "action": "Open pending filter in Goi cua toi",
+      "expected": "Unpaid pending package has cancel/pay actions and no freeze",
+      "actual": "HV Purchase Gym\nChờ thanh toán\n\nDK002 · 21/9/2026 - 21/10/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nTiếp tục thanh toán\nHủy đơn",
+      "status": "PASS",
+      "file": "step-15-pending-mine-freeze-blocked.png",
+      "section": "source"
+    },
+    {
+      "n": 16,
+      "name": "pending-detail-freeze-blocked",
+      "action": "Open unpaid package detail",
+      "expected": "No freeze action in unpaid detail",
+      "actual": "Chi tiết gói tập\nHV Purchase Gym\nChờ thanh toán\n\nMã hợp đồng: DK002\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 21/9/2026 - 21/10/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nĐóng\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-16-pending-detail-freeze-blocked.png",
+      "section": "source"
+    },
+    {
+      "n": 17,
+      "name": "expired-intent-reissued",
+      "action": "Continue payment after QR expiry",
+      "expected": "Fresh 15min QR for same pending order; final history still one successful payment",
+      "actual": "Mã QR còn hiệu lực 15:00",
+      "status": "PASS",
+      "file": "step-17-expired-intent-reissued.png",
+      "section": "source"
+    },
+    {
+      "n": 18,
+      "name": "qr-countdown-expired",
+      "action": "Advance browser clock 15min without waiting on real bank",
+      "expected": "Expired QR hidden, simulation unavailable, recreate action; order still pending",
+      "actual": "Mã QR đã hết hạn. Đơn đăng ký vẫn đang chờ thanh toán.",
+      "status": "PASS",
+      "file": "step-18-qr-countdown-expired.png",
+      "section": "source"
+    },
+    {
+      "n": 19,
+      "name": "recreate-qr-action",
+      "action": "Align isolated server expiry and browser clock; click recreate QR",
+      "expected": "Same registration gets a usable fresh QR with no payment",
+      "actual": "Mã QR còn hiệu lực 15:00",
+      "status": "PASS",
+      "file": "step-19-recreate-qr-action.png",
+      "section": "source"
+    },
+    {
+      "n": 20,
+      "name": "pending-cancel-confirmation",
+      "action": "Click Huy don",
+      "expected": "Explicit confirmation before cancelling same order",
+      "actual": "Hủy đơn chờ thanh toán\n\nHủy đơn DK002 của gói HV Purchase Gym?\n\nQuay lại\nXác nhận hủy đơn",
+      "status": "PASS",
+      "file": "step-20-pending-cancel-confirmation.png",
+      "section": "source"
+    },
+    {
+      "n": 21,
+      "name": "pending-cancel-success",
+      "action": "Confirm cancellation",
+      "expected": "Order disappears from pending; no final payment or receipt generated",
+      "actual": "Thanh toán\nLịch sử thanh toán\nChờ thanh toán\n\nBạn không có đơn đăng ký nào đang chờ thanh toán.",
+      "status": "PASS",
+      "file": "step-21-pending-cancel-success.png",
+      "section": "source"
+    },
+    {
+      "n": 22,
+      "name": "lt-DK002-Đã hủy",
+      "action": "Open LT registrations for the SAME registration",
+      "expected": "Same member/code and expected registration status",
+      "actual": "DK002\t10:38:57 17/9/2026\tHV Purchase Member\nHV001 · HV Payment Branch A\n\tHV Purchase Gym\t21/09/2026 - 21/10/2026\t500.000 ₫\t--\tĐã hủy\t",
+      "status": "PASS",
+      "file": "downstream-22-lt-DK002-Đã hủy.png",
+      "section": "downstream"
+    },
+    {
+      "n": 23,
+      "name": "freeze-form",
+      "action": "Open freeze for paid active package",
+      "expected": "Current paid package may freeze",
+      "actual": "Đóng băng gói tập\n\nGói tập: HV Purchase Gym\n\nMã hợp đồng: DK001 · Hạn cũ: 21/10/2026\n\nSố ngày đóng băng *\n7 ngày\n14 ngày\n30 ngày\n60 ngày\nHạn gói tập sẽ được tự động lùi tương ứng với số ngày đóng băng thực tế.\nLý do đóng băng\nHủy\n Xác nhận đóng băng",
+      "status": "PASS",
+      "file": "step-23-freeze-form.png",
+      "section": "source"
+    },
+    {
+      "n": 24,
+      "name": "freeze-invalid-input",
+      "action": "Enter zero freeze days before submit",
+      "expected": "Input captured separately from validation submit",
+      "actual": "0",
+      "status": "PASS",
+      "file": "step-24-freeze-invalid-input.png",
+      "section": "source"
+    },
+    {
+      "n": 25,
+      "name": "freeze-zero-validation",
+      "action": "Submit zero days",
+      "expected": "Invalid days blocked; contract remains ACTIVE",
+      "actual": "Vui lòng nhập số ngày đóng băng hợp lệ (lớn hơn 0)",
+      "status": "PASS",
+      "file": "step-25-freeze-zero-validation.png",
+      "section": "source"
+    },
+    {
+      "n": 26,
+      "name": "freeze-valid-input",
+      "action": "Enter two days before submit",
+      "expected": "Separate input screenshot",
+      "actual": "2 days",
+      "status": "PASS",
+      "file": "step-26-freeze-valid-input.png",
+      "section": "source"
+    },
+    {
+      "n": 27,
+      "name": "freeze-success",
+      "action": "Confirm freeze",
+      "expected": "Paid active package becomes frozen",
+      "actual": "HV Purchase Gym\n❄️ Đang đóng băng\n\nDK001 · 21/9/2026 - 23/10/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nMở đóng băng trước hạn",
+      "status": "PASS",
+      "file": "step-27-freeze-success.png",
+      "section": "source"
+    },
+    {
+      "n": 28,
+      "name": "lt-DK001-Đang đóng băng",
+      "action": "Open LT registrations for the SAME registration",
+      "expected": "Same member/code and expected registration status",
+      "actual": "DK001\t10:38:50 21/9/2026\tHV Purchase Member\nHV001 · HV Payment Branch A\n\tHV Purchase Gym\t21/09/2026 - 23/10/2026\t500.000 ₫\t--\t❄️ Đang đóng băng\t",
+      "status": "PASS",
+      "file": "downstream-28-lt-DK001-Đang đóng băng.png",
+      "section": "downstream"
+    },
+    {
+      "n": 29,
+      "name": "scheduled-freeze-blocked",
+      "action": "View paid future package fixture",
+      "expected": "User override: SCHEDULED package cannot freeze",
+      "actual": "HV Purchase Gym\nChưa đến ngày hiệu lực\n\nDK003 · 28/9/2026 - 28/10/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói",
+      "status": "PASS",
+      "file": "step-29-scheduled-freeze-blocked.png",
+      "section": "source"
+    },
+    {
+      "n": 30,
+      "name": "scheduled-detail-freeze-blocked",
+      "action": "Open scheduled package detail",
+      "expected": "No freeze action in detail either",
+      "actual": "Chi tiết gói tập\nHV Purchase Gym\nChưa đến ngày hiệu lực\n\nMã hợp đồng: DK003\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 28/9/2026 - 28/10/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nĐóng\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-30-scheduled-detail-freeze-blocked.png",
+      "section": "source"
+    },
+    {
+      "n": 31,
+      "name": "time-four-days",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; GYM_TIME, days=4, remaining PT=null, remaining Gym=null",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary time-four-days\nSắp hết hạn\n\nDK004 · 21/9/2026 - 25/9/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-31-time-four-days.png",
+      "section": "source"
+    },
+    {
+      "n": 32,
+      "name": "time-four-days-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary time-four-days\nSắp hết hạn\n\nMã hợp đồng: DK004\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 21/9/2026 - 25/9/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-32-time-four-days-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 33,
+      "name": "time-five-days",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=false; GYM_TIME, days=5, remaining PT=null, remaining Gym=null",
+      "actual": {
+        "is_expiring": false,
+        "display_status": "ACTIVE",
+        "text": "Boundary time-five-days\nĐang hoạt động\n\nDK005 · 21/9/2026 - 26/9/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-33-time-five-days.png",
+      "section": "source"
+    },
+    {
+      "n": 34,
+      "name": "time-five-days-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary time-five-days\nĐang hoạt động\n\nMã hợp đồng: DK005\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 21/9/2026 - 26/9/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-34-time-five-days-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 35,
+      "name": "gym-three-sessions",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; GYM_SESSION, days=20, remaining PT=null, remaining Gym=3",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary gym-three-sessions\nSắp hết hạn\n\nDK006 · 21/9/2026 - 11/10/2026\n\nGym: đã dùng 0/30 ngày\n\nGym: còn 3/3 lượt\n\nChi tiết gói\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-35-gym-three-sessions.png",
+      "section": "source"
+    },
+    {
+      "n": 36,
+      "name": "gym-three-sessions-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary gym-three-sessions\nSắp hết hạn\n\nMã hợp đồng: DK006\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 21/9/2026 - 11/10/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nGym: còn 3/3 lượt\n\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-36-gym-three-sessions-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 37,
+      "name": "gym-four-sessions",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=false; GYM_SESSION, days=1, remaining PT=null, remaining Gym=4",
+      "actual": {
+        "is_expiring": false,
+        "display_status": "ACTIVE",
+        "text": "Boundary gym-four-sessions\nĐang hoạt động\n\nDK007 · 21/9/2026 - 22/9/2026\n\nGym: đã dùng 0/30 ngày\n\nGym: còn 4/4 lượt\n\nChi tiết gói\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-37-gym-four-sessions.png",
+      "section": "source"
+    },
+    {
+      "n": 38,
+      "name": "gym-four-sessions-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary gym-four-sessions\nĐang hoạt động\n\nMã hợp đồng: DK007\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 21/9/2026 - 22/9/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nGym: còn 4/4 lượt\n\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-38-gym-four-sessions-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 39,
+      "name": "pt-three-sessions",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; PT_SESSION, days=20, remaining PT=3, remaining Gym=null",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary pt-three-sessions\nSắp hết hạn\n\nDK008 · 21/9/2026 - 11/10/2026\n\nPT: đã dùng 0/3 buổi · Còn 3 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-39-pt-three-sessions.png",
+      "section": "source"
+    },
+    {
+      "n": 40,
+      "name": "pt-three-sessions-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary pt-three-sessions\nSắp hết hạn\n\nMã hợp đồng: DK008\n\nHình thức: PT Kèm 1-1 Cá nhân\nHiệu lực: 21/9/2026 - 11/10/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nPT: đã dùng 0/3 buổi · Còn 3 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-40-pt-three-sessions-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 41,
+      "name": "pt-four-sessions",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=false; PT_SESSION, days=1, remaining PT=4, remaining Gym=null",
+      "actual": {
+        "is_expiring": false,
+        "display_status": "ACTIVE",
+        "text": "Boundary pt-four-sessions\nĐang hoạt động\n\nDK009 · 21/9/2026 - 22/9/2026\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-41-pt-four-sessions.png",
+      "section": "source"
+    },
+    {
+      "n": 42,
+      "name": "pt-four-sessions-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary pt-four-sessions\nĐang hoạt động\n\nMã hợp đồng: DK009\n\nHình thức: PT Kèm 1-1 Cá nhân\nHiệu lực: 21/9/2026 - 22/9/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-42-pt-four-sessions-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 43,
+      "name": "combo-time-or",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; COMBO, days=4, remaining PT=4, remaining Gym=null",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary combo-time-or\nSắp hết hạn\n\nDK010 · 21/9/2026 - 25/9/2026\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-43-combo-time-or.png",
+      "section": "source"
+    },
+    {
+      "n": 44,
+      "name": "combo-time-or-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary combo-time-or\nSắp hết hạn\n\nMã hợp đồng: DK010\n\nHình thức: Combo Gym + PT\nHiệu lực: 21/9/2026 - 25/9/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-44-combo-time-or-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 45,
+      "name": "combo-pt-or",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; COMBO, days=20, remaining PT=3, remaining Gym=null",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary combo-pt-or\nSắp hết hạn\n\nDK011 · 21/9/2026 - 11/10/2026\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/3 buổi · Còn 3 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-45-combo-pt-or.png",
+      "section": "source"
+    },
+    {
+      "n": 46,
+      "name": "combo-pt-or-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary combo-pt-or\nSắp hết hạn\n\nMã hợp đồng: DK011\n\nHình thức: Combo Gym + PT\nHiệu lực: 21/9/2026 - 11/10/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/3 buổi · Còn 3 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-46-combo-pt-or-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 47,
+      "name": "combo-gym-or",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; COMBO, days=20, remaining PT=4, remaining Gym=3",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary combo-gym-or\nSắp hết hạn\n\nDK012 · 21/9/2026 - 11/10/2026\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-47-combo-gym-or.png",
+      "section": "source"
+    },
+    {
+      "n": 48,
+      "name": "combo-gym-or-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary combo-gym-or\nSắp hết hạn\n\nMã hợp đồng: DK012\n\nHình thức: Combo Gym + PT\nHiệu lực: 21/9/2026 - 11/10/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-48-combo-gym-or-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 49,
+      "name": "combo-unlimited-gym",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=false; COMBO, days=20, remaining PT=4, remaining Gym=null",
+      "actual": {
+        "is_expiring": false,
+        "display_status": "ACTIVE",
+        "text": "Boundary combo-unlimited-gym\nĐang hoạt động\n\nDK013 · 21/9/2026 - 11/10/2026\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-49-combo-unlimited-gym.png",
+      "section": "source"
+    },
+    {
+      "n": 50,
+      "name": "combo-unlimited-gym-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary combo-unlimited-gym\nĐang hoạt động\n\nMã hợp đồng: DK013\n\nHình thức: Combo Gym + PT\nHiệu lực: 21/9/2026 - 11/10/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-50-combo-unlimited-gym-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 51,
+      "name": "lt-branch-b-isolation",
+      "action": "Open authenticated LT Branch B",
+      "expected": "Branch B cannot see Branch A purchase member/order",
+      "actual": "Branch B has no Branch A registration or member",
+      "status": "PASS",
+      "file": "downstream-51-lt-branch-b-isolation.png",
+      "section": "downstream"
+    }
+  ],
+  "issues": [],
+  "migrations": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4e4c4da7561e9e39faecbc5bc3c152158be9543531add85b6904bea7c3cb047a"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    },
+    {
+      "file": "014_successful_payment_ledger.sql",
+      "sha256": "3c16e83463bb97a594ca06ce3c0079710c4d78b64da2f5544f2f6697bb2a1a14"
+    }
+  ],
+  "state": [
+    {
+      "fixture": {
+        "branches": [
+          "64972406-d30c-41d9-8cda-dd47ba737bfa",
+          "11c0d6db-747e-48b8-8f09-b0bcda3012a1"
+        ],
+        "memberId": "ed1808c0-9523-4e1e-92c2-2308f5b95ba1",
+        "packageId": "21c093f6-ca0e-4927-8261-1570b18afcbb"
+      },
+      "note": "All fixtures via API or explicit setup SQL only in disposable DB; no shared seed/reset."
+    },
+    {
+      "paidRegistrationId": "b1777b11-519e-4f6b-9954-df931a9c4751",
+      "paymentId": "6bea307c-16b4-4bbe-9df8-de3c608ddf2f"
+    },
+    {
+      "retry": "One final payment/receipt after repeating same approved simulation endpoint"
+    },
+    {
+      "fixture": "Legacy Combo actual Gym quota, not supported by new catalog creation",
+      "packageId": "ee1cb506-1df8-40fd-98d1-27888d02e7cd",
+      "total_gym_sessions": 3
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/members/ed1808c0-9523-4e1e-92c2-2308f5b95ba1",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/members/ed1808c0-9523-4e1e-92c2-2308f5b95ba1",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/group-invitations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/packages",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 53065
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/6bea307c-16b4-4bbe-9df8-de3c608ddf2f/simulate-transfer",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments/6bea307c-16b4-4bbe-9df8-de3c608ddf2f/receipt",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/packages",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 53065
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 53065
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/registrations/d3dd14f4-702d-45e7-966b-81aeb8a2804c/cancel",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/registrations/b1777b11-519e-4f6b-9954-df931a9c4751/freeze",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 53065
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 53065
+    }
+  ],
+  "sources": {
+    "frontend/mobile/member/js/packages-notifications.js": "0b5ee8eee1b6610d0519d4b55ebaa6fe5db0c4daa29304619d525a55e0d81d5a",
+    "frontend/mobile/member/index.html": "aa64fadbab299561ac8af2211397658696d61a72e16ee8317055b2b23174f0e5",
+    "backend/src/modules/core/commerce.js": "ccb5a9aa53d0375363c00de9f78a8ad6d91ccb6148f957e0c9e6883d22750365",
+    "backend/src/modules/core/registrationState.js": "d3a1b8b9328fcce60027ea75af0ac72e1cf171030b3891c68cb6802ece36d30b",
+    "backend/src/modules/core/catalog.js": "e365ff7ad9d16ad69da722a4d2cb82c20d80092675168fa34fd06b28fe411b31",
+    "frontend/web/js/modules/sales.js": "6836b1a287e85f466759220dae76ffbaac0d4c96f5a0b18ae1b9413ac9eda26f"
+  },
+  "changed": [],
+  "cleanup": {
+    "browser": true,
+    "server": true,
+    "connections": true,
+    "database": true
+  },
+  "screenshots": [
+    {
+      "file": "step-01-purchase-catalog.png",
+      "bytes": 29860,
+      "sha256": "b0ce9c4ab53359449116b5921ccc380af5a2848befaa5f949cf48c40abe0a9fb"
+    },
+    {
+      "file": "step-02-purchase-buy-dialog.png",
+      "bytes": 50693,
+      "sha256": "c3ac1a8e70caf63ca68561dac51b208e0fa1b85fa0733f8043e71668f3b69e3c"
+    },
+    {
+      "file": "step-03-purchase-empty-voucher.png",
+      "bytes": 52125,
+      "sha256": "7ed873052142596f917e7f97c9563575db9637d8295545fc66f45856ac586eb5"
+    },
+    {
+      "file": "step-04-purchase-qr.png",
+      "bytes": 75557,
+      "sha256": "b20035615cb400f9623ce4d87b866402b2c27c9294683dcee8270546e786a32a"
+    },
+    {
+      "file": "step-05-simulate-transfer-success.png",
+      "bytes": 60893,
+      "sha256": "7fb54231c9fbed04f439999d0c8096b6994e304894f162c90a41fdc6006897da"
+    },
+    {
+      "file": "step-06-paid-package-active.png",
+      "bytes": 41547,
+      "sha256": "595843dbedcbe32e22d33143e0822073cd9fe3f5245f9afb977ed3e65fc66547"
+    },
+    {
+      "file": "step-07-successful-statusless-history.png",
+      "bytes": 32728,
+      "sha256": "c1365b11d829c56db96e46fca69e4181d535e726240e8f9f45785a9fc82c9404"
+    },
+    {
+      "file": "step-08-receipt.png",
+      "bytes": 49067,
+      "sha256": "26104fd75e99f89b5681baa7cd26cd6180f4870ad1aaa87e83cf99055bb6125a"
+    },
+    {
+      "file": "downstream-09-lt-DK001-Đang.png",
+      "bytes": 90018,
+      "sha256": "cf617c9849409d9c755c4c25eb038931a3644978fc243949ceb51634bdd0b6fb"
+    },
+    {
+      "file": "step-10-pending-catalog.png",
+      "bytes": 30021,
+      "sha256": "ff6484b61ba314a94ed4f4df4307f604859a2a61d0b80a10a1490ded08f58146"
+    },
+    {
+      "file": "step-11-pending-buy-dialog.png",
+      "bytes": 50693,
+      "sha256": "c3ac1a8e70caf63ca68561dac51b208e0fa1b85fa0733f8043e71668f3b69e3c"
+    },
+    {
+      "file": "step-12-pending-empty-voucher.png",
+      "bytes": 52125,
+      "sha256": "1d103aad6d8576004ed7a7de3bd5b7fe981d4372190d39b45a57b4a3a5a23a84"
+    },
+    {
+      "file": "step-13-pending-qr.png",
+      "bytes": 75859,
+      "sha256": "d25d0b1aa621f066f8303b60e3bbf3974719cbaae1a9e0427ee91bc72b2865b6"
+    },
+    {
+      "file": "step-14-pending-older-than-three-days.png",
+      "bytes": 30445,
+      "sha256": "91c4d3b3a7cf728ac6591637c34c1fc25f7dabd4022c65242adade55f9dce462"
+    },
+    {
+      "file": "step-15-pending-mine-freeze-blocked.png",
+      "bytes": 38572,
+      "sha256": "319b3612d76dcbbf8ef12a16429246841fe5d06cb8951f4f29504606e075c3c6"
+    },
+    {
+      "file": "step-16-pending-detail-freeze-blocked.png",
+      "bytes": 51748,
+      "sha256": "ef2189be8b4d54e3ab4ff9ed41fced645153e3c451e288c8999dbb451561306a"
+    },
+    {
+      "file": "step-17-expired-intent-reissued.png",
+      "bytes": 75738,
+      "sha256": "b16163feabac04626a17169e7273687891a4a607b838892dd1f15654281f8faf"
+    },
+    {
+      "file": "step-18-qr-countdown-expired.png",
+      "bytes": 61545,
+      "sha256": "322c1c6522f6b9d5e8c7e7239c4ea9c5dfe6b0afe119b0f6a1d021d081211ae5"
+    },
+    {
+      "file": "step-19-recreate-qr-action.png",
+      "bytes": 75738,
+      "sha256": "b16163feabac04626a17169e7273687891a4a607b838892dd1f15654281f8faf"
+    },
+    {
+      "file": "step-20-pending-cancel-confirmation.png",
+      "bytes": 67186,
+      "sha256": "c7626a2abf4d12f032fb54061e5ea88874cb5dc428d86d08cad7ca879adb754b"
+    },
+    {
+      "file": "step-21-pending-cancel-success.png",
+      "bytes": 27617,
+      "sha256": "3ee335946950ae9277e1fcc197be9e72bc7eda61645be57085fdaff9e820dddb"
+    },
+    {
+      "file": "downstream-22-lt-DK002-Đã hủy.png",
+      "bytes": 99989,
+      "sha256": "26159518c4249b275c080301e5912c7e30b9e756068f9b50cd4854429cad0c92"
+    },
+    {
+      "file": "step-23-freeze-form.png",
+      "bytes": 60080,
+      "sha256": "800994f9996540ab5add3ba38b6e8e77914d62672ab684948abb7c40dbc815d0"
+    },
+    {
+      "file": "step-24-freeze-invalid-input.png",
+      "bytes": 60889,
+      "sha256": "804f181963dd951bfd6028d7bd1872e06cf3c53738f42de59575780a3d8dab6a"
+    },
+    {
+      "file": "step-25-freeze-zero-validation.png",
+      "bytes": 61433,
+      "sha256": "e53bdd69691be4e8396bb0a3d5b91d43b83d2e6bc5f8d83b3e52818a584b76fa"
+    },
+    {
+      "file": "step-26-freeze-valid-input.png",
+      "bytes": 62183,
+      "sha256": "7593cad40a96c80cefeb253b6e13461f3520a11d7994adcdb73c4be71ddfa342"
+    },
+    {
+      "file": "step-27-freeze-success.png",
+      "bytes": 45854,
+      "sha256": "356abcbf78ae7e4cee53d2e7df4fe6d92ccc53d46e312794795eeb38e16941c0"
+    },
+    {
+      "file": "downstream-28-lt-DK001-Đang đóng băng.png",
+      "bytes": 100163,
+      "sha256": "426c92492191e6b4ed4a24cd5f74e844928229e931861de30b7df19f8efd285b"
+    },
+    {
+      "file": "step-29-scheduled-freeze-blocked.png",
+      "bytes": 55675,
+      "sha256": "3aa782c58b55f7807859cbd20262e5eec97298224c0da539876b07b8f829ceef"
+    },
+    {
+      "file": "step-30-scheduled-detail-freeze-blocked.png",
+      "bytes": 62838,
+      "sha256": "ec07104d60f014905ed9dc1885d69608a2821e8fc4d38b9534cebda9f5d346c9"
+    },
+    {
+      "file": "step-31-time-four-days.png",
+      "bytes": 60540,
+      "sha256": "a276b0c25af8b4715793141e6859dfc9828b52beb7f5b1e58389349b0c2e53a5"
+    },
+    {
+      "file": "step-32-time-four-days-detail.png",
+      "bytes": 68292,
+      "sha256": "d008b9604cdbeef4eacc644dfcdb39762db189c217b81626bcbe26a95acf3f73"
+    },
+    {
+      "file": "step-33-time-five-days.png",
+      "bytes": 62625,
+      "sha256": "9fb247ae19b0aba7c2ff27fe2712bdd7766023700a03c6b4e12f0722aa583d36"
+    },
+    {
+      "file": "step-34-time-five-days-detail.png",
+      "bytes": 63468,
+      "sha256": "a6f7632787848476fa84785ebe2672d86227cf0f190f12f895bb8b3b335e3cd4"
+    },
+    {
+      "file": "step-35-gym-three-sessions.png",
+      "bytes": 54790,
+      "sha256": "8b09a192d8473fba516626cb5d362c9e84730315f52177ad7755a9acea1b2695"
+    },
+    {
+      "file": "step-36-gym-three-sessions-detail.png",
+      "bytes": 65622,
+      "sha256": "8609018f743a559df40610dcb39942a46459d121c08be1382c59dc573d4f827f"
+    },
+    {
+      "file": "step-37-gym-four-sessions.png",
+      "bytes": 53312,
+      "sha256": "1ce623836acff504aafe330536ac4a82c4d6d0d7f18f4b557f6de4a6e8d6731b"
+    },
+    {
+      "file": "step-38-gym-four-sessions-detail.png",
+      "bytes": 67701,
+      "sha256": "8e6df8b9a73b26acbc50a313cfd0c0bf9392c9ea4b0771106c05bc21b6209fd1"
+    },
+    {
+      "file": "step-39-pt-three-sessions.png",
+      "bytes": 56389,
+      "sha256": "b2ebc1c70068b28adfe1fec9850872f15a9ed4db2002cdacaf6ee0770175a8cf"
+    },
+    {
+      "file": "step-40-pt-three-sessions-detail.png",
+      "bytes": 67235,
+      "sha256": "a611a280457d89d66d58859095ed34e9499c1a4867158328614dba5d980468b2"
+    },
+    {
+      "file": "step-41-pt-four-sessions.png",
+      "bytes": 57698,
+      "sha256": "1898fe6c139109c4c65b724c18f8aa02c78e66d725332079bace83e0d6c487ab"
+    },
+    {
+      "file": "step-42-pt-four-sessions-detail.png",
+      "bytes": 68304,
+      "sha256": "f3f469b05965d6fa7c10b0b0c15d7789cc7bc00e21a00c0ddf11329c54115ab1"
+    },
+    {
+      "file": "step-43-combo-time-or.png",
+      "bytes": 58073,
+      "sha256": "ea699b7f6deb25e417065820785d1e161a9e22d1fed28ec6592d83ab2e06c4f8"
+    },
+    {
+      "file": "step-44-combo-time-or-detail.png",
+      "bytes": 70898,
+      "sha256": "dd2abe38026ddf8596e98c92a478871704f2dbf0fa88fb8ae490817e19211531"
+    },
+    {
+      "file": "step-45-combo-pt-or.png",
+      "bytes": 56820,
+      "sha256": "351a4f8ccac1cfdec3f5e79c749ad79eb5c796bc0e61a0da732fd8cd26c872b9"
+    },
+    {
+      "file": "step-46-combo-pt-or-detail.png",
+      "bytes": 69274,
+      "sha256": "843d9153fac066a45a43229ddbb8a310351a0708c65d58e5b91913cd5d5767af"
+    },
+    {
+      "file": "step-47-combo-gym-or.png",
+      "bytes": 56628,
+      "sha256": "9d68ef972f7c8e2a994466a0c6910985d3b56d7da184879cb3a65410652951c4"
+    },
+    {
+      "file": "step-48-combo-gym-or-detail.png",
+      "bytes": 69235,
+      "sha256": "94d89591654e02c4d4fd21b991d72a35a3b4bf05147998f367984ff2711ffe65"
+    },
+    {
+      "file": "step-49-combo-unlimited-gym.png",
+      "bytes": 52749,
+      "sha256": "b5de374d2793450f0b0f15f88193239b96ee806f65040a14f68ddc142a8d46ba"
+    },
+    {
+      "file": "step-50-combo-unlimited-gym-detail.png",
+      "bytes": 66480,
+      "sha256": "c9f6c23332e2c634083106e20454aa3712d7a1fcf4f931be560a779cb8659aa8"
+    },
+    {
+      "file": "downstream-51-lt-branch-b-isolation.png",
+      "bytes": 82240,
+      "sha256": "04919e7722e19cf00a468d101d1eccc6cb2c18754343b49ec0664385a0722906"
+    }
+  ]
+}

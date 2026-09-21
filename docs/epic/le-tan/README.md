@@ -16,7 +16,7 @@ Mỗi Epic dưới đây là một menu Web mà Lễ tân được cấp. Các U
 | [LT-W07](LT-W07-Ra vào & check-in.md) | W07 · Ra vào & check-in | Check-in tự động, Ghi nhận thủ công và Nhật ký ra/vào | 3 |
 | [LT-W08](LT-W08-Thu tiền & thanh toán.md) | W08 · Thu tiền & thanh toán | Xem danh sách Payment 100% chi nhánh, Tạo payment và Xem thống kê | 3 |
 | [LT-W09](LT-W09-Thông báo.md) | W09 · Thông báo | Tra cứu nhật ký lịch sử gửi thông báo chi nhánh | 1 |
-| [LT-W14](LT-W14-Chăm sóc & thông báo.md) | W14 · Chăm sóc & thông báo | Tác nghiệp CSKH: Gọi điện chúc mừng sinh nhật, nhắc gia hạn gói <= 4 ngày | 1 |
+| [LT-W14](LT-W14-Chăm sóc & thông báo.md) | W14 · Chăm sóc & thông báo | Tác nghiệp CSKH: Gọi điện chúc mừng sinh nhật, nhắc gia hạn gói <= 4 ngày hoặc <= 3 buổi | 1 |
 | [LT-W16](LT-W16-Lớp tập cộng đồng.md) | W16 · Lớp tập cộng đồng | Tiếp nhận hội viên đăng ký lớp cộng đồng tại quầy | 1 |
 
 **Tổng:** 10 Epic Web, 25 User Story canonical.

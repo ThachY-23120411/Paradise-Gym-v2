@@ -11,6 +11,12 @@
   - Kích hoạt tài khoản PT lần đầu qua OTP: HLV không tự tạo hồ sơ; bắt buộc Lễ tân hoặc Admin phải tạo hồ sơ nhân sự trên hệ thống Web trước, sau đó HLV vào app kích hoạt và tạo mật khẩu.
   - Đăng xuất tài khoản an toàn, thu hồi session token và xóa dữ liệu làm việc cục bộ.
 
+## Giới hạn tích hợp và điều hướng
+- OTP/2FA/kích hoạt chỉ hoàn tất khi backend xác thực; DEVELOPMENT_ONLY không gửi SMS, PROVIDER_ACCEPTED chưa chứng minh đã giao tin. Production thiếu SMS provider phải chặn, không mô phỏng. Chi tiết PT-OQ-01.
+- Không thêm social login hay phương thức OTP ngoài hợp đồng API hiện có. Device challenge theo backend, không suy đoán trên client.
+- Thành công sau mọi challenge mở PT06 · Tổng quan. Đăng xuất dùng registry hiện có theo PT04-US01/PT05-US03.
+- Thời hạn/lượt gửi/khóa theo server; lỗi lần đầu không đồng nghĩa đã đạt ngưỡng khóa.
+
 ## Thành phần giao diện (UI Components & Layout)
 
 Không gian nghiệp vụ của Menu **`PT05 · Đăng nhập`** là module độc lập phục vụ trước khi vào ứng dụng hoặc khi kết thúc phiên:
@@ -22,6 +28,7 @@ Không gian nghiệp vụ của Menu **`PT05 · Đăng nhập`** là module đ�
 
 2. **Màn hình Kích hoạt tài khoản PT (`PT05-US02`):**
    - Dành cho PT đã được Lễ tân tạo hồ sơ nhân sự trên hệ thống.
+   - Cổng chung: SĐT phải chọn loại tài khoản PT; mã PT tự chọn và khóa loại PT. Preview dùng tên/mã đã che và chi nhánh thật từ API. Đổi định danh hoặc loại tài khoản phải tra cứu lại, không dùng lại OTP/preview cũ.
    - Nhập SĐT / Mã PT $\rightarrow$ Hiển thị thông tin HLV khớp $\rightarrow$ Nhận mã OTP SMS $\rightarrow$ Thiết lập mật khẩu mới $\rightarrow$ Đăng nhập.
 
 3. **Luồng Đăng xuất tài khoản & Popup Xác nhận (`PT05-US03`):**
@@ -42,9 +49,9 @@ Không gian nghiệp vụ của Menu **`PT05 · Đăng nhập`** là module đ�
 ## Flow specification
 
 Mỗi User Story của `PT05` chứa precondition, trigger, main/alternate/exception flow, field-level specification chuẩn và activity diagram Mermaid swimlane.
-Flow index role: [`docs/system-flow-specs/pt/`](../../system-flow-specs/pt/README.md).
+Flow index role: [User Stories PT](../../user-stories/pt/README.md).
 
 ## Traceability
 
-- Menu catalog: [`docs/epics-menu-catalog.md`](../../epics-menu-catalog.md).
-- UI audit: [`docs/ui-related-screen-audit.md`](../../ui-related-screen-audit.md).\n
+- PT index: [README](README.md).
+- UI audit: [`docs/ui-related-screen-audit.md`](../../ui-related-screen-audit.md).

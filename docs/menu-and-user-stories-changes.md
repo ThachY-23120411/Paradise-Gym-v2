@@ -6,6 +6,24 @@ Tài liệu chi tiết xem tại: [`docs/reports/tab1-web-admin/menu-and-user-st
 
 ## Tóm Tắt Nhanh
 
+### Cập nhật 2026-09-21: Thanh toán và vòng đời đăng ký
+
+Phần này cập nhật các nội dung tương ứng bên dưới; không tạo menu hoặc US mới.
+
+| Phạm vi | Thay đổi đã đồng bộ |
+| --- | --- |
+| QTV/LT W08, US01-US03 | `payments` chỉ lưu khoản thu thành công, không có trạng thái; bỏ cột/bộ lọc trạng thái và KPI đơn chờ. Còn hai KPI tổng thực thu và lượt thanh toán thành công. |
+| QTV/LT W08-US02, HV03-US03 | QR là yêu cầu riêng `payment_intents`, hết hạn sau 15 phút; chỉ sau ghi nhận thành công mới tạo payment và phiếu thu. Giữ mô phỏng chuyển khoản phục vụ kiểm thử. |
+| QTV/LT W08-US02 | Chuyển khoản có đối chiếu thủ công, yêu cầu mã giao dịch ngân hàng; ghi BANK_TRANSFER, không dùng CASH thay thế. |
+| QTV/LT W04-US01-US04, HV03-US01/US03 | Đăng ký chờ không tự hủy sau 3 ngày hoặc khi QR hết hạn; có thể hủy chủ động khi còn chờ hoặc tạo QR mới cho cùng đăng ký. |
+| QTV/LT W04-US06, HV03-US01 | Chỉ đóng băng gói đã thanh toán và đang hiệu lực; chặn đơn chờ và kỳ chưa bắt đầu cho mọi vai trò. |
+| W01/W04/W07/W14, HV03/HV05, PT02 | Cận hạn theo API: còn <=4 ngày hoặc <=3 buổi theo quyền lợi áp dụng, Combo dùng OR; không thay ngưỡng nhóm CSKH đã hết hạn trong 14 ngày. |
+
+- Đồng bộ Product Spec, Epic, Main/Alternate/Exception Flows, Field-level specification, Activity Diagram, bản đồ màn hình và ERD.
+- Câu hỏi còn mở: `PAY-OQ-01` về thanh toán sau khi kỳ đăng ký gốc đã hết. Không tự quyết định dời kỳ hiệu lực.
+- [Danh sách 42 tài liệu nghiệp vụ đã cập nhật](reports/tab3-mobile-pt/2026-09-21-payment-business-docs-walkthrough.md).
+- [Kết quả kiểm thử và triển khai](reports/tab3-mobile-pt/2026-09-21-payment-ledger-walkthrough.md).
+
 ### 1. Các Menu Bổ Sung Mới
 - **Web Quản trị viên (QTV):**
   - **W14 · Chăm sóc & thông báo** (`route: customer-care`): Quản lý 4 khối việc CSKH (Sinh nhật hôm nay, Sắp hết hạn <= 4 ngày, Chờ nhắc gia hạn, Đăng ký mới).

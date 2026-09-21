@@ -6,6 +6,11 @@
 - **Goal:** Quản lý danh sách các hợp đồng đăng ký gói tập, tạo đăng ký mới, gia hạn gói nối tiếp cho hội viên tại quầy và theo dõi trạng thái sử dụng dịch vụ trong chi nhánh.
 - **Scope:** Tạo registration, gia hạn nối tiếp, xem danh sách đăng ký và snapshot dữ liệu bán trong chi nhánh được phân công. Nghiệp vụ thu tiền 100% thuộc W08; phân công PT thuộc W05 / Mobile Hội viên.
 
+## Quy tắc vòng đời và bảo lưu
+- Đăng ký chờ giữ bộ lọc/trạng thái, Thu tiền và Hủy đơn có xác nhận bất kỳ lúc nào còn chờ. QR thuộc payment_intents, hạn 15 phút; không tự hủy đăng ký sau 3 ngày. Thu thành công mới có payments không status và một phiếu thu.
+- Sắp hết hạn dùng is_expiring/display_status API (<= 4 ngày hoặc <= 3 buổi; Combo OR), status ACTIVE giữ nguyên.
+- QTV/Lễ tân/Hội viên chỉ đóng băng gói đã trả đủ, hiện đang hiệu lực ACTIVE hoặc hiển thị Sắp hết hạn; không cho gói tương lai SCHEDULED hoặc chưa thanh toán. Chi tiết W04-US06 và HV03-US01; lịch sử bảo lưu vẫn chỉ đọc.
+
 ## Thành phần giao diện (UI Components & Layout)
 
 Menu `W04 · Đăng ký & gia hạn` là màn hình quản lý hợp đồng đăng ký dịch vụ (Subscription / Registration View) trên nền tảng Web của Lễ tân, gồm 4 khối thành phần giao diện chính:
@@ -27,7 +32,7 @@ Menu `W04 · Đăng ký & gia hạn` là màn hình quản lý hợp đồng đ�
     - `Tất cả`
     - `Chờ thanh toán` (`PENDING_PAYMENT`): Đăng ký vừa tạo, chưa thanh toán.
     - `Đang hoạt động` (`ACTIVE`): Đã thanh toán 100%, đang trong thời hạn hiệu lực.
-    - `Sắp hết hạn`: Còn hạn $\le$ 7 ngày hoặc còn $\le$ 2 buổi.
+    - `Sắp hết hạn`: Còn <= 4 ngày theo thời gian hoặc <= 3 buổi theo số buổi; Combo dùng OR.
     - `Đã hết hạn` (`EXPIRED`): Đã qua ngày kết thúc hoặc đã dùng hết số buổi.
     - `Đã hủy` (`CANCELLED`): Đăng ký bị hủy do sai sót hoặc vi phạm.
 - **Bộ lọc Tình trạng gán PT (Dropdown / Select):**
@@ -56,7 +61,7 @@ Menu `W04 · Đăng ký & gia hạn` là màn hình quản lý hợp đồng đ�
   8. `Thao tác (Row Actions)`:
      - **Với gói PT/COMBO chưa có PT:** Nút nổi bật **`[Gán PT]`** (mở modal Gán PT phụ trách `LT-W04-US05`).
      - **Khi `Đang hiệu lực`:** Nút `Chi tiết` (mở sidebar drawer `LT-W04-US04`) và Nút viền xanh `Gia hạn` (mở modal gia hạn gói `LT-W04-US02`).
-     - **Khi `Chờ thanh toán`:** Nút nền vàng nổi bật `Thu tiền` (mở nhanh modal thanh toán 100% W08) và Nút `Chi tiết`.
+     - **Khi `Chờ thanh toán`:** Nút `Thu tiền` (mở W08-US02), `Hủy đơn` (xác nhận theo W04-US03) và `Chi tiết`.
      - **Khi `Đã hết hạn`:** Nút `Chi tiết` và Nút `Gia hạn`.
 
 ---
@@ -89,6 +94,8 @@ Thông tin chi tiết gói tập và **Tiến độ / Số buổi** được xem
 | [LT-W04-US05 — Gán PT phụ trách cho gói đăng ký](../../user-stories/le-tan/LT-W04-Đăng ký & gia hạn/LT-W04-US05-Gán PT phụ trách cho gói đăng ký.md) | Modal | **Gán PT phụ trách** | Form modal prefill thông tin gói, hội viên, chi nhánh; combobox tìm kiếm & chọn HLV đang hoạt động tại chi nhánh; gán HLV trực tiếp cho gói PT/COMBO tại quầy |
 
 ---
+
+- [LT-W04-US06 — Đóng băng gói tập](../../user-stories/le-tan/LT-W04-Đăng ký & gia hạn/LT-W04-US06-Đóng băng gói tập.md): bảo lưu chỉ gói đã thanh toán và hiện đang có hiệu lực.
 
 ## Flow specification
 

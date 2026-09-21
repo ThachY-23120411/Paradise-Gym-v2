@@ -133,9 +133,11 @@
       const b = A.button(label);
       b.className = id === selected ? "active" : "";
       b.setAttribute("role", "tab");
-      b.setAttribute("aria-selected", id === selected);
       b.onclick = () => change(id);
       nav.append(b);
+      if (id === selected) {
+        setTimeout(() => b.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" }), 0);
+      }
     }
     root.append(nav);
     return nav;
@@ -162,7 +164,7 @@
     return section;
   };
   A.badge = (status, label) =>
-    `<span class="badge ${{ ACTIVE: "green", COMPLETED: "green", ACCEPTED: "green", SCHEDULED: "blue", BOOKED: "blue", PENDING: "amber", PENDING_PAYMENT: "amber", PENDING_COMPLETION: "amber", REJECTED: "red", CANCELLED: "red", EXPIRED: "red", FROZEN: "ice" }[status] || ""}">${A.escape(label || { ACTIVE: "Đang hoạt động", COMPLETED: "Đã hoàn thành", ACCEPTED: "Đã chấp nhận", SCHEDULED: "Chưa đến ngày hiệu lực", BOOKED: "Đã đặt", PENDING: "Đang chờ phản hồi", PENDING_PAYMENT: "Chờ thanh toán", PENDING_COMPLETION: "Chờ xác nhận", REJECTED: "Đã từ chối", CANCELLED: "Đã hủy", EXPIRED: "Đã hết hạn", FROZEN: "❄️ Đang đóng băng" }[status] || status)}</span>`;
+    `<span class="badge ${{ ACTIVE: "green", COMPLETED: "green", ACCEPTED: "green", SCHEDULED: "blue", BOOKED: "blue", PENDING: "amber", PENDING_PAYMENT: "amber", PENDING_COMPLETION: "amber", EXPIRING: "amber", REJECTED: "red", CANCELLED: "red", EXPIRED: "red", FROZEN: "ice" }[status] || ""}">${A.escape(label || { ACTIVE: "Đang sử dụng", COMPLETED: "Đã hoàn thành", ACCEPTED: "Đã chấp nhận", SCHEDULED: "Chưa đến ngày hiệu lực", BOOKED: "Đã đặt", PENDING: "Đang chờ phản hồi", PENDING_PAYMENT: "Chờ thanh toán", PENDING_COMPLETION: "Chờ xác nhận", EXPIRING: "Sắp hết hạn", REJECTED: "Đã từ chối", CANCELLED: "Đã hủy", EXPIRED: "Đã hết hạn", FROZEN: "❄️ Đang đóng băng" }[status] || status)}</span>`;
   A.avatar = (name, url) => {
     const initials = String(name || "")
       .split(/\s+/)
@@ -217,14 +219,64 @@
   A.clearDialogs = () => {
     for (const d of A.dialogs) d.close();
   };
+  A.refreshPersistentHeader = () => {
+    const user = A.user;
+    const profile = A.profile || {};
+    const fullName = profile.full_name || user?.full_name || '';
+    const memberCode = profile.member_code || user?.member_code || 'HV';
+    const branchName = profile.home_branch_name || user?.branch_name || 'Paradise Gym Quận 1';
+    const avatarUrl = profile.avatar_url || user?.avatar_url || '';
+
+    const greeting = fullName ? `Xin chào, ${fullName}` : 'Xin chào, Hội viên';
+    const nameEl = document.getElementById('headerMemberName');
+    if (nameEl) nameEl.textContent = greeting;
+
+    const branchEl = document.getElementById('headerBranchText');
+    if (branchEl) branchEl.textContent = branchName;
+
+    const codeBadge = document.getElementById('headerMemberCodeBadge');
+    if (codeBadge) codeBadge.textContent = memberCode;
+
+    const avatarImg = document.getElementById('headerAvatar');
+    const fallback = document.getElementById('headerAvatarFallback');
+
+    if (avatarImg && fallback) {
+      if (avatarUrl && /^https?:\/\//i.test(avatarUrl)) {
+        avatarImg.src = avatarUrl;
+        avatarImg.style.display = 'block';
+        fallback.style.display = 'none';
+      } else {
+        avatarImg.style.display = 'none';
+        const initials = String(fullName || '')
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(-2)
+          .map((x) => x[0])
+          .join('')
+          .toUpperCase() || 'HV';
+        fallback.textContent = initials;
+        fallback.style.display = 'flex';
+      }
+    }
+  };
   A.updateUnreadNotifications = async () => {
     if (!A.user) return;
     try {
       const data = await A.request("/notifications");
       const list = Array.isArray(data) ? data : data.items || [];
-      const hasUnread = list.some((n) => !n.is_read);
+      const unreadCount = list.filter((n) => !n.is_read).length;
       const dot = document.getElementById("unreadBellDot");
-      if (dot) dot.hidden = !hasUnread;
+      if (dot) {
+        if (unreadCount > 0) {
+          dot.hidden = false;
+          dot.style.display = "inline-flex";
+          dot.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
+        } else {
+          dot.hidden = true;
+          dot.style.display = "none";
+          dot.textContent = "0";
+        }
+      }
     } catch (e) {
       // silently ignore
     }
@@ -240,6 +292,10 @@
     document.getElementById("refreshPage").hidden = true;
     const notifBtn = document.getElementById("btnHeaderNotifications");
     if (notifBtn) notifBtn.hidden = true;
+    const avatarImg = document.getElementById("headerAvatar");
+    if (avatarImg) avatarImg.style.display = "none";
+    const avatarFallback = document.getElementById("headerAvatarFallback");
+    if (avatarFallback) avatarFallback.style.display = "none";
     window.location.replace("/mobile/");
   };
   A.navigate = async (route = "home", sub = null, context = null) => {
@@ -250,6 +306,7 @@
     const version = ++A.version;
     A.route = route;
     A.sub = sub;
+    A.refreshPersistentHeader();
     A.clearDialogs();
     const root = document.getElementById("main");
     A.dispose(root);
@@ -294,8 +351,8 @@
     const p = await A.request(`/members/${u.member_profile_id}`);
     A.user = u;
     A.profile = p;
+    A.refreshPersistentHeader();
     document.getElementById("bottomNav").hidden = false;
-    document.getElementById("refreshPage").hidden = false;
     const notifBtn = document.getElementById("btnHeaderNotifications");
     if (notifBtn) {
       notifBtn.hidden = false;
@@ -315,12 +372,16 @@
     document
       .querySelectorAll("[data-route]")
       .forEach((b) => (b.onclick = () => A.navigate(b.dataset.route)));
-    document.getElementById("refreshPage").onclick = () =>
-      A.navigate(A.route, A.sub);
-    document.querySelector(".brand").onclick = (e) => {
+    const refreshBtn = document.getElementById("refreshPage");
+    if (refreshBtn) {
+      refreshBtn.onclick = () => A.navigate(A.route, A.sub);
+    }
+    document.querySelector(".brand")?.addEventListener("click", (e) => {
       e.preventDefault();
       A.navigate("home");
-    };
+    });
+    document.getElementById("headerAvatar")?.addEventListener("click", () => A.navigate("account"));
+    document.getElementById("headerAvatarFallback")?.addEventListener("click", () => A.navigate("account"));
     if (!sdk.getAccessToken()) {
       window.location.replace("/mobile/");
       return;

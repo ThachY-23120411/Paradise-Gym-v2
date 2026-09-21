@@ -7,6 +7,9 @@
 - QTV mở menu W04 hoặc chọn **Đăng ký & gia hạn**.
 - Màn hình liên quan: Web QTV — W04 Đăng ký & gia hạn.
 
+## Quy tắc sắp hết hạn
+- Gói đã thanh toán, đang có hiệu lực và chưa hết hạn: theo thời gian còn <= 4 ngày, theo buổi còn <= 3 buổi; Combo dùng OR giữa các quyền lợi áp dụng. Nguồn hiển thị là is_expiring và display_status do SYS/API tính; status nội bộ ACTIVE vẫn dùng cho kiểm tra quyền tập. Không tạo enum/field DB mới và không tự tính ngưỡng riêng trên UI.
+
 ## Main Flow
 
 1. QTV mở danh sách các đăng ký.
@@ -30,6 +33,9 @@
 | Trạng thái | `Status Badge` | `READONLY` | required | `DYNAMIC`: theo trạng thái record | Hiển thị badge viền màu trực quan: `Đang hiệu lực` (viền xanh lá), `Đang đóng băng` (badge xanh băng tuyết `❄️ Đang đóng băng`), `Chưa đến ngày hiệu lực` (viền xanh dương/info), `Chờ thanh toán` (viền vàng cam), `Đã hết hạn` (viền xám), `Đã hủy` (viền đỏ) |
 | Thao tác | `Action Buttons` | `USER-INPUT` | required | `DYNAMIC`: hiển thị nút theo loại gói và trạng thái | • Với gói PT 1 Kèm nhiều (`GROUP_1_N` / `GROUP_PT`) ở trạng thái `Đang hiệu lực` hoặc `Chưa đến ngày hiệu lực`: Bổ sung nút **`[Mời vào nhóm (X/Y)]`** hiển thị số lượng thành viên thực tế trên số lượng tối đa của nhóm để mở modal Quản lý thành viên nhóm PT<br>• Với gói PT/COMBO chưa có HLV phụ trách (ở trạng thái `Đang hiệu lực` hoặc `Chưa đến ngày hiệu lực` sau khi đã thanh toán 100%): Bổ sung nút nổi bật **`[Gán PT]`** (`QTV-W04-US05`) để mở nhanh modal Gán PT phụ trách<br>• Khi `Đang hiệu lực`, `Đang đóng băng` hoặc `Chưa đến ngày hiệu lực`: Nút `Chi tiết` (mở sidebar drawer `QTV-W04-US04`) và Nút viền xanh `Gia hạn` (`QTV-W04-US02`)<br>• Khi `Chờ thanh toán`: Nút nền vàng nổi bật `Thu tiền` (mở nhanh modal thanh toán 100% W08), Nút viền đỏ **`[Hủy đơn]`** (mở modal xác nhận hủy đơn đăng ký chưa thanh toán), và Nút `Chi tiết`<br>• Khi `Đã hết hạn`: Nút `Chi tiết` và Nút `Gia hạn` |
 
+| Nút Hủy đơn | Action Button | USER-INPUT | conditional | CONDITIONAL: hiện khi đăng ký còn chờ trong scope; ẩn khi đã thanh toán hoặc đã hủy | Mở xác nhận AF-02; không phụ thuộc hạn QR. |
+| Nút Đóng băng gói | Action Button | USER-INPUT | conditional | CONDITIONAL: hiện khi đã trả đủ, hiện có hiệu lực ACTIVE/Sắp hết hạn và đủ điều kiện W04-US06; ẩn khi chưa trả, SCHEDULED, FROZEN, EXPIRED, CANCELLED hoặc đã hẹn đóng băng | Sắp hết hạn từ API, không đổi status nội bộ. |
+
 - **Thông tin khi bấm nút [Chi tiết] (Sidebar Drawer chi tiết lượt đăng ký gói):**
   - Mở sidebar drawer xem chi tiết lượt đăng ký gói (`QTV-W04-US04`) gồm 4 khối: Thông tin hội viên, Chi tiết gói tập, Trạng thái thanh toán 100% và **Tiến độ / Số buổi sử dụng** (kèm 2 thanh Progress bar Gym & PT trực quan).
   - Bảng danh sách Data Grid View không hiển thị cột tiến độ số buổi hay các cột công nợ để giữ giao diện bảng luôn thoáng và đồng nhất.
@@ -42,7 +48,18 @@
   - Bấm nút **[Mời vào nhóm]** đối với gói PT hình thức 1 Kèm nhiều (`GROUP_1_N`): Mở modal "Quản lý thành viên nhóm PT" để xem danh sách thành viên hiện tại và mời thêm học viên vào nhóm. Số lượng thành viên nhóm (gồm 1 Trưởng nhóm đại diện đứng tên gói + các thành viên được mời) bắt buộc phải $\le$ số học viên tối đa của gói (`max_group_members`). Khi nhóm đã đủ học viên tối đa, hệ thống vô hiệu hóa chức năng thêm thành viên và hiển thị cảnh báo nhóm đã đầy.
   - Bấm nút **[Chi tiết]** tại từng dòng để xem thông tin chi tiết và tiến độ sử dụng dịch vụ của hội viên.
 
+## Alternate Flows
+### AF-01 - Tiếp tục thanh toán đăng ký chờ
+- Bấm Thu tiền mở W08-US02 đúng đăng ký. QR còn hạn được tải lại; QR hết hạn có thể tạo mới. Đăng ký vẫn chờ sau 15 phút và sau 3 ngày, không tự hủy.
+
+### AF-02 - Hủy đăng ký còn chờ
+1. QTV bấm Hủy đơn trong scope; SYS mở xác nhận hiển thị Mã ĐK, Hội viên, Tên gói, Số tiền (READONLY, required, nguồn đăng ký được chọn; không có input).
+2. Xác nhận hủy: SYS kiểm tra lại quyền/scope và đăng ký còn chờ, chuyển CANCELLED, vô hiệu intent, ghi audit; cập nhật W04 và HV03 cùng đăng ký. Không tạo/xóa payment hay phiếu thu.
+3. Đóng hộp xác nhận không thay đổi dữ liệu. Hủy đơn khả dụng bất kỳ lúc nào còn chờ, kể cả QR hết hạn; không áp dụng cho gói đã thanh toán.
+
 ## Exception Flows
+- Đã thanh toán hoặc đã hủy trong lúc xác nhận: tải lại trạng thái và từ chối hủy đơn chờ; không ghi đè kết quả thanh toán. Sai scope/quyền: từ chối.
+
 - Lỗi tải dữ liệu: hiển thị thông báo lỗi.
 
 ## Activity Diagram — Swimlane
@@ -50,17 +67,57 @@
 
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — QTV Web / W04 Danh sách các đăng ký"]
-    subgraph L0["Swimlane — QTV"]
-      I01(("Initial"))
-      A01["Mở danh sách các đăng ký"]
-      F01((("Final — Danh sách được hiển thị")))
-      I01 --> A01
+  subgraph B["Boundary - Web QTV / W04 Danh sách và đơn chờ"]
+    subgraph L0["Swimlane - QTV"]
+      I(("Initial"))
+      A["Mở W04 hoặc đổi bộ lọc đăng ký"]
+      D2{"Chọn thao tác?"}
+      PAY["Bấm Thu tiền"]
+      C["Bấm Hủy đơn còn chờ"]
+      DC{"Xác nhận hủy?"}
     end
-    subgraph L1["Swimlane — SYS"]
-      S01["Xác định branch scope"]
-      S02["Hiển thị danh sách các đăng ký theo branch scope (Mã đăng ký, Tên hội viên, SĐT, Tên gói, Trạng thái)"]
-      A01 --> S01 --> S02 --> F01
+    subgraph L1["Swimlane - SYS"]
+      S["Nạp theo scope, giữ bộ lọc chờ và badge is_expiring"]
+      D{"Tải thành công?"}
+      V["Hiển thị danh sách hoặc rỗng và thao tác theo điều kiện"]
+      P["Mở W08-US02 đúng đăng ký"]
+      FP((("Final - Tiếp tục thanh toán")))
+      ASK["Hiển thị mã, hội viên, gói và số tiền xác nhận hủy"]
+      CHK["Kiểm tra lại quyền, scope và đăng ký còn chờ"]
+      CD{"Còn chờ và được phép?"}
+      CAN["Hủy đăng ký, vô hiệu intent, ghi audit và đồng bộ HV03"]
+      FC((("Final - Đã hủy")))
+      ME(("Merge - Lỗi hoặc xung đột"))
+      E["Báo lỗi và yêu cầu tải lại"]
+      FE((("Final - Không thay đổi")))
+      F((("Final - Đã xem hoặc đóng xác nhận")))
+      MF(("Merge - Kết thúc xem"))
+      NAV["Mở chi tiết, gia hạn, gán PT, nhóm hoặc đóng băng theo US tương ứng"]
+      FN((("Final - Đến luồng nghiệp vụ")))
     end
+    I --> A
+    A --> S
+    S --> D
+    D -->|Có| V
+    D -->|Không| ME
+    V --> D2
+    D2 -->|Thu tiền khi còn chờ| PAY
+    PAY --> P
+    P --> FP
+    D2 -->|Hủy đơn còn chờ| C
+    C --> ASK
+    ASK --> DC
+    DC -->|Đồng ý| CHK
+    CHK --> CD
+    CD -->|Có| CAN
+    CAN --> FC
+    CD -->|Không| ME
+    ME --> E
+    E --> FE
+    DC -->|Đóng| MF
+    D2 -->|Xong| MF
+    MF --> F
+    D2 -->|Thao tác khác đủ điều kiện| NAV
+    NAV --> FN
   end
 ```

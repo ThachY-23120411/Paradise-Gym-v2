@@ -323,6 +323,7 @@ a { color: var(--primary); }
 /* Bố trí padding chuẩn cho từng View cuộn tự do */
 #view-overview,
 #view-schedule,
+#view-commissions,
 #view-profile {
   padding: 24px 20px 32px;
 }
@@ -358,11 +359,11 @@ a { color: var(--primary); }
   flex-shrink: 0;
   height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   width: 100%;
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border-color);
+  background: var(--primary-dark);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: none;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: center;
   padding: 4px max(6px, calc((100% - var(--content-width)) / 2 + 20px)) calc(4px + env(safe-area-inset-bottom, 0px));
   z-index: 85;
@@ -375,7 +376,7 @@ a { color: var(--primary); }
   align-items: center;
   justify-content: center;
   gap: 4px;
-  color: var(--text-muted);
+  color: #e0eee7;
   text-decoration: none;
   font-size: 11px;
   font-weight: 600;
@@ -393,13 +394,13 @@ a { color: var(--primary); }
 }
 
 .nav-item.active {
-  color: var(--primary);
-  background: var(--primary-light);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .nav-item.active i {
   transform: none;
-  color: var(--primary);
+  color: #ffffff;
   filter: none;
 }
 
@@ -408,7 +409,7 @@ a { color: var(--primary); }
   bottom: 2px;
   width: 14px;
   height: 3px;
-  background: var(--primary);
+  background: #b9e3cd;
   border-radius: 3px;
   opacity: 0;
   transform: scaleX(0);
@@ -864,6 +865,15 @@ input:checked + .slider:before {
   box-shadow: none;
 }
 
+.bottom-nav .nav-item:focus-visible { outline: 2px solid #b9e3cd; outline-offset: -2px; }
+.pt-commission-page { width: 100%; min-width: 0; }
+.pt-commission-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
+.pt-commission-title { margin: 0; font-size: 20px; line-height: 1.4; }
+.pt-commission-page .pt-comm-summary-card { border-radius: 8px; }
+.pt-commission-page .pt-comm-session-item { flex-wrap: wrap; }
+.pt-commission-page .pt-comm-session-item > div:first-child { min-width: 150px !important; }
+.pt-commission-page .pt-comm-session-item > div:first-child > div { white-space: normal !important; overflow-wrap: anywhere; flex-wrap: wrap; }
+
 .input-with-icon .form-control:has(~ .btn-toggle-eye) { padding-right: 52px; }
 
 .form-control::placeholder {
@@ -1292,7 +1302,7 @@ input:checked + .slider:before {
   .simulator-container { padding: 0; min-height: 100dvh; }
   .device-frame { width: 100%; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
   .bottom-nav { border-radius: 0; }
-  #view-overview, #view-schedule, #view-profile { padding: 20px 16px 24px; }
+  #view-overview, #view-schedule, #view-commissions, #view-profile { padding: 20px 16px 24px; }
   .pt-slot-time-col { width: 70px !important; }
   .pt-slot-info-col { padding: 12px 10px !important; }
 }
@@ -1821,21 +1831,26 @@ body .pt-clients-module .pt-search-clear-btn { right: 2px; }
 
 body .pt-clients-tabs {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   flex-shrink: 0;
-  margin: 0 20px;
+  margin: 0 12px;
   border-bottom: 1px solid var(--border-color);
 }
 
 body .pt-clients-tabs .pt-tab-btn {
   height: auto;
-  min-height: 48px;
+  min-height: 46px;
   min-width: 0;
-  gap: 6px;
-  padding: 10px 8px;
+  gap: 2px;
+  padding: 8px 4px;
   border-radius: 4px 4px 0 0;
-  font: 600 13px/1.5 var(--font-body);
+  font: 600 11.5px/1.3 var(--font-body);
   color: var(--text-muted);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 body .pt-clients-tabs .pt-tab-btn.active {
@@ -1844,7 +1859,7 @@ body .pt-clients-tabs .pt-tab-btn.active {
   border-bottom-color: var(--primary);
 }
 
-body .pt-tab-count { font-size: 12px; font-variant-numeric: tabular-nums; }
+body .pt-tab-count { font-size: 11px; font-variant-numeric: tabular-nums; }
 
 body .pt-tab-req-badge {
   align-items: center;
@@ -2218,10 +2233,228 @@ body .pt-timeline-card .block-content { font-size: 13px; line-height: 1.6; overf
   body .pt-notif-title-wrap { flex-wrap: wrap; }
   body .pt-req-actions > *, body .pt-sheet-actions > * { min-width: 0; }
   body .pt-clients-search-bar { padding: 16px 16px 12px; }
-  body .pt-clients-tabs { margin-inline: 16px; }
+  body .pt-clients-tabs { margin-inline: 12px; }
   body .pt-clients-content { padding: 16px; }
-  body .pt-clients-tabs .pt-tab-btn { font-size: 12px; gap: 4px; padding-inline: 4px; }
+  body .pt-clients-tabs .pt-tab-btn { font-size: 11px; gap: 2px; padding-inline: 2px; }
   body .pt-card-top > .pt-status-badge-wrap,
   body .pt-card-top > .pt-badge-pending { margin-left: 56px; }
 }
+
+/* ==========================================================================
+   UNIFIED PT APPOINTMENT CARDS (4 DESIGN STATES PER SPECIFICATION)
+   1. Đã đặt (BOOKED/UPCOMING): #1e40af (Blue) | Border-left: 5px #60a5fa
+   2. Chờ xác nhận (AWAITING/PENDING): #b45309 (Amber) | Border-left: 5px #fbbf24
+   3. Hoàn thành (COMPLETED/DONE): #047857 (Green) | Border-left: 5px #34d399
+   4. Đã hủy (CANCELLED): #991b1b (Red) | Border-left: 5px #f87171
+   ========================================================================== */
+
+.pt-appointment-card {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  color: #ffffff;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+/* 1. ĐÃ ĐẶT (BOOKED / UPCOMING) */
+.pt-appointment-card.pt-status-booked,
+.pt-appointment-card.pt-status-upcoming,
+.pt-appointment-card.slot-upcoming {
+  background: #1e40af !important;
+  border-left: 5px solid #60a5fa !important;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.35) !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
+
+/* 2. CHỜ XÁC NHẬN HOÀN THÀNH (AWAITING_CONFIRMATION / PENDING_COMPLETION) */
+.pt-appointment-card.pt-status-awaiting,
+.pt-appointment-card.pt-status-awaiting_confirmation,
+.pt-appointment-card.pt-status-pending_completion,
+.pt-appointment-card.slot-awaiting {
+  background: #b45309 !important;
+  border-left: 5px solid #fbbf24 !important;
+  box-shadow: 0 2px 8px rgba(180, 83, 9, 0.35) !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
+
+/* 3. HOÀN THÀNH (COMPLETED / DONE) */
+.pt-appointment-card.pt-status-done,
+.pt-appointment-card.pt-status-completed,
+.pt-appointment-card.slot-done {
+  background: #047857 !important;
+  border-left: 5px solid #34d399 !important;
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.35) !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
+
+/* 4. ĐÃ HỦY (CANCELLED) */
+.pt-appointment-card.pt-status-cancelled,
+.pt-appointment-card.slot-cancelled {
+  background: #991b1b !important;
+  border-left: 5px solid #f87171 !important;
+  box-shadow: 0 2px 8px rgba(153, 27, 27, 0.35) !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
+
+/* Inside Card Rows */
+.pt-card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pt-card-top-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.pt-card-top-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+.pt-card-time {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+}
+.pt-card-dur-tag {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff !important;
+  padding: 1.5px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pt-card-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.pt-card-bottom-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+  color: #ffffff;
+}
+.pt-card-member-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff !important;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.pt-card-divider {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+}
+.pt-card-pkg-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92) !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* Action Buttons */
+.pt-btn-card-complete {
+  border-radius: 4px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: all 0.15s ease-in-out;
+  border: 1px solid;
+  outline: none;
+}
+.pt-btn-card-complete.is-ended {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  border-color: #059669 !important;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.pt-btn-card-complete.is-ended:hover {
+  background: #059669 !important;
+  transform: translateY(-1px);
+}
+.pt-btn-card-complete.is-waiting {
+  background: #94a3b8 !important;
+  color: #ffffff !important;
+  border-color: #64748b !important;
+  cursor: not-allowed;
+  opacity: 0.88;
+}
+
+.pt-btn-card-cancel {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border: 1px solid #ef4444 !important;
+  border-radius: 4px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+  outline: none;
+}
+.pt-btn-card-cancel:hover {
+  background: #b91c1c !important;
+  transform: translateY(-1px);
+}
+
 

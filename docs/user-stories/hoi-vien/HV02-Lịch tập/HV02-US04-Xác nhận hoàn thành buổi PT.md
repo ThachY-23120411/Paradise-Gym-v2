@@ -1,6 +1,7 @@
 # HV02-US04 - Xác nhận hoàn thành buổi PT
 
 ## Preconditions
+- Hội viên là chủ booking (`booking.member_id` khớp `member_profile_id`); với lịch nhóm, trưởng nhóm đại diện xác nhận. Thành viên nhóm khác chỉ xem, không có nút Xác nhận/Hủy và không mở được dialog xác nhận từ thẻ lịch.
 - Hội viên đã đăng nhập Mobile bằng tài khoản hợp lệ.
 - Buổi tập PT đã diễn ra hoặc đang ở trạng thái `Chờ xác nhận hoàn thành` (`AWAITING_CONFIRMATION`).
 

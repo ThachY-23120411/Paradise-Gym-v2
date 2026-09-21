@@ -4,7 +4,7 @@
 - **Epic / Menu:** PT01 · Lịch dạy PT
 - **Vai trò thực hiện (Primary Role):** Huấn luyện viên (PT)
 - **Phạm vi kiểm thử:** Mobile App PT (390x844 kết nối PostgreSQL qua REST API)
-- **Ngày thực hiện:** 2026-09-18
+- **Ngày thực hiện:** 2026-09-21
 - **Trạng thái tổng thể:** **`PASS`**
 
 ---
@@ -55,7 +55,7 @@ Xác minh tính đúng đắn theo Main Flow, Alternate Flows, Exception Flows, 
 
 ## 3. State Verification (Data & UI Consistency)
 
-- **Mô tả kiểm chứng:** Buổi tập f9ac65c2-f77c-4319-bf69-8fa06dce3b4e đạt đủ xác nhận 2 chiều, trạng thái chuyển thành COMPLETED trong bảng pt_bookings, và số buổi khả dụng (remaining_pt_sessions) trong bảng registrations bị trừ 1 theo đúng quy tắc kế toán.
+- **Mô tả kiểm chứng:** Buổi tập c9ac6395-655e-4d8a-b0f6-cf3a28ac1409 đạt đủ xác nhận 2 chiều, trạng thái chuyển thành COMPLETED trong bảng pt_bookings, và số buổi khả dụng (remaining_pt_sessions) trong bảng registrations bị trừ 1 theo đúng quy tắc kế toán.
 - **Status:** `PASS`
 
 ![State Verification](./step-03-confirm-success.png)

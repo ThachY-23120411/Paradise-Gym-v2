@@ -4,14 +4,9 @@ const {generateVietQR}=require('../../utils/vietqr');
 const {emit}=require('./notifications');
 const {canMember,trainerView}=require('./catalog');
 const H=require('./http');
+const {effective,registrationState}=require('./registrationState');
 const {pool,route,fail,text,phone,date,today,addDays,choice,only,isStaff,role,financial,branch,selected,scope,row,activeBranch,audit,code,page,search}=H;
 const router=express.Router();
-function effective(r,day=today()) {
-  if (r.is_frozen) return 'FROZEN';
-  if (r.has_scheduled_freeze) return 'SCHEDULED_FREEZE';
-  if(['ACTIVE','SCHEDULED','EXPIRED'].includes(r.status))return r.end_date&&r.end_date<day?'EXPIRED':r.start_date>day?'SCHEDULED':'ACTIVE';
-  return r.status;
-}
 async function registrationAccess(req,r) {
   if(isStaff(req)){branch(req,r.sold_branch_id);return;}
   if(req.user.active_role==='MEMBER') {
@@ -23,24 +18,11 @@ async function registrationAccess(req,r) {
   fail(403,'Registration outside authorized scope','FORBIDDEN');
 }
 async function autoResolveFreezes(db = pool) {
-  // 1. Tự động kích hoạt các đợt đóng băng đã lên lịch (SCHEDULED) khi đến ngày bắt đầu
-  await db.query(`
-    UPDATE package_freezes SET status = 'ACTIVE' WHERE status = 'SCHEDULED' AND start_date <= CURRENT_DATE;
-  `);
-  // 2. Kích hoạt cờ is_frozen = TRUE cho các hợp đồng có đợt đóng băng đang ACTIVE
-  await db.query(`
-    UPDATE registrations r
-    SET is_frozen = TRUE, updated_at = NOW()
-    WHERE is_frozen = FALSE
-      AND EXISTS (
-        SELECT 1 FROM package_freezes pf WHERE pf.registration_id = r.id AND pf.status = 'ACTIVE'
-      );
-  `);
-  // 3. Tự động kết thúc các đợt đóng băng đã đến ngày hết hạn
+  // 1. Tự động kết thúc các đợt đóng băng đã đến ngày hết hạn
   await db.query(`
     UPDATE package_freezes SET status = 'ENDED' WHERE status = 'ACTIVE' AND end_date <= CURRENT_DATE;
   `);
-  // 4. Gỡ cờ is_frozen = FALSE cho các hợp đồng không còn đợt đóng băng nào ACTIVE
+  // 2. Gỡ cờ is_frozen = FALSE cho các hợp đồng không còn đợt đóng băng nào ACTIVE
   await db.query(`
     UPDATE registrations r
     SET is_frozen = FALSE, updated_at = NOW()
@@ -57,8 +39,8 @@ async function listRegistrations(req,db=pool) {
     b.branch_name sold_branch_name,b.branch_name,pt.full_name pt_name,pt.pt_code,pt.full_name assigned_pt_name,pt.pt_code assigned_pt_code,r.reg_code registration_code,
     (SELECT branch_name FROM branches WHERE id=m.home_branch_id) member_home_branch_name,
     ARRAY(SELECT branch_id FROM registration_allowed_branches WHERE registration_id=r.id) allowed_branch_ids,
-    EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id AND p.status='COMPLETED') is_paid,
-    EXISTS(SELECT 1 FROM package_freezes pf WHERE pf.registration_id=r.id AND pf.status='SCHEDULED') has_scheduled_freeze,
+    EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id) is_paid,
+    FALSE has_scheduled_freeze,
     (SELECT COUNT(*)::int FROM group_pt_members gm WHERE gm.registration_id=r.id AND gm.invitation_status IN ('PENDING','ACCEPTED')) group_invited_count,
     COALESCE(pkg.session_duration_minutes, 60)::int session_duration_minutes
     FROM registrations r JOIN member_profiles m ON m.id=r.member_id JOIN branches b ON b.id=r.sold_branch_id LEFT JOIN pt_profiles pt ON pt.id=r.assigned_pt_id LEFT JOIN packages pkg ON pkg.id=r.package_id
@@ -189,35 +171,25 @@ router.post('/registrations/:id/freeze', route(async req => {
       fail(400, 'Gói tập vô thời hạn không cần đóng băng bảo lưu thời gian', 'INDEFINITE_PACKAGE');
     }
 
-    // Kiểm tra nếu đã có lịch đóng băng đang chờ (SCHEDULED)
-    const existingScheduled = (await db.query("SELECT 1 FROM package_freezes WHERE registration_id = $1 AND status = 'SCHEDULED'", [r.id])).rowCount;
-    if (existingScheduled > 0) fail(409, 'Gói tập đã có lịch hẹn đóng băng đang chờ thực thi', 'SCHEDULED_FREEZE_EXISTS');
-
     const freezeDays = parseInt(req.body.freeze_days, 10);
     if (!freezeDays || freezeDays <= 0) fail(400, 'Số ngày đóng băng phải lớn hơn 0');
     const reason = text(req.body.reason || (req.user.active_role === 'MEMBER' ? 'Hội viên chủ động đóng băng gói trên ứng dụng' : 'Đóng băng theo yêu cầu hội viên'), 'reason', 255);
     
-    const startDate = req.body.start_date ? date(req.body.start_date) : today();
-    const todayDate = today();
-
-    if (startDate < todayDate) {
-      fail(400, 'Ngày bắt đầu đóng băng không được trong quá khứ');
-    }
-
+    // Ngày bắt đầu đóng băng luôn cố định là ngày hiện tại (áp dụng ngay lập tức)
+    const startDate = today();
     const curEndDate = String(r.end_date).slice(0, 10);
     if (startDate >= curEndDate) {
-      fail(400, `Ngày bắt đầu đóng băng (${startDate}) phải trước ngày hết hạn gói (${curEndDate})`);
+      fail(400, `Gói tập đã đến ngày hết hạn (${curEndDate}), không thể đóng băng`);
     }
 
-    // Ràng buộc số ngày đóng băng: Ngày bắt đầu + số ngày đóng băng phải <= ngày hết hạn gói hiện tại
+    // Ràng buộc số ngày đóng băng: không được vượt quá thời hạn còn lại của gói
     const maxAllowedDays = Math.round((Date.parse(curEndDate) - Date.parse(startDate)) / 86400000);
     if (freezeDays > maxAllowedDays) {
-      fail(400, `Số ngày đóng băng (${freezeDays} ngày) không được vượt quá thời hạn còn lại của gói (${maxAllowedDays} ngày tính từ ngày bắt đầu đến ngày hết hạn hiện tại)`);
+      fail(400, `Số ngày đóng băng (${freezeDays} ngày) không được vượt quá thời hạn còn lại của gói (${maxAllowedDays} ngày tính từ hôm nay đến ngày hết hạn hiện tại)`);
     }
 
     const endDate = addDays(startDate, freezeDays);
-    const isImmediate = startDate === todayDate;
-    const freezeStatus = isImmediate ? 'ACTIVE' : 'SCHEDULED';
+    const freezeStatus = 'ACTIVE';
 
     const freezeRecord = (await db.query(`
       INSERT INTO package_freezes (registration_id, start_date, end_date, freeze_days, reason, approved_by_account_id, status)
@@ -225,19 +197,18 @@ router.post('/registrations/:id/freeze', route(async req => {
       RETURNING *
     `, [r.id, startDate, endDate, freezeDays, reason, req.user.account_id, freezeStatus])).rows[0];
 
-    // Cập nhật ngày kết thúc của gói lùi tương ứng số ngày đóng băng
-    // Nếu bắt đầu ngay hôm nay: is_frozen = TRUE; nếu hẹn tương lai: giữ nguyên is_frozen (FALSE)
+    // Cập nhật ngày kết thúc của gói lùi tương ứng số ngày đóng băng và kích hoạt is_frozen = TRUE
     const updated = (await db.query(`
       UPDATE registrations
-      SET is_frozen = CASE WHEN $3 = 'ACTIVE' THEN TRUE ELSE is_frozen END,
+      SET is_frozen = TRUE,
           freeze_days_total = freeze_days_total + $2,
           end_date = CASE WHEN end_date IS NOT NULL THEN end_date + ($2 || ' days')::interval ELSE NULL END,
           updated_at = NOW()
       WHERE id = $1
       RETURNING *
-    `, [r.id, freezeDays, freezeStatus])).rows[0];
+    `, [r.id, freezeDays])).rows[0];
 
-    await audit(db, req, 'registrations', r.id, isImmediate ? 'PACKAGE_FROZEN' : 'PACKAGE_FREEZE_SCHEDULED', r, updated, r.sold_branch_id, reason);
+    await audit(db, req, 'registrations', r.id, 'PACKAGE_FROZEN', r, updated, r.sold_branch_id, reason);
     return { registration: updated, freeze: freezeRecord };
   });
 }));
@@ -733,7 +704,7 @@ async function confirm(req,db,paymentId) {
   const reference=text(req.body.transaction_ref,'transaction_ref',100,false);
   if(p.payment_method==='BANK_TRANSFER'&&!reference&&req.body.manual_confirmation!==true)fail(400,'Bank transfer requires explicit staff confirmation or actual transaction reference');
   if(reference)await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',[`bank-reference:${reference}`]);
-  if(reference&&(await db.query("SELECT 1 FROM payments WHERE transaction_ref=$1 AND status='COMPLETED' AND id<>$2",[reference,p.id])).rowCount)fail(409,'Bank transaction reference already used');
+  if(reference&&(await db.query("SELECT 1 FROM payments WHERE transaction_ref=$1 AND id<>$2",[reference,p.id])).rowCount)fail(409,'Bank transaction reference already used');
   const saved=(await db.query("UPDATE payments SET status='COMPLETED',transaction_ref=$2,collected_by=$3,confirmed_at=NOW(),updated_at=NOW(),note=COALESCE($4,note) WHERE id=$1 RETURNING *",[p.id,reference,req.user.account_id,text(req.body.note,'note',255,false)])).rows[0];
   const status=r.end_date&&r.end_date<today()?'EXPIRED':r.start_date>today()?'SCHEDULED':'ACTIVE';
   const reg=(await db.query('UPDATE registrations SET status=$2,updated_at=NOW() WHERE id=$1 RETURNING *',[r.id,status])).rows[0];
@@ -883,4 +854,370 @@ router.get('/payments/:id/receipt',route(async req=>{
   if(!receipt)fail(404,'Receipt not available');return receipt;
 }));
 router.get('/payments/:id',route(async req=>{const p=await row(pool,'payments',req.params.id);await paymentAccess(req,p);return {...p,status:paymentStatus(p)};}));
+
+// ==========================================
+// PACKAGE TRANSFER REQUESTS (Chuyển nhượng gói tập)
+// ==========================================
+
+router.get('/transfer-requests/lookup-recipient', route(async req => {
+  role(req, 'MEMBER', 'QTV', 'RECEPTIONIST');
+  const q = String(req.query.query || req.query.phone || '').trim();
+  if (!q) fail(400, 'Vui lòng nhập số điện thoại hoặc mã hội viên');
+
+  const member = (await pool.query(`
+    SELECT m.id, m.full_name, m.member_code, m.phone, m.status, b.branch_name home_branch_name
+    FROM member_profiles m
+    JOIN branches b ON b.id = m.home_branch_id
+    WHERE m.phone = $1 OR UPPER(m.member_code) = UPPER($1)
+    LIMIT 1
+  `, [q])).rows[0];
+
+  if (!member) {
+    return { found: false, message: 'Không tìm thấy hội viên phù hợp' };
+  }
+  if (req.user.active_role === 'MEMBER' && member.id === req.user.member_profile_id) {
+    return { found: false, message: 'Không thể chuyển nhượng cho chính mình' };
+  }
+  if (member.status !== 'ACTIVE') {
+    return { found: false, message: 'Hội viên này đang không ở trạng thái hoạt động' };
+  }
+
+  return {
+    found: true,
+    member: {
+      id: member.id,
+      full_name: member.full_name,
+      member_code: member.member_code,
+      phone: member.phone,
+      home_branch_name: member.home_branch_name
+    }
+  };
+}));
+
+router.get('/transfer-requests', route(async req => {
+  const type = req.query.type; // 'sent' | 'received' | undefined
+  const status = req.query.status; // 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | undefined
+  let memberId = null;
+
+  if (req.user.active_role === 'MEMBER') {
+    memberId = req.user.member_profile_id;
+    if (!memberId) {
+      const mp = (await pool.query('SELECT id FROM member_profiles WHERE account_id = $1', [req.user.account_id])).rows[0];
+      memberId = mp?.id;
+    }
+  }
+
+  let whereClause = '1=1';
+  const params = [];
+
+  if (memberId) {
+    if (type === 'sent') {
+      params.push(memberId);
+      whereClause += ` AND tr.from_member_id = $${params.length}`;
+    } else if (type === 'received') {
+      params.push(memberId);
+      whereClause += ` AND tr.to_member_id = $${params.length}`;
+    } else {
+      params.push(memberId);
+      whereClause += ` AND (tr.from_member_id = $${params.length} OR tr.to_member_id = $${params.length})`;
+    }
+  } else if (isStaff(req)) {
+    if (req.query.member_id) {
+      params.push(req.query.member_id);
+      whereClause += ` AND (tr.from_member_id = $${params.length} OR tr.to_member_id = $${params.length})`;
+    }
+  }
+
+  if (status && status !== 'ALL') {
+    params.push(status);
+    whereClause += ` AND tr.status = $${params.length}`;
+  }
+
+  const query = `
+    SELECT
+      tr.*,
+      r.reg_code,
+      r.package_name_snapshot,
+      r.package_type_snapshot,
+      r.price_snapshot,
+      r.duration_days_snapshot,
+      r.start_date,
+      r.end_date,
+      r.remaining_gym_sessions,
+      r.remaining_pt_sessions,
+      r.total_gym_sessions_snapshot,
+      r.total_pt_sessions_snapshot,
+      r.sold_branch_id,
+      r.is_frozen,
+      b.branch_name sold_branch_name,
+      fm.full_name AS from_member_name,
+      fm.member_code AS from_member_code,
+      fm.phone AS from_member_phone,
+      tm.full_name AS to_member_name,
+      tm.member_code AS to_member_code,
+      tm.phone AS to_member_phone
+    FROM package_transfer_requests tr
+    JOIN registrations r ON r.id = tr.registration_id
+    JOIN branches b ON b.id = r.sold_branch_id
+    JOIN member_profiles fm ON fm.id = tr.from_member_id
+    JOIN member_profiles tm ON tm.id = tr.to_member_id
+    WHERE ${whereClause}
+    ORDER BY tr.created_at DESC
+  `;
+
+  const rows = (await pool.query(query, params)).rows;
+  return rows;
+}));
+
+router.post('/transfer-requests', route(async req => {
+  role(req, 'MEMBER', 'QTV', 'RECEPTIONIST');
+  const { registration_id, recipient_phone, recipient_member_code, to_member_id, reason } = req.body;
+  if (!registration_id) fail(400, 'Thiếu thông tin gói tập (registration_id)');
+  if (!recipient_phone && !recipient_member_code && !to_member_id) {
+    fail(400, 'Vui lòng nhập số điện thoại hoặc mã hội viên của người nhận');
+  }
+
+  return transaction(async db => {
+    const reg = await row(db, 'registrations', registration_id, true);
+    let fromMemberId = reg.member_id;
+    if (req.user.active_role === 'MEMBER') {
+      if (reg.member_id !== req.user.member_profile_id) {
+        fail(403, 'Bạn không phải chủ sở hữu gói tập này');
+      }
+      fromMemberId = req.user.member_profile_id;
+    }
+
+    if (!['ACTIVE', 'SCHEDULED'].includes(reg.status)) {
+      fail(400, 'Chỉ có thể chuyển nhượng gói tập đang hoạt động hoặc đã lên lịch');
+    }
+    if (reg.is_frozen) {
+      fail(400, 'Gói tập đang bị đóng băng, không thể chuyển nhượng');
+    }
+    if (reg.end_date && reg.end_date < today()) {
+      fail(400, 'Gói tập đã hết hạn, không thể chuyển nhượng');
+    }
+
+    const existingPending = (await db.query(
+      "SELECT id FROM package_transfer_requests WHERE registration_id = $1 AND status = 'PENDING'",
+      [reg.id]
+    )).rows[0];
+    if (existingPending) {
+      fail(409, 'Gói tập này đang có một yêu cầu chuyển nhượng chờ xử lý');
+    }
+
+    let toMember = null;
+    if (to_member_id) {
+      toMember = (await db.query('SELECT * FROM member_profiles WHERE id = $1', [to_member_id])).rows[0];
+    } else if (recipient_phone) {
+      toMember = (await db.query('SELECT * FROM member_profiles WHERE phone = $1', [recipient_phone.trim()])).rows[0];
+    } else if (recipient_member_code) {
+      toMember = (await db.query('SELECT * FROM member_profiles WHERE UPPER(member_code) = UPPER($1)', [recipient_member_code.trim()])).rows[0];
+    }
+
+    if (!toMember) {
+      fail(404, 'Không tìm thấy hội viên nhận chuyển nhượng');
+    }
+    if (toMember.status !== 'ACTIVE') {
+      fail(400, 'Tài khoản hội viên nhận hiện không ở trạng thái hoạt động');
+    }
+    if (toMember.id === fromMemberId) {
+      fail(400, 'Không thể chuyển nhượng gói tập cho chính mình');
+    }
+
+    const cleanReason = reason ? String(reason).trim().slice(0, 500) : null;
+
+    const inserted = (await db.query(
+      `INSERT INTO package_transfer_requests (registration_id, from_member_id, to_member_id, reason, status, transfer_fee)
+       VALUES ($1, $2, $3, $4, 'PENDING', 0)
+       RETURNING *`,
+      [reg.id, fromMemberId, toMember.id, cleanReason]
+    )).rows[0];
+
+    const fromMember = (await db.query('SELECT full_name FROM member_profiles WHERE id = $1', [fromMemberId])).rows[0];
+    if (toMember.account_id) {
+      await db.query(
+        `INSERT INTO notifications (account_id, title, body, reference_type, reference_id, branch_id, event_type)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          toMember.account_id,
+          'Yêu cầu chuyển nhượng gói tập',
+          `Hội viên ${fromMember?.full_name || 'khác'} đã gửi cho bạn yêu cầu nhận chuyển nhượng gói ${reg.package_name_snapshot} (${reg.reg_code}).`,
+          'PACKAGE_TRANSFER',
+          inserted.id,
+          reg.sold_branch_id,
+          'TRANSFER_REQUEST_RECEIVED'
+        ]
+      );
+    }
+
+    return {
+      success: true,
+      message: 'Gửi yêu cầu chuyển nhượng thành công',
+      transfer_request: inserted
+    };
+  });
+}));
+
+router.post('/transfer-requests/:id/respond', route(async req => {
+  role(req, 'MEMBER', 'QTV', 'RECEPTIONIST');
+  const { action } = req.body;
+  if (!['ACCEPT', 'REJECT'].includes(action)) {
+    fail(400, 'Hành động không hợp lệ (yêu cầu ACCEPT hoặc REJECT)');
+  }
+
+  return transaction(async db => {
+    const tr = (await db.query('SELECT * FROM package_transfer_requests WHERE id = $1 FOR UPDATE', [req.params.id])).rows[0];
+    if (!tr) fail(404, 'Không tìm thấy yêu cầu chuyển nhượng');
+    if (tr.status !== 'PENDING') {
+      fail(409, `Yêu cầu chuyển nhượng đã ở trạng thái ${tr.status}`);
+    }
+
+    if (req.user.active_role === 'MEMBER' && tr.to_member_id !== req.user.member_profile_id) {
+      fail(403, 'Bạn không phải là người nhận của yêu cầu chuyển nhượng này');
+    }
+
+    const reg = await row(db, 'registrations', tr.registration_id, true);
+    const fromMember = (await db.query('SELECT * FROM member_profiles WHERE id = $1', [tr.from_member_id])).rows[0];
+    const toMember = (await db.query('SELECT * FROM member_profiles WHERE id = $1', [tr.to_member_id])).rows[0];
+
+    if (action === 'REJECT') {
+      const updated = (await db.query(
+        "UPDATE package_transfer_requests SET status = 'REJECTED', responded_at = NOW(), updated_at = NOW() WHERE id = $1 RETURNING *",
+        [tr.id]
+      )).rows[0];
+
+      if (fromMember?.account_id) {
+        await db.query(
+          `INSERT INTO notifications (account_id, title, body, reference_type, reference_id, branch_id, event_type)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            fromMember.account_id,
+            'Yêu cầu chuyển nhượng bị từ chối',
+            `Hội viên ${toMember?.full_name || 'Bên nhận'} đã từ chối yêu cầu chuyển nhượng gói ${reg.package_name_snapshot} (${reg.reg_code}).`,
+            'PACKAGE_TRANSFER',
+            tr.id,
+            reg.sold_branch_id,
+            'TRANSFER_REQUEST_REJECTED'
+          ]
+        );
+      }
+
+      return { success: true, message: 'Đã từ chối yêu cầu chuyển nhượng', transfer_request: updated };
+    }
+
+    // Action === 'ACCEPT'
+    if (!['ACTIVE', 'SCHEDULED'].includes(reg.status)) {
+      fail(400, 'Gói tập hiện không còn ở trạng thái khả dụng để chuyển nhượng');
+    }
+    if (reg.is_frozen) {
+      fail(400, 'Gói tập đang bị đóng băng, không thể nhận chuyển nhượng');
+    }
+    if (reg.end_date && reg.end_date < today()) {
+      fail(400, 'Gói tập đã hết hạn, không thể nhận chuyển nhượng');
+    }
+    if (reg.member_id !== tr.from_member_id) {
+      fail(400, 'Chủ sở hữu gói tập đã thay đổi, yêu cầu này không còn hiệu lực');
+    }
+
+    if (['GYM_TIME', 'GYM_SESSION'].includes(reg.package_type_snapshot)) {
+      const activeGym = (await db.query(
+        `SELECT id, reg_code, package_name_snapshot FROM registrations
+         WHERE member_id = $1 AND status = 'ACTIVE' AND package_type_snapshot IN ('GYM_TIME', 'GYM_SESSION')
+           AND (end_date IS NULL OR end_date >= CURRENT_DATE)`,
+        [toMember.id]
+      )).rows[0];
+      if (activeGym) {
+        fail(409, `Bạn đang có gói Gym (${activeGym.package_name_snapshot} - ${activeGym.reg_code}) còn hiệu lực. Mỗi hội viên chỉ được sở hữu tối đa 1 gói Gym.`);
+      }
+    }
+
+    const updatedReg = (await db.query(
+      'UPDATE registrations SET member_id = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [toMember.id, reg.id]
+    )).rows[0];
+
+    const staffAccount = (await db.query(
+      `SELECT a.id FROM accounts a
+       JOIN account_roles ar ON ar.account_id = a.id
+       JOIN roles ro ON ro.id = ar.role_id
+       WHERE ro.role_code IN ('RECEPTIONIST', 'QTV')
+       LIMIT 1`
+    )).rows[0];
+    const approvedBy = isStaff(req) ? req.user.account_id : (staffAccount?.id || toMember.account_id);
+
+    await db.query(
+      `INSERT INTO package_transfers (registration_id, from_member_id, to_member_id, transfer_fee, reason, approved_by_account_id)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [reg.id, fromMember.id, toMember.id, tr.transfer_fee || 0, tr.reason || 'Chuyển nhượng trực tiếp giữa hội viên', approvedBy]
+    );
+
+    const updatedReq = (await db.query(
+      "UPDATE package_transfer_requests SET status = 'ACCEPTED', responded_at = NOW(), updated_at = NOW() WHERE id = $1 RETURNING *",
+      [tr.id]
+    )).rows[0];
+
+    await audit(db, req, 'registrations', reg.id, 'PACKAGE_TRANSFERRED', reg, updatedReg, reg.sold_branch_id, `Chuyển nhượng từ ${fromMember.full_name} sang ${toMember.full_name}`);
+
+    if (fromMember?.account_id) {
+      await db.query(
+        `INSERT INTO notifications (account_id, title, body, reference_type, reference_id, branch_id, event_type)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          fromMember.account_id,
+          'Chuyển nhượng gói tập thành công',
+          `Gói tập ${reg.package_name_snapshot} (${reg.reg_code}) đã được chuyển nhượng thành công cho ${toMember.full_name}.`,
+          'PACKAGE_TRANSFER',
+          tr.id,
+          reg.sold_branch_id,
+          'PACKAGE_TRANSFERRED'
+        ]
+      );
+    }
+    if (toMember?.account_id) {
+      await db.query(
+        `INSERT INTO notifications (account_id, title, body, reference_type, reference_id, branch_id, event_type)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          toMember.account_id,
+          'Nhận chuyển nhượng gói tập thành công',
+          `Bạn đã nhận thành công gói tập ${reg.package_name_snapshot} (${reg.reg_code}) từ ${fromMember.full_name}.`,
+          'PACKAGE_TRANSFER',
+          tr.id,
+          reg.sold_branch_id,
+          'PACKAGE_TRANSFERRED'
+        ]
+      );
+    }
+
+    return {
+      success: true,
+      message: 'Chấp nhận chuyển nhượng gói tập thành công',
+      transfer_request: updatedReq,
+      registration: updatedReg
+    };
+  });
+}));
+
+router.delete('/transfer-requests/:id', route(async req => {
+  role(req, 'MEMBER', 'QTV', 'RECEPTIONIST');
+  return transaction(async db => {
+    const tr = (await db.query('SELECT * FROM package_transfer_requests WHERE id = $1 FOR UPDATE', [req.params.id])).rows[0];
+    if (!tr) fail(404, 'Không tìm thấy yêu cầu chuyển nhượng');
+    if (tr.status !== 'PENDING') {
+      fail(409, `Không thể thu hồi yêu cầu đang ở trạng thái ${tr.status}`);
+    }
+
+    if (req.user.active_role === 'MEMBER' && tr.from_member_id !== req.user.member_profile_id) {
+      fail(403, 'Bạn không có quyền thu hồi yêu cầu này');
+    }
+
+    const updated = (await db.query(
+      "UPDATE package_transfer_requests SET status = 'CANCELLED', updated_at = NOW() WHERE id = $1 RETURNING *",
+      [tr.id]
+    )).rows[0];
+
+    return { success: true, message: 'Đã thu hồi yêu cầu chuyển nhượng', transfer_request: updated };
+  });
+}));
+
 module.exports={router,effective,registrationAccess,listRegistrations,listPayments};

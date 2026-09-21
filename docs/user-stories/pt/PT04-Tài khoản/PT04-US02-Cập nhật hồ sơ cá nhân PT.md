@@ -17,8 +17,8 @@
    - Chỉnh sửa nội dung Chuyên môn và Giới thiệu bản thân (`bio` / `specialties`).
    - Cập nhật Email liên hệ cá nhân.
 4. HLV bấm nút **`[ Lưu thay đổi ]`**.
-5. SYS kiểm tra tính hợp lệ của toàn bộ dữ liệu (định dạng tệp ảnh PNG/JPEG/WebP dung lượng tối đa 5MB, độ dài văn bản giới thiệu không vượt quá 1.000 ký tự, định dạng email hợp lệ).
-6. SYS tải tệp ảnh lên dịch vụ lưu trữ đám mây (Cloud Storage), cập nhật các trường thông tin vào cơ sở dữ liệu (`pt_profiles` và `accounts`), ghi nhật ký kiểm toán (`audit_logs`) và hiển thị thông báo cập nhật thành công.
+5. Client và server kiểm tra: ảnh PNG/JPEG/WebP <= 5MB; email hợp lệ tối đa 150 ký tự; chuyên môn tối đa 500; bio tối đa 1.000 ký tự. Không chỉ dựa maxlength phía client.
+6. SYS lưu qua API hồ sơ và dịch vụ avatar hiện có; chỉ báo thành công sau API xác nhận. Backend dùng cloud nếu cấu hình hoặc lưu trữ ảnh cục bộ; thiếu cloud không tự chặn chức năng. Nếu lưu ảnh thất bại thì giữ bản nháp, không tuyên bố ảnh đã lưu. Nếu ảnh đã lưu nhưng API hồ sơ thất bại, báo rõ ảnh đã cập nhật còn thông tin hồ sơ chưa lưu.
 7. Hệ thống điều hướng quay trở lại màn hình chính của `PT04 · Tài khoản` với thông tin mới nhất vừa được cập nhật.
 
 - **Business rules / logic:**
@@ -50,41 +50,72 @@
 - **EF-02: Định dạng email không hợp lệ**: HLV nhập email sai định dạng $\rightarrow$ SYS hiển thị thông báo lỗi `Email liên hệ không hợp lệ` tại trường nhập liệu và chặn thao tác lưu.
 - **EF-03: Lỗi kết nối máy chủ hoặc gián đoạn mạng**: SYS hiển thị thông báo lỗi `Không thể lưu thay đổi hồ sơ, vui lòng kiểm tra kết nối mạng` và giữ nguyên trạng thái dữ liệu trên form để HLV thử lại.
 
+- **EF-04: Dịch vụ lưu ảnh không khả dụng:** khi cả nguồn lưu ảnh thực tế không ghi được, báo lỗi và giữ bản nháp; không thay avatar cũ. Nếu ảnh lưu thành công nhưng email/bio/chuyên môn lưu lỗi, báo cập nhật một phần và giữ nội dung để thử lại, không khẳng định toàn bộ thành công.
+
 ## Activity Diagram — Swimlane
 **Trigger:** HLV chọn Chỉnh sửa hồ sơ tại menu footer PT04 · Tài khoản trên ứng dụng Mobile PT.
 
+
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — Mobile App PT / PT04 · Cập nhật hồ sơ cá nhân"]
-    subgraph L0["Swimlane — Huấn luyện viên (PT)"]
-      I01(("Initial"))
-      A01["Bấm nút [ Chỉnh sửa hồ sơ ]"]
-      A02["Chọn tệp ảnh đại diện mới từ thiết bị hoặc camera"]
-      A03["Nhập hoặc sửa nội dung Chuyên môn & Giới thiệu (bio) và Email"]
-      A04["Bấm nút [ Lưu thay đổi ]"]
-      A05["Bấm nút [ Hủy / Quay lại ]"]
-      F01((("Final — Hồ sơ cá nhân được cập nhật thành công")))
-      F02((("Final — Hủy cập nhật, giữ nguyên thông tin cũ")))
-      F03((("Final — Dữ liệu không hợp lệ, yêu cầu chỉnh sửa lại")))
+  subgraph B["Boundary - Mobile PT / PT04-US02"]
+    subgraph L0["Swimlane - PT"]
+      I(("Initial"))
+      A["Mở chỉnh sửa hồ sơ"]
+      INPUT["Sửa email, chuyên môn, bio; chọn ảnh nếu cần"]
+      U{"Lưu hay đóng?"}
     end
-
-    subgraph L1["Swimlane — SYS"]
-      S01["Truy vấn và hiển thị form hồ sơ cá nhân hiện tại"]
-      D01{"HLV chọn Hủy hay Lưu thay đổi?"}
-      D02{"Dữ liệu nhập và tệp ảnh hợp lệ?"}
-      S02["Tải ảnh lên Cloud Storage và cập nhật hồ sơ vào PostgreSQL"]
-      S03["Hiển thị thông báo thành công và cập nhật lại màn hình PT04"]
-      S04["Hiển thị thông báo lỗi dữ liệu không hợp lệ"]
-      S05["Đóng form chỉnh sửa và quay lại màn hình PT04"]
-
-      I01 --> A01
-      A01 --> S01
-      S01 --> A02 --> A03
-      A03 --> D01
-      D01 -- "Hủy" --> A05 --> S05 --> F02
-      D01 -- "Lưu thay đổi" --> A04 --> D02
-      D02 -- "Không hợp lệ" --> S04 --> F03
-      D02 -- "Hợp lệ" --> S02 --> S03 --> F01
+    subgraph L1["Swimlane - SYS"]
+      LOAD["Tải hồ sơ chính mình"]
+      DL{"Tải thành công?"}
+      EL["Báo lỗi tải"]
+      FL((("Final - Không mở dữ liệu giả")))
+      VAL{"Email, văn bản, ảnh hợp lệ?"}
+      EV["Hiển thị lỗi tại trường và giữ bản nháp"]
+      FV((("Final - Cần sửa đầu vào")))
+      IMG{"Có thay ảnh?"}
+      PROV{"Nguồn lưu ảnh cloud hoặc cục bộ khả dụng?"}
+      EP["Báo dịch vụ ảnh chưa khả dụng; giữ ảnh cũ"]
+      FP((("Final - Chặn tải ảnh")))
+      UPLOAD["Gửi ảnh qua API avatar"]
+      DU{"Tải ảnh thành công?"}
+      EU["Báo lỗi tải ảnh và giữ bản nháp"]
+      FU((("Final - Chưa lưu toàn bộ")))
+      M(("Merge - Lưu hồ sơ"))
+      WRITE["Gửi email, chuyên môn và bio qua API"]
+      DW{"Lưu thành công?"}
+      EW["Báo lỗi lưu hồ sơ, không tuyên bố toàn bộ thành công"]
+      FW((("Final - Chưa lưu hồ sơ")))
+      REF["Tải lại PT04"]
+      F((("Final - Hồ sơ cập nhật")))
+      FC((("Final - Bỏ bản nháp")))
     end
+    I --> A
+    A --> LOAD
+    LOAD --> DL
+    DL -->|Không| EL
+    EL --> FL
+    DL -->|Có| INPUT
+    INPUT --> U
+    U -->|Đóng| FC
+    U -->|Lưu| VAL
+    VAL -->|Không| EV
+    EV --> FV
+    VAL -->|Có| IMG
+    IMG -->|Có| PROV
+    IMG -->|Không| M
+    PROV -->|Không| EP
+    EP --> FP
+    PROV -->|Có| UPLOAD
+    UPLOAD --> DU
+    DU -->|Không| EU
+    EU --> FU
+    DU -->|Có| M
+    M --> WRITE
+    WRITE --> DW
+    DW -->|Không| EW
+    EW --> FW
+    DW -->|Có| REF
+    REF --> F
   end
 ```

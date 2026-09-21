@@ -10,6 +10,12 @@
   };
   const type = (p) => p.package_type_snapshot || p.package_type;
   const hasPt = (p) => ["PT_SESSION", "COMBO"].includes(type(p));
+  const isPending = (r) => Boolean(r && (r.status === "PENDING_PAYMENT" || r.status === "PENDING" || (r.is_paid === false && r.status !== "CANCELLED")));
+  const nearExpiry = (r) => {
+    if (!r || r.status !== "ACTIVE" || !r.end_date) return false;
+    const diff = Math.ceil((Date.parse(r.end_date) - Date.parse(A.today())) / 86400000);
+    return diff >= 0 && diff <= 7;
+  };
   const scope = (p, branches) => {
     const ids = p.allowed_branch_ids || p.branch_ids;
     if (Array.isArray(p.allowed_branches))
@@ -70,10 +76,10 @@
   }
   async function packages(root, sub, alive) {
     if (sub === "requests") sub = "invitations";
-    const active = ["sale", "invitations", "history"].includes(sub) ? sub : "mine";
+    const active = ["sale", "invitations", "history", "transfers"].includes(sub) ? sub : "mine";
     A.heading(
       root,
-      active === "history" ? "Lịch sử thanh toán" : (active === "invitations" ? "Lời mời vào Gói" : "Gói của tôi"),
+      active === "history" ? "Lịch sử thanh toán" : (active === "invitations" ? "Lời mời vào Gói" : (active === "transfers" ? "Chuyển nhượng" : "Gói của tôi")),
     );
     A.segments(
       root,
@@ -81,6 +87,7 @@
         ["mine", "Gói của tôi"],
         ["sale", "Mua gói"],
         ["invitations", "Lời mời vào Gói"],
+        ["transfers", "Chuyển nhượng"],
       ],
       active,
       (id) => A.navigate("packages", id),
@@ -91,38 +98,44 @@
     if (active === "sale") return sale(pane, alive);
     if (active === "invitations") return invitations(pane, alive);
     if (active === "history") return history(pane, alive);
+    if (active === "transfers") return transfers(pane, alive);
     const regs = await A.request("/registrations");
     if (!alive()) return;
     pane.replaceChildren();
 
     const getGroup = (r) => {
-      if (r.status === "FROZEN" || r.is_frozen) return "FROZEN";
-      if (["ACTIVE", "SCHEDULED"].includes(r.status)) return "ACTIVE";
-      if (r.status === "PENDING_PAYMENT") return "PENDING";
       if (r.status === "CANCELLED") return "CANCELLED";
-      return "EXPIRED";
+      if (isPending(r) || r.status === "PENDING_PAYMENT") return "PENDING_PAYMENT";
+      if (r.status === "FROZEN" || r.is_frozen) return "FROZEN";
+      if (r.status === "EXPIRED" || (r.end_date && r.end_date.slice(0, 10) < A.today())) return "EXPIRED";
+      if (r.status === "SCHEDULED" || (r.start_date && r.start_date.slice(0, 10) > A.today())) return "SCHEDULED";
+      if (nearExpiry(r) || r.display_status === "EXPIRING") return "EXPIRING";
+      return "ACTIVE";
     };
 
     const allCount = regs.length;
     const activeCount = regs.filter((r) => getGroup(r) === "ACTIVE").length;
+    const scheduledCount = regs.filter((r) => getGroup(r) === "SCHEDULED").length;
+    const expiringCount = regs.filter((r) => getGroup(r) === "EXPIRING").length;
     const frozenCount = regs.filter((r) => getGroup(r) === "FROZEN").length;
-    const pendingCount = regs.filter((r) => getGroup(r) === "PENDING").length;
+    const pendingCount = regs.filter((r) => getGroup(r) === "PENDING_PAYMENT").length;
     const expiredCount = regs.filter((r) => getGroup(r) === "EXPIRED").length;
     const cancelledCount = regs.filter((r) => getGroup(r) === "CANCELLED").length;
 
     const filterItems = [
       ["ALL", `Tất cả (${allCount})`],
       ["ACTIVE", `Đang sử dụng (${activeCount})`],
+      ["SCHEDULED", `Chưa đến ngày hiệu lực (${scheduledCount})`],
+      ["EXPIRING", `Sắp hết hạn (${expiringCount})`],
       ["FROZEN", `Đang đóng băng (${frozenCount})`],
-      ["PENDING", `Chờ xử lý (${pendingCount})`],
+      ["PENDING_PAYMENT", `Chờ thanh toán (${pendingCount})`],
       ["EXPIRED", `Đã hết hạn (${expiredCount})`],
+      ["CANCELLED", `Đã hủy (${cancelledCount})`],
     ];
-    if (cancelledCount > 0) {
-      filterItems.push(["CANCELLED", `Đã hủy (${cancelledCount})`]);
-    }
 
+    if (S.filter === "PENDING") S.filter = "PENDING_PAYMENT";
     if (!filterItems.some(([id]) => id === S.filter)) {
-      S.filter = "ACTIVE";
+      S.filter = "ALL";
     }
 
     A.filters(
@@ -149,13 +162,9 @@
     for (const r of filtered) {
       const card = document.createElement("article");
       card.className = "record";
-      const expiring =
-        r.status === "ACTIVE" &&
-        r.end_date &&
-        Math.ceil(
-          (Date.parse(r.end_date) - Date.parse(A.today())) / 86400000,
-        ) <= 7;
       const isFrozen = r.is_frozen === true || r.status === "FROZEN";
+      const expiring = (r.status === "ACTIVE" && r.end_date && Math.ceil((Date.parse(r.end_date) - Date.parse(A.today())) / 86400000) <= 7) || nearExpiry(r) || r.display_status === "EXPIRING";
+      const isPendingPayment = isPending(r) || r.status === "PENDING_PAYMENT";
       const isGroup = (r.package_mode_snapshot === 'GROUP_1_N' || r.package_mode === 'GROUP_1_N');
       const isGroupMember = Boolean(r.is_group_member);
       const groupCountHtml = isGroup
@@ -163,7 +172,7 @@
         : '';
       const statusBadge = isFrozen
         ? '<span class="badge ice">❄️ Đang đóng băng</span>'
-        : (expiring ? A.badge("PENDING", "Sắp hết hạn") : A.badge(r.status));
+        : (isPendingPayment ? A.badge("PENDING_PAYMENT", "Chờ thanh toán") : (expiring ? A.badge("EXPIRING", "Sắp hết hạn") : A.badge(r.status)));
       card.innerHTML = `<div class="row"><h3>${A.value(r.package_name_snapshot)}</h3>${statusBadge}</div><p class="muted">${A.value(r.reg_code)} · ${A.date(r.start_date)}${r.end_date ? " - " + A.date(r.end_date) : ""}</p>${progress(r)}${hasPt(r) ? `<p>PT: ${r.assigned_pt_id ? A.value(r.assigned_pt_name) : "Chưa chọn (Liên hệ Lễ tân)"}</p>` : ""}${groupCountHtml}`;
       list.append(card);
       const row = document.createElement("div");
@@ -173,6 +182,13 @@
       const detailBtn = A.button("Chi tiết gói", "circle-info");
       detailBtn.onclick = () => openPackageDetailModal(r);
       row.append(detailBtn);
+
+      const canViewRoadmap = ['ACTIVE', 'SCHEDULED', 'FROZEN', 'EXPIRED'].includes(r.status) || isFrozen || expiring;
+      if (canViewRoadmap) {
+        const roadmapBtn = A.button("Xem lộ trình", "route", "secondary");
+        roadmapBtn.onclick = () => openMemberRoadmapModal(r);
+        row.append(roadmapBtn);
+      }
 
       const isPaid = r.is_paid || ["ACTIVE", "SCHEDULED"].includes(r.status);
 
@@ -198,6 +214,9 @@
         const freezeBtn = A.button("Đóng băng", "snowflake");
         freezeBtn.onclick = () => openFreezeModal(r);
         row.append(freezeBtn);
+        const transferBtn = A.button("Chuyển nhượng", "right-left");
+        transferBtn.onclick = () => openTransferModal(r);
+        row.append(transferBtn);
       }
       if (r.status === "PENDING_PAYMENT") {
         const pay = A.button("Tiếp tục thanh toán", "qrcode", "primary");
@@ -223,15 +242,12 @@
         if (!root.isConnected) return;
 
         const isFrozen = r.is_frozen === true || r.status === "FROZEN";
-        const expiring =
-          r.status === "ACTIVE" &&
-          r.end_date &&
-          Math.ceil(
-            (Date.parse(r.end_date) - Date.parse(A.today())) / 86400000,
-          ) <= 7;
+        const expiring = (r.status === "ACTIVE" && r.end_date && Math.ceil((Date.parse(r.end_date) - Date.parse(A.today())) / 86400000) <= 7) || nearExpiry(r) || r.display_status === "EXPIRING";
+        const canViewRoadmap = ['ACTIVE', 'SCHEDULED', 'FROZEN', 'EXPIRED'].includes(r.status) || isFrozen || expiring;
+        const isPendingPayment = isPending(r) || r.status === "PENDING_PAYMENT";
         const statusBadge = isFrozen
           ? '<span class="badge ice">❄️ Đang đóng băng</span>'
-          : (expiring ? A.badge("PENDING", "Sắp hết hạn") : A.badge(r.status));
+          : (isPendingPayment ? A.badge("PENDING_PAYMENT", "Chờ thanh toán") : (expiring ? A.badge("EXPIRING", "Sắp hết hạn") : A.badge(r.status)));
 
         let modeText = 'Gym Tiêu Chuẩn';
         if (type(r) === 'COMBO') modeText = 'Combo Gym + PT';
@@ -300,6 +316,9 @@
 
             <div class="actions" style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;flex-wrap:wrap;">
               <button type="button" class="btn" id="closeDetailModalBtn">Đóng</button>
+              ${canViewRoadmap ? `
+                <button type="button" class="btn secondary" id="modalRoadmapBtn"><i class="fa-solid fa-route"></i> Xem lộ trình</button>
+              ` : ''}
               ${isFrozen && !r.is_group_member ? `
                 <button type="button" class="btn secondary" id="modalUnfreezeBtn"><i class="fa-solid fa-sun"></i> Mở đóng băng gói</button>
               ` : ''}
@@ -317,6 +336,14 @@
         `;
 
         root.querySelector("#closeDetailModalBtn").onclick = close;
+
+        const roadmapBtn = root.querySelector("#modalRoadmapBtn");
+        if (roadmapBtn) {
+          roadmapBtn.onclick = () => {
+            close();
+            openMemberRoadmapModal(r);
+          };
+        }
 
         const contactPtBtn = root.querySelector("#btnDetailContactPt");
         if (contactPtBtn) {
@@ -359,6 +386,156 @@
         }
       } catch (err) {
         A.error(root, err);
+      }
+    });
+  }
+
+  function openMemberRoadmapModal(r) {
+    A.dialog("Lộ trình tập luyện", async (root, close) => {
+      A.loading(root);
+      try {
+        const isPtPackage = hasPt(r);
+        let completedSessions = [];
+
+        if (isPtPackage) {
+          try {
+            const bookingsRes = await A.request(`/pt-bookings?registration_id=${encodeURIComponent(r.id)}`);
+            const allBookings = Array.isArray(bookingsRes) ? bookingsRes : (bookingsRes?.data || []);
+            completedSessions = allBookings.filter(
+              (b) => b.status === "COMPLETED" || b.status === "DONE" || (b.member_confirmed_at && b.pt_confirmed_at)
+            );
+            completedSessions.sort((a, b) => {
+              if (a.session_number && b.session_number) return a.session_number - b.session_number;
+              return new Date(a.booking_date) - new Date(b.booking_date);
+            });
+          } catch (e) {
+            console.warn("Could not load pt bookings for roadmap", e);
+          }
+        }
+
+        if (!root.isConnected) return;
+
+        const isFrozen = r.is_frozen === true || r.status === "FROZEN";
+        const expiring = (r.status === "ACTIVE" && r.end_date && Math.ceil((Date.parse(r.end_date) - Date.parse(A.today())) / 86400000) <= 7) || nearExpiry(r) || r.display_status === "EXPIRING";
+        const statusBadge = isFrozen
+          ? '<span class="badge ice">❄️ Đang đóng băng</span>'
+          : (expiring ? A.badge("EXPIRING", "Sắp hết hạn") : A.badge(r.status));
+
+        let modeText = 'Gym Tiêu Chuẩn';
+        if (type(r) === 'COMBO') modeText = 'Combo Gym + PT';
+        else if (isPtPackage) modeText = (r.package_mode_snapshot === 'GROUP_1_N' || r.package_mode === 'GROUP_1_N') ? 'PT Kèm Nhóm (1-Nhiều)' : 'PT Kèm 1-1 Cá nhân';
+
+        const totalPt = r.total_pt_sessions_snapshot ?? r.total_pt_sessions ?? 0;
+        const usedPt = r.used_pt_sessions !== undefined ? r.used_pt_sessions : completedSessions.length;
+        const remainingPt = r.remaining_pt_sessions !== undefined ? r.remaining_pt_sessions : Math.max(0, totalPt - usedPt);
+        const percentPt = totalPt > 0 ? Math.round((usedPt / totalPt) * 100) : 0;
+
+        const days = r.duration_days_snapshot ?? r.duration_days;
+        let daysUsed = 0;
+        if (days > 0 && r.start_date) {
+          daysUsed = Math.max(0, Math.min(days, Math.floor((Date.parse(A.today()) - Date.parse(r.start_date)) / 86400000)));
+        }
+        const percentDays = days > 0 ? Math.round((daysUsed / days) * 100) : 0;
+
+        root.innerHTML = `
+          <div class="member-roadmap-modal">
+            <div class="row" style="align-items:flex-start;justify-content:space-between;gap:8px;">
+              <div>
+                <h3 style="margin:0;font-size:16px;">${A.value(r.package_name_snapshot || r.package_name)}</h3>
+                <p class="muted" style="margin:2px 0 0 0;font-size:12px;">Mã hợp đồng: <strong>${A.value(r.reg_code)}</strong> · ${modeText}</p>
+              </div>
+              ${statusBadge}
+            </div>
+
+            <div class="roadmap-summary-box">
+              ${isPtPackage ? `<div><span class="muted">HLV phụ trách:</span> <strong>${r.assigned_pt_name ? A.value(r.assigned_pt_name) : 'Chưa chỉ định'}</strong></div>` : ''}
+              <div><span class="muted">Chi nhánh:</span> <strong>${r.sold_branch_name ? A.value(r.sold_branch_name) : 'Chưa cập nhật'}</strong></div>
+              <div><span class="muted">Hiệu lực:</span> <strong>${A.date(r.start_date)}${r.end_date ? " - " + A.date(r.end_date) : " (Theo buổi vô thời hạn)"}</strong></div>
+            </div>
+
+            <div class="roadmap-progress-card">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                <i class="fa-solid fa-chart-line" style="color:var(--green);"></i>
+                <strong style="font-size:13px;">Tiến độ lộ trình</strong>
+              </div>
+              ${isPtPackage ? `
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                  <span style="font-size:13px;">Đã tập <strong>${usedPt} / ${totalPt}</strong> buổi</span>
+                  <span style="font-size:13px;color:var(--forest);font-weight:600;">Còn lại ${remainingPt} buổi</span>
+                </div>
+                <div class="progress blue" style="height:8px;margin:6px 0;">
+                  <span style="width:${percentPt}%;"></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px;">
+                  <span>Tiến độ hoàn thành: <strong>${percentPt}%</strong></span>
+                  ${r.booked_pt_sessions ? `<span>Đang giữ chỗ: <strong>${r.booked_pt_sessions}</strong> buổi</span>` : ''}
+                </div>
+              ` : `
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                  <span style="font-size:13px;">Đã sử dụng <strong>${daysUsed} / ${days || 0}</strong> ngày</span>
+                  <span style="font-size:13px;color:var(--forest);font-weight:600;">Còn lại ${Math.max(0, (days || 0) - daysUsed)} ngày</span>
+                </div>
+                <div class="progress" style="height:8px;margin:6px 0;">
+                  <span style="width:${percentDays}%;"></span>
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-top:4px;">
+                  <span>Thời gian hiệu lực đã qua: <strong>${percentDays}%</strong></span>
+                </div>
+              `}
+            </div>
+
+            ${isPtPackage ? `
+              <div>
+                <div style="display:flex;align-items:center;gap:6px;margin:4px 0 10px 0;font-size:14px;font-weight:600;">
+                  <i class="fa-solid fa-list-check" style="color:var(--green);"></i>
+                  <span>Lịch sử các buổi đã hoàn thành (${completedSessions.length})</span>
+                </div>
+
+                ${completedSessions.length === 0 ? `
+                  <div class="state" style="padding:24px 12px;background:#f8faf9;border:1px dashed var(--line);border-radius:8px;text-align:center;">
+                    <i class="fa-regular fa-calendar-xmark" style="font-size:28px;color:#a0aba5;margin-bottom:8px;display:block;"></i>
+                    <p style="margin:0 0 4px 0;font-weight:600;font-size:13px;">Bạn chưa có buổi tập hoàn thành nào trong gói này</p>
+                    <small class="muted" style="font-size:12px;display:block;line-height:1.4;">Tiến độ hiện tại là 0 / ${totalPt} buổi. Khi bạn và HLV hoàn tất buổi tập và xác nhận kết quả, đánh giá của PT sẽ hiển thị chi tiết tại đây.</small>
+                  </div>
+                ` : `
+                  <div class="roadmap-timeline">
+                    ${completedSessions.map((b, idx) => `
+                      <div class="roadmap-timeline-card">
+                        <div class="roadmap-card-header">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <span class="badge blue" style="font-weight:600;font-size:11px;">Buổi ${b.session_number || idx + 1}</span>
+                            <span style="font-size:12px;color:var(--muted);"><i class="fa-regular fa-calendar"></i> ${A.date(b.booking_date)} · ${(b.start_time || '').slice(0, 5)} - ${(b.end_time || '').slice(0, 5)}</span>
+                          </div>
+                          <span class="badge green" style="font-size:11px;"><i class="fa-solid fa-check"></i> Hoàn thành</span>
+                        </div>
+                        <div class="roadmap-card-body">
+                          <div class="roadmap-assessment-block">
+                            <div class="roadmap-block-title"><i class="fa-solid fa-user-check"></i> Đánh giá của PT:</div>
+                            <div class="roadmap-block-content">${e([b.workout_notes, b.fitness_assessment].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(' · ') || 'Chưa có đánh giá')}</div>
+                          </div>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                `}
+              </div>
+            ` : `
+              <div style="background:#f8faf9;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;color:var(--muted);line-height:1.5;">
+                <i class="fa-solid fa-circle-info" style="color:var(--green);margin-right:4px;"></i>
+                Gói Gym Tiêu Chuẩn cho phép bạn tập luyện tự do không giới hạn lượt tại các chi nhánh được áp dụng trong thời hạn hiệu lực. Quét mã QR tại cổng kiểm soát để vào tập.
+              </div>
+            `}
+
+            <div class="actions" style="display:flex;justify-content:flex-end;margin-top:6px;">
+              <button type="button" class="button" id="closeRoadmapModalBtn">Đóng</button>
+            </div>
+          </div>
+        `;
+
+        root.querySelector("#closeRoadmapModalBtn").onclick = close;
+      } catch (err) {
+        if (!root.isConnected) return;
+        A.error(root, err, () => openMemberRoadmapModal(r));
       }
     });
   }
@@ -1240,6 +1417,7 @@
     root.replaceChildren();
 
     const switchNav = document.createElement("div");
+    switchNav.className = "sub-tabs-nav";
     switchNav.style.marginBottom = "14px";
     root.append(switchNav);
 
@@ -1496,6 +1674,439 @@
       container.append(card);
     }
   }
+
+  function openTransferModal(preselectedReg = null) {
+    A.dialog("Chuyển nhượng gói tập", async (body, close) => {
+      body.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <h3 style="margin:0 0 4px 0;">Yêu cầu chuyển nhượng gói tập</h3>
+            <p class="muted" style="margin:0;font-size:13px;">Chuyển quyền sở hữu gói tập của bạn cho một hội viên khác trong hệ thống Paradise Gym.</p>
+          </div>
+
+          <div class="field">
+            <label style="display:block;font-weight:600;font-size:13px;margin-bottom:6px;">Chọn gói tập cần chuyển nhượng <span style="color:#ef4444;">*</span></label>
+            <div id="transferPkgSelectContainer">
+              <span class="muted" style="font-size:13px;">Đang tải danh sách gói khả dụng...</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label style="display:block;font-weight:600;font-size:13px;margin-bottom:6px;">Hội viên nhận (SĐT hoặc Mã hội viên) <span style="color:#ef4444;">*</span></label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="transferRecipientInput" class="input" placeholder="Nhập SĐT (09...) hoặc Mã HV (HV009)" style="flex:1;">
+              <button type="button" class="button secondary" id="btnCheckRecipient" style="white-space:nowrap;padding:0 12px;">
+                <i class="fa-solid fa-magnifying-glass"></i> Kiểm tra
+              </button>
+            </div>
+            <div id="recipientFeedback" style="margin-top:6px;font-size:12px;"></div>
+          </div>
+
+          <div class="field">
+            <label style="display:block;font-weight:600;font-size:13px;margin-bottom:6px;">Lý do chuyển nhượng</label>
+            <textarea id="transferReasonInput" class="input" rows="2" placeholder="Ví dụ: Bận công tác dài ngày, không có nhu cầu tập luyện..." style="width:100%;resize:vertical;"></textarea>
+          </div>
+
+          <div class="notice" style="background:#f8faf9;border:1px solid #e1e7e4;border-radius:8px;padding:10px 12px;font-size:12px;">
+            <i class="fa-solid fa-circle-info" style="color:#237b58;"></i> Sau khi gửi yêu cầu, gói tập sẽ ở trạng thái chờ phản hồi. Gói tập chỉ chính thức sang tên cho người nhận khi người nhận xác nhận chấp thuận.
+          </div>
+
+          <div id="transferErrorBox"></div>
+
+          <div class="actions" style="margin-top:4px;">
+            <button type="button" class="button primary" id="btnSubmitTransfer" style="width:100%;">
+              <i class="fa-solid fa-paper-plane"></i> Gửi yêu cầu chuyển nhượng
+            </button>
+          </div>
+        </div>
+      `;
+
+      const pkgSelectContainer = body.querySelector("#transferPkgSelectContainer");
+      const recipientInput = body.querySelector("#transferRecipientInput");
+      const checkRecipientBtn = body.querySelector("#btnCheckRecipient");
+      const recipientFeedback = body.querySelector("#recipientFeedback");
+      const reasonInput = body.querySelector("#transferReasonInput");
+      const submitBtn = body.querySelector("#btnSubmitTransfer");
+      const errorBox = body.querySelector("#transferErrorBox");
+
+      let regs = [];
+      try {
+        regs = await A.request("/registrations");
+      } catch (e) {
+        pkgSelectContainer.innerHTML = '<span class="text-danger">Không thể tải danh sách gói.</span>';
+        return;
+      }
+
+      const eligible = regs.filter(r =>
+        ["ACTIVE", "SCHEDULED"].includes(r.status) &&
+        !r.is_frozen &&
+        !r.is_group_member &&
+        (!r.end_date || r.end_date.slice(0, 10) >= A.today())
+      );
+
+      if (!eligible.length) {
+        pkgSelectContainer.innerHTML = '<span class="muted" style="font-size:13px;">Bạn hiện không có gói tập nào khả dụng để chuyển nhượng.</span>';
+        submitBtn.disabled = true;
+        return;
+      }
+
+      const select = document.createElement("select");
+      select.id = "transferRegSelect";
+      select.className = "input";
+      select.style.width = "100%";
+      for (const r of eligible) {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = `${r.package_name_snapshot} (${r.reg_code}) - Hạn: ${r.end_date ? A.date(r.end_date) : "Vô thời hạn"}`;
+        if (preselectedReg && preselectedReg.id === r.id) opt.selected = true;
+        select.append(opt);
+      }
+      pkgSelectContainer.replaceChildren(select);
+
+      let verifiedMember = null;
+
+      async function verifyRecipient() {
+        const q = recipientInput.value.trim();
+        if (!q) {
+          recipientFeedback.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-circle-exclamation"></i> Vui lòng nhập số điện thoại hoặc mã hội viên</span>';
+          verifiedMember = null;
+          return null;
+        }
+        recipientFeedback.innerHTML = '<span class="muted"><i class="fa-solid fa-spinner fa-spin"></i> Đang tìm hội viên...</span>';
+        try {
+          const res = await A.request(`/transfer-requests/lookup-recipient?query=${encodeURIComponent(q)}`);
+          if (res.found && res.member) {
+            verifiedMember = res.member;
+            recipientFeedback.innerHTML = `<span style="color:#10b981;font-weight:600;"><i class="fa-solid fa-circle-check"></i> ${A.value(verifiedMember.full_name)} (${A.value(verifiedMember.phone)} · ${A.value(verifiedMember.member_code)}) - ${A.value(verifiedMember.home_branch_name)}</span>`;
+            return verifiedMember;
+          } else {
+            verifiedMember = null;
+            recipientFeedback.innerHTML = `<span style="color:#ef4444;"><i class="fa-solid fa-circle-xmark"></i> ${A.value(res.message || "Không tìm thấy hội viên phù hợp")}</span>`;
+            return null;
+          }
+        } catch (err) {
+          verifiedMember = null;
+          recipientFeedback.innerHTML = `<span style="color:#ef4444;"><i class="fa-solid fa-circle-xmark"></i> ${A.value(err.message || "Lỗi kiểm tra hội viên")}</span>`;
+          return null;
+        }
+      }
+
+      checkRecipientBtn.onclick = verifyRecipient;
+      recipientInput.onkeydown = (ev) => {
+        if (ev.key === "Enter") {
+          ev.preventDefault();
+          verifyRecipient();
+        }
+      };
+
+      submitBtn.onclick = () => {
+        A.mutate(submitBtn, async () => {
+          errorBox.replaceChildren();
+          const regId = select.value;
+          if (!regId) {
+            A.error(errorBox, new Error("Vui lòng chọn gói tập cần chuyển nhượng"));
+            return;
+          }
+          if (!verifiedMember) {
+            const m = await verifyRecipient();
+            if (!m) return;
+          }
+
+          try {
+            await A.request("/transfer-requests", {
+              method: "POST",
+              body: {
+                registration_id: regId,
+                to_member_id: verifiedMember.id,
+                reason: reasonInput.value.trim()
+              }
+            });
+            close();
+            A.toast("Đã gửi yêu cầu chuyển nhượng thành công!");
+            S.transferTab = "sent";
+            A.navigate("packages", "transfers");
+          } catch (err) {
+            A.error(errorBox, err);
+          }
+        });
+      };
+    });
+  }
+
+  async function transfers(root, alive) {
+    S.transferTab = S.transferTab || "sent";
+    S.transferFilter = S.transferFilter || "ALL";
+
+    root.replaceChildren();
+
+    const switchNav = document.createElement("div");
+    switchNav.className = "sub-tabs-nav";
+    root.append(switchNav);
+
+    A.segments(
+      switchNav,
+      [
+        ["sent", "Yêu cầu đã gửi"],
+        ["received", "Yêu cầu đã nhận"],
+      ],
+      S.transferTab,
+      (tabId) => {
+        S.transferTab = tabId;
+        S.transferFilter = "ALL";
+        transfers(root, alive);
+      },
+    );
+
+    const contentPane = document.createElement("div");
+    root.append(contentPane);
+    A.loading(contentPane);
+
+    let list = [];
+    try {
+      list = await A.request(`/transfer-requests?type=${S.transferTab}`);
+    } catch (err) {
+      if (!alive()) return;
+      A.error(contentPane, err, () => transfers(root, alive));
+      return;
+    }
+    if (!alive()) return;
+    contentPane.replaceChildren();
+
+    const isSent = S.transferTab === "sent";
+
+    const titleRow = document.createElement("div");
+    titleRow.style.display = "flex";
+    titleRow.style.alignItems = "center";
+    titleRow.style.justifyContent = "space-between";
+    titleRow.style.gap = "8px";
+    titleRow.style.margin = "6px 0 12px 0";
+
+    const title = document.createElement("h2");
+    title.style.margin = "0";
+    title.style.fontSize = "17px";
+    title.textContent = isSent
+      ? `Danh sách đã gửi (${list.length})`
+      : `Danh sách đã nhận (${list.length})`;
+    titleRow.append(title);
+
+    const createBtn = A.button("Gửi yêu cầu mới", "paper-plane", "primary");
+    createBtn.style.whiteSpace = "nowrap";
+    createBtn.style.padding = "6px 12px";
+    createBtn.style.fontSize = "12px";
+    createBtn.onclick = () => openTransferModal();
+    titleRow.append(createBtn);
+
+    contentPane.append(titleRow);
+
+    const pendingCount = list.filter((i) => i.status === "PENDING").length;
+    const acceptedCount = list.filter((i) => i.status === "ACCEPTED").length;
+    const rejectedCount = list.filter((i) => i.status === "REJECTED").length;
+    const cancelledCount = list.filter((i) => i.status === "CANCELLED").length;
+
+    A.filters(
+      contentPane,
+      [
+        ["ALL", `Tất cả (${list.length})`],
+        ["PENDING", `${isSent ? "Chờ phản hồi" : "Chờ chấp thuận"} (${pendingCount})`],
+        ["ACCEPTED", `Đã chuyển nhượng (${acceptedCount})`],
+        ["REJECTED", `Đã từ chối (${rejectedCount})`],
+        ["CANCELLED", `Đã hủy (${cancelledCount})`],
+      ],
+      S.transferFilter,
+      (id) => {
+        S.transferFilter = id;
+        transfers(root, alive);
+      },
+    );
+
+    const container = document.createElement("div");
+    container.className = "list";
+    contentPane.append(container);
+
+    const filtered = list.filter((i) => {
+      if (S.transferFilter === "ALL") return true;
+      return i.status === S.transferFilter;
+    });
+
+    if (!filtered.length) {
+      A.empty(
+        container,
+        isSent
+          ? "Bạn chưa gửi yêu cầu chuyển nhượng gói tập nào ở trạng thái này."
+          : "Bạn không có yêu cầu nhận chuyển nhượng gói tập nào ở trạng thái này.",
+      );
+      return;
+    }
+
+    for (const tr of filtered) {
+      const card = document.createElement("article");
+      card.className = "record";
+
+      let statusBadge = "";
+      if (tr.status === "PENDING") {
+        statusBadge = `<span class="badge warning"><i class="fa-solid fa-clock"></i> ${isSent ? "Chờ phản hồi" : "Chờ chấp thuận"}</span>`;
+      } else if (tr.status === "ACCEPTED") {
+        statusBadge = '<span class="badge success"><i class="fa-solid fa-circle-check"></i> Đã chuyển nhượng</span>';
+      } else if (tr.status === "REJECTED") {
+        statusBadge = '<span class="badge danger"><i class="fa-solid fa-circle-xmark"></i> Đã từ chối</span>';
+      } else {
+        statusBadge = '<span class="badge muted"><i class="fa-solid fa-ban"></i> Đã thu hồi</span>';
+      }
+
+      let typeLabel = "Gym";
+      if (tr.package_type_snapshot === "PT_SESSION") typeLabel = "PT Kèm 1-1";
+      else if (tr.package_type_snapshot === "COMBO") typeLabel = "Combo Gym + PT";
+
+      const remainingText = tr.package_type_snapshot === "PT_SESSION"
+        ? `${tr.remaining_pt_sessions ?? tr.total_pt_sessions_snapshot ?? 0} buổi PT`
+        : (tr.duration_days_snapshot ? `${tr.duration_days_snapshot} ngày` : "Theo gói");
+
+      if (isSent) {
+        card.innerHTML = `
+          <div class="row" style="align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div>
+              <h3 style="margin:0 0 4px 0;">${A.value(tr.package_name_snapshot)}</h3>
+              <p class="muted" style="margin:0;font-size:12px;">Mã hợp đồng: <strong>${A.value(tr.reg_code)}</strong> · ${typeLabel}</p>
+            </div>
+            ${statusBadge}
+          </div>
+
+          <div style="background:#f8faf9;border:1px solid #e1e7e4;border-radius:8px;padding:10px 12px;margin:8px 0;font-size:13px;display:flex;flex-direction:column;gap:5px;">
+            <div><span class="muted">Người nhận (Bên nhận):</span> <strong>${A.value(tr.to_member_name)}</strong> (${A.value(tr.to_member_phone)}${tr.to_member_code ? " · " + A.value(tr.to_member_code) : ""})</div>
+            <div><span class="muted">Quyền lợi còn lại:</span> <strong>${remainingText}</strong> · Hiệu lực đến: <strong>${tr.end_date ? A.date(tr.end_date) : "Vô thời hạn"}</strong></div>
+            <div><span class="muted">Chi nhánh đăng ký:</span> <strong>${A.value(tr.sold_branch_name)}</strong></div>
+            <div><span class="muted">Lý do:</span> <em>${A.value(tr.reason || "Không có ghi chú")}</em></div>
+            <div><span class="muted">Thời gian gửi:</span> <span>${A.time(tr.created_at)}</span></div>
+            ${tr.responded_at ? `<div><span class="muted">Thời gian phản hồi:</span> <span>${A.time(tr.responded_at)}</span></div>` : ""}
+          </div>
+        `;
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        card.append(actions);
+
+        if (tr.status === "PENDING") {
+          const revokeBtn = A.button("Thu hồi yêu cầu", "rotate-left", "dark");
+          revokeBtn.onclick = () =>
+            A.dialog("Thu hồi yêu cầu chuyển nhượng", (body, end) => {
+              body.innerHTML = `
+                <h3>Thu hồi yêu cầu</h3>
+                <p>Bạn có chắc chắn muốn thu hồi yêu cầu chuyển nhượng gói <strong>${A.value(tr.package_name_snapshot)}</strong> gửi tới hội viên <strong>${A.value(tr.to_member_name)}</strong> không?</p>
+                <div class="notice">
+                  <i class="fa-solid fa-circle-info"></i> Sau khi thu hồi, gói tập sẽ trở về trạng thái bình thường để bạn tiếp tục sử dụng.
+                </div>
+              `;
+              const errBox = document.createElement("div");
+              body.append(errBox);
+              const yesBtn = A.button("Xác nhận thu hồi", "trash", "danger");
+              body.append(yesBtn);
+              yesBtn.onclick = () =>
+                A.mutate(yesBtn, async () => {
+                  try {
+                    await A.request(`/transfer-requests/${tr.id}`, { method: "DELETE" });
+                    end();
+                    A.toast("Đã thu hồi yêu cầu chuyển nhượng.");
+                    transfers(root, alive);
+                  } catch (error) {
+                    A.error(errBox, error);
+                  }
+                });
+            });
+          actions.append(revokeBtn);
+        }
+      } else {
+        card.innerHTML = `
+          <div class="row" style="align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div>
+              <h3 style="margin:0 0 4px 0;">${A.value(tr.package_name_snapshot)}</h3>
+              <p class="muted" style="margin:0;font-size:12px;">Mã hợp đồng: <strong>${A.value(tr.reg_code)}</strong> · ${typeLabel}</p>
+            </div>
+            ${statusBadge}
+          </div>
+
+          <div style="background:#f8faf9;border:1px solid #e1e7e4;border-radius:8px;padding:10px 12px;margin:8px 0;font-size:13px;display:flex;flex-direction:column;gap:5px;">
+            <div><span class="muted">Người chuyển nhượng (Bên gửi):</span> <strong>${A.value(tr.from_member_name)}</strong> (${A.value(tr.from_member_phone)}${tr.from_member_code ? " · " + A.value(tr.from_member_code) : ""})</div>
+            <div><span class="muted">Quyền lợi gói:</span> <strong>${remainingText}</strong> · Hiệu lực đến: <strong>${tr.end_date ? A.date(tr.end_date) : "Vô thời hạn"}</strong></div>
+            <div><span class="muted">Chi nhánh đăng ký:</span> <strong>${A.value(tr.sold_branch_name)}</strong></div>
+            <div><span class="muted">Lý do chuyển nhượng:</span> <em>${A.value(tr.reason || "Không có ghi chú")}</em></div>
+            <div><span class="muted">Thời gian nhận yêu cầu:</span> <span>${A.time(tr.created_at)}</span></div>
+            ${tr.responded_at ? `<div><span class="muted">Thời gian phản hồi:</span> <span>${A.time(tr.responded_at)}</span></div>` : ""}
+          </div>
+        `;
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        card.append(actions);
+
+        if (tr.status === "PENDING") {
+          const acceptBtn = A.button("Chấp nhận chuyển nhượng", "check", "primary");
+          acceptBtn.onclick = () =>
+            A.dialog("Chấp nhận chuyển nhượng gói", (body, end) => {
+              body.innerHTML = `
+                <h3>Nhận gói tập ${A.value(tr.package_name_snapshot)}</h3>
+                <p>Từ hội viên: <strong>${A.value(tr.from_member_name)}</strong> (${A.value(tr.from_member_phone)})</p>
+                <div class="notice">
+                  <i class="fa-solid fa-circle-info"></i> Sau khi đồng ý, quyền sở hữu gói tập sẽ lập tức được chuyển sang cho bạn. Bạn có thể sử dụng ngay lập tức trên app.
+                </div>
+              `;
+              const errBox = document.createElement("div");
+              body.append(errBox);
+              const confirmBtn = A.button("Xác nhận nhận gói", "check", "primary");
+              body.append(confirmBtn);
+              confirmBtn.onclick = () =>
+                A.mutate(confirmBtn, async () => {
+                  try {
+                    await A.request(`/transfer-requests/${tr.id}/respond`, {
+                      method: "POST",
+                      body: { action: "ACCEPT" },
+                    });
+                    end();
+                    A.toast("Đã nhận chuyển nhượng gói tập thành công!");
+                    await A.navigate("packages", "mine");
+                  } catch (error) {
+                    A.error(errBox, error);
+                  }
+                });
+            });
+          actions.append(acceptBtn);
+
+          const rejectBtn = A.button("Từ chối", "xmark", "danger");
+          rejectBtn.onclick = () =>
+            A.dialog("Từ chối yêu cầu chuyển nhượng", (body, end) => {
+              body.innerHTML = `
+                <h3>Từ chối chuyển nhượng</h3>
+                <p>Bạn có chắc chắn muốn từ chối nhận gói <strong>${A.value(tr.package_name_snapshot)}</strong> từ <strong>${A.value(tr.from_member_name)}</strong> không?</p>
+              `;
+              const errBox = document.createElement("div");
+              body.append(errBox);
+              const confirmRejectBtn = A.button("Xác nhận từ chối", "xmark", "danger");
+              body.append(confirmRejectBtn);
+              confirmRejectBtn.onclick = () =>
+                A.mutate(confirmRejectBtn, async () => {
+                  try {
+                    await A.request(`/transfer-requests/${tr.id}/respond`, {
+                      method: "POST",
+                      body: { action: "REJECT" },
+                    });
+                    end();
+                    A.toast("Đã từ chối yêu cầu chuyển nhượng.");
+                    transfers(root, alive);
+                  } catch (error) {
+                    A.error(errBox, error);
+                  }
+                });
+            });
+          actions.append(rejectBtn);
+        } else if (tr.status === "ACCEPTED") {
+          const viewPkgBtn = A.button("Xem trong Gói của tôi", "arrow-right", "primary");
+          viewPkgBtn.onclick = () => A.navigate("packages", "mine");
+          actions.append(viewPkgBtn);
+        }
+      }
+      container.append(card);
+    }
+  }
+
   async function notifications(root, sub, alive) {
     const data = await A.request("/notifications");
     if (!alive()) return;

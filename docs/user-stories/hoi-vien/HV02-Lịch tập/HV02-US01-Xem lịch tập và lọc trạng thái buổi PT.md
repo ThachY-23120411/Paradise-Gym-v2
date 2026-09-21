@@ -27,6 +27,8 @@
   - Xem lịch không làm thay đổi số buổi khả dụng hoặc trạng thái của gói tập.
 
 ### Field-level specification — Sub-tab Lịch của tôi (HV02-US01)
+
+**Phạm vi thao tác:** Điều kiện nút Hủy/Xác nhận bên dưới chỉ áp dụng khi `booking.member_id` khớp `member_profile_id` của người đăng nhập (chủ lịch cá nhân hoặc trưởng nhóm của lịch nhóm). Thành viên nhóm khác chỉ xem; ẩn cả hai nút trên danh sách và thẻ lịch theo giờ, không mở dialog khi chạm thẻ. Quyền lấy từ API, không suy đoán theo tên hoặc thứ tự người tham gia.
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Lịch tháng (Calendar Picker)** | `Calendar / Grid` | `USER-INPUT` | optional | `TRIGGER`: Chọn 1 ngày cụ thể sẽ kích hoạt lọc *Danh sách buổi tập* theo đúng ngày đó; click lại vào ngày đang chọn để bỏ chọn (deselect) sẽ kích hoạt hiển thị tất cả buổi tập | Widget lưới lịch tháng dạng bảng 7 cột (`T2`–`CN`), tiêu đề `< Tháng X Năm YYYY >` kèm 2 nút chuyển tháng `< >`. Ngày được chọn highlight vòng tròn màu xanh |

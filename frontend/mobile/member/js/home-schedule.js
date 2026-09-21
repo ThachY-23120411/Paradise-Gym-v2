@@ -19,6 +19,14 @@
     if (stamp(b) <= new Date() && stamp(b, true) > new Date()) return "ONGOING";
     return "BOOKED";
   };
+  const ownsBooking = (b) => {
+    if (!b) return false;
+    const myProfileId = A.user?.member_profile_id;
+    if (!myProfileId) return true;
+    if (b.member_id && b.member_id === myProfileId) return true;
+    if (Array.isArray(b.participants) && b.participants.some(p => p.member_id === myProfileId)) return true;
+    return true;
+  };
   const dateKey = (d) =>
     d
       ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
@@ -55,15 +63,7 @@
     ]);
     if (!alive()) return;
     A.profile = profile;
-    const initials = (profile.full_name || '?').split(' ').slice(-2).map(x => x[0]).join('');
-    const avatarHtml = profile.avatar_url && /^https?:\/\//.test(profile.avatar_url)
-      ? `<img src="${profile.avatar_url}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #237b58;">`
-      : `<div style="width:48px;height:48px;border-radius:50%;background:#eaf4ee;color:#237b58;font-weight:700;display:grid;place-items:center;">${initials}</div>`;
-
-    root.innerHTML = `<section class="welcome" style="display:flex;align-items:center;gap:12px;">
-      ${avatarHtml}
-      <div><p class="muted" style="margin:0;">Xin chào, ${A.value(profile.full_name)}</p><h1 style="font-size:17px;margin:0;">Mã HV: ${profile.member_code}</h1></div>
-    </section>`;
+    root.innerHTML = '';
     const pending = Array.isArray(invitations) ? invitations.filter((x) => x.invitation_status === "PENDING") : [];
     const tasks = document.createElement("section");
     tasks.className = `home-band ${pending.length ? "pending" : ""}`;
@@ -100,57 +100,73 @@
   function bookingCard(b) {
     const status = bookingState(b),
       card = document.createElement("article");
-    card.className = `record status-${status.toLowerCase()}`;
+    card.className = `pt-appointment-card pt-status-${status.toLowerCase()}`;
     card.dataset.bookingId = b.id;
-    card.innerHTML = `<div class="row"><h3>${A.date(b.booking_date)} · ${e(b.start_time.slice(0, 5))} - ${e(b.end_time.slice(0, 5))}</h3>${A.badge(status, status === "ONGOING" ? "Đang diễn ra" : null)}</div><p>${A.value(b.branch_name)}</p><p><strong>PT: ${A.value(b.pt_name)}</strong></p><p class="muted">${A.value(b.member_name)} · ${A.value(b.package_name_snapshot || b.package_name)}</p>`;
-    const actions = document.createElement("div");
-    actions.className = "actions";
-    card.append(actions);
+
+    const [sh, sm] = (b.start_time || "").slice(0, 5).split(":").map(Number);
+    const [eh, em] = (b.end_time || "").slice(0, 5).split(":").map(Number);
+    const durationMin = (!isNaN(sh) && !isNaN(eh)) ? (eh * 60 + em) - (sh * 60 + sm) : (b.session_duration_minutes || 60);
+
+    let statusLabel = "Đã đặt";
+    if (status === "PENDING_COMPLETION") statusLabel = "Chờ xác nhận hoàn thành";
+    else if (status === "COMPLETED") statusLabel = "Hoàn thành";
+    else if (status === "CANCELLED") statusLabel = "Đã hủy";
+    else if (status === "ONGOING") statusLabel = "Đang diễn ra";
+
     const now = new Date();
     const startTime = stamp(b);
     const endTime = stamp(b, true);
     const hasStarted = startTime <= now;
     const hasEnded = endTime <= now;
 
-    if (status === "BOOKED" || status === "ONGOING") {
-      // 1. Nút Hủy lịch: chỉ hiển thị khi chưa bắt đầu buổi tập
-      if (!hasStarted && b.can_cancel !== false) {
-        const cancel = A.button("Hủy lịch", "xmark", "danger");
-        cancel.onclick = () => cancelBooking(b);
-        actions.append(cancel);
+    let buttonsHtml = "";
+    if (ownsBooking(b)) {
+      if (status === "BOOKED" || status === "ONGOING") {
+        const completeBtn = hasEnded
+          ? `<button type="button" class="pt-btn-card-complete is-ended" id="btnCardComplete"><i class="fa-solid fa-check"></i> Xác nhận hoàn thành</button>`
+          : `<button type="button" class="pt-btn-card-complete is-waiting" disabled title="Chỉ có thể xác nhận sau khi kết thúc buổi tập (${b.end_time.slice(0, 5)})"><i class="fa-solid fa-check"></i> Xác nhận hoàn thành</button>`;
+        const cancelBtn = (!hasStarted && !hasEnded && b.can_cancel !== false)
+          ? `<button type="button" class="pt-btn-card-cancel" id="btnCardCancel"><i class="fa-solid fa-xmark"></i> Hủy lịch</button>`
+          : "";
+        buttonsHtml = `${completeBtn} ${cancelBtn}`;
+      } else if (status === "PENDING_COMPLETION") {
+        buttonsHtml = `<span class="pt-card-status-pill" style="background:rgba(255,255,255,0.25);"><i class="fa-solid fa-hourglass-half"></i> ${b.member_confirmed_at ? 'Bạn đã xác nhận · Chờ PT' : 'Chờ xác nhận'}</span>`;
       }
-
-      // 2. Nút Xác nhận hoàn thành:
-      // - Nếu chưa qua giờ kết thúc: nút chưa sáng (màu xám, disabled)
-      // - Sau khi qua giờ kết thúc: nút sáng lên (màu xanh lá, clickable)
-      const confirm = A.button("Xác nhận hoàn thành", hasEnded ? "circle-check" : "check", hasEnded ? "primary" : null);
-      if (!hasEnded) {
-        confirm.disabled = true;
-        confirm.className = "button disabled";
-        confirm.style.cssText = "background:#e5e7eb!important;color:#9ca3af!important;border:1px solid #d1d5db!important;cursor:not-allowed!important;opacity:0.75;";
-        confirm.title = `Chỉ có thể xác nhận sau khi kết thúc buổi tập (${b.end_time.slice(0, 5)})`;
-      } else {
-        confirm.disabled = false;
-        confirm.style.cssText = "background:#237b58!important;color:#ffffff!important;border:1px solid #185740!important;font-weight:600;";
-        confirm.onclick = () => confirmBooking(b);
-      }
-      actions.append(confirm);
-    } else if (status === "PENDING_COMPLETION") {
-      if (b.member_confirmed_at) {
-        actions.innerHTML =
-          '<span class="badge amber" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b;padding:6px 12px;font-size:12px;border-radius:6px;font-weight:600;"><i class="fa-solid fa-hourglass-half"></i> Bạn đã xác nhận · Đang chờ PT xác nhận</span>';
-      } else {
-        actions.innerHTML =
-          '<span class="badge amber" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b;padding:6px 10px;font-size:11px;border-radius:6px;margin-right:8px;font-weight:600;"><i class="fa-solid fa-bell"></i> PT đã xác nhận kết quả</span>';
-        const confirmNow = A.button("Xác nhận hoàn thành ngay", "circle-check", "primary");
-        confirmNow.style.cssText = "background:#237b58!important;color:#ffffff!important;border:1px solid #185740!important;font-weight:600;";
-        confirmNow.onclick = () => confirmBooking(b);
-        actions.append(confirmNow);
-      }
-    } else if (status === "COMPLETED") {
-      actions.innerHTML =
-        '<span class="badge green" style="background:#eaf5ed;color:#185740;border:1px solid #237b58;padding:6px 12px;font-size:12px;border-radius:6px;font-weight:600;"><i class="fa-solid fa-circle-check"></i> Đã hoàn tất xác nhận kép</span>';
     }
+
+    card.innerHTML = `
+      <div class="pt-card-top-row">
+        <div class="pt-card-top-left">
+          <span class="pt-card-time"><i class="fa-regular fa-clock"></i> <strong>${e(b.start_time.slice(0, 5))} - ${e(b.end_time.slice(0, 5))}</strong></span>
+          <span class="pt-card-dur-tag">${durationMin}p</span>
+          <span class="pt-card-status-pill">${statusLabel}</span>
+        </div>
+        <div class="pt-card-top-right">
+          ${buttonsHtml}
+        </div>
+      </div>
+      <div class="pt-card-bottom-row">
+        <strong class="pt-card-member-name"><i class="fa-regular fa-user"></i> ${e(b.member_name || 'Hội viên')}</strong>
+        <span class="pt-card-divider">·</span>
+        <span class="pt-card-pkg-name">${e([b.member_code, b.package_name_snapshot || b.package_name].filter(Boolean).join(' - '))} (HLV: ${e(b.pt_name || '--')})</span>
+      </div>
+    `;
+
+    const btnComplete = card.querySelector("#btnCardComplete");
+    if (btnComplete) {
+      btnComplete.onclick = (ev) => {
+        ev.stopPropagation();
+        confirmBooking(b);
+      };
+    }
+    const btnCancel = card.querySelector("#btnCardCancel");
+    if (btnCancel) {
+      btnCancel.onclick = (ev) => {
+        ev.stopPropagation();
+        cancelBooking(b);
+      };
+    }
+
     return card;
   }
   async function schedule(root, sub, alive, context) {
@@ -377,7 +393,7 @@
 
       const timeCell = document.createElement("div");
       timeCell.className = "timeline-time-cell";
-      timeCell.textContent = timeStr;
+      timeCell.innerHTML = `<span class="timeline-time-text ${m === 0 ? 'hour-mark' : ''}">${timeStr}</span>`;
       timeCol.append(timeCell);
 
       const gridCell = document.createElement("div");
@@ -386,10 +402,62 @@
       gridCol.append(gridCell);
     }
 
+    const finalTimeCell = document.createElement("div");
+    finalTimeCell.className = "timeline-time-cell timeline-final-time";
+    finalTimeCell.innerHTML = `<span class="timeline-time-text hour-mark">22:00</span>`;
+    timeCol.append(finalTimeCell);
+
     // Existing Bookings of this Member on this date
     const ownBookings = bookings.filter(
       (b) => b.booking_date === S.bookingDay && (isPastDay || b.status !== "CANCELLED"),
     );
+
+    // Calculate non-overlapping layout columns for ownBookings
+    const validOwn = ownBookings.filter(b => {
+      const [oSh, oSm] = (b.start_time || "").slice(0, 5).split(":").map(Number);
+      const [oEh, oEm] = (b.end_time || "").slice(0, 5).split(":").map(Number);
+      if (isNaN(oSh) || isNaN(oEh)) return false;
+      const sMin = Math.max(0, oSh * 60 + oSm - 360);
+      const eMin = Math.min(960, oEh * 60 + oEm - 360);
+      return eMin > sMin;
+    });
+
+    const cardColumns = new Map();
+    for (let i = 0; i < validOwn.length; i++) {
+      const cur = validOwn[i];
+      const [cSh, cSm] = (cur.start_time || "").slice(0, 5).split(":").map(Number);
+      const [cEh, cEm] = (cur.end_time || "").slice(0, 5).split(":").map(Number);
+      const cS = cSh * 60 + cSm;
+      const cE = cEh * 60 + cEm;
+
+      const overlapping = validOwn.filter((other, j) => {
+        if (i === j) return false;
+        const [oSh, oSm] = (other.start_time || "").slice(0, 5).split(":").map(Number);
+        const [oEh, oEm] = (other.end_time || "").slice(0, 5).split(":").map(Number);
+        const oS = oSh * 60 + oSm;
+        const oE = oEh * 60 + oEm;
+        return !(oE <= cS || oS >= cE);
+      });
+
+      if (overlapping.length === 0) {
+        cardColumns.set(cur.id, { col: 0, total: 1 });
+      } else {
+        const usedCols = new Set();
+        overlapping.forEach(o => {
+          if (cardColumns.has(o.id)) usedCols.add(cardColumns.get(o.id).col);
+        });
+        let myCol = 0;
+        while (usedCols.has(myCol)) myCol++;
+        const total = Math.max(myCol + 1, ...overlapping.map(o => (cardColumns.get(o.id)?.col || 0) + 1));
+        cardColumns.set(cur.id, { col: myCol, total });
+        overlapping.forEach(o => {
+          if (cardColumns.has(o.id)) {
+            const entry = cardColumns.get(o.id);
+            entry.total = Math.max(entry.total, total);
+          }
+        });
+      }
+    }
 
     // Existing Busy bookings of PT (Lịch học viên khác đã đặt)
     const rawBusySlots = slots.busy_slots || [];
@@ -434,84 +502,68 @@
       if (oEndMin <= oStartMin) continue;
 
       const st = bookingState(own);
-      let stColor = "#0284c7";
-      let stBg = "#e0f2fe";
-      let stBorder = "#0284c7";
-      let stText = "Đã đặt";
-      let stIcon = "fa-calendar-check";
-
-      if (st === "COMPLETED") {
-        stColor = "#185740";
-        stBg = "#eaf5ed";
-        stBorder = "#237b58";
-        stText = "Đã hoàn thành";
-        stIcon = "fa-circle-check";
-      } else if (st === "PENDING_COMPLETION") {
-        stColor = "#92400e";
-        stBg = "#fef3c7";
-        stBorder = "#f59e0b";
-        stText = "Chờ xác nhận";
-        stIcon = "fa-hourglass-half";
-      } else if (st === "ONGOING") {
-        stColor = "#1e40af";
-        stBg = "#eff6ff";
-        stBorder = "#3b82f6";
-        stText = "Đang diễn ra";
-        stIcon = "fa-person-running";
-      } else if (st === "CANCELLED") {
-        stColor = "#991b1b";
-        stBg = "#fef2f2";
-        stBorder = "#ef4444";
-        stText = "Đã hủy";
-        stIcon = "fa-ban";
-      }
+      let stLabel = "Đã đặt";
+      if (st === "COMPLETED") stLabel = "Hoàn thành";
+      else if (st === "PENDING_COMPLETION") stLabel = "Chờ xác nhận hoàn thành";
+      else if (st === "CANCELLED") stLabel = "Đã hủy";
+      else if (st === "ONGOING") stLabel = "Đang diễn ra";
 
       const ownCard = document.createElement("div");
-      ownCard.className = `timeline-own-card status-${st.toLowerCase()}`;
+      ownCard.className = `timeline-own-card pt-appointment-card pt-status-${st.toLowerCase()}`;
       ownCard.style.top = `${oStartMin * 1.6}px`;
-      ownCard.style.height = `${Math.max(34, (oEndMin - oStartMin) * 1.6)}px`;
-      ownCard.style.background = stBg;
-      ownCard.style.borderColor = stBorder;
-      ownCard.style.color = stColor;
+      ownCard.style.height = `${Math.max(38, (oEndMin - oStartMin) * 1.6)}px`;
+      ownCard.dataset.bookingId = own.id;
+
+      const colInfo = cardColumns.get(own.id) || { col: 0, total: 1 };
+      if (colInfo.total > 1) {
+        const widthPct = 100 / colInfo.total;
+        ownCard.style.left = `calc(${colInfo.col * widthPct}% + 4px)`;
+        ownCard.style.width = `calc(${widthPct}% - 8px)`;
+        ownCard.style.right = 'auto';
+      } else {
+        ownCard.style.left = '6px';
+        ownCard.style.right = '6px';
+        ownCard.style.width = 'auto';
+      }
+
+      const durationMin = (oEndMin - oStartMin);
       const now = new Date();
       const startTime = stamp(own);
       const endTime = stamp(own, true);
       const hasStarted = startTime <= now;
       const hasEnded = endTime <= now;
 
-      let actionsHtml = "";
-      if (st === "BOOKED" || st === "ONGOING") {
-        const cancelBtnHtml = (!hasStarted && own.can_cancel !== false)
-          ? `<button type="button" class="own-btn-action own-btn-cancel" id="btnTimelineCancel" title="Hủy lịch tập"><i class="fa-solid fa-xmark"></i> Hủy</button>`
-          : `<button type="button" class="own-btn-action own-btn-cancel disabled" disabled title="Không thể hủy buổi tập đã bắt đầu/kết thúc"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
-
-        const confirmBtnHtml = hasEnded
-          ? `<button type="button" class="own-btn-action own-btn-confirm-active" id="btnTimelineConfirm" title="Xác nhận hoàn thành kết quả buổi tập"><i class="fa-solid fa-circle-check"></i> Xác nhận hoàn thành</button>`
-          : `<button type="button" class="own-btn-action own-btn-confirm-disabled" disabled title="Chỉ có thể xác nhận sau khi kết thúc buổi tập (${own.end_time.slice(0, 5)})"><i class="fa-solid fa-check"></i> Xác nhận hoàn thành</button>`;
-
-        actionsHtml = `<div class="own-card-actions">${cancelBtnHtml}${confirmBtnHtml}</div>`;
-      } else if (st === "PENDING_COMPLETION") {
-        if (own.member_confirmed_at) {
-          actionsHtml = `<div class="own-card-actions"><span class="badge amber" style="background:#f59e0b;color:#fff;font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;"><i class="fa-solid fa-hourglass-half"></i> Bạn đã xác nhận · Đang chờ PT</span></div>`;
-        } else {
-          actionsHtml = `<div class="own-card-actions">
-            <span class="badge amber" style="background:#f59e0b;color:#fff;font-size:10px;padding:3px 6px;border-radius:4px;"><i class="fa-solid fa-bell"></i> PT đã xác nhận</span>
-            <button type="button" class="own-btn-action own-btn-confirm-active" id="btnTimelineConfirm" title="Xác nhận hoàn thành buổi tập"><i class="fa-solid fa-circle-check"></i> Xác nhận ngay</button>
-          </div>`;
+      let buttonsHtml = "";
+      if (ownsBooking(own)) {
+        if (st === "BOOKED" || st === "ONGOING") {
+          const completeBtn = hasEnded
+            ? `<button type="button" class="pt-btn-card-complete is-ended" id="btnTimelineConfirm" title="Xác nhận hoàn thành kết quả buổi tập"><i class="fa-solid fa-check"></i> Xác nhận hoàn thành</button>`
+            : `<button type="button" class="pt-btn-card-complete is-waiting" disabled title="Chỉ có thể xác nhận sau khi kết thúc buổi tập (${own.end_time.slice(0, 5)})"><i class="fa-solid fa-check"></i> Xác nhận hoàn thành</button>`;
+          const cancelBtn = (!hasStarted && !hasEnded && own.can_cancel !== false)
+            ? `<button type="button" class="pt-btn-card-cancel" id="btnTimelineCancel" title="Hủy lịch tập"><i class="fa-solid fa-xmark"></i> Hủy</button>`
+            : "";
+          buttonsHtml = `${completeBtn} ${cancelBtn}`;
+        } else if (st === "PENDING_COMPLETION") {
+          buttonsHtml = `<span class="pt-card-status-pill" style="background:rgba(255,255,255,0.25);"><i class="fa-solid fa-hourglass-half"></i> ${own.member_confirmed_at ? 'Bạn đã xác nhận · Chờ PT' : 'Chờ xác nhận'}</span>`;
         }
-      } else if (st === "COMPLETED") {
-        actionsHtml = `<div class="own-card-actions"><span class="badge green" style="background:#237b58;color:#fff;font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;"><i class="fa-solid fa-circle-check"></i> Đã hoàn tất xác nhận kép</span></div>`;
       }
 
       ownCard.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
-          <strong style="color:${stColor};font-size:11px;"><i class="fa-solid ${st === 'CANCELLED' ? 'fa-calendar-xmark' : 'fa-user-check'}"></i> Buổi tập của bạn</strong>
-          <span class="badge" style="background:${stBorder};color:#fff;font-size:9px;padding:1px 6px;border-radius:4px;font-weight:600;"><i class="fa-solid ${stIcon}"></i> ${stText}</span>
+        <div class="pt-card-top-row">
+          <div class="pt-card-top-left">
+            <span class="pt-card-time"><i class="fa-regular fa-clock"></i> <strong>${e(own.start_time.slice(0, 5))} - ${e(own.end_time.slice(0, 5))}</strong></span>
+            <span class="pt-card-dur-tag">${durationMin}p</span>
+            <span class="pt-card-status-pill">${stLabel}</span>
+          </div>
+          <div class="pt-card-top-right">
+            ${buttonsHtml}
+          </div>
         </div>
-        <div style="font-size:11px;margin-top:2px;">
-          <strong>${own.start_time.slice(0, 5)} - ${own.end_time.slice(0, 5)}</strong> · ${A.value(own.package_name_snapshot || own.package_name)}
+        <div class="pt-card-bottom-row">
+          <strong class="pt-card-member-name"><i class="fa-regular fa-user"></i> ${e(own.member_name || 'Hội viên')}</strong>
+          <span class="pt-card-divider">·</span>
+          <span class="pt-card-pkg-name">${e([own.member_code, own.package_name_snapshot || own.package_name].filter(Boolean).join(' - '))} (HLV: ${e(trainer?.full_name || own.pt_name || '--')})</span>
         </div>
-        ${actionsHtml}
       `;
 
       const btnTimelineCancel = ownCard.querySelector("#btnTimelineCancel");

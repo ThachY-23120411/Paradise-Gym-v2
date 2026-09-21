@@ -38,7 +38,7 @@ Thanh điều hướng Mobile của Hội viên gồm đúng bốn Epic:
 
 ### PT — Mobile footer
 
-Thanh điều hướng Mobile của PT được tách riêng thành PT01–PT04; entry xem [`docs/epic/pt/README.md`](epic/pt/README.md).
+Mobile PT có đúng 5 tab: Tổng quan (PT06-US01), Lịch (PT01), Học viên (PT02), Hoa hồng (PT06-US02), Tài khoản (PT04); chuông mở PT03 Thông báo, PT05 dành cho xác thực. PT01-US03 cho phép chính PT đặt lịch hộ hội viên đã được phân công, không cấp quyền hủy. PT02-US03 giữ lịch sử phân công chỉ đọc; PT06 có 4 KPI và Đặt lịch nhanh. Entry xem [`docs/epic/pt/README.md`](epic/pt/README.md).
 
 ## Traceability
 

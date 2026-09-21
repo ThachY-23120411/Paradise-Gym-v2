@@ -1,0 +1,297 @@
+{
+  "result": "BLOCKED",
+  "migrationManifest": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4e4c4da7561e9e39faecbc5bc3c152158be9543531add85b6904bea7c3cb047a"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    }
+  ],
+  "fixture": {
+    "b1": "f0e875b3-6293-463b-a5fa-9d58cc1f493f",
+    "b2": "2a80062d-840c-4464-bd88-3d0e5a9010fd",
+    "member": {
+      "id": "02309ff8-e0d6-4216-9d12-665be917c226",
+      "account_id": "37abeef0-d181-418d-9c9e-42568015a3f8",
+      "home_branch_id": "f0e875b3-6293-463b-a5fa-9d58cc1f493f",
+      "member_code": "HV001",
+      "full_name": "Business Member A",
+      "phone": "0909000010",
+      "email": null,
+      "date_of_birth": null,
+      "gender": null,
+      "avatar_url": null,
+      "status": "ACTIVE",
+      "created_by": "5eed06f7-5ae7-421b-9db8-1d0993c32633",
+      "created_at": "2026-09-20T17:14:44.711Z",
+      "updated_at": "2026-09-20T17:14:44.711Z",
+      "qr_code": "QR-HV001-0909000010",
+      "face_enrolled": false
+    },
+    "pt": {
+      "id": "e48e3f82-3476-46af-9f96-f22103128763",
+      "account_id": "61e8b404-c6e6-412b-afa6-10359f6e1ea0",
+      "branch_id": "f0e875b3-6293-463b-a5fa-9d58cc1f493f",
+      "pt_code": "PT001",
+      "full_name": "Business Trainer A",
+      "phone": "0909000020",
+      "email": null,
+      "gender": null,
+      "bio": null,
+      "specialties": "Strength",
+      "status": "ACTIVE",
+      "work_start_time": "08:00:00",
+      "work_end_time": "18:00:00",
+      "work_days": "MON_TO_FRI",
+      "created_at": "2026-09-20T17:14:44.751Z",
+      "updated_at": "2026-09-20T17:14:44.751Z",
+      "show_phone_to_members": false,
+      "avatar_url": null,
+      "face_enrolled": false,
+      "bank_name": null,
+      "bank_account_no": null,
+      "bank_account_name": null
+    },
+    "pt2": {
+      "id": "e323e1f3-f374-4b49-ae04-6a22d5a6d3f8",
+      "account_id": "52d27988-8101-4f90-a01c-1e525e82a793",
+      "branch_id": "2a80062d-840c-4464-bd88-3d0e5a9010fd",
+      "pt_code": "PT002",
+      "full_name": "Business Trainer B",
+      "phone": "0909000021",
+      "email": null,
+      "gender": null,
+      "bio": null,
+      "specialties": "Strength",
+      "status": "ACTIVE",
+      "work_start_time": "08:00:00",
+      "work_end_time": "18:00:00",
+      "work_days": "MON_TO_FRI",
+      "created_at": "2026-09-20T17:14:44.777Z",
+      "updated_at": "2026-09-20T17:14:44.777Z",
+      "show_phone_to_members": false,
+      "avatar_url": null,
+      "face_enrolled": false,
+      "bank_name": null,
+      "bank_account_no": null,
+      "bank_account_name": null
+    },
+    "registration": {
+      "id": "274666c9-5e21-4248-b8cb-009de255f0fe",
+      "reg_code": "DK002",
+      "member_id": "02309ff8-e0d6-4216-9d12-665be917c226",
+      "package_id": "4cbf4a21-3c99-4767-ab57-9b3ef61d9f24",
+      "assigned_pt_id": "e48e3f82-3476-46af-9f96-f22103128763",
+      "sold_branch_id": "f0e875b3-6293-463b-a5fa-9d58cc1f493f",
+      "previous_registration_id": null,
+      "package_name_snapshot": "Business PT 90",
+      "package_type_snapshot": "PT_SESSION",
+      "price_snapshot": 1000000,
+      "duration_days_snapshot": 60,
+      "total_gym_sessions_snapshot": null,
+      "total_pt_sessions_snapshot": 5,
+      "start_date": "2026-09-21",
+      "end_date": "2026-11-20",
+      "remaining_gym_sessions": null,
+      "remaining_pt_sessions": 5,
+      "booked_pt_sessions": 0,
+      "used_pt_sessions": 0,
+      "status": "ACTIVE",
+      "created_by": "5eed06f7-5ae7-421b-9db8-1d0993c32633",
+      "created_at": "2026-09-20T17:14:46.097Z",
+      "updated_at": "2026-09-20T17:14:46.153Z",
+      "gym_price_snapshot": 0,
+      "pt_price_snapshot": 1000000,
+      "combo_price_snapshot": 0,
+      "package_mode": "INDIVIDUAL",
+      "max_group_members_snapshot": null,
+      "is_frozen": false,
+      "freeze_days_total": 0,
+      "group_leader_member_id": null,
+      "has_scheduled_freeze": false,
+      "registration_code": "DK002",
+      "member": {
+        "id": "02309ff8-e0d6-4216-9d12-665be917c226",
+        "account_id": "37abeef0-d181-418d-9c9e-42568015a3f8",
+        "home_branch_id": "f0e875b3-6293-463b-a5fa-9d58cc1f493f",
+        "member_code": "HV001",
+        "full_name": "Business Member A",
+        "phone": "0909000010",
+        "email": null,
+        "date_of_birth": null,
+        "gender": null,
+        "avatar_url": null,
+        "status": "ACTIVE",
+        "created_by": "5eed06f7-5ae7-421b-9db8-1d0993c32633",
+        "created_at": "2026-09-20T17:14:44.711Z",
+        "updated_at": "2026-09-20T17:14:44.711Z",
+        "qr_code": "QR-HV001-0909000010",
+        "face_enrolled": false
+      },
+      "member_name": "Business Member A",
+      "member_code": "HV001",
+      "member_phone": "0909000010",
+      "allowed_branches": [
+        {
+          "id": "f0e875b3-6293-463b-a5fa-9d58cc1f493f",
+          "branch_code": "Business Branch A",
+          "branch_name": "Business Branch A",
+          "phone": "0909999999",
+          "address": "Isolated E2E",
+          "status": "ACTIVE",
+          "open_time": "00:00:00",
+          "close_time": "23:59:00",
+          "timezone": "Asia/Ho_Chi_Minh",
+          "created_at": "2026-09-20T17:14:44.181Z",
+          "updated_at": "2026-09-20T17:14:44.181Z",
+          "gate_config": {
+            "duplicate_seconds": 60,
+            "daily_gym_deduction_limit": 1
+          },
+          "default_pt_commission_percentage": 20
+        }
+      ],
+      "assigned_pt": {
+        "id": "e48e3f82-3476-46af-9f96-f22103128763",
+        "account_id": "61e8b404-c6e6-412b-afa6-10359f6e1ea0",
+        "branch_id": "f0e875b3-6293-463b-a5fa-9d58cc1f493f",
+        "pt_code": "PT001",
+        "full_name": "Business Trainer A",
+        "phone": "0909000020",
+        "email": null,
+        "gender": null,
+        "bio": null,
+        "specialties": "Strength",
+        "status": "ACTIVE",
+        "work_start_time": "08:00:00",
+        "work_end_time": "18:00:00",
+        "work_days": "MON_TO_FRI",
+        "created_at": "2026-09-20T17:14:44.751Z",
+        "updated_at": "2026-09-20T17:14:44.751Z",
+        "show_phone_to_members": false,
+        "avatar_url": null,
+        "face_enrolled": false,
+        "bank_name": null,
+        "bank_account_no": null,
+        "bank_account_name": null
+      },
+      "pt_name": "Business Trainer A",
+      "payments": [
+        {
+          "id": "f0e6c46c-cc71-4514-922e-d86e710b0904",
+          "registration_id": "274666c9-5e21-4248-b8cb-009de255f0fe",
+          "member_id": "02309ff8-e0d6-4216-9d12-665be917c226",
+          "branch_id": "f0e875b3-6293-463b-a5fa-9d58cc1f493f",
+          "payment_code": "PAY002",
+          "payment_method": "CASH",
+          "amount": 1000000,
+          "status": "COMPLETED",
+          "transaction_ref": null,
+          "collected_by": "5eed06f7-5ae7-421b-9db8-1d0993c32633",
+          "confirmed_at": "2026-09-20T17:14:46.118Z",
+          "created_at": "2026-09-20T17:14:46.118Z",
+          "updated_at": "2026-09-20T17:14:46.118Z",
+          "note": null,
+          "expires_at": null,
+          "discount_id": null,
+          "discount_amount": 0
+        }
+      ],
+      "created_by_name": "0909000002",
+      "freezes": [],
+      "transfers": [],
+      "progress": {
+        "elapsed_days": 0,
+        "remaining_days": 60,
+        "total_days": 60,
+        "checkins": 0,
+        "total_pt_sessions": 5,
+        "used_pt_sessions": 0,
+        "booked_pt_sessions": 0,
+        "remaining_pt_sessions": 5
+      }
+    },
+    "date": "2026-09-22",
+    "groupMode": false
+  },
+  "steps": [
+    {
+      "section": "source",
+      "action": "Blocked at PT source UI",
+      "expected": "Complete the requested real UI flow",
+      "actual": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/mobile/pt/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/mobile/pt/\", waiting until \"networkidle\"\u001b[22m\n",
+      "status": "FAIL",
+      "filename": "step-01-blocker.png"
+    }
+  ],
+  "checks": [],
+  "issues": [
+    "PT source UI: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/mobile/pt/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/mobile/pt/\", waiting until \"networkidle\"\u001b[22m\n\n    at pageFor (E:\\Desktop\\para\\tests\\e2e\\pt\\business-20260920.cjs:103:14)\n    at async main (E:\\Desktop\\para\\tests\\e2e\\pt\\business-20260920.cjs:160:16)",
+    "Browser error: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.",
+    "Blocked at PT source UI: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/mobile/pt/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/mobile/pt/\", waiting until \"networkidle\"\u001b[22m\n"
+  ],
+  "requests": [],
+  "screenshots": [
+    {
+      "file": "step-01-blocker.png",
+      "sha256": "2725b7b6227d2f5f2c13d55b7273f2fd111d437e48084ddbbfab0b80c418c7a3"
+    }
+  ],
+  "pageErrors": [
+    {
+      "url": "chrome-error://chromewebdata/",
+      "message": "Failed to read the 'localStorage' property from 'Window': Access is denied for this document."
+    }
+  ],
+  "groupMode": false,
+  "priorRuns": [
+    "2026-09-20T17-14-43-339Z"
+  ]
+}

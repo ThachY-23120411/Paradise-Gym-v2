@@ -8,7 +8,16 @@
 (function (window, $) {
   'use strict';
 
+  const escapeAttribute = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+
   class PtProfileController {
+    fieldError(selector, message) {
+      const field = $(selector).attr('aria-invalid', 'true');
+      $('<div class="pt-field-error" role="alert">').css({color:'var(--danger, #c43d40)',fontSize:'12px',marginTop:'4px'}).text(message).insertAfter(field);
+      field.trigger('focus');
+      ptApp.showToast(message, 'warning');
+    }
+
     constructor() {
       this.coachData = null;
       this.trainerProfile = null;
@@ -25,6 +34,17 @@
       const self = this;
 
       $('#btnRetryProfile').on('click', () => this.loadProfile());
+      $('#btnOpenSessions').on('click', () => this.openSessions());
+      $('#btnLogoutAll').on('click', async () => {
+        if (!await DevExpress.ui.dialog.confirm('Đăng xuất tất cả thiết bị, bao gồm thiết bị hiện tại?', 'Đăng xuất tất cả')) return;
+        try {
+          await apiClient.auth.logoutAll();
+          ptApp.showAuthScreen();
+        } catch (err) {
+          ptApp.showToast('Chưa xác nhận thu hồi các phiên trên máy chủ. Vui lòng đăng nhập lại để kiểm tra.', 'error');
+          ptApp.showAuthScreen();
+        }
+      });
 
       // Save Preferences Button (PT04-US01 Main Flow Step 4)
       $('#btnSavePreferences').on('click', function () {
@@ -137,6 +157,44 @@
     }
 
     // Load or refresh PT profile when navigating to PT04 tab
+    async openSessions() {
+      if (this.sessionsPopup) this.sessionsPopup.dispose();
+      $('#ptSessionsPopup').remove();
+      const host = $('<div id="ptSessionsPopup">').appendTo(document.body);
+      const load = async target => {
+        target.text('Đang tải thiết bị...');
+        try {
+          const res = await apiClient.auth.getSessions();
+          const sessions = (res.data || []).filter(s => !s.is_revoked && new Date(s.expires_at) > new Date());
+          target.empty();
+          if (!sessions.length) target.text('Không có phiên thiết bị đang hoạt động.');
+          sessions.forEach(session => {
+            const row = $('<div class="pt-session-device">').css({padding:'12px 0',borderBottom:'1px solid var(--border-color)'}).appendTo(target);
+            $('<strong>').text(session.device_name || 'Thiết bị không xác định').appendTo(row);
+            if (session.is_current) $('<span>').text(' · Thiết bị hiện tại').appendTo(row);
+            $('<p>').text('Hoạt động gần nhất: ' + new Date(session.last_active_at).toLocaleString('vi-VN')).appendTo(row);
+            $('<button type="button" class="btn btn-secondary">').text(session.is_current ? 'Đăng xuất thiết bị hiện tại' : 'Đăng xuất thiết bị').on('click', async event => {
+              if (!await DevExpress.ui.dialog.confirm('Thu hồi phiên đăng nhập trên thiết bị này?', 'Xác nhận')) return;
+              const button = $(event.currentTarget).prop('disabled',true);
+              try {
+                if (session.is_current) { await this.handleLogout(); return; }
+                await apiClient.auth.revokeSession(session.id);
+                await load(target);
+              } catch (err) { ptApp.showToast(err.message || 'Không thể thu hồi phiên.', 'error'); }
+              finally { button.prop('disabled',false); }
+            }).appendTo(row);
+          });
+        } catch (err) {
+          target.text('Không thể tải thiết bị. ');
+          $('<button type="button" class="btn btn-secondary">').text('Thử lại').on('click', () => load(target)).appendTo(target);
+        }
+      };
+      this.sessionsPopup = host.dxPopup({title:'Thiết bị đăng nhập',visible:true,showCloseButton:true,
+        width:() => Math.min(window.innerWidth-24,520),height:'auto',maxHeight:'85vh',
+        contentTemplate:container => { const target=$('<div>').appendTo(container); load(target); }
+      }).dxPopup('instance');
+    }
+
     async loadProfile() {
       const user = window.ptApp?.currentUser;
       if (user) {
@@ -148,6 +206,8 @@
     async renderProfile(user) {
       this.coachData = user;
       $('#profileLoadError').hide();
+      $('#btnOpenEditProfile, #toggleNotifSchedule, #toggleNotifResult, #toggleShowPhone, #toggle2FA, #btnSavePreferences').prop('disabled', true);
+      this.initialPreferences = null;
 
       let trainer;
       try {
@@ -161,6 +221,7 @@
         return;
       }
       this.trainerProfile = trainer;
+      $('#btnOpenEditProfile').prop('disabled', false);
 
       // Populate personal info (Field-level specification)
       const fullName = trainer?.full_name || user?.full_name || 'Huấn luyện viên';
@@ -180,7 +241,7 @@
       if (trainer?.work_start_time && trainer?.work_end_time) {
         const start = trainer.work_start_time.slice(0, 5);
         const end = trainer.work_end_time.slice(0, 5);
-        const days = trainer.work_days === 'MON_TO_FRI' ? 'Thứ 2 - Thứ 6' : Array.isArray(trainer.work_days) ? trainer.work_days.map(d => d === 0 ? 'CN' : `Thứ ${d + 1}`).join(', ') : (trainer.work_days || '');
+        const days = trainer.work_days === 'MON_TO_FRI' ? 'Thứ 2 - Thứ 6' : trainer.work_days === 'MON_TO_SAT' ? 'Thứ 2 - Thứ 7' : trainer.work_days === 'ALL_WEEK' ? 'Cả tuần' : Array.isArray(trainer.work_days) ? trainer.work_days.map(d => d === 0 ? 'CN' : `Thứ ${d + 1}`).join(', ') : 'Chưa cập nhật ngày làm việc';
         $('#profileWorkShift').text(`${start} - ${end} (${days})`);
       }
 
@@ -193,6 +254,7 @@
 
       // Render dynamic specialties tags from DB
       this.renderSpecialties(trainer?.specialties);
+      $('#profileBio').text(trainer?.bio || 'Chưa cập nhật');
 
       // Refresh dynamic assigned member count if available
       this.refreshMemberCount(user.pt_profile_id);
@@ -334,7 +396,7 @@
               <!-- Avatar Picker -->
               <div style="text-align: center; margin-bottom: 14px;">
                 <div style="position: relative; display: inline-block; cursor: pointer;" id="dxBtnPickAvatar">
-                  <img id="dxEditAvatarPreview" style="${avatarUrl ? '' : 'display:none;'} width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light, #237b58);" src="${avatarUrl || ''}" alt="Avatar preview">
+                  <img id="dxEditAvatarPreview" style="${avatarUrl ? '' : 'display:none;'} width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light, #237b58);" src="${escapeAttribute(avatarUrl)}" alt="Avatar preview">
                   <div id="dxEditAvatarFallback" class="coach-avatar-lg" style="display: ${avatarUrl ? 'none' : 'flex'}; width: 72px; height: 72px; border-radius: 50%; background: var(--primary-light); color: var(--primary); align-items: center; justify-content: center; font-size: 24px; margin: 0 auto; border: 2px solid var(--border-color);">
                     <i class="fa-solid fa-user"></i>
                   </div>
@@ -349,34 +411,34 @@
               <!-- Readonly info -->
               <div class="form-group" style="margin-bottom: 8px;">
                 <label class="form-label" style="font-size: 12px; color: var(--text-muted, #65736d); display: block; margin-bottom: 2px;">Họ và tên HLV (Cố định)</label>
-                <input type="text" class="form-control" value="${$('<span>').text(fullName).html()}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                <input type="text" class="form-control" value="${escapeAttribute(fullName)}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
               </div>
 
               <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                 <div style="flex: 1;">
                   <label class="form-label" style="font-size: 12px; color: var(--text-muted, #65736d); display: block; margin-bottom: 2px;">Mã PT</label>
-                  <input type="text" class="form-control" value="${$('<span>').text(ptCode).html()}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                  <input type="text" class="form-control" value="${escapeAttribute(ptCode)}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
                 </div>
                 <div style="flex: 1;">
                   <label class="form-label" style="font-size: 12px; color: var(--text-muted, #65736d); display: block; margin-bottom: 2px;">Chi nhánh</label>
-                  <input type="text" class="form-control" value="${$('<span>').text(branchName).html()}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                  <input type="text" class="form-control" value="${escapeAttribute(branchName)}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
                 </div>
               </div>
 
               <div class="form-group" style="margin-bottom: 8px;">
                 <label class="form-label" style="font-size: 12px; color: var(--text-muted, #65736d); display: block; margin-bottom: 2px;">Số điện thoại (Cố định)</label>
-                <input type="text" class="form-control" value="${$('<span>').text(phone).html()}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                <input type="text" class="form-control" value="${escapeAttribute(phone)}" readonly style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); opacity: 0.8; padding: 6px 8px; border-radius: 6px; font-size: 12px;">
               </div>
 
               <!-- Editable fields -->
               <div class="form-group" style="margin-bottom: 8px;">
                 <label class="form-label" for="dxEditEmail" style="font-size: 12px; color: var(--text-main); display: block; margin-bottom: 2px;">Email liên hệ</label>
-                <input type="email" class="form-control" id="dxEditEmail" value="${$('<span>').text(email).html()}" placeholder="Nhập email liên hệ" style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                <input type="email" class="form-control" id="dxEditEmail" maxlength="150" value="${escapeAttribute(email)}" placeholder="Nhập email liên hệ" style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 8px; border-radius: 6px; font-size: 12px;">
               </div>
 
               <div class="form-group" style="margin-bottom: 8px;">
                 <label class="form-label" for="dxEditSpecialties" style="font-size: 12px; color: var(--text-main); display: block; margin-bottom: 2px;">Chuyên môn huấn luyện</label>
-                <input type="text" class="form-control" id="dxEditSpecialties" value="${$('<span>').text(specialties).html()}" placeholder="Ví dụ: Tăng cơ giảm mỡ, Boxing..." style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 8px; border-radius: 6px; font-size: 12px;">
+                <input type="text" class="form-control" id="dxEditSpecialties" maxlength="500" value="${escapeAttribute(specialties)}" placeholder="Ví dụ: Tăng cơ giảm mỡ, Boxing..." style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 8px; border-radius: 6px; font-size: 12px;">
               </div>
 
               <div class="form-group" style="margin-bottom: 8px;">
@@ -467,22 +529,28 @@
     }
 
     async handleEditProfileDx(btnEvent) {
+      $('.pt-field-error').remove();
+      $('#dxEditEmail, #dxEditBio, #dxEditSpecialties').removeAttr('aria-invalid');
       const email = $('#dxEditEmail').val()?.trim() || '';
       const specialties = $('#dxEditSpecialties').val()?.trim() || '';
       const bio = $('#dxEditBio').val()?.trim() || '';
 
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        ptApp.showToast('Email liên hệ không hợp lệ.', 'warning');
+      if (email.length > 150 || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+        this.fieldError('#dxEditEmail', 'Email liên hệ không hợp lệ hoặc vượt quá 150 ký tự.');
         return;
       }
       if (bio.length > 1000) {
-        ptApp.showToast('Giới thiệu bản thân không được vượt quá 1.000 ký tự.', 'warning');
+        this.fieldError('#dxEditBio', 'Giới thiệu bản thân không được vượt quá 1.000 ký tự.');
+        return;
+      }
+      if (specialties.length > 500) {
+        this.fieldError('#dxEditSpecialties', 'Chuyên môn không được vượt quá 500 ký tự.');
         return;
       }
 
       btnEvent.component.option('disabled', true);
       btnEvent.component.option('text', 'Đang lưu...');
-
+      let avatarSaved = false;
       try {
         if (this.pendingAvatarFile) {
           const file = this.pendingAvatarFile;
@@ -503,9 +571,16 @@
           });
 
           if (avatarRes.data?.avatar_url) {
+            avatarSaved = true;
+            this.pendingAvatarFile = null;
             if (this.trainerProfile) this.trainerProfile.avatar_url = avatarRes.data.avatar_url;
             if (this.coachData) this.coachData.avatar_url = avatarRes.data.avatar_url;
             if (window.ptApp?.currentUser) window.ptApp.currentUser.avatar_url = avatarRes.data.avatar_url;
+            $('#profileAvatarImg').attr('src', avatarRes.data.avatar_url).show();
+            $('#profileAvatarFallback').hide();
+            window.ptApp?.refreshPersistentHeader();
+          } else {
+            throw new Error('Máy chủ chưa xác nhận ảnh đã được lưu.');
           }
         }
 
@@ -523,10 +598,12 @@
         ptApp.showToast('Cập nhật hồ sơ thành công!', 'success');
         await this.loadProfile();
       } catch (err) {
-        ptApp.showToast(err.message || 'Không thể lưu thay đổi hồ sơ, vui lòng kiểm tra kết nối mạng.', 'error');
+        ptApp.showToast(avatarSaved ? 'Ảnh đã cập nhật; thông tin hồ sơ chưa lưu được. Vui lòng thử lại.' : err.message || 'Không thể lưu thay đổi hồ sơ, vui lòng kiểm tra kết nối mạng.', 'error');
       } finally {
-        btnEvent.component.option('disabled', false);
-        btnEvent.component.option('text', 'Lưu thay đổi');
+        if (this.editPopupInstance) {
+          btnEvent.component.option('disabled', false);
+          btnEvent.component.option('text', 'Lưu thay đổi');
+        }
       }
     }
 
@@ -619,27 +696,29 @@
     }
 
     async handleChangePasswordDx(btnEvent) {
+      $('.pt-field-error').remove();
+      $('#dxCpCurrentPassword, #dxCpNewPassword, #dxCpConfirmPassword').removeAttr('aria-invalid');
       const currentPass = $('#dxCpCurrentPassword').val();
       const newPass = $('#dxCpNewPassword').val();
       const confirmPass = $('#dxCpConfirmPassword').val();
 
       if (!currentPass || !newPass || !confirmPass) {
-        if (window.ptApp) ptApp.showToast('Vui lòng điền đầy đủ các trường mật khẩu', 'warning');
+        this.fieldError(!currentPass ? '#dxCpCurrentPassword' : !newPass ? '#dxCpNewPassword' : '#dxCpConfirmPassword', 'Vui lòng điền đầy đủ các trường mật khẩu');
         return;
       }
 
-      if (newPass.length < 8) {
-        if (window.ptApp) ptApp.showToast('Mật khẩu mới phải có ít nhất 8 ký tự', 'warning');
+      if (newPass.length < 8 || new TextEncoder().encode(newPass).length > 72 || !/[A-Z]/.test(newPass) || !/[a-z]/.test(newPass) || !/[0-9\W]/.test(newPass)) {
+        this.fieldError('#dxCpNewPassword', 'Mật khẩu cần ít nhất 8 ký tự, tối đa 72 byte, gồm chữ hoa, chữ thường và số hoặc ký tự đặc biệt.');
         return;
       }
 
       if (newPass === currentPass) {
-        if (window.ptApp) ptApp.showToast('Mật khẩu mới không được trùng với mật khẩu hiện tại', 'warning');
+        this.fieldError('#dxCpNewPassword', 'Mật khẩu mới không được trùng với mật khẩu hiện tại');
         return;
       }
 
       if (newPass !== confirmPass) {
-        if (window.ptApp) ptApp.showToast('Mật khẩu xác nhận không trùng khớp!', 'warning');
+        this.fieldError('#dxCpConfirmPassword', 'Mật khẩu xác nhận không trùng khớp!');
         return;
       }
 
@@ -655,8 +734,10 @@
       } catch (err) {
         ptApp.showToast(err.message || 'Không thể đổi mật khẩu. Vui lòng thử lại.', 'error');
       } finally {
-        btnEvent.component.option('disabled', false);
-        btnEvent.component.option('text', 'Cập nhật');
+        if (this.changePassPopupInstance) {
+          btnEvent.component.option('disabled', false);
+          btnEvent.component.option('text', 'Cập nhật');
+        }
       }
     }
 
@@ -673,6 +754,12 @@
       this.loading = false;
       $('#profileFullName, #profilePtCode, #profileBranch, #profilePhone, #profileEmail, #profileWorkShift, #profileMembersKpi').text('--');
       $('#profileSpecialtiesList').empty();
+      $('#profileBio').text('--');
+      if (this.sessionsPopup) {
+        this.sessionsPopup.dispose();
+        this.sessionsPopup = null;
+        $('#ptSessionsPopup').remove();
+      }
       $('#toggleNotifSchedule, #toggleNotifResult, #toggleShowPhone, #toggle2FA').prop({checked:false, disabled:true});
       $('#btnSavePreferences').prop('disabled',true);
       this.closeChangePasswordModal();
@@ -706,8 +793,8 @@
 
       let serverRevoked = false;
       try {
-        if (window.apiClient && window.apiClient.auth && typeof window.apiClient.auth.logout === 'function') {
-          await window.apiClient.auth.logout();
+        if (window.apiClient && window.apiClient.auth && typeof window.apiClient.auth.logoutCurrent === 'function') {
+          await window.apiClient.auth.logoutCurrent();
           serverRevoked = true;
         } else if (window.apiClient) {
           window.apiClient.clearAuth();

@@ -9,6 +9,9 @@
 - QTV chọn menu **W01 · Tổng quan vận hành** trên thanh điều hướng chính của Web Portal.
 - Màn hình liên quan: Web QTV — Màn hình `W01 · Tổng quan vận hành`.
 
+## Quy tắc sắp hết hạn
+- Gói đã thanh toán, đang có hiệu lực và chưa hết hạn: theo thời gian còn <= 4 ngày, theo buổi còn <= 3 buổi; Combo dùng OR giữa các quyền lợi áp dụng. Nguồn hiển thị là is_expiring và display_status do SYS/API tính; status nội bộ ACTIVE vẫn dùng cho kiểm tra quyền tập. Không tạo enum/field DB mới và không tự tính ngưỡng riêng trên UI.
+
 ## Main Flow
 
 1. QTV truy cập menu **W01 · Tổng quan vận hành**.
@@ -22,7 +25,7 @@
      + `Buổi PT trong ngày`: Tổng số ca tập PT được xếp lịch trong ngày; click điều hướng đến Lịch PT (W06).
    - **Khối 2 — Hôm nay cần xử lý (Hàng 4 Thẻ KPI Chăm sóc khách hàng & Vận hành):** Thiết kế đồng bộ chuẩn thẻ KPI như Khối 1 (có icon màu, số đếm nổi bật, chú thích hành động và click điều hướng trực tiếp):
      + `Sinh nhật hôm nay`: Số hội viên có ngày sinh nhật hôm nay; click chuyển sang tab Sinh nhật của Chăm sóc khách hàng (W14).
-     + `Gói sắp hết hạn (<= 4 ngày)`: Số gói tập cận hạn cần liên hệ gia hạn gấp (tone đỏ cảnh báo nếu > 0); click chuyển sang tab Nhắc sắp hết hạn của W14.
+     + `Gói sắp hết hạn (<= 4 ngày hoặc <= 3 buổi)`: Số gói tập cận hạn cần liên hệ gia hạn gấp (tone đỏ cảnh báo nếu > 0); click chuyển sang tab Nhắc sắp hết hạn của W14.
      + `Chờ nhắc gia hạn (14 ngày qua)`: Số gói đã hết hạn trong 14 ngày gần nhất chưa gia hạn; click chuyển sang tab Chờ gia hạn của W14.
      + `Đăng ký mới hôm nay`: Số hợp đồng đăng ký mới tạo trong ngày; click chuyển sang tab Đăng ký trong ngày của W14.
    - **Khối 3 — Thanh thao tác nhanh (Quick Actions):** Các nút hành động tắt gồm: `[+ Thêm hội viên]`, `[+ Tạo đăng ký]`, `[+ Đặt lịch PT]`, `[Lớp cộng đồng]`, `[Ghi nhận ra/vào]`.
@@ -42,7 +45,7 @@
 | Thẻ KPI Buổi PT trong ngày | `Metric Card` | `READONLY` | required | `DYNAMIC` | Tổng số ca tập PT được xếp lịch trong ngày; click mở W06 |
 | Nút Mở CSKH | `Action Button` | `USER-INPUT` | optional | `Không` | Nút trên header khối Hôm nay cần xử lý; click mở menu W14 |
 | Thẻ KPI CSKH — Sinh nhật hôm nay | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số hội viên có sinh nhật hôm nay; click mở tab birthdays W14 |
-| Thẻ KPI CSKH — Gói sắp hết hạn (<= 4 ngày) | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói hết hạn trong <= 4 ngày (tone đỏ nếu > 0); click mở tab expiring W14 |
+| Thẻ KPI CSKH — Gói sắp hết hạn (<= 4 ngày hoặc <= 3 buổi) | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói hết hạn trong <= 4 ngày hoặc <= 3 buổi (tone đỏ nếu > 0); click mở tab expiring W14 |
 | Thẻ KPI CSKH — Chờ nhắc gia hạn | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói hết hạn trong 14 ngày qua chưa gia hạn; click mở tab pending-renewals W14 |
 | Thẻ KPI CSKH — Đăng ký mới hôm nay | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số hợp đồng tạo trong ngày; click mở tab today-regs W14 |
 | Nút Quick Action — Thêm hội viên | `Action Button` | `USER-INPUT` | optional | `Không` | Bấm mở popup Thêm hội viên mới (`QTV-W02-US01`) |
@@ -89,7 +92,7 @@ flowchart TB
 
     subgraph L1["Swimlane — SYS"]
       S01["Xác thực quyền hạn và gán ngày mặc định là Hôm nay"]
-      S02["Truy vấn CSDL: tính tiền thực thu, gói hết hạn <=4 ngày, sinh nhật, đăng ký mới, check-in và ca PT"]
+      S02["Truy vấn CSDL: tính tiền thực thu, gói hết hạn <=4 ngày hoặc <=3 buổi, sinh nhật, đăng ký mới, check-in và ca PT"]
       S03["Hiển thị Dashboard Tổng quan vận hành W01"]
       S04["Truy vấn lại dữ liệu theo ngày mới"]
       S05["Lưu lịch sử tương tác chăm sóc khách hàng"]

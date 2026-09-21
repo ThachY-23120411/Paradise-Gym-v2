@@ -52,7 +52,7 @@ window.DashboardModule = (function () {
           onClick: () => ParadiseApp.navigateTo('customer-care', { tab: 'birthdays' })
         },
         {
-          label: 'Gói sắp hết hạn (<= 4 ngày)',
+          label: 'Gói sắp hết hạn',
           value: careSummary.expiring_soon_4days ?? 0,
           caption: (careSummary.expiring_soon_4days ?? 0) > 0 ? 'Cần liên hệ nhắc gia hạn gấp' : 'Không có gói cận hạn',
           icon: 'triangle-exclamation',
@@ -141,9 +141,7 @@ window.DashboardModule = (function () {
     if (!logs.length) return W.empty(section.body, 'Không có lượt ra vào nào được ghi nhận trong ngày này', 'door-open');
     logs.slice(0, 8).forEach(log => {
       const valid = ['ALLOWED', 'VALID'].includes(log.status);
-      const endDate = log.registration_end_date && String(log.registration_end_date).slice(0, 10);
-      const horizon = new Date(currentDate); horizon.setDate(horizon.getDate() + 14);
-      const expiring = valid && endDate && endDate >= W.dateKey(currentDate) && endDate <= W.dateKey(horizon);
+      const expiring = valid && W.registrationNearExpiry(log);
       const row = $('<div class="activity-row">').appendTo(section.body);
       row.append(W.badge(log.direction === 'OUT' ? 'RA' : 'VÀO', log.direction === 'OUT' ? 'neutral' : 'success'));
       if (log.member_avatar_url && /^https?:\/\//.test(log.member_avatar_url)) $('<img class="member-avatar">').attr({ src: log.member_avatar_url, alt: log.member_name || 'Hội viên' }).appendTo(row);

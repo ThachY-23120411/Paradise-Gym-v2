@@ -19,31 +19,48 @@
       rel="stylesheet"
       href="https://cdn3.devexpress.com/jslib/23.2.5/css/dx.light.css"
     />
-    <link rel="stylesheet" href="css/member.css?v=10" />
+    <link rel="stylesheet" href="css/member.css?v=15" />
   </head>
   <body>
     <div id="memberApp">
-      <header class="app-header">
-        <a href="#home" class="brand" aria-label="Paradise Gym, trang chủ"
-          ><i class="fa-solid fa-dumbbell" aria-hidden="true"></i
-          ><span>PARADISE <b>GYM</b></span></a
-        >
+      <header class="app-header" id="appHeader">
+        <div class="header-left">
+          <img style="display:none" 
+               alt="Avatar Hội viên" 
+               class="header-member-avatar" 
+               id="headerAvatar">
+          <div class="header-avatar-fallback" id="headerAvatarFallback" style="display:none">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="header-info">
+            <div class="member-brand brand">PARADISE <b>GYM</b></div>
+            <h2 id="headerMemberName">Xin chào, Hội viên</h2>
+            <div class="header-subtitle" id="headerBranchName">
+              <i class="fa-solid fa-location-dot"></i>
+              <span id="headerBranchText">Paradise Gym Quận 1</span>
+              <span class="header-dot-separator">•</span>
+              <span class="header-member-code-badge" id="headerMemberCodeBadge">HV</span>
+            </div>
+          </div>
+        </div>
+
         <div class="header-actions">
           <button
             id="btnHeaderNotifications"
-            class="icon-button"
+            class="btn-icon-circle"
             title="Thông báo"
             aria-label="Thông báo"
             hidden
           >
-            <i class="fa-regular fa-bell"></i>
-            <span id="unreadBellDot" class="bell-badge-dot" hidden></span>
+            <i class="fa-solid fa-bell"></i>
+            <span id="unreadBellDot" class="badge-dot-count" style="display:none;">0</span>
           </button>
           <button
             id="refreshPage"
-            class="icon-button"
+            class="btn-icon-circle"
             title="Tải lại"
             aria-label="Tải lại"
+            style="display:none;"
             hidden
           >
             <i class="fa-solid fa-rotate-right"></i>
@@ -81,9 +98,9 @@
     <script src="https://cdn3.devexpress.com/jslib/23.2.5/js/dx.all.js"></script>
     <script src="https://cdn3.devexpress.com/jslib/23.2.5/js/localization/dx.messages.vi.js"></script>
     <script src="../../shared/apiClient.js"></script>
-    <script src="js/app.js?v=3"></script>
+    <script src="js/app.js?v=5"></script>
     <script src="js/auth-account.js?v=2"></script>
-    <script src="js/home-schedule.js?v=10"></script>
-    <script src="js/packages-notifications.js?v=11"></script>
+    <script src="js/home-schedule.js?v=11"></script>
+    <script src="js/packages-notifications.js?v=13"></script>
   </body>
 </html>

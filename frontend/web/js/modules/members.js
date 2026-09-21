@@ -484,9 +484,10 @@ window.MembersModule = (function () {
             {
               dataField: 'status', caption: 'Trạng thái', minWidth: 130, cellTemplate: (el, c) => {
                 const isFrozen = c.data?.is_frozen || c.value === 'FROZEN';
+                const state = window.WebUI.registrationNearExpiry(c.data) ? 'EXPIRING' : c.value;
                 const map = { PENDING_PAYMENT: 'Chờ thanh toán', SCHEDULED: 'Chưa đến ngày hiệu lực', ACTIVE: 'Đang hiệu lực', FROZEN: 'Đang đóng băng', EXPIRING: 'Sắp hết hạn', EXPIRED: 'Đã hết hạn', CANCELLED: 'Đã hủy' };
-                const tone = isFrozen ? 'badge-info' : c.value === 'ACTIVE' ? 'badge-success' : c.value === 'SCHEDULED' ? 'badge-info' : c.value === 'PENDING_PAYMENT' ? 'badge-warning' : 'badge-danger';
-                const label = isFrozen ? '❄️ Đang đóng băng' : (map[c.value] || c.value);
+                const tone = isFrozen ? 'badge-info' : state === 'ACTIVE' ? 'badge-success' : state === 'SCHEDULED' ? 'badge-info' : ['PENDING_PAYMENT', 'EXPIRING'].includes(state) ? 'badge-warning' : 'badge-danger';
+                const label = isFrozen ? '❄️ Đang đóng băng' : (map[state] || state);
                 const $badge = $('<span>').addClass(`status-badge ${tone}`).text(label).appendTo(el);
                 if (isFrozen) $badge.css({ background: '#e0f2fe', color: '#0369a1', borderColor: '#7dd3fc', fontWeight: 600 });
               }

@@ -1,0 +1,1389 @@
+{
+  "result": "PASS (scoped cases only)",
+  "dbName": "paradise_test_8564_1789928719452",
+  "sources": {
+    "backend/src/modules/core/commissions.js": "0002fc6b5ab37c1c4740c0677e15b13e1356d2dba687a2f0f74240d8863d98ab",
+    "backend/src/db/migrations/012_pt_commission_session_snapshot.sql": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a",
+    "frontend/mobile/pt/js/overview.js": "828a7554ff9ee73b61cdabded584f7489c79058ff207a8e58c6200f563ebab29"
+  },
+  "changedSources": [],
+  "migrations": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4e4c4da7561e9e39faecbc5bc3c152158be9543531add85b6904bea7c3cb047a"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "name": "open-overview",
+      "action": "Click PT06 overview",
+      "expected": "PT06-US02 Trigger: own commission card visible",
+      "actual": "Thù lao & hoa hồng\nHoa hồng ước tính tháng này\n80.000 VNĐ\nChờ chi trả\n25% hoa hồng",
+      "status": "PASS",
+      "file": "step-01-open-overview.png",
+      "section": "source"
+    },
+    {
+      "n": 2,
+      "name": "commission-navigation",
+      "action": "Open Hoa hong footer menu",
+      "expected": "Five navigation items; commission page active; footer matches green header",
+      "actual": "[\"rgb(24, 87, 64)\",\"rgb(24, 87, 64)\"]",
+      "status": "PASS",
+      "file": "step-02-commission-navigation.png",
+      "section": "source"
+    },
+    {
+      "n": 3,
+      "name": "unpaid-summary",
+      "action": "Open current unpaid statement",
+      "expected": "Main Flow 4 / reconciliation: two completed sessions, PT base 320000, commission 80000 at 25%; exclude Combo Gym 400000, cancelled/booked and other PT",
+      "actual": "{\"commTotalAmount\":\"80.000 VNĐ\",\"commSessionsCount\":\"2 buổi\",\"commBaseRevenue\":\"320.000 đ\",\"commStatusBadge\":\"Chờ chi trả\"}",
+      "status": "PASS",
+      "file": "step-03-unpaid-summary.png",
+      "section": "source"
+    },
+    {
+      "n": 4,
+      "name": "unpaid-session-details",
+      "action": "Inspect full two-row list",
+      "expected": "Main Flow 5: same member, package, date/time, PT values and per-session commissions",
+      "actual": "08:00 - 09:00 • 2/9/2026\nBuổi #1\nCommission Member A (HV001)\nCommission Personal\n+50.000 đ\nGiá trị: 200.000 đ\n08:00 - 09:00 • 3/9/2026\nBuổi #1\nCommission Member A (HV001)\nCommission Combo\n+30.000 đ\nGiá trị: 120.000 đ",
+      "status": "PASS",
+      "file": "step-04-unpaid-session-details.png",
+      "section": "source"
+    },
+    {
+      "n": 5,
+      "name": "qtv-same-pt-unpaid",
+      "action": "Open QTV W15 on Branch A",
+      "expected": "QTV-W15-US02 MF4/7: same PT row and positive unpaid payout action",
+      "actual": "Commission Trainer A\nPT001 · 0909000020\n\tCommission Branch A\t2\t320.000 ₫\t25%\t80.000 ₫\tChờ chi trả\t",
+      "status": "PASS",
+      "file": "step-05-qtv-same-pt-unpaid.png",
+      "section": "source"
+    },
+    {
+      "n": 6,
+      "name": "qtv-payout-modal",
+      "action": "Click payout on same PT",
+      "expected": "QTV-W15-US02 MF8: payout form shows same PT and amount",
+      "actual": "Commission Trainer A (PT001) · Commission Branch A\nKỳ tháng 9/2026\nSố buổi: 2 · Doanh số: 320.000 ₫ · Tỷ lệ: 25%\nSố tiền chi trả: 80.000 ₫\nHình thức chi trả *\nTài khoản ngân hàng thụ hưởng\nNgân hàng *\nSố tài khoản *\nTên chủ tài khoản\nMã giao dịch ngân hàng (tùy chọn)\nNgày chi trả\nGhi chú\nMÃ VIETQR\nQuét mã để chuyển khoản nhanh",
+      "status": "PASS",
+      "file": "step-06-qtv-payout-modal.png",
+      "section": "source"
+    },
+    {
+      "n": 7,
+      "name": "qtv-method-options",
+      "action": "Open payout method choices",
+      "expected": "QTV-W15-US02 MF8: bank or cash choice",
+      "actual": "Chuyển khoản ngân hàng (VietQR)\nTiền mặt tại quầy",
+      "status": "PASS",
+      "file": "step-07-qtv-method-options.png",
+      "section": "source"
+    },
+    {
+      "n": 8,
+      "name": "qtv-cash-fields",
+      "action": "Select cash payout",
+      "expected": "QTV-W15-US02 conditional fields: cash receipt shown, bank account hidden",
+      "actual": "Cash receipt field visible; bank account field hidden",
+      "status": "PASS",
+      "file": "step-08-qtv-cash-fields.png",
+      "section": "source"
+    },
+    {
+      "n": 9,
+      "name": "qtv-cash-input-before-submit",
+      "action": "Enter cash reference E2E-COMMISSION-CASH before submit",
+      "expected": "Input captured before payout",
+      "actual": "E2E-COMMISSION-CASH",
+      "status": "PASS",
+      "file": "step-09-qtv-cash-input-before-submit.png",
+      "section": "source"
+    },
+    {
+      "n": 10,
+      "name": "qtv-paid-result",
+      "action": "Confirm cash payout",
+      "expected": "QTV-W15-US02 MF9: same row PAID and payout action removed",
+      "actual": "Commission Trainer A\nPT001 · 0909000020\n\tCommission Branch A\t2\t320.000 ₫\t25%\t80.000 ₫\tĐã chi trả\t",
+      "status": "PASS",
+      "file": "step-10-qtv-paid-result.png",
+      "section": "source"
+    },
+    {
+      "n": 11,
+      "name": "pt-paid-after-qtv-payout",
+      "action": "Refresh same PT after QTV payout",
+      "expected": "PT06-US02 PAID: totals, two frozen rows and paid timestamp visible",
+      "actual": "{\"commTotalAmount\":\"80.000 VNĐ\",\"commSessionsCount\":\"2 buổi\",\"commBaseRevenue\":\"320.000 đ\",\"commStatusBadge\":\"Đã chi trả\",\"paidDate\":\"21/9/2026 01:25\"}",
+      "status": "PASS",
+      "file": "downstream-11-pt-paid-after-qtv-payout.png",
+      "section": "downstream"
+    },
+    {
+      "n": 12,
+      "name": "paid-frozen-after-sql-changes",
+      "action": "Refresh PAID after real SQL member/package/booking/rate edits",
+      "expected": "Approved snapshot rule: all historical rows and amounts stay frozen",
+      "actual": "{\"commTotalAmount\":\"80.000 VNĐ\",\"commSessionsCount\":\"2 buổi\",\"commBaseRevenue\":\"320.000 đ\",\"commStatusBadge\":\"Đã chi trả\",\"rows\":\"08:00 - 09:00 • 2/9/2026\\nBuổi #1\\nCommission Member A (HV001)\\nCommission Personal\\n+50.000 đ\\nGiá trị: 200.000 đ\\n08:00 - 09:00 • 3/9/2026\\nBuổi #1\\nCommission Member A (HV001)\\nCommission Combo\\n+30.000 đ\\nGiá trị: 120.000 đ\"}",
+      "status": "PASS",
+      "file": "downstream-12-paid-frozen-after-sql-changes.png",
+      "section": "downstream"
+    },
+    {
+      "n": 13,
+      "name": "paid-pull-touch-refresh",
+      "action": "Browser CDP touch swipe down 100px from page scrollTop=0",
+      "expected": "MF6 / AF-02: gesture issues a real same-period request and keeps PAID snapshot unchanged",
+      "actual": "{\"commTotalAmount\":\"80.000 VNĐ\",\"commSessionsCount\":\"2 buổi\",\"commBaseRevenue\":\"320.000 đ\",\"commStatusBadge\":\"Đã chi trả\",\"transport\":\"CDP touch input; no direct handler invocation\"}",
+      "status": "PASS",
+      "file": "step-13-paid-pull-touch-refresh.png",
+      "section": "source"
+    },
+    {
+      "n": 14,
+      "name": "legacy-paid-null-warning",
+      "action": "Choose previous month with legacy PAID NULL snapshot",
+      "expected": "AF-03: preserve 7 sessions / 1400000 base / 350000 history; warning, not empty-month text",
+      "actual": "{\"commTotalAmount\":\"350.000 VNĐ\",\"commSessionsCount\":\"7 buổi\",\"commBaseRevenue\":\"1.400.000 đ\",\"commStatusBadge\":\"Đã chi trả\",\"warning\":\"Bảng kê này đã chi trả trước khi hệ thống lưu chi tiết từng buổi. Số tổng đã chốt được giữ nguyên; không có bản chốt chi tiết để đối chiếu.\"}",
+      "status": "PASS",
+      "file": "step-14-legacy-paid-null-warning.png",
+      "section": "source"
+    },
+    {
+      "n": 15,
+      "name": "show-month-input",
+      "action": "Choose custom month",
+      "expected": "AF-01: month input becomes visible",
+      "actual": "2026-08",
+      "status": "PASS",
+      "file": "step-15-show-month-input.png",
+      "section": "source"
+    },
+    {
+      "n": 16,
+      "name": "no-completed-entries",
+      "action": "Select empty period 2026-01",
+      "expected": "Exception Flow: no completed sessions, zero totals, unpaid, no paid timestamp",
+      "actual": "{\"commTotalAmount\":\"0 VNĐ\",\"commSessionsCount\":\"0 buổi\",\"commBaseRevenue\":\"0 đ\",\"commStatusBadge\":\"Chờ chi trả\",\"empty\":\"Bạn chưa có buổi dạy hoàn thành nào trong tháng này. Hãy tiếp tục cố gắng!\"}",
+      "status": "PASS",
+      "file": "step-16-no-completed-entries.png",
+      "section": "source"
+    },
+    {
+      "n": 17,
+      "name": "return-overview",
+      "action": "Return to overview using footer",
+      "expected": "Only overview active; footer remains usable",
+      "actual": "Overview active",
+      "status": "PASS",
+      "file": "step-17-return-overview.png",
+      "section": "source"
+    },
+    {
+      "n": 18,
+      "name": "overview-shortcut-preserves-period",
+      "action": "Open commission shortcut from overview",
+      "expected": "Same dedicated screen and previously selected period, without modal",
+      "actual": "{\"commTotalAmount\":\"0 VNĐ\",\"commSessionsCount\":\"0 buổi\",\"commBaseRevenue\":\"0 đ\",\"commStatusBadge\":\"Chờ chi trả\"}",
+      "status": "PASS",
+      "file": "step-18-overview-shortcut-preserves-period.png",
+      "section": "source"
+    },
+    {
+      "n": 19,
+      "name": "real-api-error",
+      "action": "Refresh while isolated PostgreSQL commission table is temporarily unavailable",
+      "expected": "Exception Flow: real API error; no fabricated zero/other PT statement; retry available",
+      "actual": "Không thể tải bảng kê. Vui lòng bấm Làm mới để thử lại.",
+      "status": "PASS",
+      "file": "step-19-real-api-error.png",
+      "section": "source"
+    },
+    {
+      "n": 20,
+      "name": "real-api-retry-success",
+      "action": "Restore SQL table; click refresh",
+      "expected": "Exception recovery: real API returns selected empty period again",
+      "actual": "{\"commTotalAmount\":\"0 VNĐ\",\"commSessionsCount\":\"0 buổi\",\"commBaseRevenue\":\"0 đ\",\"commStatusBadge\":\"Chờ chi trả\"}",
+      "status": "PASS",
+      "file": "step-20-real-api-retry-success.png",
+      "section": "source"
+    },
+    {
+      "n": 21,
+      "name": "paid-with-missing-current-config",
+      "action": "Disable rate history fixture and select PAID current month",
+      "expected": "Snapshot rule: missing new configuration cannot hide existing PAID",
+      "actual": "{\"commTotalAmount\":\"80.000 VNĐ\",\"commSessionsCount\":\"2 buổi\",\"commBaseRevenue\":\"320.000 đ\",\"commStatusBadge\":\"Đã chi trả\"}",
+      "status": "PASS",
+      "file": "step-21-paid-with-missing-current-config.png",
+      "section": "source"
+    },
+    {
+      "n": 22,
+      "name": "show-month-input",
+      "action": "Choose custom month",
+      "expected": "AF-01: month input becomes visible",
+      "actual": "2026-09",
+      "status": "PASS",
+      "file": "step-22-show-month-input.png",
+      "section": "source"
+    },
+    {
+      "n": 23,
+      "name": "missing-config-warning",
+      "action": "Choose unpaid period without active commission config",
+      "expected": "Exception Flow: explain missing commission config and contact QTV",
+      "actual": "Chưa có cấu hình tỷ lệ hoa hồng từ quản lý. Vui lòng liên hệ QTV.",
+      "status": "PASS",
+      "file": "step-23-missing-config-warning.png",
+      "section": "source"
+    },
+    {
+      "n": 24,
+      "name": "own-ui-after-forbidden-api",
+      "action": "Attempt forbidden other-PT/detail/admin APIs with same real PT session, then refresh own UI",
+      "expected": "Own scope: forbidden calls expose no other-PT data and own UI remains intact",
+      "actual": "{\"forbiddenCount\":5,\"commTotalAmount\":\"80.000 VNĐ\",\"commSessionsCount\":\"2 buổi\",\"commBaseRevenue\":\"320.000 đ\",\"commStatusBadge\":\"Đã chi trả\"}",
+      "status": "PASS",
+      "file": "step-24-own-ui-after-forbidden-api.png",
+      "section": "source"
+    },
+    {
+      "n": 25,
+      "name": "open-overview",
+      "action": "Click PT06 overview",
+      "expected": "PT06-US02 Trigger: own commission card visible",
+      "actual": "Thù lao & hoa hồng\nHoa hồng ước tính tháng này\n50.000 VNĐ\nChờ chi trả\n25% hoa hồng",
+      "status": "PASS",
+      "file": "step-25-open-overview.png",
+      "section": "source"
+    },
+    {
+      "n": 26,
+      "name": "commission-navigation",
+      "action": "Open Hoa hong footer menu",
+      "expected": "Five navigation items; commission page active; footer matches green header",
+      "actual": "[\"rgb(24, 87, 64)\",\"rgb(24, 87, 64)\"]",
+      "status": "PASS",
+      "file": "step-26-commission-navigation.png",
+      "section": "source"
+    },
+    {
+      "n": 27,
+      "name": "branch-b-own-pt-only",
+      "action": "Open real PT B session in Branch B",
+      "expected": "Own-scope rule: B sees only B one session / 200000 base / 50000; no A historical statement",
+      "actual": "{\"commTotalAmount\":\"50.000 VNĐ\",\"commSessionsCount\":\"1 buổi\",\"commBaseRevenue\":\"200.000 đ\",\"commStatusBadge\":\"Chờ chi trả\"}",
+      "status": "PASS",
+      "file": "downstream-27-branch-b-own-pt-only.png",
+      "section": "downstream"
+    },
+    {
+      "n": 28,
+      "name": "zero-rate-with-completed-entry",
+      "action": "Set real Branch B fixture rate to 0%; refresh PT B",
+      "expected": "Main Flow 4/5: zero commission does not imply empty teaching history; preserve one row and PT base",
+      "actual": "{\"commTotalAmount\":\"0 VNĐ\",\"commSessionsCount\":\"1 buổi\",\"commBaseRevenue\":\"200.000 đ\",\"commStatusBadge\":\"Chờ chi trả\"}",
+      "status": "PASS",
+      "file": "step-28-zero-rate-with-completed-entry.png",
+      "section": "source"
+    },
+    {
+      "n": 29,
+      "name": "paid-responsive-320",
+      "action": "Resize paid statement to 320px",
+      "expected": "Paid content remains visible; no horizontal document overflow",
+      "actual": "{\"width\":320,\"scroll\":320,\"commTotalAmount\":\"80.000 VNĐ\",\"commSessionsCount\":\"2 buổi\",\"commBaseRevenue\":\"320.000 đ\",\"commStatusBadge\":\"Đã chi trả\"}",
+      "status": "PASS",
+      "file": "step-29-paid-responsive-320.png",
+      "section": "source"
+    },
+    {
+      "n": 30,
+      "name": "paid-responsive-360",
+      "action": "Resize paid statement to 360px",
+      "expected": "Paid content remains visible; no horizontal document overflow",
+      "actual": "{\"width\":360,\"scroll\":360,\"commTotalAmount\":\"80.000 VNĐ\",\"commSessionsCount\":\"2 buổi\",\"commBaseRevenue\":\"320.000 đ\",\"commStatusBadge\":\"Đã chi trả\"}",
+      "status": "PASS",
+      "file": "step-30-paid-responsive-360.png",
+      "section": "source"
+    },
+    {
+      "n": 31,
+      "name": "paid-responsive-768",
+      "action": "Resize paid statement to 768px",
+      "expected": "Paid content remains visible; no horizontal document overflow",
+      "actual": "{\"width\":768,\"scroll\":768,\"commTotalAmount\":\"80.000 VNĐ\",\"commSessionsCount\":\"2 buổi\",\"commBaseRevenue\":\"320.000 đ\",\"commStatusBadge\":\"Đã chi trả\"}",
+      "status": "PASS",
+      "file": "step-31-paid-responsive-768.png",
+      "section": "source"
+    },
+    {
+      "n": 32,
+      "name": "paid-responsive-1440",
+      "action": "Resize paid statement to 1440px",
+      "expected": "Paid content remains visible; no horizontal document overflow",
+      "actual": "{\"width\":1440,\"scroll\":1440,\"commTotalAmount\":\"80.000 VNĐ\",\"commSessionsCount\":\"2 buổi\",\"commBaseRevenue\":\"320.000 đ\",\"commStatusBadge\":\"Đã chi trả\"}",
+      "status": "PASS",
+      "file": "step-32-paid-responsive-1440.png",
+      "section": "source"
+    }
+  ],
+  "state": [
+    {
+      "fixture": {
+        "branches": [
+          "77725692-a339-4022-b4d2-75a979cebf38",
+          "fd84ad8a-fd53-4200-aec1-b7c946dc2acf"
+        ],
+        "trainers": [
+          {
+            "id": "d4c88b6c-1c58-4b35-851d-995212222a2a",
+            "phone": "0909000020"
+          },
+          {
+            "id": "d6033ea7-ef4a-4a1b-a0f6-166eb40ac3d0",
+            "phone": "0909000021"
+          }
+        ],
+        "memberIds": [
+          "a2871460-3284-432f-8703-162fe417c778",
+          "1068c068-23f4-43cd-bd9e-a56710092d84"
+        ],
+        "registrationIds": [
+          "6c8acec2-4ac0-4b59-aebd-a804e22cc30e",
+          "4a550b07-3f2d-4b2c-aa0a-dff6bf2602ec",
+          "c5320d0b-7f81-4fab-be59-5dfca5a331e3"
+        ],
+        "bookingIds": [
+          "987161b1-4859-43bd-9870-d703df89d59a",
+          "665965ec-39bd-42b8-8b68-f1ab20d67628",
+          "3f96d50d-559b-4ea6-bd20-e5ae8d17dda2"
+        ],
+        "legacyId": "1985f30d-001f-478f-b175-60c38616e348"
+      },
+      "note": "SQL historical fixtures only in isolated database; API-created paid registrations/receipts. Bookings and confirmations are fixture setup, not UI confirmation coverage."
+    },
+    {
+      "unpaid": {
+        "summary": {
+          "pt_id": "d4c88b6c-1c58-4b35-851d-995212222a2a",
+          "month": 9,
+          "year": 2026,
+          "commission_percentage": 25,
+          "status": "PENDING",
+          "total_pt_sessions_taught": 2,
+          "pt_revenue_share": 320000,
+          "total_commission_amount": 80000
+        },
+        "sessions": [
+          {
+            "id": "987161b1-4859-43bd-9870-d703df89d59a",
+            "registration_id": "6c8acec2-4ac0-4b59-aebd-a804e22cc30e",
+            "member_id": "a2871460-3284-432f-8703-162fe417c778",
+            "pt_id": "d4c88b6c-1c58-4b35-851d-995212222a2a",
+            "branch_id": "77725692-a339-4022-b4d2-75a979cebf38",
+            "session_number": 1,
+            "booking_date": "2026-09-02",
+            "start_time": "08:00:00",
+            "end_time": "09:00:00",
+            "status": "COMPLETED",
+            "pt_confirmed_at": "2026-09-02T09:00:00.000Z",
+            "member_confirmed_at": "2026-09-02T09:00:00.000Z",
+            "commission_percentage": 25,
+            "member_name": "Commission Member A",
+            "member_code": "HV001",
+            "member_phone": "0909000010",
+            "package_name_snapshot": "Commission Personal",
+            "pt_price_snapshot": 1000000,
+            "total_pt_sessions_snapshot": 5,
+            "session_pt_value": 200000,
+            "session_commission": 50000
+          },
+          {
+            "id": "665965ec-39bd-42b8-8b68-f1ab20d67628",
+            "registration_id": "4a550b07-3f2d-4b2c-aa0a-dff6bf2602ec",
+            "member_id": "a2871460-3284-432f-8703-162fe417c778",
+            "pt_id": "d4c88b6c-1c58-4b35-851d-995212222a2a",
+            "branch_id": "77725692-a339-4022-b4d2-75a979cebf38",
+            "session_number": 1,
+            "booking_date": "2026-09-03",
+            "start_time": "08:00:00",
+            "end_time": "09:00:00",
+            "status": "COMPLETED",
+            "pt_confirmed_at": "2026-09-03T09:00:00.000Z",
+            "member_confirmed_at": "2026-09-03T09:00:00.000Z",
+            "commission_percentage": 25,
+            "member_name": "Commission Member A",
+            "member_code": "HV001",
+            "member_phone": "0909000010",
+            "package_name_snapshot": "Commission Combo",
+            "pt_price_snapshot": 600000,
+            "total_pt_sessions_snapshot": 5,
+            "session_pt_value": 120000,
+            "session_commission": 30000
+          }
+        ],
+        "details_snapshot_available": false
+      }
+    },
+    {
+      "setup": "QTV calculate API materializes unpaid statements before UI payout",
+      "commissionId": "6e446559-6270-4cb1-b5d0-3cf73229475c",
+      "otherCommissionId": "177aec8f-4948-4482-adda-528d512405f6"
+    },
+    {
+      "paid": {
+        "summary": {
+          "id": "6e446559-6270-4cb1-b5d0-3cf73229475c",
+          "pt_id": "d4c88b6c-1c58-4b35-851d-995212222a2a",
+          "month": 9,
+          "year": 2026,
+          "total_pt_sessions_taught": 2,
+          "pt_revenue_share": 320000,
+          "commission_percentage": 25,
+          "total_commission_amount": 80000,
+          "status": "PAID",
+          "paid_at": "2026-09-20T18:25:30.384Z",
+          "created_at": "2026-09-20T18:25:26.324Z",
+          "payout_method": "CASH",
+          "payout_ref": "E2E-COMMISSION-CASH",
+          "payout_note": "Chi trả hoa hồng tháng 9/2026 cho HLV Commission Trainer A",
+          "paid_by_account_id": "3b1bfd69-c05f-4c20-be0a-1929aa99843f"
+        },
+        "sessions": [
+          {
+            "id": "987161b1-4859-43bd-9870-d703df89d59a",
+            "pt_id": "d4c88b6c-1c58-4b35-851d-995212222a2a",
+            "status": "COMPLETED",
+            "end_time": "09:00:00",
+            "branch_id": "77725692-a339-4022-b4d2-75a979cebf38",
+            "member_id": "a2871460-3284-432f-8703-162fe417c778",
+            "start_time": "08:00:00",
+            "member_code": "HV001",
+            "member_name": "Commission Member A",
+            "booking_date": "2026-09-02",
+            "member_phone": "0909000010",
+            "session_number": 1,
+            "pt_confirmed_at": "2026-09-02T09:00:00.000Z",
+            "registration_id": "6c8acec2-4ac0-4b59-aebd-a804e22cc30e",
+            "session_pt_value": 200000,
+            "pt_price_snapshot": 1000000,
+            "session_commission": 50000,
+            "member_confirmed_at": "2026-09-02T09:00:00.000Z",
+            "commission_percentage": 25,
+            "package_name_snapshot": "Commission Personal",
+            "total_pt_sessions_snapshot": 5
+          },
+          {
+            "id": "665965ec-39bd-42b8-8b68-f1ab20d67628",
+            "pt_id": "d4c88b6c-1c58-4b35-851d-995212222a2a",
+            "status": "COMPLETED",
+            "end_time": "09:00:00",
+            "branch_id": "77725692-a339-4022-b4d2-75a979cebf38",
+            "member_id": "a2871460-3284-432f-8703-162fe417c778",
+            "start_time": "08:00:00",
+            "member_code": "HV001",
+            "member_name": "Commission Member A",
+            "booking_date": "2026-09-03",
+            "member_phone": "0909000010",
+            "session_number": 1,
+            "pt_confirmed_at": "2026-09-03T09:00:00.000Z",
+            "registration_id": "4a550b07-3f2d-4b2c-aa0a-dff6bf2602ec",
+            "session_pt_value": 120000,
+            "pt_price_snapshot": 600000,
+            "session_commission": 30000,
+            "member_confirmed_at": "2026-09-03T09:00:00.000Z",
+            "commission_percentage": 25,
+            "package_name_snapshot": "Commission Combo",
+            "total_pt_sessions_snapshot": 5
+          }
+        ],
+        "details_snapshot_available": true
+      },
+      "payoutMethod": "CASH",
+      "payoutReference": "E2E-COMMISSION-CASH"
+    },
+    {
+      "missingConfigApi": {
+        "success": false,
+        "message": "BRANCH_DEFAULT_COMMISSION_NOT_CONFIGURED: Chưa có cấu hình tỷ lệ hoa hồng từ quản lý tại thời điểm 2025-12-31T17:00:00.000Z. Vui lòng liên hệ QTV.",
+        "code": "BRANCH_DEFAULT_COMMISSION_NOT_CONFIGURED"
+      }
+    },
+    {
+      "forbidden": [
+        {
+          "url": "/commissions/177aec8f-4948-4482-adda-528d512405f6/details",
+          "method": "GET",
+          "status": 403,
+          "result": {
+            "success": false,
+            "message": "Bạn không có quyền thực hiện thao tác này hoặc dữ liệu nằm ngoài phạm vi chi nhánh.",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "url": "/commissions/monthly",
+          "method": "GET",
+          "status": 403,
+          "result": {
+            "success": false,
+            "message": "Bạn không có quyền thực hiện thao tác này hoặc dữ liệu nằm ngoài phạm vi chi nhánh.",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "url": "/commissions/configs",
+          "method": "GET",
+          "status": 403,
+          "result": {
+            "success": false,
+            "message": "Bạn không có quyền thực hiện thao tác này hoặc dữ liệu nằm ngoài phạm vi chi nhánh.",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "url": "/commissions/calculate",
+          "method": "POST",
+          "status": 403,
+          "result": {
+            "success": false,
+            "message": "Bạn không có quyền thực hiện thao tác này hoặc dữ liệu nằm ngoài phạm vi chi nhánh.",
+            "code": "FORBIDDEN"
+          }
+        },
+        {
+          "url": "/commissions/6e446559-6270-4cb1-b5d0-3cf73229475c/status",
+          "method": "PUT",
+          "status": 403,
+          "result": {
+            "success": false,
+            "message": "Bạn không có quyền thực hiện thao tác này hoặc dữ liệu nằm ngoài phạm vi chi nhánh.",
+            "code": "FORBIDDEN"
+          }
+        }
+      ],
+      "ownQueryInjection": "Other pt_id ignored; exact own PAID response unchanged"
+    },
+    {
+      "reverseScope": "PT B forbidden reading PT A paid detail (403)"
+    }
+  ],
+  "issues": [],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/pt/statistics",
+      "query": "?period=month",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/pt/statistics",
+      "query": "?period=month",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/commissions/monthly",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/commissions/6e446559-6270-4cb1-b5d0-3cf73229475c/status",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/commissions/monthly",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=8&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=1&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/pt/statistics",
+      "query": "?period=month",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=1&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=1&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=1&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=1&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/pt/statistics",
+      "query": "?period=month",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/pt/statistics",
+      "query": "?period=month",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "query": "",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "targetPort": 53282
+    }
+  ],
+  "responses": [
+    {
+      "path": "/api/v1/notifications",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/notifications",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mobile/profile",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/notifications",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mobile/preferences",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mobile/pt/statistics",
+      "query": "?period=month",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt-bookings",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/registrations",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mobile/pt/statistics",
+      "query": "?period=month",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt-bookings",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/branches",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/commissions/monthly",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/commissions/6e446559-6270-4cb1-b5d0-3cf73229475c/status",
+      "query": "",
+      "status": 200,
+      "method": "PUT"
+    },
+    {
+      "path": "/api/v1/commissions/monthly",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=8&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=1&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mobile/pt/statistics",
+      "query": "?period=month",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt-bookings",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=1&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=1&year=2026",
+      "status": 500,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=1&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=1&year=2026",
+      "status": 409,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/notifications",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/notifications",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/notifications",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mobile/profile",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mobile/pt/statistics",
+      "query": "?period=month",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt-bookings",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mobile/preferences",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/registrations",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt-bookings",
+      "query": "",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mobile/pt/statistics",
+      "query": "?period=month",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/pt/my-commissions",
+      "query": "?month=9&year=2026",
+      "status": 200,
+      "method": "GET"
+    }
+  ],
+  "pageErrors": [],
+  "cleanup": {
+    "browserClosed": true,
+    "serverClosed": true,
+    "connectionsClosed": true,
+    "databaseDropped": true
+  },
+  "screenshots": [
+    {
+      "file": "step-01-open-overview.png",
+      "bytes": 57254,
+      "sha256": "7b91aa15acb3b13905764577a4499bdf8b25c1d929a6e7ce19217d089fe50897"
+    },
+    {
+      "file": "step-02-commission-navigation.png",
+      "bytes": 60835,
+      "sha256": "9428ac94421fa7a9ff09b668ff3556ba3bf46c954b08e2d80df5d1f5e6bdbf39"
+    },
+    {
+      "file": "step-03-unpaid-summary.png",
+      "bytes": 59510,
+      "sha256": "debd2cec3b2568e8f6d69482c0fbc333a20fd063cba26ee9a7319e8a7c9df5c4"
+    },
+    {
+      "file": "step-04-unpaid-session-details.png",
+      "bytes": 59536,
+      "sha256": "402c2716a6798aab8ed10947252f04fb0e9a5f4b5551ceccbac4c87c91741013"
+    },
+    {
+      "file": "step-05-qtv-same-pt-unpaid.png",
+      "bytes": 119478,
+      "sha256": "dfc0467cb8d405da3e59efe50c3a1544bb932714d6869dba8e2d240286b11d1b"
+    },
+    {
+      "file": "step-06-qtv-payout-modal.png",
+      "bytes": 158647,
+      "sha256": "d66151f604999ba55947fd8aa7d5afa5ea22f674e40824422df2fc6b7a97701c"
+    },
+    {
+      "file": "step-07-qtv-method-options.png",
+      "bytes": 188365,
+      "sha256": "efacfc3ca1facd3d899dbedfcb46923b492c335457f15d35f89606e76b9036dd"
+    },
+    {
+      "file": "step-08-qtv-cash-fields.png",
+      "bytes": 146432,
+      "sha256": "0957ccd67a8465684801c3af0ee095f81ba5f5ef5e149e29ba40f45b9ec3302e"
+    },
+    {
+      "file": "step-09-qtv-cash-input-before-submit.png",
+      "bytes": 143883,
+      "sha256": "2d132864c263e0ba440a8887076884da9f8c12fabc4a84dcc6c3c1c707139734"
+    },
+    {
+      "file": "step-10-qtv-paid-result.png",
+      "bytes": 125398,
+      "sha256": "9ad9a42dcdf0e98e4566bedc1ed89d8d900d1de143f5f7b218cc5b250208c620"
+    },
+    {
+      "file": "downstream-11-pt-paid-after-qtv-payout.png",
+      "bytes": 64261,
+      "sha256": "ab6952dcc4bea73d6c60c2e292a814048b1c79c067bd42d8262d874fab57e99d"
+    },
+    {
+      "file": "downstream-12-paid-frozen-after-sql-changes.png",
+      "bytes": 63256,
+      "sha256": "255c2e7426c2225ea20d0b6e0fcde6ea46505e7f30b43d8b18dc40ec11f0e4a7"
+    },
+    {
+      "file": "step-13-paid-pull-touch-refresh.png",
+      "bytes": 64428,
+      "sha256": "c801e28d77f47361400fa488bfc29e81a3e69f0729ed8c911c2b8f013a1981f0"
+    },
+    {
+      "file": "step-14-legacy-paid-null-warning.png",
+      "bytes": 54382,
+      "sha256": "7e685050f9042e61c62bb2db2d5d994e49b44d3d41525f3fdafab75e2963fc0d"
+    },
+    {
+      "file": "step-15-show-month-input.png",
+      "bytes": 56642,
+      "sha256": "2ee0d120238dd642ea454e5595675a2eaef8e10d0c411e2ca0fdf40832e55c68"
+    },
+    {
+      "file": "step-16-no-completed-entries.png",
+      "bytes": 47702,
+      "sha256": "6549b602d33b0e0a610612baef0cd15eff81fa2174c8deabf11a0fe61eebf37c"
+    },
+    {
+      "file": "step-17-return-overview.png",
+      "bytes": 58062,
+      "sha256": "b099cd066732f3bdb68eafb52874fab1ac745a071eb62a8d2f6360560b5cb81e"
+    },
+    {
+      "file": "step-18-overview-shortcut-preserves-period.png",
+      "bytes": 47164,
+      "sha256": "ca5c9189e48ebfd1f291faa905a49e28be28499109ba97e601aa816eb2b99180"
+    },
+    {
+      "file": "step-19-real-api-error.png",
+      "bytes": 42869,
+      "sha256": "68c10dc27001f0ac707d8c5bd339d84afaf2df13728500a46ab39677a9f0e7b7"
+    },
+    {
+      "file": "step-20-real-api-retry-success.png",
+      "bytes": 47219,
+      "sha256": "efd7bc817dd2482884c2551de21d52b270c8abee2d459e7a6f9bed76c809f599"
+    },
+    {
+      "file": "step-21-paid-with-missing-current-config.png",
+      "bytes": 64351,
+      "sha256": "5a2ec4fbb8a5121f6a766c93674a8950f8051d7e5e41a8954fd633ceb40daaf4"
+    },
+    {
+      "file": "step-22-show-month-input.png",
+      "bytes": 67080,
+      "sha256": "1ed7f3e24a699c2116ac6df0baf3f4fdb5a7c4bc47b6ca485c43cb3b55f20763"
+    },
+    {
+      "file": "step-23-missing-config-warning.png",
+      "bytes": 43820,
+      "sha256": "b069430128b52864e93e6c6e279624823291a6732a600da88a56a2d074d94924"
+    },
+    {
+      "file": "step-24-own-ui-after-forbidden-api.png",
+      "bytes": 64455,
+      "sha256": "4fb2637f5c2f6042777002b6b05c179431a1f08c787cf675c02cc5eab48bae60"
+    },
+    {
+      "file": "step-25-open-overview.png",
+      "bytes": 57624,
+      "sha256": "1d5f90a2a3822e81918396dac2aa4c343e06c69569978620a62f783ac2ba3473"
+    },
+    {
+      "file": "step-26-commission-navigation.png",
+      "bytes": 50095,
+      "sha256": "1ae962018c14c7633356e7e3841f9075df183f5c0396ee965854a607a9c3f270"
+    },
+    {
+      "file": "downstream-27-branch-b-own-pt-only.png",
+      "bytes": 50103,
+      "sha256": "ec3a3304b29fc0f71dcda93a2a482e30024570b6c5c2c59bb1974fd3cc367cf9"
+    },
+    {
+      "file": "step-28-zero-rate-with-completed-entry.png",
+      "bytes": 48097,
+      "sha256": "5dd4c1c615fbd0aded3bbb69448bbd0560cb5314bbf01287284a58ccb9c3f163"
+    },
+    {
+      "file": "step-29-paid-responsive-320.png",
+      "bytes": 64834,
+      "sha256": "0b404ba67c1701eb3ef1d7bc26e88f8ff47837367c4cb75fac7165d54f3f97e3"
+    },
+    {
+      "file": "step-30-paid-responsive-360.png",
+      "bytes": 64914,
+      "sha256": "dcf8888817fe03d2af7b7199a70fcb30d2fcb0b5cfc4e6c5315e132f7edf1338"
+    },
+    {
+      "file": "step-31-paid-responsive-768.png",
+      "bytes": 67809,
+      "sha256": "04cd044b620ac4ce1850637cbc11d9a9a2e9273db31ba3d39094363504699def"
+    },
+    {
+      "file": "step-32-paid-responsive-1440.png",
+      "bytes": 72997,
+      "sha256": "95e44e53f6c319706b79640db18b822387dccc2d449edcf2fba1107dbd43aeb0"
+    }
+  ]
+}

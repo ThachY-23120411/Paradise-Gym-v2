@@ -1,114 +1,105 @@
 # LT-W08-US01 - Xem danh sách payment
 
 ## Preconditions
-- Lễ tân đã đăng nhập vào Web Lễ tân, có quyền thu tiền và truy cập menu W08 Thu tiền & thanh toán.
-- Hệ thống đã có các bản ghi Payment (giao dịch thanh toán tiền mặt hoặc chuyển khoản QR) trong chi nhánh phục vụ.
+- Lễ tân đã đăng nhập, có quyền xem tài chính trong chi nhánh phục vụ cố định của Lễ tân. Danh sách có thể rỗng.
 
 ## Trigger
-- Lễ tân chọn menu **W08 · Thu tiền & thanh toán** trên thanh điều hướng chính.
-- Màn hình liên quan: Web Lễ tân — W08 Thu tiền & thanh toán, tab Danh sách payment.
+- Mở W08 Thu tiền & thanh toán.
 
 ## Main Flow
+1. Lễ tân mở W08; SYS nạp sổ thu thành công trong scope, mặc định thời gian Hôm nay.
+2. SYS hiển thị 9 cột: Mã phiếu, Thời gian, Hội viên (họ tên và Mã HV · SĐT), Đăng ký (mã và tên gói), Phương thức, Số tiền thực thu, Người thu, Chi nhánh, Thao tác xem/in phiếu thu.
+3. Lễ tân tìm theo mã phiếu, mã đăng ký, tên hoặc SĐT; chọn ngày/khoảng ngày và phương thức Tiền mặt/Chuyển khoản/Tất cả.
+4. SYS làm mới bảng và hai KPI Tổng thực thu, Lượt thanh toán thành công theo bộ lọc và scope.
+5. Lễ tân mở xem/in phiếu thu, hoặc chọn Ghi nhận thanh toán để mở LT-W08-US02.
 
-1. Lễ tân truy cập menu W08 Thu tiền & thanh toán.
-2. SYS nạp và hiển thị **Bảng Danh sách Payment (Datagridview)** thuộc chi nhánh:
-   - **Mã phiếu**: Mã định danh phiếu thu duy nhất (ví dụ: `PT00123`).
-   - **Thời gian**: Giờ:phút ghi nhận giao dịch (hoặc ngày tháng).
-   - **Hội viên**: Ô hiển thị 2 dòng: Dòng trên là Họ tên hội viên (chữ đậm nổi bật), Dòng dưới là `Mã HV · SĐT` (chữ xám nhỏ, ví dụ: `HV00123 · 0901 234 567`) giúp định danh chính xác, chống trùng lặp.
-   - **Đăng ký**: Mã đơn đăng ký gói liên kết (ví dụ: `DK001`) kèm tên gói tập.
-   - **Phương thức**: Hình thức thanh toán (`Tiền mặt` hoặc `Chuyển khoản`).
-   - **Số tiền**: Số tiền 100% cần thu/thực thu (màu xanh lá nổi bật, ví dụ: `1.350.000 đ`).
-   - **Người thu**: Họ tên Lễ tân đã ghi nhận giao dịch tại quầy hoặc `Hệ thống`.
-   - **Chi nhánh**: Chi nhánh làm việc của Lễ tân (`Quận 1`, `Bình Thạnh`...).
-   - **Trạng thái**:
-     + Badge `Thành công` (màu xanh lá): Tiền đã vào tài khoản/két tiền, gói tập đã kích hoạt.
-     + Badge `Chờ thanh toán` (màu vàng/cam): Đang chờ khách quét mã VietQR hoặc đang chờ ngân hàng xác nhận.
-     + Badge `Hết hạn` (màu xám): Quá thời hạn quét QR (sau 15 phút) mà không nhận được tiền.
-   - **Thao tác**:
-     + Với giao dịch `Thành công`: Nút **[👁]** (Xem/in phiếu thu tài chính 100%).
-     + Với giao dịch `Chờ thanh toán`: Nút **[ ⟳ ]** (Kiểm tra lại trạng thái tức thì qua API ngân hàng) và nút **[ ✓ ]** (Xác nhận đã nhận tiền thủ công khi đã đối chiếu bill của khách).
-3. Lễ tân có thể sử dụng nút thao tác trên Header:
-   - Nút **[ + Ghi nhận thanh toán ]**: Mở modal Ghi nhận thanh toán 100% bằng Tiền mặt hoặc Quét mã QR chuyển khoản (`LT-W08-US02`).
-4. Lễ tân có thể sử dụng ô tìm kiếm và các bộ lọc:
-   - Ô tìm kiếm: Tìm theo Mã phiếu, Mã đăng ký, Tên hội viên hoặc SĐT.
-   - **Bộ lọc thời gian thanh toán**: Mặc định điền sẵn **Hôm nay (`TODAY`)**; hỗ trợ chọn một ngày cụ thể hoặc khoảng ngày (*Từ ngày — Đến ngày*).
-   - Bộ lọc Phương thức: `Tất cả`, `Tiền mặt`, `Chuyển khoản`.
-   - **Bộ lọc Trạng thái**: `Tất cả`, `Thành công`, `Chờ thanh toán`, `Hết hạn`.
-5. Khi thay đổi bộ lọc, SYS truy vấn và làm mới danh sách payment chi nhánh cùng các thẻ KPI tương ứng.
-6. Với các giao dịch `Chờ thanh toán`:
-   - Nếu bấm **[ ⟳ ]**: SYS gửi lệnh API Query Transaction Status sang ngân hàng. Nếu ngân hàng báo tiền đã vào, SYS tự động chuyển sang `Thành công` và kích hoạt gói ngay.
-   - Nếu bấm **[ ✓ ]**: SYS mở popup xác nhận đối chiếu bill thực tế. Lễ tân xác nhận $\rightarrow$ SYS chuyển trạng thái sang `Thành công` và lưu vết audit.
-
-### Field-level specification — Bảng Danh sách Payment (Datagridview)
+### Field-level specification — Danh sách payment
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Nút Ghi nhận thanh toán `[ + Ghi nhận thanh toán ]` | `Button (Primary Green)` | `USER-INPUT` | optional | Không | Nút màu xanh lá trên Header; click mở modal Ghi nhận thanh toán 100% (`LT-W08-US02`) |
+| Nút Ghi nhận thanh toán `[ + Ghi nhận thanh toán ]` | `Button (Primary Green)` | `USER-INPUT` | optional | Không | Nút tác vụ của màn hình; click mở modal Ghi nhận thanh toán 100% (`LT-W08-US02`) |
 | Bộ lọc thời gian thanh toán | `Date / Date Range Picker` | `USER-INPUT (PREFILL)` | required | `TRIGGER` | Mặc định điền sẵn **Hôm nay (`TODAY`)**; cho phép chọn 1 ngày hoặc khoảng ngày (*Từ ngày — Đến ngày*). Khi thay đổi, hệ thống tự động lọc lại bảng payment và đồng bộ tính lại các thẻ KPI chi nhánh |
 | Ô tìm kiếm giao dịch | `Text Input (Search)` | `USER-INPUT` | optional | Không | Tìm theo Mã phiếu, Mã đăng ký, Tên hội viên hoặc SĐT |
 | Bộ lọc Phương thức | `Select Dropdown` | `USER-INPUT` | optional | Không | Mặc định `Tất cả`; tùy chọn: `Tất cả`, `Tiền mặt`, `Chuyển khoản` |
-| Bộ lọc Trạng thái | `Select Dropdown` | `USER-INPUT` | optional | Không | Mặc định `Tất cả`; tùy chọn: `Tất cả`, `Thành công`, `Chờ thanh toán`, `Hết hạn` |
 | Cột Mã phiếu | `Readonly Text` | `READONLY` | required | Không | Mã định danh duy nhất của giao dịch / phiếu thu (ví dụ: `PT00123`) |
 | Cột Thời gian | `Readonly Text` | `READONLY` | required | Không | Thời điểm phát sinh giao dịch (`HH:mm` hoặc `DD/MM/YYYY`) |
 | Cột Hội viên | `Readonly Text (Two-line Cell)` | `READONLY` | required | Không | Hiển thị 2 dòng: Dòng 1 Họ tên hội viên (`MEMBER_PROFILE.full_name`, chữ đậm), Dòng 2 `Mã HV · SĐT` (`MEMBER_PROFILE.member_code · MEMBER_PROFILE.phone`, chữ xám nhỏ) tránh trùng tên |
 | Cột Đăng ký | `Readonly Text` | `READONLY` | required | Không | Mã đơn đăng ký gói liên kết (`DK001`, `DK004`...) kèm Tên gói tập |
-| Cột Phương thức | `Status Badge / Text` | `READONLY` | required | `DYNAMIC` | Hình thức thanh toán: `Tiền mặt` hoặc `Chuyển khoản` |
+| Cột Phương thức | `Status Badge / Text` | `READONLY` | required | Không | Hình thức thanh toán: `Tiền mặt` hoặc `Chuyển khoản` |
 | Cột Số tiền | `Readonly Text (Green)` | `READONLY` | required | Không | Số tiền thanh toán 100% (chữ xanh lá nổi bật, định dạng VND: `1.350.000 đ`) |
-| Cột Người thu | `Readonly Text` | `READONLY` | required | `DYNAMIC` | Họ tên Lễ tân đã ghi nhận giao dịch tại quầy (hoặc `Hệ thống` nếu qua QR) |
+| Cột Người thu | `Readonly Text` | `READONLY` | required | Không | Họ tên Lễ tân đã ghi nhận giao dịch tại quầy (hoặc `Hệ thống` nếu qua QR) |
 | Cột Chi nhánh | `Readonly Text` | `READONLY` | required | Không | Chi nhánh làm việc của Lễ tân (`Quận 1`, `Bình Thạnh`...) |
-| Cột Trạng thái | `Status Badge` | `READONLY` | required | `DYNAMIC` | Badge trạng thái: `Thành công` (xanh lá), `Chờ thanh toán` (vàng/cam), `Hết hạn` (xám) |
-| Nút Xem phiếu thu `[ 👁 ]` | `Icon Button` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** Trạng thái là `Thành công`; **Ẩn khi** Trạng thái khác. Click mở xem/in phiếu thu tài chính 100% cho hội viên |
-| Nút Kiểm tra lại `[ ⟳ ]` | `Icon Button` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** Trạng thái là `Chờ thanh toán`; **Ẩn khi** Trạng thái khác. Click gửi request API kiểm tra trạng thái thanh toán tức thời từ ngân hàng |
-| Nút Xác nhận thủ công `[ ✓ ]` | `Icon Button` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** Trạng thái là `Chờ thanh toán`; **Ẩn khi** Trạng thái khác. Click xác nhận thủ công sau khi đã đối chiếu bill chuyển khoản thực tế của khách |
+| Cột Thao tác (Nút Xuất phiếu thu) | Button (Outlined Green) | USER-INPUT | required | Không | Mỗi dòng payment có đúng một nút Xuất phiếu thu `[ 📄 Xuất phiếu thu ]`; click mở popup xem và xuất/in phiếu thu tương ứng |
 
-- **Business rules / logic:**
-  - Bản ghi Payment ở trạng thái `Thành công` là chứng từ bất biến, không sửa đè hay xóa.
-  - Lễ tân chỉ thao tác và theo dõi các giao dịch thuộc chi nhánh làm việc (`branch scope`).
-  - Giao dịch chuyển khoản VietQR khi mới sinh sẽ ở trạng thái `Chờ thanh toán`. Khi nhận Webhook thành công hoặc khi bấm nút Kiểm tra lại `[ ⟳ ]` thành công hoặc bấm Xác nhận thủ công `[ ✓ ]` $\rightarrow$ chuyển trạng thái sang `Thành công` và tự động kích hoạt gói tập (`Registration` sang `ACTIVE`/`SCHEDULED`).
-  - Quá 15 phút không nhận được tiền, giao dịch `Chờ thanh toán` tự động chuyển sang `Hết hạn`.
+### Thao tác bộ lọc trên màn hình
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| --- | --- | --- | --- | --- | --- |
+| Toàn thời gian | Action Button | USER-INPUT | optional | Không | Xóa giới hạn ngày, tải lại danh sách và hai KPI trong scope. |
+| Hôm nay | Action Button | USER-INPUT | optional | Không | Đặt Từ ngày và Đến ngày về ngày hiện tại, tải lại cùng bộ lọc. |
+| Làm mới | Icon Button | USER-INPUT | optional | Không | Nạp lại dữ liệu API theo bộ lọc hiện tại; không tạo payment. |
+
+## Business Rules
+- Mỗi payment là giao dịch đã thu đủ 100% sau giảm giá; sổ thu bất biến và không có trường payment.status. Không có cột/bộ lọc trạng thái thanh toán hoặc KPI đơn chờ ở W08.
+- Yêu cầu QR chờ/hết hạn thuộc payment_intents, không nằm trong sổ payments; tiếp tục thanh toán và đối soát qua đăng ký W04/modal W08-US02.
+- Giữ bộ lọc trạng thái và quyền hủy đăng ký còn chờ tại W04; chưa thanh toán không phải công nợ.
+
+## Alternate Flows
+- Không có payment theo bộ lọc: bảng rỗng, hai KPI bằng 0.
+- Đổi bộ lọc hoặc làm mới: nạp lại cùng scope; xem phiếu thu chỉ đọc.
 
 ## Exception Flows
-- Không tìm thấy giao dịch thỏa mãn điều kiện lọc: SYS hiển thị thông báo danh sách trống.
-- Kiểm tra qua API ngân hàng thất bại hoặc ngân hàng phản hồi chưa có tiền: SYS hiển thị thông báo "Chưa ghi nhận tiền vào tài khoản ngân hàng. Vui lòng thử lại hoặc đối chiếu bill chuyển khoản".
+- Mất quyền, lỗi tải hoặc không tải được phiếu thu: báo lỗi, cho thử lại; không tự tạo dữ liệu và không báo đã thu tiền.
 
 ## Activity Diagram — Swimlane
-**Trigger:** Lễ tân mở menu W08 Thu tiền & thanh toán để theo dõi giao dịch và xử lý các giao dịch chờ thanh toán chi nhánh.
 
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — Web Lễ tân W08 / Danh sách payment"]
-    subgraph L0["Swimlane — Lễ tân"]
-      I01(("Initial"))
-      A01["Mở menu W08 Thu tiền & thanh toán"]
-      A02["Xem danh sách giao dịch chi nhánh"]
-      A03{"Chọn hành động"}
-      A04["Thay đổi bộ lọc thời gian / trạng thái hoặc tìm kiếm"]
-      A05["Bấm [👁] để xem/in phiếu thu"]
-      A06["Bấm [⟳] để chủ động kiểm tra API ngân hàng"]
-      A07["Bấm [✓] để xác nhận thủ công sau khi đối chiếu bill"]
-      F01((("Final — Hoàn tất xem/xử lý giao dịch chi nhánh")))
-
-      I01 --> A01
-      A02 --> A03
-      A03 -->|Lọc hoặc tìm kiếm| A04
-      A03 -->|Giao dịch Thành công: Xem phiếu| A05 --> F01
-      A03 -->|Chờ thanh toán: Check tự động| A06
-      A03 -->|Chờ thanh toán: Duyệt thủ công| A07
+  subgraph B["Boundary - Web Lễ tân / W08 Sổ thu"]
+    subgraph L0["Swimlane - Lễ tân"]
+      I(("Initial"))
+      A["Mở W08 hoặc đổi bộ lọc thời gian, phương thức, từ khóa"]
+      D2{"Thao tác tiếp?"}
+      AF["Đổi bộ lọc hoặc thử lại"]
+      AR["Chọn xem/in phiếu thu"]
+      AN["Chọn Ghi nhận thanh toán"]
     end
-    subgraph L1["Swimlane — SYS"]
-      S01["Tải danh sách Payment chi nhánh và 3 thẻ KPI theo mốc hôm nay"]
-      S02["Lọc và làm mới hiển thị bảng Datagridview cùng các thẻ KPI"]
-      S03["Gửi API Query Transaction Status sang cổng ngân hàng"]
-      S04{"Ngân hàng phản hồi"}
-      S05["Cập nhật trạng thái sang Thành công & Kích hoạt gói"]
-      S06["Thông báo chưa có tiền vào tài khoản"]
-      S07["Ghi nhận xác nhận thủ công (lưu audit log) & Cập nhật Thành công, Kích hoạt gói"]
-
-      A01 --> S01 --> A02
-      A04 --> S02 --> A02
-      A06 --> S03 --> S04
-      S04 -->|Đã có tiền| S05 --> F01
-      S04 -->|Chưa có tiền| S06 --> A02
-      A07 --> S07 --> F01
+    subgraph L1["Swimlane - SYS"]
+      M(("Merge - Nạp sổ thu"))
+      S["Truy vấn payments trong scope và hai KPI"]
+      D{"Kết quả tải?"}
+      V["Hiển thị 9 cột và hai KPI, hoặc danh sách rỗng và số 0"]
+      E["Hiển thị lỗi tải"]
+      MV(("Merge - Chờ thao tác"))
+      R["Mở chứng từ đúng payment và quyền truy cập"]
+      DR{"Tải được phiếu thu?"}
+      RV["Hiển thị phiếu thu chỉ đọc"]
+      RE["Báo lỗi tải phiếu thu"]
+      FR((("Final - Đã xem phiếu")))
+      FER((("Final - Chưa tải được phiếu")))
+      N["Mở W08-US02"]
+      FN((("Final - Sang ghi nhận thanh toán")))
+      F((("Final - Kết thúc xem")))
     end
+    I --> A
+    A --> M
+    AF --> M
+    M --> S
+    S --> D
+    D -->|Thành công kể cả rỗng| V
+    D -->|Lỗi hoặc mất quyền| E
+    V --> MV
+    E --> MV
+    MV --> D2
+    D2 -->|Lọc hoặc thử lại| AF
+    D2 -->|Có payment và quyền xem| AR
+    AR --> R
+    R --> DR
+    DR -->|Có| RV
+    RV --> FR
+    DR -->|Không| RE
+    RE --> FER
+    D2 -->|Ghi nhận| AN
+    AN --> N
+    N --> FN
+    D2 -->|Xong| F
   end
 ```

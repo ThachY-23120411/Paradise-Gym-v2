@@ -48,9 +48,11 @@ async function recordSession(accountId, req, db = pool) {
        RETURNING id, account_id, device_name, user_agent, ip_address, last_active_at, is_revoked, expires_at, created_at`,
       [accountId, deviceName, userAgent || null, ipAddress || null]
     );
-    return rows[0] || null;
+    if (!rows[0]) fail(503,'Không thể tạo phiên đăng nhập. Vui lòng thử lại.','SESSION_UNAVAILABLE');
+    return rows[0];
   } catch (err) {
-    return null;
+    if (err.status) throw err;
+    fail(503,'Không thể tạo phiên đăng nhập. Vui lòng thử lại.','SESSION_UNAVAILABLE');
   }
 }
 
@@ -68,13 +70,14 @@ async function authenticate(req,res,next) {
     if(token.session_id) {
       try {
         const { rows } = await pool.query('SELECT is_revoked, expires_at FROM account_sessions WHERE id=$1 AND account_id=$2', [token.session_id, token.account_id]);
-        if (rows[0] && (rows[0].is_revoked || (rows[0].expires_at && new Date(rows[0].expires_at) <= new Date()))) {
+        if (!rows[0] || rows[0].is_revoked || !rows[0].expires_at || !(new Date(rows[0].expires_at) > new Date())) {
           fail(401,'Session revoked','SESSION_REVOKED');
         }
         req.user.session_id = token.session_id;
         pool.query('UPDATE account_sessions SET last_active_at=NOW() WHERE id=$1', [token.session_id]).catch(() => {});
       } catch (e) {
         if (e.status) throw e;
+        fail(503,'Không thể xác minh phiên đăng nhập. Vui lòng thử lại.','SESSION_UNAVAILABLE');
       }
     }
     next();
@@ -202,12 +205,15 @@ router.post('/refresh-token',route(async req=>{
   if(token.session_id){
     try {
       const { rows } = await pool.query('SELECT is_revoked, expires_at FROM account_sessions WHERE id=$1 AND account_id=$2', [token.session_id, token.account_id]);
-      if (rows[0] && (rows[0].is_revoked || (rows[0].expires_at && new Date(rows[0].expires_at) <= new Date()))) {
+      if (!rows[0] || rows[0].is_revoked || !rows[0].expires_at || !(new Date(rows[0].expires_at) > new Date())) {
         fail(401,'Session revoked','SESSION_REVOKED');
       }
       session={id:token.session_id};
       pool.query('UPDATE account_sessions SET last_active_at=NOW() WHERE id=$1',[token.session_id]).catch(()=>{});
-    } catch(e) { if(e.status) throw e; }
+    } catch(e) {
+      if(e.status) throw e;
+      fail(503,'Không thể xác minh phiên đăng nhập. Vui lòng thử lại.','SESSION_UNAVAILABLE');
+    }
   }
   return tokens(user,session);
 }));
@@ -221,7 +227,7 @@ router.post('/activation-lookup',route(async req=>{
     'SELECT p.full_name,p.pt_code profile_code,b.branch_name FROM pt_profiles p JOIN branches b ON b.id=p.branch_id WHERE p.account_id=$1':
     'SELECT m.full_name,m.member_code profile_code,b.branch_name FROM member_profiles m JOIN branches b ON b.id=m.home_branch_id WHERE m.account_id=$1',[a.id])).rows[0];
   if(!result)fail(404,'Không tìm thấy hồ sơ chờ kích hoạt.','PROFILE_NOT_FOUND');
-  return {can_activate:true,status:a.status,masked_name:result.full_name.split(/\s+/u).map(word=>word[0]+'***').join(' '),masked_code:result.profile_code.slice(0,2)+'***'+result.profile_code.slice(-1),masked_phone:a.login_phone.slice(0,3)+'****'+a.login_phone.slice(-3)};
+  return {can_activate:true,status:a.status,masked_name:result.full_name.split(/\s+/u).map(word=>word[0]+'***').join(' '),masked_code:result.profile_code.slice(0,2)+'***'+result.profile_code.slice(-1),masked_phone:a.login_phone.slice(0,3)+'****'+a.login_phone.slice(-3),...(activeRole==='PT'?{branch_name:result.branch_name}:{})};
 }));
 router.post('/signup-otp',route(async req=>{
   only(req.body,['login_phone','full_name','home_branch_id','email','password']);
@@ -358,10 +364,11 @@ router.post('/change-password',authenticate,route(async req=>{
     if(typeof req.body.current_password!=='string'||Buffer.byteLength(req.body.current_password)>72||!a.password_hash||!await bcrypt.compare(req.body.current_password,a.password_hash))return false;
     await db.query('UPDATE accounts SET password_hash=$2,session_version=session_version+1,otp_hash=NULL,otp_purpose=NULL,otp_expires_at=NULL,failed_login_attempts=0,locked_until=NULL,updated_at=NOW() WHERE id=$1',[a.id,await bcrypt.hash(req.body.new_password,12)]);
     await audit(db,req,'accounts',a.id,'PASSWORD_CHANGED',null,{sessions_revoked:true},req.user.branch_ids[0]);
-    return true;
+    await db.query('UPDATE account_sessions SET is_revoked=TRUE WHERE account_id=$1',[a.id]);
+    return recordSession(a.id,req,db);
   });
   if(!changed){await failed(req.user.account_id);fail(400,'Mật khẩu hiện tại không đúng.','PASSWORD_MISMATCH');}
-  return tokens(await context(req.user.account_id,req.user.active_role));
+  return tokens(await context(req.user.account_id,req.user.active_role),changed);
 }));
 async function uniquePhone(db,value,accountId){
   const exists=await db.query(`SELECT 1 FROM accounts WHERE login_phone=$1 AND id<>$2

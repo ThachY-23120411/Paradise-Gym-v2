@@ -30,7 +30,7 @@
    - Chọn phương thức: `Chuyển khoản (VietQR)` hoặc `Tiền mặt`.
    - Nếu chọn `Chuyển khoản`: Điền ngân hàng, số tài khoản, tên chủ thẻ và tự động hiển thị mã QR VietQR chuẩn ngân hàng để quét thanh toán nhanh.
    - Nhập mã giao dịch ngân hàng / Số phiếu chi và ghi chú chi trả.
-9. QTV bấm **[Xác nhận hoàn tất chi trả]**: SYS cập nhật trạng thái sang `PAID`, lưu `paid_at`, `payout_method`, `payout_ref`, `payout_note`, `paid_by_account_id`, cập nhật thông tin ngân hàng vào hồ sơ HLV và tự động gửi thông báo in-app `COMMISSION_PAID` tới tài khoản PT.
+9. QTV bấm **[Xác nhận hoàn tất chi trả]**: SYS chốt snapshot từng buổi cùng tổng trong một transaction nguyên tử, rồi cập nhật trạng thái sang `PAID`, lưu `paid_at`, `payout_method`, `payout_ref`, `payout_note`, `paid_by_account_id`, cập nhật thông tin ngân hàng vào hồ sơ HLV và tự động gửi thông báo in-app `COMMISSION_PAID` tới tài khoản PT.
 
 ---
 
@@ -46,7 +46,7 @@
 | Thẻ KPI Tiến độ chi trả | `Metric Card (W().metrics)` | `READONLY` | required | `DYNAMIC` | Tỷ lệ và số tiền hoa hồng đã chi trả (`PAID`) so với tổng hoa hồng tháng |
 | Bảng kê hoa hồng tháng | `DataGrid (dxDataGrid)` | `READONLY` | required | `DYNAMIC` | Danh sách hiển thị: Huấn luyện viên (Họ tên, Mã, SĐT), Chi nhánh, Buổi đã dạy, Doanh số quy đổi, Tỷ lệ hoa hồng (%), Tiền hoa hồng, Trạng thái (`Chờ chi trả`, `Đã chi trả`). Hỗ trợ click chọn dòng để filter KPI dynamic (click lần 2 để bỏ chọn) |
 | Nút [Chi tiết] | `Grid Action Button` | `USER-INPUT` | optional | `Không` | Mở popup xem danh sách chi tiết từng buổi tập cấu thành nên hoa hồng của HLV và khối chứng từ chi trả (nếu đã PAID) |
-| Nút [Chi trả] | `Button (Success)` | `USER-INPUT` | optional | `CONDITIONAL`: Hiện khi trạng thái = `PENDING` và `total_commission_amount > 0`, Ẩn khi đã chi trả (`PAID`) hoặc tiền hoa hồng = 0đ | Mở Modal Xác Nhận Chi Trả Hoa Hồng trực tiếp |
+| Nút [Chi trả] | `Button (Success)` | `USER-INPUT` | conditional | `CONDITIONAL`: Hiện khi trạng thái = `PENDING` và `total_commission_amount > 0`, Ẩn khi đã chi trả (`PAID`) hoặc tiền hoa hồng = 0đ | Mở Modal Xác Nhận Chi Trả Hoa Hồng trực tiếp |
 | Nút [Xuất bảng kê / Excel] | `Button (Outline)` | `USER-INPUT` | optional | `Không` | Xuất file Excel bảng kê hoa hồng tháng cho toàn bộ chi nhánh |
 
 ---
@@ -62,7 +62,7 @@
 | Tên ngân hàng thụ hưởng | `Select / Text Input` | `USER-INPUT (PREFILL)` | conditional | `CONDITIONAL`: Hiện khi Phương thức = `BANK_TRANSFER`, Ẩn khi Phương thức = `CASH`. Bắt buộc khi hiện | Tên ngân hàng (MB Bank, Vietcombank, Techcombank,...). Prefill từ hồ sơ HLV |
 | Số tài khoản ngân hàng | `Text Input` | `USER-INPUT (PREFILL)` | conditional | `CONDITIONAL`: Hiện khi Phương thức = `BANK_TRANSFER`, Ẩn khi Phương thức = `CASH`. Bắt buộc khi hiện | Số tài khoản ngân hàng nhận tiền. Prefill từ hồ sơ HLV |
 | Tên chủ tài khoản | `Text Input` | `USER-INPUT (PREFILL)` | conditional | `CONDITIONAL`: Hiện khi Phương thức = `BANK_TRANSFER`, Ẩn khi Phương thức = `CASH`. Bắt buộc khi hiện | Tên chủ tài khoản viết hoa không dấu |
-| Mã VietQR động | `Image QR Code` | `READONLY` | optional | `CONDITIONAL`: Hiện khi Phương thức = `BANK_TRANSFER`, Ẩn khi Phương thức = `CASH` | Ảnh mã VietQR sinh động theo chuẩn Napas247 chứa đúng số tiền, số tài khoản và nội dung chuyển khoản để quét thanh toán tức thì |
+| Mã VietQR động | `Image QR Code` | `READONLY` | conditional | `CONDITIONAL`: Hiện khi Phương thức = `BANK_TRANSFER`, Ẩn khi Phương thức = `CASH` | Ảnh mã VietQR sinh động theo chuẩn Napas247 chứa đúng số tiền, số tài khoản và nội dung chuyển khoản để quét thanh toán tức thì |
 | Mã giao dịch / Phiếu chi | `Text Input` | `USER-INPUT` | optional | `Không` | Mã tham chiếu FT ngân hàng hoặc số phiếu chi tiền mặt kế toán |
 | Ngày thực hiện chi trả | `Date Picker` | `READONLY (PREFILL)` | required | `Không` | Mặc định ngày hôm nay (`DD/MM/YYYY`) |
 | Ghi chú chi trả | `Text Area` | `USER-INPUT` | optional | `Không` | Ghi chú nội dung chuyển khoản hoặc lưu ý đối soát |
@@ -75,6 +75,19 @@
   - Khi bảng kê ở trạng thái `PAID`, không cho phép tự động tính toán đè dữ liệu để bảo toàn tính toàn vẹn chứng từ kế toán.
   - Sau khi chi trả thành công, hệ thống tự động sinh thông báo in-app `COMMISSION_PAID` tới tài khoản PT.
 
+### Đồng bộ snapshot PAID đã phê duyệt (20/09/2026)
+- Chi trả mới lưu tổng, chứng từ và snapshot chi tiết từng buổi nguyên tử trong cùng transaction. Lỗi lưu snapshot phải rollback toàn bộ; không có PAID mới chỉ chứa tổng.
+- PAID có snapshot: xem/xuất chi tiết từ snapshot bất biến, không tính lại từ booking, hồ sơ hoặc tỷ lệ hiện tại; tổng phải khớp toàn bộ chi tiết cùng bảng kê.
+- PAID legacy không snapshot: API details_snapshot_available=false và sessions=[]; vẫn hiển thị tổng/chứng từ lịch sử và thông báo Không có chi tiết lịch sử cho kỳ đã chi trả này. Không coi [] là 0 buổi/0 đồng, không tái dựng từ dữ liệu sống.
+- Giữ nguyên quyền QTV/branch scope. PT06-US02 chỉ đọc chính bảng kê PT; không mở quyền chi trả cho PT. Migration/ERD do backend owner cập nhật.
+
+### Field-level specification — Trạng thái snapshot trong popup Chi tiết
+| Field | UI | State | Required | Conditional / dynamic | Source / validation |
+| --- | --- | --- | --- | --- | --- |
+| Chi tiết từng buổi | Readonly list | READONLY | conditional | CONDITIONAL: hiện khi có snapshot PAID hoặc bảng kê chưa PAID có chi tiết tính hiện hành; ẩn khi PAID legacy thiếu snapshot | Học viên, gói, ngày/giờ, giá trị PT, hoa hồng từ nguồn cùng bảng kê; PAID chỉ dùng snapshot |
+| Thông báo không có chi tiết lịch sử | Text | READONLY | conditional | CONDITIONAL: hiện khi PAID và details_snapshot_available=false; ẩn khi có snapshot hoặc chưa PAID | API flag; không dùng danh sách rỗng để ghi 0 |
+| Tổng và chứng từ đã chi | Text | READONLY | required | Không | Tổng/chứng từ lịch sử, giữ nguyên kể cả thiếu snapshot |
+
 ## Alternate Flows
 
 ### AF-01 - Xuất Bảng Kê Hoa Hồng Ra Excel
@@ -82,9 +95,13 @@
 2. SYS kết xuất dữ liệu bảng kê hiện tại ra file Excel chứa đầy đủ thông tin từng HLV, số buổi, doanh số, tỷ lệ % và hoa hồng.
 3. Trình duyệt tự động tải file về máy người dùng.
 
+- AF-02: PAID legacy thiếu snapshot → hiển thị tổng/chứng từ cùng thông báo thiếu chi tiết; không mất giao dịch khỏi lịch sử.
+
 ## Exception Flows
 - **Chưa có cấu hình hoa hồng:** HLV chưa được cấu hình tỷ lệ hoa hồng riêng và chi nhánh cũng chưa có cấu hình mặc định. SYS hiển thị cảnh báo: *"Chưa có cấu hình tỷ lệ hoa hồng cho HLV [Tên HLV]. Tỷ lệ tạm tính là 0%"* và cung cấp đường dẫn nhanh đến tab Cấu hình.
 - **Hoa hồng bằng 0đ:** Nếu HLV không dạy buổi nào trong tháng hoặc tổng hoa hồng bằng 0đ, hệ thống ẩn nút **[Chi trả]** trên bảng kê. Nếu có yêu cầu chi trả bất thường gửi lên API, backend từ chối với mã lỗi `400 CANNOT_PAY_ZERO_COMMISSION`.
+
+- Lỗi lưu snapshot/chứng từ: rollback transaction, không chuyển PAID hoặc báo chi trả hoàn tất; yêu cầu lặp không được chi trùng.
 
 ## Activity Diagram — Swimlane
 **Trigger:** QTV mở tab Bảng tính hoa hồng hàng tháng trên Web QTV W15.
@@ -115,10 +132,18 @@ flowchart TB
       S03["Hiển thị bộ 4 thẻ KPI tổng quan và danh sách bảng kê"]
       M00(("Merge"))
       S04["Cập nhật dynamic bộ 4 thẻ KPI theo số liệu HLV hoặc toàn chi nhánh"]
-      S05["Hiển thị popup chi tiết từng buổi tập và khối chứng từ chi trả"]
+      S05["Tải chi tiết và chứng từ cùng bảng kê"]
+      DS{"PAID thiếu snapshot?"}
+      LS["Hiển thị tổng và báo thiếu chi tiết lịch sử"]
+      SS["Hiển thị snapshot PAID hoặc chi tiết hiện hành chưa PAID"]
+      MS(("Merge - Chi tiết"))
       M01(("Merge"))
       S07["Mở Modal Xác Nhận Chi Trả Hoa Hồng kèm mã VietQR tự động"]
-      S06["Cập nhật trạng thái PAID, lưu chứng từ, update ngân hàng PT và gửi thông báo"]
+      S06["Transaction lưu tổng, snapshot bất biến, chứng từ và trạng thái PAID"]
+      DP{"Transaction thành công?"}
+      EP["Rollback toàn bộ, báo lỗi chi trả"]
+      FP((("Final - Chưa chi trả")))
+      NP["Phát thông báo COMMISSION_PAID sau thành công"]
 
       A01 --> S01
       S01 --> S02
@@ -128,11 +153,20 @@ flowchart TB
       A02 --> S04
       S04 --> M01
       A03 --> S05
-      S05 --> M01
+      S05 --> DS
+      DS -->|Có| LS
+      DS -->|Không| SS
+      LS --> MS
+      SS --> MS
+      MS --> M01
       M01 --> M00
       A04 --> S07
       S07 --> A05
-      S06 --> F01
+      S06 --> DP
+      DP -->|Có| NP
+      NP --> F01
+      DP -->|Không| EP
+      EP --> FP
     end
   end
 ```

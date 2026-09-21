@@ -8,6 +8,9 @@
 - Hội viên tới phòng Gym và đưa khuôn mặt trước camera nhận diện, hoặc đưa mã QR trên app Mobile Hội viên trước máy quét QR tại cổng.
 - Màn hình liên quan: Màn hình Kiosk chào mừng K01 và nhật ký thời gian thực trên Web Lễ tân — W07 Ra / Vào.
 
+## Quy tắc sắp hết hạn
+- Gói đã thanh toán, đang có hiệu lực và chưa hết hạn: theo thời gian còn <= 4 ngày, theo buổi còn <= 3 buổi; Combo dùng OR giữa các quyền lợi áp dụng. Nguồn hiển thị là is_expiring và display_status do SYS/API tính; status nội bộ ACTIVE vẫn dùng cho kiểm tra quyền tập. Không tạo enum/field DB mới và không tự tính ngưỡng riêng trên UI.
+
 ## Main Flow
 
 1. Hội viên tới phòng Gym và thực hiện check-in qua 1 trong 2 thiết bị tự động:
@@ -28,7 +31,7 @@
    - SYS gửi tín hiệu mở cổng / cửa cho hội viên vào tập.
    - SYS truyền dữ liệu hiển thị lên màn hình **Kiosk chào mừng K01**:
      * Hiển thị Avatar, Họ tên, Mã hội viên, Tên gói tập Gym đang dùng.
-     * **Cảnh báo sắp hết hạn**: Nếu gói Gym còn thời hạn $\le 4$ ngày, Kiosk hiển thị thông báo nhắc nhở màu cam: *"Gói tập của bạn sẽ hết hạn trong X ngày nữa. Vui lòng liên hệ Lễ tân để gia hạn kịp thời!"* để Lễ tân mời chào gia hạn ngay tại quầy.
+     * **Cảnh báo sắp hết hạn**: Nếu gói Gym có is_expiring = true (<= 4 ngày hoặc <= 3 buổi), Kiosk hiển thị thông báo nhắc nhở màu cam: *"Gói tập của bạn sẽ hết hạn trong X ngày nữa. Vui lòng liên hệ Lễ tân để gia hạn kịp thời!"* để Lễ tân mời chào gia hạn ngay tại quầy.
      * **Chúc mừng sinh nhật**: Nếu ngày check-in trùng với ngày sinh của hội viên (theo ngày/tháng sinh trong hồ sơ), Kiosk hiển thị banner rực rỡ với lời chúc: *"Chúc mừng sinh nhật [Họ tên]! Paradise Gym chúc bạn tuổi mới ngập tràn năng lượng và sức khỏe!"*.
 5. Nếu **KHÔNG ĐỦ ĐIỀU KIỆN**:
    - SYS từ chối mở cửa.
@@ -37,7 +40,9 @@
 
 - **Business rules / logic:**
   - Hỗ trợ 3 phương thức check-in: Quét khuôn mặt, Quét mã QR trên app Mobile, và Lễ tân ghi nhận thủ công tại quầy (`LT-W07-US02`).
-  - Màn hình Kiosk K01 đóng vai trò hỗ trợ Lễ tân nhận diện hội viên, phát hiện ngay hội viên sắp hết hạn ($\le 4$ ngày) và hội viên có sinh nhật hôm nay để chủ động tương tác.
+  - Màn hình Kiosk K01 đóng vai trò hỗ trợ Lễ tân nhận diện hội viên, phát hiện ngay hội viên sắp hết hạn (<= 4 ngày hoặc <= 3 buổi) và hội viên có sinh nhật hôm nay để chủ động tương tác.
+
+- Cảnh báo K01 chọn nội dung theo nguyên nhân do SYS trả: còn X ngày hoặc còn Y buổi; Combo có thể hiển thị cả hai. Không hiển thị giá hay dữ liệu thanh toán; cảnh báo không tự từ chối check-in khi quyền tập còn hợp lệ.
 
 ## Exception Flows
 - **Thiết bị mất kết nối / không nhận diện được:** Chuyển sang luồng xử lý thủ công tại quầy Lễ tân ở `LT-W07-US02`.
@@ -51,7 +56,7 @@ flowchart TB
     subgraph L0["Swimlane — Thiết bị Camera / QR / Kiosk K01"]
       I01(("Initial"))
       A01["Quét khuôn mặt hoặc quét mã QR của hội viên tại cổng"]
-      A02["Hiển thị màn hình chào mừng Kiosk K01 (Avatar, Tên gói, Banner sinh nhật / Nhắc hết hạn <= 4 ngày) & mở cổng"]
+      A02["Hiển thị màn hình chào mừng Kiosk K01 (Avatar, Tên gói, Banner sinh nhật / Nhắc hết hạn <= 4 ngày hoặc <= 3 buổi) & mở cổng"]
       A03["Hiển thị màn hình từ chối trên Kiosk K01 kèm lý do"]
       F01((("Final — Check-in thành công")))
       F02((("Final — Từ chối vào tập")))

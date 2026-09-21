@@ -38,7 +38,7 @@ async function main(){
   for (const file of migrationFiles) await db.query(fs.readFileSync(path.join(__dirname, '../src/db/migrations', file), 'utf8'));
   for(const r of ['QTV','RECEPTIONIST','PT','MEMBER'])await db.query('INSERT INTO roles(role_code,role_name) VALUES($1,$1)',[r]);
   const b1=randomUUID(),b2=randomUUID();
-  for(const [id,name] of [[b1,'Branch A'],[b2,'Branch B']])await db.query("INSERT INTO branches(id,branch_code,branch_name,phone,address,open_time,close_time) VALUES($1,$2,$2,'0909999999','Test address','00:00','23:59')",[id,name]);
+  for(const [id,name] of [[b1,'Branch A'],[b2,'Branch B']])await db.query("INSERT INTO branches(id,branch_code,branch_name,phone,address,open_time,close_time) VALUES($1,$2,$2,'0909999999','Test address','00:00','23:59:59')",[id,name]);
   const qtv=await account('QTV',b1,'0909000001',true),lt=await account('RECEPTIONIST',b1,'0909000002'),outside=await account('RECEPTIONIST',b2,'0909000003'),otpAccount=await account('QTV',b1,'0909000004',false,true);
   const app=require('../src/server');pool=require('../src/db/postgres').pool;
   server=await new Promise(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});base=`http://127.0.0.1:${server.address().port}/api/v1`;
@@ -86,7 +86,7 @@ async function main(){
   await request(`/payments/${bank.payment.id}/confirm`,{token:L,method:'POST',body:{manual_confirmation:true},status:403});
   await request(`/payments/${bank.payment.id}/check-bank-status`,{token:O,method:'POST',body:{},status:503});
   await request(`/payments/${bank.payment.id}/confirm`,{token:O,method:'POST',body:{},status:400});
-  const settled=await request(`/payments/${bank.payment.id}/confirm`,{token:O,method:'POST',body:{manual_confirmation:true}});assert.equal(settled.payment.transaction_ref,null);
+  const settled=await request(`/payments/${bank.payment.id}/confirm`,{token:O,method:'POST',body:{manual_confirmation:true,transaction_ref:'TEST-CROSS-TRANSFER'}});assert.equal(settled.payment.transaction_ref,'TEST-CROSS-TRANSFER');
   console.log('PASS scoped members/packages/registrations, price snapshots, full payments and one receipt');
 
   const crossLookup=await request('/access-gate/members?q=Cross',{token:L,branch:b1});assert.equal(crossLookup[0].id,other.id);assert(!('email' in crossLookup[0]));
@@ -128,7 +128,7 @@ async function main(){
   await db.query('UPDATE registrations SET start_date=$2 WHERE id=$1',[registration.id,day()]);
   await db.query("UPDATE branches SET open_time='08:00',close_time='18:00' WHERE id=$1",[b1]);
   assert.equal((await request('/access-gate/manual-checkin',{token:L,method:'POST',body:{...ownEntry,event_time:`${shift(day(),-1)}T01:00:00+07:00`}})).denial_code,'OUTSIDE_OPENING_HOURS');
-  await db.query("UPDATE branches SET open_time='00:00',close_time='23:59' WHERE id=$1",[b1]);
+  await db.query("UPDATE branches SET open_time='00:00',close_time='23:59:59' WHERE id=$1",[b1]);
   await request(`/members/${other.id}`,{token:L,status:403});
   console.log('PASS cross-branch minimal gate lookup, duplicate prevention, daily deduction, expired OUT and history');
 
@@ -166,13 +166,18 @@ async function main(){
     await request('/payments',{token:M,method:'POST',body:{registration_id:owned.id,payment_method:method,...forged},status:403});
     assert.deepEqual(await financialSnapshot(owned.id),pendingState);
     await request(`/payments/${intent.payment.id}/receipt`,{token:M,status:404});
-    const staffPaid=await request(`/payments/${intent.payment.id}/confirm`,{token:L,method:'POST',body:method==='CASH'?{}:{manual_confirmation:true}});
-    assert.equal(staffPaid.payment.status,'COMPLETED');assert.equal(staffPaid.registration.status,'ACTIVE');assert.equal(staffPaid.payment.collected_by,lt.id);assert.equal(staffPaid.payment.transaction_ref,null);
+    const staffPaid=await request(`/payments/${intent.payment.id}/confirm`,{token:L,method:'POST',body:method==='CASH'?{}:{manual_confirmation:true,transaction_ref:'TEST-OWN-TRANSFER'}});
+    assert.equal(staffPaid.is_settled,true);assert(!('status' in staffPaid.payment));assert.equal(staffPaid.registration.status,'ACTIVE');assert.equal(staffPaid.payment.collected_by,lt.id);assert.equal(staffPaid.payment.transaction_ref,method==='CASH'?null:'TEST-OWN-TRANSFER');
     const paidState=await financialSnapshot(owned.id);assert.equal(paidState.receipts.length,1);
     await request(`/payments/${intent.payment.id}/confirm`,{token:M,method:'POST',body:forged,status:403});assert.deepEqual(await financialSnapshot(owned.id),paidState);
     const ownReceipt=await request(`/payments/${intent.payment.id}/receipt`,{token:M});assert.equal(ownReceipt.id,staffPaid.receipt.id);
   }
   console.log('PASS owned-member CASH/BANK settlement and direct-payment rejection with SQL no-side-effect assertions; staff collection and member receipt read retained');
+  if(process.env.PAYMENT_LEDGER_ONLY==='true'){
+    await require('./payment-ledger.cases')({request,db,A,L,M,O,m,pkg,b1,b2,day,shift});
+    console.log(`PASS ${checks} HTTP checks against isolated PostgreSQL database; configured DB untouched`);
+    return;
+  }
 
   const foreignTemplate=await request('/notifications/templates',{token:A,branch:b2,method:'POST',body:{template_name:'Branch B private notice',event_code:'FACILITY_NOTICE',title_template:'BRANCH_B_ONLY_SECRET',body_template:'BRANCH_B_ONLY_SECRET {{branch_name}}'}});
   const {emit,schemas}=require('../src/modules/core/notifications');
@@ -211,20 +216,42 @@ async function main(){
   const rules=await request('/notifications/rules',{token:A,branch:b1});assert.equal(rules.find(r=>r.event_code==='FACILITY_NOTICE').is_active,false);
   await noNotification(noticePayload());
   console.log('PASS configured-only notifications: no rule/OFF/inactive template suppress even caller text; active template/roles/modes/branch isolation/dedup and W09 toggles authoritative');
-  const ptpkg=await request('/packages',{token:A,method:'POST',body:{package_name:'PT sessions',package_type:'PT_SESSION',price:1000000,duration_days:60,total_pt_sessions:5,branch_ids:[b1]}});
+  const ptpkg=await request('/packages',{token:A,method:'POST',body:{package_name:'PT sessions',package_type:'PT_SESSION',price:1000000,duration_days:60,total_pt_sessions:5,session_duration_minutes:90,branch_ids:[b1]}});
   await request('/pt-bookings/trainers/check-phone?phone=0909000020',{token:A});
   const ptr=await request('/registrations',{token:L,method:'POST',body:{member_id:m.id,package_id:ptpkg.id,start_date:day(),sold_branch_id:b1}});
   await request('/payments',{token:L,method:'POST',body:{registration_id:ptr.id,payment_method:'CASH'}});
   assert.equal((await request('/access-gate/manual-checkin',{token:L,method:'POST',body:{...ownEntry,registration_id:ptr.id}})).denial_code,'GYM_ENTITLEMENT_REQUIRED');
   await request(`/registrations/${ptr.id}/assign-pt`,{token:L,method:'POST',body:{pt_id:pt.id}});
+  const ptRegistrations=await request(`/registrations?pt_id=${pt.id}`,{token:P});
+  const bookingRegistration=ptRegistrations.find(r=>r.id===ptr.id);
+  assert(bookingRegistration,'Assigned registration must be available to the PT booking form');
+  assert.equal(bookingRegistration.session_duration_minutes_snapshot??bookingRegistration.session_duration_minutes,90);
   let future=shift(day(),1);while([0,6].includes(new Date(future).getUTCDay()))future=shift(future,1);
-  const bookingBody={registration_id:ptr.id,member_id:m.id,pt_id:pt.id,branch_id:b1,booking_date:future,start_time:'08:00',end_time:'10:00'};
+  const originalHours=(await db.query('SELECT open_time,close_time FROM branches WHERE id=$1',[b1])).rows[0];
+  await db.query("UPDATE branches SET open_time='09:15',close_time='16:15' WHERE id=$1",[b1]);
+  const withinHours=await request(`/pt-bookings/available-slots?registration_id=${ptr.id}&date=${future}`,{token:P});
+  assert.equal(withinHours.available_slots[0].start_time,'09:15');
+  assert.equal(withinHours.available_slots.at(-1).end_time,'16:15');
+  for(const start_time of ['09:14','14:46'])await request('/pt-bookings',{token:P,method:'POST',body:{registration_id:ptr.id,booking_date:future,start_time},status:400});
+  await db.query('UPDATE branches SET open_time=$2,close_time=$3 WHERE id=$1',[b1,originalHours.open_time,originalHours.close_time]);
+  for(const start_time of ['07:59','16:31'])await request('/pt-bookings',{token:P,method:'POST',body:{registration_id:ptr.id,booking_date:future,start_time},status:400});
+  const ptHours=await request(`/pt-bookings/available-slots?registration_id=${ptr.id}&date=${future}`,{token:P});
+  assert.equal(ptHours.available_slots[0].start_time,'08:00');
+  assert.equal(ptHours.available_slots.at(-1).end_time,'18:00');
+  const bookingBody={registration_id:ptr.id,member_id:m.id,pt_id:pt.id,branch_id:b1,booking_date:future,start_time:'08:00',end_time:'09:30'};
+  await request('/pt-bookings',{token:P,method:'POST',body:{...bookingBody,end_time:'10:00'},status:400});
+  await request('/pt-bookings',{token:P,method:'POST',body:{...bookingBody,session_duration_minutes:120},status:400});
+  assert.equal((await db.query('SELECT remaining_pt_sessions FROM registrations WHERE id=$1',[ptr.id])).rows[0].remaining_pt_sessions,5);
   const booked=await request('/pt-bookings',{token:L,method:'POST',body:bookingBody});
+  assert.equal(booked.session_duration_minutes,90);assert.equal(booked.end_time.slice(0,5),'09:30');
   await request('/pt-bookings',{token:L,method:'POST',body:bookingBody,status:409});
   let counters=(await db.query('SELECT remaining_pt_sessions,booked_pt_sessions,used_pt_sessions FROM registrations WHERE id=$1',[ptr.id])).rows[0];assert.deepEqual(counters,{remaining_pt_sessions:4,booked_pt_sessions:1,used_pt_sessions:0});
   await request(`/pt-bookings/${booked.id}/cancel`,{token:L,method:'POST',body:{reason:'Cancelled at counter'}});
   assert.equal((await db.query('SELECT remaining_pt_sessions FROM registrations WHERE id=$1',[ptr.id])).rows[0].remaining_pt_sessions,5);
-  const completed=await request('/pt-bookings',{token:L,method:'POST',body:bookingBody});
+  const completed=await request('/pt-bookings',{token:P,method:'POST',body:{registration_id:ptr.id,booking_date:future,start_time:'08:00'}});
+  assert.equal(completed.pt_id,pt.id);assert.equal(completed.member_id,m.id);assert.equal(completed.branch_id,b1);
+  assert.equal(completed.session_duration_minutes,90);assert.equal(completed.end_time.slice(0,5),'09:30');
+  await request(`/pt-bookings/${completed.id}/cancel`,{token:P,method:'POST',body:{reason:'PT cannot cancel'},status:403});
   await db.query('UPDATE pt_bookings SET booking_date=$2 WHERE id=$1',[completed.id,shift(day(),-1)]);
   const reconciled=await request(`/pt-bookings/${completed.id}/confirm`,{token:L,method:'POST',body:{}});assert.equal(reconciled.is_completed,false);assert.equal(reconciled.booking.pt_confirmed_at,null);assert.equal(reconciled.booking.member_confirmed_at,null);
   await request(`/pt-bookings/${completed.id}/pt-confirm`,{token:L,method:'POST',body:{},status:403});
@@ -233,7 +260,7 @@ async function main(){
   counters=(await db.query('SELECT remaining_pt_sessions,booked_pt_sessions,used_pt_sessions FROM registrations WHERE id=$1',[ptr.id])).rows[0];assert.deepEqual(counters,{remaining_pt_sessions:4,booked_pt_sessions:0,used_pt_sessions:1});
   assert.equal((await request(`/pt-bookings?date_from=${future}&date_to=${future}`,{token:L})).length,1);
   const renew=await request(`/registrations/${ptr.id}/renew`,{token:L,method:'POST',body:{package_id:ptpkg.id}});assert.equal(renew.previous_registration_id,ptr.id);assert(renew.start_date>ptr.end_date);
-  const futureBody={...bookingBody,start_time:'10:00',end_time:'12:00'};
+  const futureBody={...bookingBody,start_time:'10:00',end_time:'11:30'};
   const concurrent=await Promise.all([1,2].map(async()=>{const res=await fetch(base+'/pt-bookings',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${L}`},body:JSON.stringify(futureBody)});return {status:res.status,value:await res.json()};}));
   assert.deepEqual(concurrent.map(r=>r.status).sort(),[200,409]);checks+=2;
   const reminderBooking=concurrent.find(r=>r.status===200).value.data;
@@ -343,6 +370,8 @@ async function main(){
   // Restore only the isolated staff fixture for mobile contract cases.
   await db.query("UPDATE accounts SET status='ACTIVE' WHERE id=$1",[lt.id]);
   const mobileStaff=await login(lt);
+  await require('./payment-ledger.cases')({request,db,A,L:mobileStaff,M,O,m,pkg,b1,b2,day,shift});
+  await require('./commission-snapshot.cases')({request,db,A,P,pt,m,ptr,completed});
   await require('./mobile-refactor.cases')({request,db,A,L:mobileStaff,M,P,m,pt,ptr,pkg,b1,b2,password,day,shift});
   console.log(`PASS ${checks} HTTP checks against isolated PostgreSQL database; configured DB untouched`);
 }

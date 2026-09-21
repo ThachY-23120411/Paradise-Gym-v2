@@ -1,0 +1,528 @@
+{
+  "result": "BLOCKED",
+  "migrationManifest": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4e4c4da7561e9e39faecbc5bc3c152158be9543531add85b6904bea7c3cb047a"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "dbf13939ac39d74404293cd99ae1773443c34cc9f13e5b69431372eba539d283"
+    }
+  ],
+  "fixture": {
+    "b1": "5549f3b5-35c2-4947-99bb-6296cce4ee12",
+    "b2": "39a6154b-bec4-49f2-ae24-4db85f8737c3",
+    "member": {
+      "id": "1c6fb235-9d91-488c-af7e-46a409e9362a",
+      "account_id": "d15fa0ee-f787-4858-95ac-eb00f83e49fc",
+      "home_branch_id": "5549f3b5-35c2-4947-99bb-6296cce4ee12",
+      "member_code": "HV001",
+      "full_name": "Business Member A",
+      "phone": "0909000010",
+      "email": null,
+      "date_of_birth": null,
+      "gender": null,
+      "avatar_url": null,
+      "status": "ACTIVE",
+      "created_by": "e98168ee-322f-4f57-9d34-5d361b2e3df4",
+      "created_at": "2026-09-20T17:00:33.134Z",
+      "updated_at": "2026-09-20T17:00:33.134Z",
+      "qr_code": "QR-HV001-0909000010",
+      "face_enrolled": false
+    },
+    "pt": {
+      "id": "640677ca-d999-4fa1-9167-e15cbab9402a",
+      "account_id": "6864f363-0f63-4200-8c88-1a5c156a4977",
+      "branch_id": "5549f3b5-35c2-4947-99bb-6296cce4ee12",
+      "pt_code": "PT001",
+      "full_name": "Business Trainer A",
+      "phone": "0909000020",
+      "email": null,
+      "gender": null,
+      "bio": null,
+      "specialties": "Strength",
+      "status": "ACTIVE",
+      "work_start_time": "08:00:00",
+      "work_end_time": "18:00:00",
+      "work_days": "MON_TO_FRI",
+      "created_at": "2026-09-20T17:00:33.162Z",
+      "updated_at": "2026-09-20T17:00:33.162Z",
+      "show_phone_to_members": false,
+      "avatar_url": null,
+      "face_enrolled": false,
+      "bank_name": null,
+      "bank_account_no": null,
+      "bank_account_name": null
+    },
+    "pt2": {
+      "id": "17e2faa4-d970-44d3-8851-591d2e4c7de2",
+      "account_id": "b7484a53-fb01-4cdd-97e1-e2594f7c0036",
+      "branch_id": "39a6154b-bec4-49f2-ae24-4db85f8737c3",
+      "pt_code": "PT002",
+      "full_name": "Business Trainer B",
+      "phone": "0909000021",
+      "email": null,
+      "gender": null,
+      "bio": null,
+      "specialties": "Strength",
+      "status": "ACTIVE",
+      "work_start_time": "08:00:00",
+      "work_end_time": "18:00:00",
+      "work_days": "MON_TO_FRI",
+      "created_at": "2026-09-20T17:00:33.180Z",
+      "updated_at": "2026-09-20T17:00:33.180Z",
+      "show_phone_to_members": false,
+      "avatar_url": null,
+      "face_enrolled": false,
+      "bank_name": null,
+      "bank_account_no": null,
+      "bank_account_name": null
+    },
+    "registration": {
+      "id": "d159c70e-087e-47ff-a0f5-08dc2a6f8cec",
+      "reg_code": "DK002",
+      "member_id": "1c6fb235-9d91-488c-af7e-46a409e9362a",
+      "package_id": "c64ebc9f-5987-4f9b-b65b-49d3f44d03f3",
+      "assigned_pt_id": "640677ca-d999-4fa1-9167-e15cbab9402a",
+      "sold_branch_id": "5549f3b5-35c2-4947-99bb-6296cce4ee12",
+      "previous_registration_id": null,
+      "package_name_snapshot": "Business PT 90",
+      "package_type_snapshot": "PT_SESSION",
+      "price_snapshot": 1000000,
+      "duration_days_snapshot": 60,
+      "total_gym_sessions_snapshot": null,
+      "total_pt_sessions_snapshot": 5,
+      "start_date": "2026-09-21",
+      "end_date": "2026-11-20",
+      "remaining_gym_sessions": null,
+      "remaining_pt_sessions": 5,
+      "booked_pt_sessions": 0,
+      "used_pt_sessions": 0,
+      "status": "ACTIVE",
+      "created_by": "e98168ee-322f-4f57-9d34-5d361b2e3df4",
+      "created_at": "2026-09-20T17:00:34.156Z",
+      "updated_at": "2026-09-20T17:00:34.200Z",
+      "gym_price_snapshot": 0,
+      "pt_price_snapshot": 1000000,
+      "combo_price_snapshot": 0,
+      "package_mode": "INDIVIDUAL",
+      "max_group_members_snapshot": null,
+      "is_frozen": false,
+      "freeze_days_total": 0,
+      "group_leader_member_id": null,
+      "has_scheduled_freeze": false,
+      "registration_code": "DK002",
+      "member": {
+        "id": "1c6fb235-9d91-488c-af7e-46a409e9362a",
+        "account_id": "d15fa0ee-f787-4858-95ac-eb00f83e49fc",
+        "home_branch_id": "5549f3b5-35c2-4947-99bb-6296cce4ee12",
+        "member_code": "HV001",
+        "full_name": "Business Member A",
+        "phone": "0909000010",
+        "email": null,
+        "date_of_birth": null,
+        "gender": null,
+        "avatar_url": null,
+        "status": "ACTIVE",
+        "created_by": "e98168ee-322f-4f57-9d34-5d361b2e3df4",
+        "created_at": "2026-09-20T17:00:33.134Z",
+        "updated_at": "2026-09-20T17:00:33.134Z",
+        "qr_code": "QR-HV001-0909000010",
+        "face_enrolled": false
+      },
+      "member_name": "Business Member A",
+      "member_code": "HV001",
+      "member_phone": "0909000010",
+      "allowed_branches": [
+        {
+          "id": "5549f3b5-35c2-4947-99bb-6296cce4ee12",
+          "branch_code": "Business Branch A",
+          "branch_name": "Business Branch A",
+          "phone": "0909999999",
+          "address": "Isolated E2E",
+          "status": "ACTIVE",
+          "open_time": "00:00:00",
+          "close_time": "23:59:00",
+          "timezone": "Asia/Ho_Chi_Minh",
+          "created_at": "2026-09-20T17:00:32.688Z",
+          "updated_at": "2026-09-20T17:00:32.688Z",
+          "gate_config": {
+            "duplicate_seconds": 60,
+            "daily_gym_deduction_limit": 1
+          },
+          "default_pt_commission_percentage": 20
+        }
+      ],
+      "assigned_pt": {
+        "id": "640677ca-d999-4fa1-9167-e15cbab9402a",
+        "account_id": "6864f363-0f63-4200-8c88-1a5c156a4977",
+        "branch_id": "5549f3b5-35c2-4947-99bb-6296cce4ee12",
+        "pt_code": "PT001",
+        "full_name": "Business Trainer A",
+        "phone": "0909000020",
+        "email": null,
+        "gender": null,
+        "bio": null,
+        "specialties": "Strength",
+        "status": "ACTIVE",
+        "work_start_time": "08:00:00",
+        "work_end_time": "18:00:00",
+        "work_days": "MON_TO_FRI",
+        "created_at": "2026-09-20T17:00:33.162Z",
+        "updated_at": "2026-09-20T17:00:33.162Z",
+        "show_phone_to_members": false,
+        "avatar_url": null,
+        "face_enrolled": false,
+        "bank_name": null,
+        "bank_account_no": null,
+        "bank_account_name": null
+      },
+      "pt_name": "Business Trainer A",
+      "payments": [
+        {
+          "id": "e3d8763e-331d-47b2-981a-2716d3842f81",
+          "registration_id": "d159c70e-087e-47ff-a0f5-08dc2a6f8cec",
+          "member_id": "1c6fb235-9d91-488c-af7e-46a409e9362a",
+          "branch_id": "5549f3b5-35c2-4947-99bb-6296cce4ee12",
+          "payment_code": "PAY002",
+          "payment_method": "CASH",
+          "amount": 1000000,
+          "status": "COMPLETED",
+          "transaction_ref": null,
+          "collected_by": "e98168ee-322f-4f57-9d34-5d361b2e3df4",
+          "confirmed_at": "2026-09-20T17:00:34.172Z",
+          "created_at": "2026-09-20T17:00:34.172Z",
+          "updated_at": "2026-09-20T17:00:34.172Z",
+          "note": null,
+          "expires_at": null,
+          "discount_id": null,
+          "discount_amount": 0
+        }
+      ],
+      "created_by_name": "0909000002",
+      "freezes": [],
+      "transfers": [],
+      "progress": {
+        "elapsed_days": 0,
+        "remaining_days": 60,
+        "total_days": 60,
+        "checkins": 0,
+        "total_pt_sessions": 5,
+        "used_pt_sessions": 0,
+        "booked_pt_sessions": 0,
+        "remaining_pt_sessions": 5
+      }
+    },
+    "date": "2026-09-22"
+  },
+  "steps": [
+    {
+      "section": "source",
+      "action": "Open authenticated PT calendar",
+      "expected": "PT01-US03 Trigger: own PT can open booking from PT01",
+      "actual": "Own PT calendar and booking action visible",
+      "status": "PASS",
+      "filename": "01-pt-calendar.png"
+    },
+    {
+      "section": "source",
+      "action": "Open booking modal",
+      "expected": "Main Flow 1: real PT/branch readonly; form opens without choices",
+      "actual": "Visible popup with own trainer and branch from isolated API",
+      "status": "PASS",
+      "filename": "02-booking-modal-open.png"
+    },
+    {
+      "section": "source",
+      "action": "Attempt empty-form submission",
+      "expected": "Field specification: save disabled while required inputs missing",
+      "actual": "Save disabled; zero bookings. No forced validation or synthetic click.",
+      "status": "PASS",
+      "filename": "03-empty-form-validation.png"
+    },
+    {
+      "section": "source",
+      "action": "Open date picker",
+      "expected": "Main Flow 4: choose future working date from calendar",
+      "actual": "22",
+      "status": "PASS",
+      "filename": "04-date-picker-options.png"
+    },
+    {
+      "section": "source",
+      "action": "Select future working date",
+      "expected": "Main Flow 4: date picker accepts future working date",
+      "actual": "2026-09-22",
+      "status": "PASS",
+      "filename": "05-date-selected.png"
+    },
+    {
+      "section": "source",
+      "action": "Open assigned-member dropdown",
+      "expected": "Main Flow 2: assigned members from API",
+      "actual": "Business Member A · HV001 · 0909000010",
+      "status": "PASS",
+      "filename": "06-member-options.png"
+    },
+    {
+      "section": "source",
+      "action": "Select assigned member",
+      "expected": "Main Flow 3: contract choices enabled for selected member",
+      "actual": "Business Member A · HV001 · 0909000010",
+      "status": "PASS",
+      "filename": "07-member-selected-contract-enabled.png"
+    },
+    {
+      "section": "source",
+      "action": "Open contract dropdown",
+      "expected": "Main Flow 3: paid assigned contract has remaining sessions",
+      "actual": "DK002 · Business PT 90 · 5 buổi",
+      "status": "PASS",
+      "filename": "08-contract-options.png"
+    },
+    {
+      "section": "source",
+      "action": "Select paid assigned contract",
+      "expected": "Main Flow 4: duration comes from API contract and is readonly",
+      "actual": "90 minutes; contract selected",
+      "status": "PASS",
+      "filename": "09-contract-duration.png"
+    },
+    {
+      "section": "source",
+      "action": "Enter 08:00 start time",
+      "expected": "Main Flow 4: 90 minutes produces readonly 09:30 end",
+      "actual": "08:00 - 09:30",
+      "status": "PASS",
+      "filename": "10-time-derived.png"
+    },
+    {
+      "section": "source",
+      "action": "Review filled form before submit",
+      "expected": "Main Flow 5: chosen member, contract, date/time and note visible before save",
+      "actual": "{\"pt_name\":\"Business Trainer A · PT001\",\"branch_name\":\"Business Branch A\",\"member_id\":\"1c6fb235-9d91-488c-af7e-46a409e9362a\",\"registration_id\":\"d159c70e-087e-47ff-a0f5-08dc2a6f8cec\",\"date\":\"2026-09-22\",\"start_time\":\"08:00\",\"duration_display\":\"90 phút\",\"end_time\":\"09:30\",\"contract_rights\":\"Từ 21/09/2026 · Đến 20/11/2026 · 5 buổi khả dụng\",\"participants\":\"Business Member A · HV001\",\"note\":\"business-20260920 own PT UI booking\"}",
+      "status": "PASS",
+      "filename": "11-presubmit-filled-form.png"
+    },
+    {
+      "section": "state",
+      "action": "Inspect filled booking modal at 360px",
+      "expected": "Requested responsive nonoverlap: modal in viewport, content stays above action toolbar",
+      "actual": "{\"box\":{\"x\":12,\"y\":72,\"width\":336,\"height\":700.59375},\"content\":{\"x\":13,\"y\":134,\"width\":334,\"height\":580.59375},\"toolbar\":{\"x\":13,\"y\":714.59375,\"width\":334,\"height\":57}}",
+      "status": "PASS",
+      "filename": "12-booking-modal-responsive-360.png"
+    },
+    {
+      "section": "state",
+      "action": "Inspect filled booking modal at 1440px",
+      "expected": "Requested responsive nonoverlap: modal in viewport, content stays above action toolbar",
+      "actual": "{\"box\":{\"x\":460,\"y\":82,\"width\":520,\"height\":737},\"content\":{\"x\":461,\"y\":144,\"width\":518,\"height\":617},\"toolbar\":{\"x\":461,\"y\":761,\"width\":518,\"height\":57}}",
+      "status": "PASS",
+      "filename": "13-booking-modal-responsive-1440.png"
+    },
+    {
+      "section": "source",
+      "action": "Blocked at PT source UI",
+      "expected": "Complete the requested real UI flow",
+      "actual": "{\"success\":false,\"message\":\"Không thể xử lý yêu cầu. Vui lòng thử lại sau.\",\"code\":\"REQUEST_FAILED\"}\n\n500 !== 200\n",
+      "status": "FAIL",
+      "filename": "14-blocker.png"
+    }
+  ],
+  "checks": [],
+  "issues": [
+    "PT source UI: AssertionError [ERR_ASSERTION]: {\"success\":false,\"message\":\"Không thể xử lý yêu cầu. Vui lòng thử lại sau.\",\"code\":\"REQUEST_FAILED\"}\n\n500 !== 200\n\n    at main (E:\\Desktop\\para\\tests\\e2e\\pt\\business-20260920.cjs:185:10)",
+    "Blocked at PT source UI: {\"success\":false,\"message\":\"Không thể xử lý yêu cầu. Vui lòng thử lại sau.\",\"code\":\"REQUEST_FAILED\"}\n\n500 !== 200\n"
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "targetPort": "63694"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "targetPort": "63694"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/pt-bookings",
+      "targetPort": "63694"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "01-pt-calendar.png",
+      "sha256": "35f0299c54e8660d7b09de20a158d252cc7ba5dcbfdae0ea2aa68401c5c7b02b"
+    },
+    {
+      "file": "02-booking-modal-open.png",
+      "sha256": "f56ab1ae2b5dec6c0d610a6a3dd05a8fd086286b3ab134862554d7865fa42b3f"
+    },
+    {
+      "file": "03-empty-form-validation.png",
+      "sha256": "b0bca9f7a5d2512c3a9842d66e0f72a86b7ca40526c2401927b90e724c8a6182"
+    },
+    {
+      "file": "04-date-picker-options.png",
+      "sha256": "3c9f58bbd50a518ad952caf08f4974a39822d9c74479fc94881ca3216a3cd537"
+    },
+    {
+      "file": "05-date-selected.png",
+      "sha256": "54d9f9f032f1adf4d38e4f537ab1fd62a45a5d72e8df9acc568b9514adb465c2"
+    },
+    {
+      "file": "06-member-options.png",
+      "sha256": "2783a933a6c744a16c35d69ac88e5f97404a799020e77d0d29120b36998f4ddc"
+    },
+    {
+      "file": "07-member-selected-contract-enabled.png",
+      "sha256": "cf506aaffc696c5e27e77463ac1130fd3899a38c7b4d1d4f79bba906716930ad"
+    },
+    {
+      "file": "08-contract-options.png",
+      "sha256": "486a2680d0e860dc94448525fe4e8411d25a0b9281fd65ab89df479bfd84c8ab"
+    },
+    {
+      "file": "09-contract-duration.png",
+      "sha256": "e804e77e7a34bd22d0ad86a7ed1a43879224d198c6bd625c89379a9b8cce835d"
+    },
+    {
+      "file": "10-time-derived.png",
+      "sha256": "0d58037f2a6576fef0f677baa9900d1f2d5d4b1de07b4ed89c1afbcdee483d81"
+    },
+    {
+      "file": "11-presubmit-filled-form.png",
+      "sha256": "ebf751a3bc8784d48cb59d894b4797f877c2b60e3466f3a036420a2cd9e7f2bb"
+    },
+    {
+      "file": "12-booking-modal-responsive-360.png",
+      "sha256": "0163736df52ea34efc875f3e492309613887073fe6d6e3842a8286c4d7fc5fab"
+    },
+    {
+      "file": "13-booking-modal-responsive-1440.png",
+      "sha256": "b535c143c0bfaee35b6418ed81a4a97539e805a6cb7254c4363e4df45d700e26"
+    },
+    {
+      "file": "14-blocker.png",
+      "sha256": "2a6012aa8133f9d8a32ad7a760837721a37afa73654cf8e5736e3d9e80e6530f"
+    }
+  ]
+}

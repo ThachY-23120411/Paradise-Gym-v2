@@ -64,7 +64,7 @@
       - Vai trò: `[x] Hội viên (HV)`, `[x] Huấn luyện viên (PT)`
       - Hình thức: `[x] Người liên quan trực tiếp`
       *(Kết quả: Gửi xác nhận cho Hội viên đặt lịch và HLV được chọn dạy).*
-    - *Gói tập sắp hết hạn (`PACKAGE_EXPIRING`):*
+    - *Gói tập sắp hết hạn (`PACKAGE_EXPIRING`):* dùng is_expiring do SYS tính (<= 4 ngày hoặc <= 3 buổi; Combo OR), lịch gửi theo cấu hình. Không dùng ngưỡng 7 ngày cục bộ.
       - Vai trò: `[x] Hội viên (HV)`, `[x] Lễ tân (LT)`
       - Hình thức: `[x] Người liên quan trực tiếp` (cho HV sở hữu gói) VÀ `[x] Gửi toàn bộ (Broadcast chi nhánh)` (cho toàn bộ Lễ tân để telesale/tư vấn).
     - *Thông báo bảo trì / Sự kiện chi nhánh (`FACILITY_NOTICE`):*
@@ -100,6 +100,7 @@ flowchart TB
     subgraph L1["Swimlane — SYS"]
       S01["Tải bảng danh sách Event, Người nhận, Template gán và Trạng thái ON/OFF"]
       S02["Mở Drawer chi tiết với thông tin Event, Checkbox Vai trò nhận, Checkbox Hình thức gửi, Dropdown Template, Switch ON/OFF"]
+      M02(("Merge - Lưu cấu hình"))
       S03["Lưu ánh xạ quy tắc cấu hình vào cơ sở dữ liệu"]
       D02{"Lưu cấu hình thành công?"}
       S04["Khi Event phát sinh, nạp quy tắc tại chi nhánh và mẫu được gán"]
@@ -113,8 +114,9 @@ flowchart TB
 
       A01 --> S01 --> A02
       A03 --> S02 --> A04
-      A05 --> S03
-      A06 --> S03
+      A05 --> M02
+      A06 --> M02
+      M02 --> S03
       S03 --> D02
       D02 -->|Có| S04 --> D01
       D02 -->|Không| S07 --> F02

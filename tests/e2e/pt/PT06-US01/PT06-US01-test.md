@@ -4,7 +4,7 @@
 - **Epic / Menu:** PT06 · Tổng quan hiệu suất PT
 - **Vai trò thực hiện (Primary Role):** Huấn luyện viên (PT)
 - **Phạm vi kiểm thử:** Mobile App PT (390x844 kết nối PostgreSQL qua REST API)
-- **Ngày thực hiện:** 2026-09-18
+- **Ngày thực hiện:** 2026-09-21
 - **Trạng thái tổng thể:** **`PASS`**
 
 ---

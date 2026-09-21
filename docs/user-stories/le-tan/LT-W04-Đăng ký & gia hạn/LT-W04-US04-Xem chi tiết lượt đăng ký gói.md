@@ -13,14 +13,6 @@
 1. Lễ tân bấm nút **Chi tiết** tại một dòng đăng ký trên Data Grid View.
 2. SYS mở sidebar drawer **Chi tiết Lượt Đăng ký Gói** trượt từ cạnh phải màn hình.
 3. SYS truy vấn thông tin chi tiết của lượt đăng ký gói được chọn.
-16: 4. SYS hiển thị thông tin chi tiết phân bổ theo các khối trực quan:
-17:    - Header: Mã đăng ký, Badge trạng thái gói và nút Đóng.
-18:    - Khối Hội viên: Avatar, Họ tên, Mã HV, SĐT và Chi nhánh hội viên.
-19:    - Khối Gói tập: Tên gói, Phân loại gói, Kỳ hiệu lực, Chi nhánh áp dụng và Nhân viên tiếp nhận.
-20:    - Khối Thanh toán 100%: Giá trị gói, Trạng thái thanh toán 100% (Phương thức, Thời gian thanh toán hoặc nút Thu tiền ngay nếu đang chờ thanh toán).
-21:    - Khối Quyền lợi & tiến độ sử dụng: Tiến độ ngày tập Gym (kèm progress bar xanh lá) và tiến độ buổi tập PT (kèm progress bar cam).
-22:    - Khối Thành viên nhóm PT 1-Nhiều (chỉ áp dụng đối với gói PT hình thức 1 Kèm nhiều): Hiển thị tiến độ sĩ số nhóm (`X / Y học viên`), danh sách thành viên và nút `[Quản lý thành viên nhóm]`.
-23: 5. Lễ tân xem các thông tin chi tiết và tiến độ sử dụng dịch vụ của hội viên để giải đáp thắc mắc hoặc tư vấn tại quầy.
 4. SYS hiển thị thông tin chi tiết phân bổ theo các khối trực quan:
    - Header: Mã đăng ký, Badge trạng thái gói và nút Đóng.
    - Khối Hội viên: Avatar, Họ tên, Mã HV, SĐT và Chi nhánh hội viên.
@@ -45,11 +37,11 @@
 | Chi nhánh áp dụng | `Readonly Text` | `READONLY` | required | Không | Danh sách chi nhánh được phép sử dụng gói (ví dụ: "Quận 1" hoặc "Toàn hệ thống") |
 | Nhân viên tiếp nhận | `Readonly Text` | `READONLY` | required | Không | Họ tên nhân viên tạo đăng ký từ `ACCOUNT.full_name` (ví dụ: "Lê Văn Lễ Tân") |
 | Số tiền gói (100%) | `Currency Readonly Text (VND)` | `READONLY` | required | Không | Giá trị trọn gói 100% từ `REGISTRATION.price` (ví dụ: "3.200.000 đ"); hệ thống thu đủ 100% 1 lần duy nhất, không áp dụng công nợ |
-| Trạng thái thanh toán | `Readonly Text / Badge` | `READONLY` | required | `DYNAMIC`: theo trạng thái thanh toán 100% | • Khi đã thanh toán: Hiển thị badge xanh `Đã thanh toán 100%`, phương thức (`Tiền mặt` hoặc `Chuyển khoản`) và ngày giờ hoàn tất thanh toán<br>• Khi chưa thanh toán: Hiển thị badge vàng `Chờ thanh toán 100%` kèm cụm nút **`[Thu tiền ngay]`** và **`[Hủy đơn đăng ký]`** |
+| Tình trạng thanh toán của đăng ký | `Readonly Text / Badge` | `READONLY` | required | Không: suy ra từ payment đã ghi nhận và đăng ký; không có payment.status | • Khi đã thanh toán: Hiển thị badge xanh `Đã thanh toán 100%`, phương thức (`Tiền mặt` hoặc `Chuyển khoản`) và ngày giờ hoàn tất thanh toán<br>• Khi chưa thanh toán: Hiển thị badge vàng `Chờ thanh toán 100%` kèm cụm nút **`[Thu tiền ngay]`** và **`[Hủy đơn đăng ký]`** |
 | Quyền tập Gym | `Readonly Text + Progress Bar` | `READONLY` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: `Loại gói = GYM` hoặc `COMBO`<br>• **Ẩn khi**: `Loại gói = PT`<br>• **Khi `Chờ thanh toán` (`PENDING_PAYMENT`)**: Hiển thị thông báo chờ kích hoạt, thời hạn niêm yết (`X ngày`) và số lượt check-in `0 lượt (Chưa kích hoạt)`; **tuyệt đối KHÔNG hiển thị thanh progress bar hay số ngày đã qua**.<br>• **Khi `Chưa đến ngày hiệu lực` (`SCHEDULED`)**: Hiển thị thông báo đã thanh toán 100% chờ ngày hiệu lực; không trừ ngày trôi qua trước ngày bắt đầu.<br>• **Khi `Đang hiệu lực` (`ACTIVE`)**: Hiển thị số ngày còn lại (ví dụ: "Còn 78 ngày"), thanh Progress bar xanh lá thể hiện tỷ lệ ngày đã trôi qua, thông tin chi tiết: "Đã trôi qua: X ngày · Tổng hạn: Y ngày", kèm tổng số lượt check-in thực tế.<br>• **Khi `Đã hủy` (`CANCELLED`)**: Hiển thị thông báo gói đã bị hủy. | Tra cứu từ thông tin gói đăng ký, thời gian bắt đầu/kết thúc và lượt check-in thực tế |
 | Quyền huấn luyện PT | `Readonly Text + Progress Bar` | `READONLY` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: `Loại gói = PT` hoặc `COMBO`<br>• **Ẩn khi**: `Loại gói = GYM`<br>• **Khi `Chờ thanh toán` (`PENDING_PAYMENT`)**: Hiển thị tổng số buổi niêm yết theo gói (`X buổi (Chưa kích hoạt)`), HLV phụ trách "Chờ kích hoạt thanh toán"; **tuyệt đối KHÔNG hiển thị thanh progress bar buổi đã tập hay nút Gán PT**.<br>• **Khi `Đang hiệu lực` (`ACTIVE`) hoặc `Chưa đến ngày hiệu lực` (`SCHEDULED`)**: Hiển thị số buổi còn lại (ví dụ: "Còn 6 buổi"), thanh Progress bar cam thể hiện tỷ lệ buổi tập hoàn thành, thông tin chi tiết: "Đã tập: X buổi · Tổng cấp: Y buổi", thông tin HLV: "HLV phụ trách: {Tên PT} ({Mã PT})" nếu đã phân công, hoặc "Chưa có PT phụ trách" kèm nút **`[Gán PT phụ trách]`** nếu chưa phân công (cho phép gán ngay khi thanh toán đủ 100%). | Tra cứu từ hợp đồng đăng ký, snapshot số buổi và lịch tập PT |
 | Thành viên nhóm PT 1-Nhiều | `Table / Card List + Action Button` | `READONLY / USER-INPUT` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: Gói là PT hình thức 1 Kèm nhiều (`GROUP_1_N` / `GROUP_PT`)<br>• **Ẩn khi**: Gói 1 Kèm 1 (`ONE_ON_ONE`) hoặc gói chỉ có Gym | Hiển thị sĩ số nhóm `{X}/{Y} học viên`, danh sách gồm Trưởng nhóm và các thành viên được mời kèm nút **`[Quản lý thành viên nhóm]`** mở modal thao tác thêm/xóa học viên |
-| Khối Đóng băng & Chuyển nhượng | `Action Buttons Group + History Table` | `USER-INPUT / READONLY` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: Gói đang bị đóng băng (`is_frozen = true`) hoặc hợp đồng ở trạng thái `ACTIVE` / `SCHEDULED` hoặc đã từng có lịch sử đóng băng<br>• **Ẩn khi**: Gói ở trạng thái `PENDING_PAYMENT` hoặc `CANCELLED` mà chưa từng đóng băng | Gồm nút `[Đóng băng gói]`, `[Chuyển nhượng gói]`, hoặc nút `[Mở đóng băng trước hạn]` khi đang bị đóng băng; kèm bảng **Lịch sử các đợt đóng băng** (Thời gian, Số ngày, Lý do, Trạng thái, Người duyệt) |
+| Khối Đóng băng & Chuyển nhượng | `Action Buttons Group + History Table` | `USER-INPUT / READONLY` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: Gói đang bị đóng băng (`is_frozen = true`) hoặc hợp đồng ở trạng thái `ACTIVE` / `SCHEDULED` hoặc đã từng có lịch sử đóng băng<br>• **Ẩn khi**: Gói ở trạng thái `PENDING_PAYMENT` hoặc `CANCELLED` mà chưa từng đóng băng | Nút `[Đóng băng gói]` chỉ hiện khi đã trả đủ, đang hiệu lực ACTIVE/Sắp hết hạn và đủ điều kiện W04-US06; ẩn khi chưa trả, SCHEDULED, FROZEN, EXPIRED, CANCELLED hoặc đã hẹn đóng băng. Các thao tác còn lại: `[Chuyển nhượng gói]`, hoặc nút `[Mở đóng băng trước hạn]` khi đang bị đóng băng; kèm bảng **Lịch sử các đợt đóng băng** (Thời gian, Số ngày, Lý do, Trạng thái, Người duyệt) |
 | Khối Lịch sử chuyển nhượng gói | `Table` | `READONLY` | conditional | `CONDITIONAL`:<br>• **Hiện khi**: Hợp đồng đã từng phát sinh giao dịch chuyển nhượng (`transfers.length > 0`)<br>• **Ẩn khi**: Hợp đồng chưa từng chuyển nhượng | Bảng hiển thị: Ngày chuyển, Người chuyển nhượng, Người nhận chuyển nhượng, Phí chuyển nhượng, Lý do, Người thực hiện |
 
 - **Business rules / logic:**
@@ -64,6 +56,9 @@
     + Gói `GYM`: Ẩn hoàn toàn khối Quyền huấn luyện PT.
     + Gói `PT`: Ẩn hoàn toàn khối Quyền tập Gym.
     + Gói `COMBO`: Hiển thị song song cả 2 khối Gym và PT.
+
+- Đăng ký còn chờ giữ nút Thu tiền ngay và Hủy đơn đăng ký theo LT-W04-US03, hủy có xác nhận bất kỳ lúc nào còn chờ. Hết hạn QR không tự hủy đăng ký.
+- Lịch sử đóng băng vẫn được xem; hiển thị khối lịch sử không cấp quyền đóng băng gói SCHEDULED/chưa thanh toán.
 
 ## Alternate Flows
 

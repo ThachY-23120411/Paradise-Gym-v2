@@ -1,0 +1,1256 @@
+{
+  "database": "paradise_test_21800_1789924490086",
+  "base": "http://127.0.0.1:63421",
+  "steps": [
+    {
+      "action": "Open independent real PT session",
+      "expected": "Same PT authenticated in both sessions",
+      "actual": "PT Account Audit",
+      "status": "PASS",
+      "file": "step-01-second-device-before-logout.png"
+    },
+    {
+      "action": "Click current device Logout",
+      "expected": "PT05-US03 Main Flow 2: confirmation",
+      "actual": "Xác nhận đăng xuất\nBạn có chắc chắn muốn đăng xuất khỏi ứng dụng PT Paradise Gym không? Phiên làm việc hiện tại trên thiết bị này sẽ kết thúc.\nCó\n\t\nKhông",
+      "status": "PASS",
+      "file": "step-02-logout-confirm.png"
+    },
+    {
+      "action": "Confirm logout",
+      "expected": "PT05-US03: only current token revoked and local auth cleared",
+      "actual": "Login screen visible, local token absent, current=401 and peer=200",
+      "status": "PASS",
+      "file": "step-03-current-device-logged-out.png"
+    },
+    {
+      "action": "Open real device registry",
+      "expected": "Server sessions visible, exactly one marked current",
+      "actual": "Thiết bị đăng nhập\nTrình duyệt web\n\nHoạt động gần nhất: 00:16:17 21/9/2026\n\nĐăng xuất thiết bị\nTrình duyệt web · Thiết bị hiện tại\n\nHoạt động gần nhất: 00:16:11 21/9/2026\n\nĐăng xuất thiết bị hiện tại",
+      "status": "PASS",
+      "file": "step-05-real-device-registry.png"
+    },
+    {
+      "action": "Click logout all devices",
+      "expected": "Explicit confirmation includes current device",
+      "actual": "Đăng xuất tất cả\nĐăng xuất tất cả thiết bị, bao gồm thiết bị hiện tại?\nCó\n\t\nKhông",
+      "status": "PASS",
+      "file": "step-06-all-logout-confirm.png"
+    }
+  ],
+  "downstream": [
+    {
+      "action": "Reload other real device",
+      "expected": "PT05-US03 business rule: other session remains authenticated",
+      "actual": "PT Account Audit",
+      "status": "PASS",
+      "file": "downstream-04-peer-device-retained.png"
+    },
+    {
+      "action": "Reload after real UI logout-all",
+      "expected": "Both actual browser sessions return to login",
+      "actual": "Login UI at http://localhost:3000/mobile/",
+      "status": "PASS",
+      "file": "downstream-07-all-logout-device-1.png"
+    },
+    {
+      "action": "Reload after real UI logout-all",
+      "expected": "Both actual browser sessions return to login",
+      "actual": "Login UI at http://localhost:3000/mobile/",
+      "status": "PASS",
+      "file": "downstream-08-all-logout-device-2.png"
+    }
+  ],
+  "state": [
+    "Real UI logout-all called production API with two active browser sessions; both /auth/me=401.",
+    "Cleanup verified: {\"databaseDropped\":true,\"serverClosed\":true,\"browserClosed\":true,\"errors\":[],\"ownedUiServerClosed\":true,\"avatarDirectoryRemoved\":true}"
+  ],
+  "issues": [],
+  "browserErrors": [],
+  "network": [
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers/3f0589ed-a556-43a8-952c-0c3da2107f42",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/mobile/avatar",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers/3f0589ed-a556-43a8-952c-0c3da2107f42",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/notifications/f507a39a-0938-49d6-b0b4-4e81cd3eb0b9/read",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/change-password",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout-current",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings/trainers",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/profile",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/mobile/preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/sessions",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout-all",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "status": 200
+    }
+  ],
+  "screenshotHashes": [
+    {
+      "file": "downstream-04-peer-device-retained.png",
+      "sha256": "fe1199cd3555e2af5ef5b106c6e2dfbf2f68ed11c46c6e7075c2e797a56f3ad9"
+    },
+    {
+      "file": "downstream-07-all-logout-device-1.png",
+      "sha256": "9614b7d5d5cc152faf91cdb2b1e8bb7282c64b6a3c8741dd016e6f9bddd71fe3"
+    },
+    {
+      "file": "downstream-08-all-logout-device-2.png",
+      "sha256": "a53c4e0e313aeeb4a15e4fdf9efbae657f504671bc6838f1520b5c3fcba16652"
+    },
+    {
+      "file": "step-01-second-device-before-logout.png",
+      "sha256": "076b1e0d78f13e244cc31431df4d02b600f307ab08fe2eb98c3d47bd5ebfcac7"
+    },
+    {
+      "file": "step-02-logout-confirm.png",
+      "sha256": "1d617b3628bb6349114d30bc044dcda0ef1fc2c3d0a1df9b36a8a419e1edbb24"
+    },
+    {
+      "file": "step-03-current-device-logged-out.png",
+      "sha256": "869c078398f1a59b7395bccb296901cd6fa256d583307e5111ab8a6f8fabd1cf"
+    },
+    {
+      "file": "step-05-real-device-registry.png",
+      "sha256": "cdd602f2b010137ffa3c9cf7d8243c549049be2a9c8fb445d421ae354bb603f3"
+    },
+    {
+      "file": "step-06-all-logout-confirm.png",
+      "sha256": "68608a60804a267dc8de4322e9f4970695e205499df4bb6bdd373448fa1ce0d5"
+    }
+  ]
+}

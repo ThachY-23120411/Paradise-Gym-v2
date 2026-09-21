@@ -1,0 +1,52 @@
+{
+  "completedAt": "2026-09-20T17:24:25.821Z",
+  "database": "paradise_test_28656_1789924956329",
+  "server": "http://127.0.0.1:57687",
+  "cleanup": {
+    "databaseDropped": true,
+    "serverClosed": true,
+    "browserClosed": true,
+    "errors": [],
+    "ownedUiServerClosed": true,
+    "avatarDirectoryRemoved": true
+  },
+  "results": [
+    {
+      "us": "PT04-US02",
+      "issues": [],
+      "pass": 25,
+      "fail": 0,
+      "screenshots": 25
+    },
+    {
+      "us": "PT03-US01",
+      "issues": [
+        "close-notification-content: locator.innerText: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#dxNotifFilterTabs .dx-tab-selected')\u001b[22m\n"
+      ],
+      "pass": 5,
+      "fail": 1,
+      "screenshots": 6
+    },
+    {
+      "us": "PT04-US01",
+      "issues": [],
+      "pass": 29,
+      "fail": 0,
+      "screenshots": 29
+    },
+    {
+      "us": "PT05-US03",
+      "issues": [],
+      "pass": 8,
+      "fail": 0,
+      "screenshots": 8
+    }
+  ],
+  "exitCode": 1,
+  "uncovered": [
+    "PT05 activation UI",
+    "PT05 password/OTP login UI and login 2FA",
+    "Cloud deployment",
+    "All operational notification event types"
+  ]
+}

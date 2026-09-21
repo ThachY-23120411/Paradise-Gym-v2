@@ -5,6 +5,25 @@ description: Kiểm thử hệ thống End-to-End theo từng User Story (US) b�
 
 # US E2E Test Recorder Skill
 
+## Kinh nghiệm kiểm thử PT (2026-09-21)
+
+- Khi chụp native `<dialog>`, đặt overlay khoanh vùng trong dialog đang mở để không bị top layer che mất. Kiểm tra ảnh thực tế, không chỉ kiểm tra overlay tồn tại trong DOM.
+- Khi kiểm thử countdown bằng browser clock, cài clock trước khi ứng dụng tạo timer. Thay thời gian không được giả lập phản hồi API; vẫn đối chiếu hạn QR thật với backend và trạng thái đơn.
+- Chờ ảnh QR decode thành công trước khi xác nhận hiển thị; phân biệt lỗi tải ảnh với lỗi tạo yêu cầu thanh toán. Intent hết hạn không đồng nghĩa đơn đăng ký bị hủy, và intent không được xuất hiện trong lịch sử payment đã thu.
+
+- Cổng kích hoạt dùng chung phải kiểm thử SĐT kèm role được chọn, không chỉ mã PT tự nhận diện. Sau khi đổi định danh/role, kiểm tra preview và OTP cũ bị xóa; xác minh tên/mã đã che và chi nhánh khớp API, không coi tên chi nhánh mặc định là dữ liệu thật.
+- Với lịch nhóm, kiểm tra cùng booking bằng trưởng nhóm và thành viên khác trước/sau xác nhận kép: thành viên không có nút Hủy/Xác nhận trên DOM, trưởng nhóm vẫn thao tác được. Không suy ra mọi loại thẻ lịch đã được kiểm thử từ một màn danh sách.
+
+- Khi chuyển modal thành trang/tab, kiểm thử lại phần tử thực sự cuộn cho pull-to-refresh, khả năng dùng footer, trạng thái active và giữ kỳ lọc khi quay lại từ lối tắt; không tái sử dụng selector backdrop/modal cũ rồi coi lỗi selector là lỗi nghiệp vụ.
+
+- Với luồng ghi dữ liệu, ưu tiên database PostgreSQL cô lập: áp dụng toàn bộ migration hiện có, ghi manifest tên/hash vào báo cáo và dọn đúng database do runner tạo. Không chạy seed/reset trên database đang dùng chung.
+- Có thể dùng Playwright `route.continue` chuyển request sang backend thật của database cô lập; không dùng `route.fulfill` tạo dữ liệu nghiệp vụ giả. Chặn mọi request API lọt sang backend dùng chung.
+- PASS của phiên bản trước không chứng minh phiên bản sau thay migration/code. Chạy lại luồng nguồn và downstream sau sửa lỗi; giữ mô tả lỗi ban đầu và bằng chứng tái kiểm thử.
+- Với xác nhận kép, kiểm tra cả UI hai vai trò và counters trước/sau từng xác nhận, rồi gửi lại yêu cầu để xác minh không trừ hai lần. Phân biệt retry cùng kết quả với yêu cầu sửa ghi chú đã chốt.
+- Với dữ liệu snapshot, kiểm tra thay đổi dữ liệu nguồn không làm đổi lịch sử. Phân biệt snapshot rỗng hợp lệ với lịch sử chưa được lưu; không coi thiếu snapshot là số liệu 0.
+- API từ chối 403 không đồng nghĩa UI đúng quyền: kiểm tra cả nút đang hiện/enabled của người chỉ có quyền xem, đặc biệt trưởng nhóm và thành viên. Nếu role downstream ngoài phạm vi sửa, giữ FAIL và xin duyệt thay vì lén sửa hoặc bỏ qua.
+- Luồng thông báo cần chụp đủ title/body/thời điểm, trạng thái đọc qua API và màn hình quay lại sau đóng; phân biệt reference REGISTRATION của phân công chính thức với yêu cầu legacy.
+
 Kỹ năng kiểm thử End-to-End (E2E) toàn diện theo từng User Story (US) dành cho Paradise Gym. Kỹ năng này bắt buộc kiểm thử trên giao diện người dùng thực tế (UI thật kết nối PostgreSQL Database và Backend REST API thực tế, cấm mock data), ghi nhận chi tiết từng thao tác, chụp ảnh màn hình làm bằng chứng tại từng bước, và thực hiện kiểm chứng đa vai trò (Cross-Role / Downstream Verification).
 
 ---

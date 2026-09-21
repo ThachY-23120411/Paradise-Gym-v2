@@ -1,0 +1,50 @@
+{
+  "completedAt": "2026-09-20T17:27:05.677Z",
+  "database": "paradise_test_34212_1789925124977",
+  "server": "http://127.0.0.1:55398",
+  "cleanup": {
+    "databaseDropped": true,
+    "serverClosed": true,
+    "browserClosed": true,
+    "errors": [],
+    "ownedUiServerClosed": true,
+    "avatarDirectoryRemoved": true
+  },
+  "results": [
+    {
+      "us": "PT04-US02",
+      "issues": [],
+      "pass": 25,
+      "fail": 0,
+      "screenshots": 25
+    },
+    {
+      "us": "PT03-US01",
+      "issues": [],
+      "pass": 9,
+      "fail": 0,
+      "screenshots": 9
+    },
+    {
+      "us": "PT04-US01",
+      "issues": [],
+      "pass": 29,
+      "fail": 0,
+      "screenshots": 29
+    },
+    {
+      "us": "PT05-US03",
+      "issues": [],
+      "pass": 8,
+      "fail": 0,
+      "screenshots": 8
+    }
+  ],
+  "exitCode": 0,
+  "uncovered": [
+    "PT05 activation UI",
+    "PT05 password/OTP login UI and login 2FA",
+    "Cloud deployment",
+    "All operational notification event types"
+  ]
+}

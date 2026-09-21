@@ -3,10 +3,8 @@
  * PARADISE GYM - MOBILE PT APP (TAB 3: anti-3-PT)
  * MODULE PT01: LỊCH DẠY PT & GHI NHẬN KẾT QUẢ BUỔI HỌC
  * ==========================================================================
- * - PT01-US01: Lịch dạy theo ngày của HLV trong khung giờ làm việc cố định
- *              08:00 - 18:00 Thứ 2 - Thứ 6.
+ * - PT01-US01: Lịch dạy theo giờ thực tế từ API và đặt lịch cho chính PT.
  *              Calendar Horizontal Strip cuộn ngang chọn ngày (kèm bộ chọn tháng).
- *              Lưới 5 khung giờ cố định trong ngày (08-10, 10-12, 12-14, 14-16, 16-18).
  *              5 loại Thẻ khung giờ: Khung giờ trống, Đã đặt (UPCOMING),
  *              Chờ xác nhận (AWAITING_CONFIRMATION), Hoàn thành (DONE), Đã hủy (CANCELLED).
  *              PT không có quyền hủy lịch.
@@ -31,14 +29,9 @@
 
   const escapeHtml = value => $('<span>').text(value ?? '').html();
 
-  // Định nghĩa 5 khung giờ làm việc cố định tiêu chuẩn (PT01-US01)
-  const STANDARD_SLOTS = [
-    { start: '08:00', end: '10:00', label: '08:00 - 10:00' },
-    { start: '10:00', end: '12:00', label: '10:00 - 12:00' },
-    { start: '12:00', end: '14:00', label: '12:00 - 14:00' },
-    { start: '14:00', end: '16:00', label: '14:00 - 16:00' },
-    { start: '16:00', end: '18:00', label: '16:00 - 18:00' }
-  ];
+  let trainerProfile = null;
+  let bookingPopup = null;
+  let syncSequence = 0;
 
   /**
    * Helper lấy chuỗi ngày hiện tại định dạng YYYY-MM-DD
@@ -49,6 +42,285 @@
     const m = String(now.getMonth() + 1).padStart(2, '0');
     const d = String(now.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+  }
+
+  function isNonWorkingDay(date, trainer = trainerProfile) {
+    const day = new Date(`${date}T12:00:00`).getDay();
+    return trainer?.work_days === 'MON_TO_FRI' ? day === 0 || day === 6
+      : trainer?.work_days === 'MON_TO_SAT' ? day === 0
+      : Array.isArray(trainer?.work_days) && !trainer.work_days.map(Number).includes(day);
+  }
+
+  function showWorkHours() {
+    const p = trainerProfile;
+    const days = p?.work_days === 'MON_TO_FRI' ? 'Thứ 2 - Thứ 6'
+      : p?.work_days === 'MON_TO_SAT' ? 'Thứ 2 - Thứ 7'
+        : ['ALL_DAYS', 'ALL_WEEK'].includes(p?.work_days) ? 'Cả tuần'
+        : Array.isArray(p?.work_days) ? p.work_days.map(d => Number(d) === 0 ? 'CN' : `Thứ ${Number(d) + 1}`).join(', ') : p?.work_days;
+    $('#ptWorkHours').text(p?.work_start_time && p?.work_end_time
+      ? `${p.work_start_time.slice(0, 5)} - ${p.work_end_time.slice(0, 5)}${days ? ` (${days})` : ''}`
+      : days || 'Chưa có giờ làm việc');
+  }
+
+  function apiRows(response) {
+    if (!Array.isArray(response?.data)) throw new Error('Dữ liệu máy chủ không hợp lệ.');
+    return response.data;
+  }
+
+  async function ownTrainer(id) {
+    const trainer = apiRows(await apiClient.pt.listTrainers()).find(p => p.id === id);
+    if (!trainer?.branch_id) throw new Error('Không tìm thấy hồ sơ HLV và chi nhánh phụ trách.');
+    return trainer;
+  }
+
+  function bookingDuration(registration) {
+    // POST validates against the current package duration exposed by registrations.
+    const duration = Number(Object.prototype.hasOwnProperty.call(registration || {}, 'session_duration_minutes')
+      ? registration.session_duration_minutes : registration?.session_duration_minutes_snapshot);
+    return Number.isInteger(duration) && duration > 0 ? duration : null;
+  }
+
+  function bookingEnd(start, duration) {
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(start || '') || !duration) return '';
+    const [hour, minute] = start.split(':').map(Number);
+    const total = hour * 60 + minute + duration;
+    return total < 1440 ? `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}` : '';
+  }
+
+  function bookingDate(value) {
+    if (value instanceof Date) {
+      if (Number.isNaN(value.getTime())) return '';
+      return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+    }
+    return typeof value === 'string' ? value.slice(0, 10) : '';
+  }
+
+  function eligibleRegistration(r, trainer, date) {
+    return r.assigned_pt_id === trainer.id && ['ACTIVE', 'SCHEDULED'].includes(r.status)
+      && !r.is_frozen && Number(r.remaining_pt_sessions) > 0
+      && (!r.start_date || r.start_date.slice(0, 10) <= date)
+      && (!r.end_date || r.end_date.slice(0, 10) >= date)
+      && (!Array.isArray(r.allowed_branch_ids) || r.allowed_branch_ids.includes(trainer.branch_id));
+  }
+
+  function openBookingPopup() {
+    if (bookingPopup) { bookingPopup.show(); return; }
+    const ptId = window.ptApp?.currentUser?.pt_profile_id;
+    if (!ptId || !window.apiClient) return;
+    let closed = false, busy = false, ready = false, updating = false, sequence = 0;
+    let trainer = null, registrations = [], form, saveButton, retryButton;
+    let participantSequence = 0, participantsReady = false, participantIds = [];
+    const data = { pt_name: '', branch_name: '', member_id: null, registration_id: null,
+      date: ScheduleState.selectedDateStr, start_time: '', duration_display: '', end_time: '',
+      contract_rights: 'Chưa chọn hợp đồng', participants: 'Chưa chọn hợp đồng', note: '' };
+    const $host = $('<div>').appendTo('body');
+    const $error = $('<div class="pt-booking-message" role="alert" aria-live="polite">');
+    const alive = () => !closed && window.ptApp?.currentUser?.pt_profile_id === ptId;
+    const selected = () => registrations.find(r => r.id === data.registration_id && r.member_id === data.member_id);
+    function derived() {
+      const registration = selected();
+      const duration = bookingDuration(registration);
+      form.updateData('contract_rights', registration
+        ? `Từ ${registration.start_date ? formatDateDisplay(bookingDate(registration.start_date)) : 'Chưa cập nhật'} · ${registration.end_date === null ? 'Không giới hạn' : registration.end_date ? `Đến ${formatDateDisplay(bookingDate(registration.end_date))}` : 'Chưa cập nhật hạn dùng'} · ${registration.remaining_pt_sessions == null ? 'Chưa cập nhật số buổi' : `${registration.remaining_pt_sessions} buổi khả dụng`}`
+        : 'Chưa chọn hợp đồng');
+      form.updateData('duration_display', duration ? `${duration} phút` : selected() ? 'Gói chưa có thời lượng hợp lệ' : '');
+      form.updateData('end_time', bookingEnd(data.start_time, duration));
+      if (data.start_time) form.getEditor('start_time').element().dxValidator('instance')?.validate();
+      saveButton?.option('disabled', busy || !ready || !participantsReady || !selected() || !data.end_time);
+    }
+    async function loadParticipants() {
+      const ticket = ++participantSequence;
+      const registration = selected();
+      participantsReady = false;
+      participantIds = [];
+      form.updateData('participants', registration ? 'Đang tải thành viên...' : 'Chưa chọn hợp đồng');
+      derived();
+      if (!registration) return;
+      const group = ['GROUP_1_N', 'GROUP_PT'].includes(registration.package_mode_snapshot || registration.package_mode);
+      try {
+        let participants;
+        if (group) {
+          const response = await apiClient.request(`/registrations/${encodeURIComponent(registration.id)}/group-members`);
+          if (!alive() || ticket !== participantSequence || selected()?.id !== registration.id) return;
+          const payload = response?.data;
+          if (payload?.registration_id !== registration.id || !payload?.leader?.id || !Array.isArray(payload.members)) {
+            throw new Error('Không tải được đầy đủ thành viên nhóm.');
+          }
+          participants = [
+            { ...payload.leader, member_id: payload.leader.id, isLeader: true },
+            ...payload.members.filter(member => member.invitation_status === 'ACCEPTED' && member.member_id !== payload.leader.id)
+          ];
+        } else {
+          participants = [{ member_id: registration.member_id, full_name: registration.member_name, member_code: registration.member_code }];
+        }
+        if (!alive() || ticket !== participantSequence) return;
+        if (participants.some(member => !member.member_id || !member.full_name)) throw new Error('Thông tin thành viên chưa đầy đủ.');
+        participantIds = [...new Set(participants.map(member => member.member_id))].sort();
+        form.updateData('participants', participants.map(member => `${member.full_name}${member.member_code ? ` · ${member.member_code}` : ''}${member.isLeader ? ' · Trưởng nhóm' : ''}`).join('\n'));
+        participantsReady = true;
+        derived();
+      } catch (error) {
+        if (!alive() || ticket !== participantSequence) return;
+        form.updateData('participants', 'Không thể tải thành viên');
+        $error.text(error.message || 'Không thể tải thành viên nhóm.');
+      }
+    }
+    function options() {
+      updating = true;
+      const available = registrations.filter(r => eligibleRegistration(r, trainer, data.date));
+      const members = [...new Map(available.map(r => [r.member_id, {
+        id: r.member_id, label: [r.member_name, r.member_code, r.member_phone].filter(Boolean).join(' · ')
+      }])).values()];
+      if (!members.some(m => m.id === data.member_id)) form.updateData('member_id', null);
+      form.getEditor('member_id').option({ dataSource: members, disabled: busy || !ready,
+        noDataText: 'Không có học viên có gói khả dụng' });
+      const packages = available.filter(r => r.member_id === data.member_id);
+      if (!packages.some(r => r.id === data.registration_id)) form.updateData('registration_id', null);
+      form.getEditor('registration_id').option({ dataSource: packages, disabled: busy || !ready || !data.member_id,
+        noDataText: 'Không có gói PT khả dụng' });
+      derived();
+      updating = false;
+      return available;
+    }
+    async function reload() {
+      const ticket = ++sequence;
+      participantSequence++;
+      participantsReady = false;
+      ready = false;
+      form.option('disabled', true);
+      saveButton?.option('disabled', true);
+      retryButton?.option('disabled', true);
+      $error.text('Đang tải học viên và gói tập...');
+      try {
+        const results = await Promise.allSettled([ownTrainer(ptId), apiClient.registrations.list({ pt_id: ptId })]);
+        if (!alive() || ticket !== sequence) return false;
+        const failed = results.find(r => r.status === 'rejected');
+        if (failed) throw failed.reason;
+        trainer = results[0].value;
+        registrations = apiRows(results[1].value).filter(r => r.assigned_pt_id === ptId);
+        trainerProfile = trainer;
+        showWorkHours();
+        form.updateData('pt_name', [trainer.full_name, trainer.pt_code].filter(Boolean).join(' · '));
+        form.updateData('branch_name', trainer.branch_name || '');
+        ready = trainer.status === 'ACTIVE';
+        form.option('disabled', busy);
+        const available = options();
+        $error.text(!ready ? 'HLV không ở trạng thái hoạt động.' : available.length ? '' : 'Không có gói PT khả dụng trong ngày đã chọn.');
+        await loadParticipants();
+        return ready && (!selected() || participantsReady);
+      } catch (error) {
+        if (alive() && ticket === sequence) $error.text(error.message || 'Không thể tải dữ liệu đặt lịch.');
+        return false;
+      } finally {
+        if (alive() && ticket === sequence) retryButton?.option('disabled', busy);
+      }
+    }
+    const required = [{ type: 'required', message: 'Vui lòng chọn hoặc nhập giá trị.' }];
+    const field = (name, label, type, extra = {}) => ({ dataField: name, label: { text: label }, editorType: type,
+      editorOptions: { inputAttr: { 'aria-label': label }, ...extra } });
+    const popup = $host.dxPopup({
+      title: 'Đặt lịch PT', width: () => Math.min(520, window.innerWidth - 24), height: 'auto', maxHeight: '90vh',
+      showCloseButton: true, dragEnabled: false, hideOnOutsideClick: false,
+      wrapperAttr: { class: 'pt-booking-popup' },
+      onHiding: e => { if (busy && alive()) e.cancel = true; },
+      onHidden: () => { closed = true; sequence++; participantSequence++; bookingPopup = null; popup.dispose(); $host.remove(); },
+      contentTemplate: container => {
+        const $content = $('<div class="pt-booking-content">').appendTo(container);
+        $error.appendTo($content);
+        form = $('<div>').appendTo($content).dxForm({ formData: data, labelLocation: 'top', colCount: 1,
+          items: [
+            field('pt_name', 'PT phụ trách', 'dxTextBox', { readOnly: true }),
+            field('branch_name', 'Chi nhánh phục vụ', 'dxTextBox', { readOnly: true }),
+            { ...field('date', 'Ngày tập', 'dxDateBox', { type: 'date', displayFormat: 'dd/MM/yyyy',
+              dateSerializationFormat: 'yyyy-MM-dd', min: getTodayDateStr(), useMaskBehavior: true }), validationRules: required },
+            { ...field('member_id', 'Hội viên', 'dxSelectBox', { dataSource: [], valueExpr: 'id', displayExpr: 'label', searchEnabled: true, showClearButton: true }), validationRules: required },
+            { ...field('registration_id', 'Gói PT sử dụng', 'dxSelectBox', { dataSource: [], valueExpr: 'id', searchEnabled: true,
+              displayExpr: r => r ? `${r.reg_code || r.registration_code || ''} · ${r.package_name_snapshot || r.package_name || ''} · ${r.remaining_pt_sessions} buổi` : '' }), validationRules: required },
+            field('contract_rights', 'Thời hạn và số buổi khả dụng', 'dxTextArea', { readOnly: true, height: 76 }),
+            field('participants', 'Thành viên tham gia', 'dxTextArea', { readOnly: true, autoResizeEnabled: true, minHeight: 76, maxHeight: 160 }),
+            { ...field('start_time', 'Giờ bắt đầu', 'dxTextBox', { mode: 'time', valueChangeEvent: 'input change' }),
+              validationRules: [...required, {
+                type: 'custom', reevaluate: true,
+                message: 'Giờ bắt đầu phải hợp lệ và buổi tập phải kết thúc trong cùng ngày.',
+                validationCallback: e => !e.value || !bookingDuration(selected()) || !!bookingEnd(e.value, bookingDuration(selected()))
+              }] },
+            field('duration_display', 'Thời lượng buổi tập', 'dxTextBox', { readOnly: true }),
+            field('end_time', 'Giờ kết thúc', 'dxTextBox', { readOnly: true }),
+            field('note', 'Ghi chú cho buổi (không bắt buộc)', 'dxTextArea', { maxLength: 2000, height: 80 })
+          ],
+          onFieldDataChanged: e => {
+            if (!ready || busy || updating) return;
+            if (e.dataField === 'date') {
+              updating = true;
+              form.updateData('date', bookingDate(e.value));
+              updating = false;
+              reload();
+            } else if (e.dataField === 'member_id') {
+              updating = true;
+              form.updateData('registration_id', null);
+              form.getEditor('registration_id').option('dataSource', []);
+              participantSequence++;
+              participantsReady = false;
+              form.updateData('participants', 'Chưa chọn hợp đồng');
+              derived();
+              updating = false;
+              reload();
+            }
+            else if (e.dataField === 'registration_id') { $error.empty(); loadParticipants(); }
+            else if (e.dataField === 'start_time') derived();
+          }
+        }).dxForm('instance');
+      },
+      toolbarItems: [
+        { widget: 'dxButton', toolbar: 'bottom', location: 'before', options: { icon: 'refresh', hint: 'Tải lại lựa chọn',
+          onInitialized: e => { retryButton = e.component; }, onClick: reload } },
+        { widget: 'dxButton', toolbar: 'bottom', location: 'after', options: { text: 'Đặt lịch', icon: 'plus', type: 'default', disabled: true,
+          onInitialized: e => { saveButton = e.component; }, onClick: async () => {
+            if (busy || !ready || !participantsReady || !form.validate().isValid) return;
+            const requestedId = data.registration_id;
+            const previousDuration = bookingDuration(selected());
+            const previousParticipants = participantIds.join(',');
+            busy = true;
+            saveButton.option({ disabled: true, text: 'Đang lưu...' });
+            try {
+              if (!await reload()) return;
+              const reg = selected();
+              if (!reg || reg.id !== requestedId || bookingDuration(reg) !== previousDuration) throw new Error('Gói tập đã thay đổi. Vui lòng chọn lại gói và giờ tập.');
+              if (participantIds.join(',') !== previousParticipants) throw new Error('Thành viên tham gia đã thay đổi. Vui lòng kiểm tra lại trước khi đặt lịch.');
+              const duration = bookingDuration(reg), end = bookingEnd(data.start_time, duration);
+              if (!end) throw new Error('Giờ bắt đầu hoặc thời lượng không hợp lệ; buổi tập phải kết thúc trong ngày.');
+              if (!data.date || data.date < getTodayDateStr() || new Date(`${data.date}T${data.start_time}:00+07:00`) <= new Date()) throw new Error('Vui lòng chọn thời gian trong tương lai.');
+              if (isNonWorkingDay(data.date, trainer)) throw new Error('Ngày tập nằm ngoài ngày làm việc của HLV.');
+              const response = await apiClient.pt.createBooking({ registration_id: reg.id, member_id: reg.member_id,
+                pt_id: ptId, branch_id: trainer.branch_id, booking_date: data.date, start_time: data.start_time,
+                end_time: end, session_duration_minutes: duration, workout_notes: data.note.trim() });
+              if (!response?.data) throw new Error('Chưa nhận được xác nhận từ máy chủ. Hãy tải lại lịch trước khi thử lại.');
+              if (!alive()) return;
+              busy = false;
+              closed = true;
+              popup.hide();
+              selectDate(data.date);
+              await syncWithBackend();
+              window.ParadisePTOverview?.refresh?.();
+              window.ParadisePTClients?.refresh?.();
+              window.ptApp?.showToast?.('Đã đặt lịch PT.', 'success');
+            } catch (error) {
+              if (alive()) $error.text(error.message || 'Không thể đặt lịch.');
+            } finally {
+              busy = false;
+              if (alive()) {
+                form.option('disabled', !ready);
+                retryButton.option('disabled', false);
+                saveButton.option('text', 'Đặt lịch');
+                options();
+              }
+            }
+          } } }
+      ],
+      onShown: () => { if (!trainer) reload(); }
+    }).dxPopup('instance');
+    bookingPopup = popup;
+    popup.show();
   }
 
   // State quản lý lịch dạy
@@ -91,8 +363,9 @@
           <h3 class="pt-schedule-main-title">
             <i class="fa-solid fa-calendar-days" style="color: var(--primary);"></i> Lịch Huấn Luyện
           </h3>
-          <span class="pt-schedule-badge-hours">Khung cố định: 08:00 - 18:00 (T2 - T6)</span>
+          <span class="pt-schedule-badge-hours" id="ptWorkHours">Đang tải giờ làm việc...</span>
         </div>
+        <button type="button" class="btn btn-primary" id="ptCreateBooking" aria-label="Đặt lịch PT"><i class="fa-solid fa-plus" aria-hidden="true"></i> Đặt lịch</button>
       </div>
 
       <!-- Month Selector & Expandable / Collapsible Calendar (PT01-US01) -->
@@ -143,16 +416,16 @@
           </span>
         </div>
         <div class="pt-slots-counter-badge" id="slotsCounterBadge">
-          5 Khung Giờ
+          0 buổi
         </div>
       </div>
 
       <div class="pt-weekend-alert" id="weekendAlertBox" style="display: none;">
         <i class="fa-solid fa-mug-hot"></i>
-        <span>Hôm nay là ngày nghỉ cuối tuần. HLV làm việc theo khung giờ cố định từ Thứ 2 đến Thứ 6.</span>
+        <span>Ngày nghỉ theo lịch làm việc của HLV.</span>
       </div>
 
-      <!-- Lưới 5 khung giờ làm việc cố định trong ngày (PT01-US01) -->
+      <!-- Danh sách lịch tập thực tế trong ngày -->
       <div class="pt-slots-grid" id="slotsGridContainer">
         <!-- Rendered dynamically by renderSlots() -->
       </div>
@@ -207,15 +480,15 @@
               <!-- Trường 2: Ghi chú buổi tập (USER-INPUT) -->
               <div class="pt-form-group">
                 <label class="pt-form-label" for="modalFitnessNotes">
-                  Ghi chú đánh giá thể lực & nội dung rèn luyện
+                  Đánh giá của PT
                 </label>
                 <textarea 
                   class="pt-textarea" 
                   id="modalFitnessNotes" maxlength="2000" 
                   rows="3" 
-                  placeholder="Nhập nội dung bài tập, thể trạng học viên, dặn dò dinh dưỡng... (Ví dụ: Thể lực tốt, hoàn thành trọn vẹn giáo án cơ chân)"></textarea>
+                  placeholder="Nhập đánh giá buổi học, thể trạng học viên, dặn dò..."></textarea>
                 <span class="pt-form-hint">
-                  <i class="fa-solid fa-circle-info"></i> Ghi chú này sẽ được lưu vào lịch sử tập luyện của học viên.
+                  <i class="fa-solid fa-circle-info"></i> Đánh giá này sẽ được lưu vào lịch sử tập luyện của học viên.
                 </span>
               </div>
 
@@ -223,7 +496,7 @@
               <div class="pt-dual-confirm-notice">
                 <i class="fa-solid fa-shield-halved"></i>
                 <div class="pt-dual-confirm-text">
-                  <strong>Cơ chế xác nhận kép:</strong> Khi cả HLV và Hội viên cùng xác nhận, hệ thống sẽ chuyển buổi tập sang trạng thái <code>DONE</code> và tự động trừ 1 buổi khả dụng trong gói.
+                  <strong>Trạng thái:</strong> Chờ xác nhận của PT và hội viên. Không trừ thêm buổi đã giữ khi đặt lịch.
                 </div>
               </div>
 
@@ -271,7 +544,7 @@
       const dayOfWeek = d.getDay();
       const dateStr = `${ScheduleState.currentYear}-${String(ScheduleState.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const isSelected = dateStr === ScheduleState.selectedDateStr;
-      const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+      const isWeekend = isNonWorkingDay(dateStr);
 
       // Kiểm tra có lịch không để hiện chấm status
       const bookingsOnDate = ScheduleState.bookings.filter(b => b.date === dateStr);
@@ -291,7 +564,7 @@
       }
 
       stripHtml += `
-        <div class="pt-date-chip ${isSelected ? 'active' : ''} ${isWeekend ? 'is-weekend' : ''}" 
+        <div role="button" tabindex="0" aria-label="${dateStr}" aria-pressed="${isSelected}" class="pt-date-chip ${isSelected ? 'active' : ''} ${isWeekend ? 'is-weekend' : ''}"
              data-date="${dateStr}">
           <span class="pt-chip-day">${dayNames[dayOfWeek]}</span>
           <span class="pt-chip-num">${String(day).padStart(2, '0')}</span>
@@ -426,27 +699,15 @@
    * Kiểm tra ca tập đã đến giờ hoặc qua giờ tập hay chưa (PT01-US01 & PT01-US02)
    */
   function isSlotStartedOrPassed(dateStr, slotStart) {
-    if (!dateStr) return false;
-    const todayStr = getTodayDateStr();
+    return !!dateStr && !!slotStart && new Date(`${dateStr}T${slotStart}:00+07:00`) <= new Date();
+  }
 
-    // Ngày trước hôm nay: Đã qua giờ tập
-    if (dateStr < todayStr) return true;
-    // Ngày sau hôm nay: Chưa đến ngày tập
-    if (dateStr > todayStr) return false;
-
-    // Đúng ngày hôm nay: So sánh giờ bắt đầu ca tập
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMin = now.getMinutes();
-    const [startHour, startMin] = (slotStart || '08:00').split(':').map(Number);
-
-    if (currentHour > startHour) return true;
-    if (currentHour === startHour && currentMin >= (startMin || 0)) return true;
-    return false;
+  function isSlotEndedOrPassed(dateStr, slotEnd) {
+    return !!dateStr && !!slotEnd && new Date(`${dateStr}T${slotEnd}:00+07:00`) <= new Date();
   }
 
   /**
-   * Render lưới 5 khung giờ trong ngày (PT01-US01)
+   * Render lịch tập theo thời gian thực tế (PT01-US01)
    */
   function renderSlots() {
     if (ScheduleState.hasError) {
@@ -468,198 +729,134 @@
     // Cập nhật tiêu đề ngày
     const selectedDateParts = ScheduleState.selectedDateStr.split('-');
     const formattedDate = `${selectedDateParts[2]}/${selectedDateParts[1]}/${selectedDateParts[0]}`;
-    $('#selectedDateText').text(`${formattedDate} - Khung làm việc cố định: 08:00 - 18:00`);
+    $('#selectedDateText').text(formattedDate);
 
-    const selDateObj = new Date(ScheduleState.selectedDateStr);
-    const isWeekend = (selDateObj.getDay() === 0 || selDateObj.getDay() === 6);
+    const isWeekend = isNonWorkingDay(ScheduleState.selectedDateStr);
     if (isWeekend) {
-      $('#weekendAlertBox').show();
+      $('#weekendAlertBox').show().find('span').text('Ngày nghỉ theo lịch làm việc của HLV.');
     } else {
       $('#weekendAlertBox').hide();
     }
 
-    const dayBookings = ScheduleState.bookings.filter(b => b.date === ScheduleState.selectedDateStr);
+    const dayBookings = ScheduleState.bookings.filter(b => b.date === ScheduleState.selectedDateStr)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime) || a.endTime.localeCompare(b.endTime));
+    $('#slotsCounterBadge').text(`${dayBookings.length} buổi`);
 
     let html = '';
 
     // PT01-US01 Exception Flow: PT chưa được phân công học viên nào
-    if (ScheduleState.bookings.length === 0) {
+    if (dayBookings.length === 0) {
       html += `
         <div class="pt-empty-schedule-banner">
           <i class="fa-solid fa-circle-info"></i>
-          <span>Bạn chưa có buổi tập nào được phân công.</span>
+          <span>Không có lịch tập trong ngày này.</span>
         </div>
       `;
     }
 
-    STANDARD_SLOTS.forEach((slot, index) => {
-      const matches = dayBookings.filter(b => 
-        b.slot === slot.label || 
-        b.startTime === slot.start || 
-        (b.slot && b.slot.startsWith(slot.start))
-      );
-      (matches.length ? matches : [null]).forEach(booking => {
-      if (!booking) {
-        // 1. THẺ KHUNG GIỜ TRỐNG (Chỉ đọc, KHÔNG có nút đặt lịch)
-        html += `
-          <div class="pt-slot-card slot-empty">
-            <div class="pt-slot-time-col">
-              <span class="pt-slot-time-text">${slot.label}</span>
-              <span class="pt-slot-index">Slot ${index + 1}</span>
-            </div>
-            <div class="pt-slot-info-col">
-              <div class="pt-empty-badge">
-                <i class="fa-regular fa-clock"></i> Khung giờ trống
-              </div>
-              <p class="pt-empty-hint">Chưa có học viên đặt lịch trong khung giờ này</p>
-            </div>
-          </div>
-        `;
-      } else if (booking.status === 'UPCOMING') {
-        // 2. THẺ CA TẬP - ĐÃ ĐẶT (UPCOMING)
-        // Đến giờ hoặc qua giờ tập, hiển thị nút màu xanh [ Xác nhận hoàn thành ] (PT01-US01 & PT01-US02)
-        const canConfirm = !booking.ptConfirmed && isSlotStartedOrPassed(booking.date, slot.start);
-        html += `
-          <div class="pt-slot-card slot-upcoming" data-booking-id="${booking.id}" data-status="UPCOMING">
-            <div class="pt-slot-time-col">
-              <span class="pt-slot-time-text">${slot.label}</span>
-              <span class="pt-slot-index">Slot ${index + 1}</span>
-            </div>
-            <div class="pt-slot-info-col">
-              <div class="pt-slot-header-row">
-                <span class="pt-slot-status-badge badge-blue">
-                  <i class="fa-regular fa-calendar-check"></i> Đã đặt
-                </span>
-                <span class="pt-slot-id">${booking.id}</span>
-              </div>
-              <h4 class="pt-slot-member-name">${escapeHtml(booking.memberName)}</h4>
-              <div class="pt-slot-meta-row">
-                <span><i class="fa-solid fa-box"></i> ${escapeHtml(booking.packageName)}</span>
-                <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(booking.branchName)}</span>
-              </div>
-              <div class="pt-slot-actions">
-                ${canConfirm ? `
-                  <button type="button" class="btn btn-primary btn-sm btn-confirm-trigger" 
-                          data-booking-id="${booking.id}">
-                    <i class="fa-solid fa-circle-check"></i> Xác nhận hoàn thành
-                  </button>
-                ` : `
-                  <span class="pt-status-pill pill-blue">
-                    <i class="fa-regular fa-clock"></i> Chưa đến giờ tập
-                  </span>
-                `}
-              </div>
-            </div>
-          </div>
-        `;
+    dayBookings.forEach(booking => {
+      const slot = { start: booking.startTime, label: escapeHtml(booking.slot) };
+      const [sh, sm] = (booking.startTime || '').split(':').map(Number);
+      const [eh, em] = (booking.endTime || '').split(':').map(Number);
+      const durationMin = (!isNaN(sh) && !isNaN(eh)) ? (eh * 60 + em) - (sh * 60 + sm) : (booking.durationMinutes || 60);
+
+      const hasEnded = isSlotEndedOrPassed(booking.date, booking.endTime);
+
+      let stateClass = 'upcoming';
+      let statusPillText = 'Đã đặt';
+      let buttonsHtml = '';
+
+      if (booking.status === 'UPCOMING') {
+        stateClass = 'upcoming';
+        statusPillText = 'Đã đặt';
+        if (!booking.ptConfirmed) {
+          if (hasEnded) {
+            buttonsHtml = `<button type="button" class="pt-btn-card-complete is-ended btn-confirm-trigger" data-booking-id="${booking.id}"><i class="fa-solid fa-check"></i> Xác nhận hoàn thành</button>`;
+          } else {
+            buttonsHtml = `<button type="button" class="pt-btn-card-complete is-waiting" disabled title="Chỉ có thể xác nhận sau khi kết thúc buổi tập (${booking.endTime})"><i class="fa-solid fa-check"></i> Xác nhận hoàn thành</button>`;
+          }
+        }
       } else if (booking.status === 'AWAITING_CONFIRMATION') {
-        // 3. THẺ CA TẬP - CHỜ XÁC NHẬN (AWAITING_CONFIRMATION)
-        const isPtConfirmed = booking.ptConfirmed;
-        html += `
-          <div class="pt-slot-card slot-awaiting" data-booking-id="${booking.id}" data-status="AWAITING_CONFIRMATION">
-            <div class="pt-slot-time-col">
-              <span class="pt-slot-time-text">${slot.label}</span>
-              <span class="pt-slot-index">Slot ${index + 1}</span>
-            </div>
-            <div class="pt-slot-info-col">
-              <div class="pt-slot-header-row">
-                <span class="pt-slot-status-badge badge-amber">
-                  <i class="fa-solid fa-clock-rotate-left"></i> Chờ xác nhận
-                </span>
-                <span class="pt-slot-id">${booking.id}</span>
-              </div>
-              <h4 class="pt-slot-member-name">${escapeHtml(booking.memberName)}</h4>
-              <div class="pt-slot-meta-row">
-                <span><i class="fa-solid fa-box"></i> ${escapeHtml(booking.packageName)}</span>
-                <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(booking.branchName)}</span>
-              </div>
-              <div class="pt-slot-actions">
-                ${!isPtConfirmed ? `
-                  <button type="button" class="btn btn-primary btn-sm btn-confirm-trigger" 
-                          data-booking-id="${booking.id}">
-                    <i class="fa-solid fa-circle-check"></i> Xác nhận hoàn thành
-                  </button>
-                ` : `
-                  <span class="pt-status-pill pill-amber">
-                    <i class="fa-solid fa-hourglass-half"></i> Chờ Hội viên xác nhận
-                  </span>
-                `}
-              </div>
-            </div>
-          </div>
-        `;
+        stateClass = 'awaiting';
+        statusPillText = 'Chờ xác nhận hoàn thành';
+        buttonsHtml = `<span class="pt-card-status-pill" style="background:rgba(255,255,255,0.25);"><i class="fa-solid fa-hourglass-half"></i> ${booking.ptConfirmed ? 'Chờ Hội viên xác nhận' : 'Chờ xác nhận'}</span>`;
       } else if (booking.status === 'DONE' || booking.status === 'COMPLETED') {
-        // 4. THẺ CA TẬP - HOÀN THÀNH (DONE)
-        html += `
-          <div class="pt-slot-card slot-done" data-booking-id="${booking.id}" data-status="DONE">
-            <div class="pt-slot-time-col">
-              <span class="pt-slot-time-text">${slot.label}</span>
-              <span class="pt-slot-index">Slot ${index + 1}</span>
-            </div>
-            <div class="pt-slot-info-col">
-              <div class="pt-slot-header-row">
-                <span class="pt-slot-status-badge badge-emerald">
-                  <i class="fa-solid fa-clipboard-check"></i> ${booking.sessionNumber ? `Buổi ${booking.sessionNumber} · Đã hoàn thành` : 'Đã ghi nhận'}
-                </span>
-                <span class="pt-slot-id">${booking.id}</span>
-              </div>
-              <h4 class="pt-slot-member-name">${escapeHtml(booking.memberName)}</h4>
-              <div class="pt-slot-meta-row">
-                <span><i class="fa-solid fa-box"></i> ${escapeHtml(booking.packageName)}</span>
-                <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(booking.branchName)}</span>
-              </div>
-              ${booking.workoutNotes ? `
-                <div class="pt-slot-workout-notes" style="font-size: 12px; color: var(--text-main); margin-top: 5px; line-height: 1.4;">
-                  <i class="fa-solid fa-clipboard-list" style="color: var(--primary);"></i> <strong>Bài tập:</strong> ${escapeHtml(booking.workoutNotes)}
-                </div>
-              ` : ''}
-              ${booking.fitnessNotes ? `
-                <div class="pt-slot-fitness-notes">
-                  <i class="fa-solid fa-dumbbell"></i> "${escapeHtml(booking.fitnessNotes)}"
-                </div>
-              ` : ''}
-              <div class="pt-slot-done-footer">
-                <i class="fa-solid fa-check-double"></i> Đã đủ 2 chiều xác nhận • Đã trừ 1 buổi
-              </div>
-            </div>
-          </div>
-        `;
+        stateClass = 'done';
+        statusPillText = 'Hoàn thành';
+        buttonsHtml = `<span class="pt-card-status-pill" style="background:rgba(255,255,255,0.25);"><i class="fa-solid fa-check-double"></i> Đã hoàn thành</span>`;
       } else if (booking.status === 'CANCELLED') {
-        // 5. THẺ CA TẬP - ĐÃ HỦY (CANCELLED)
-        html += `
-          <div class="pt-slot-card slot-cancelled" data-booking-id="${booking.id}" data-status="CANCELLED">
-            <div class="pt-slot-time-col">
-              <span class="pt-slot-time-text">${slot.label}</span>
-              <span class="pt-slot-index">Slot ${index + 1}</span>
+        stateClass = 'cancelled';
+        statusPillText = 'Đã hủy';
+        buttonsHtml = '';
+      } else {
+        stateClass = 'cancelled';
+        statusPillText = booking.status === 'NO_SHOW' ? 'Vắng mặt' : booking.status;
+        buttonsHtml = '';
+      }
+
+      html += `
+        <div class="pt-slot-card pt-appointment-card slot-${stateClass} pt-status-${stateClass}" 
+             data-booking-id="${booking.id}" data-status="${booking.status}"
+             style="min-height: ${Math.max(68, Math.round(durationMin * 0.85))}px;">
+          <div class="pt-card-top-row">
+            <div class="pt-card-top-left">
+              <span class="pt-card-time"><i class="fa-regular fa-clock"></i> <strong>${slot.start} - ${booking.endTime}</strong></span>
+              <span class="pt-card-dur-tag">${durationMin}p</span>
+              <span class="pt-card-status-pill">${statusPillText}</span>
             </div>
-            <div class="pt-slot-info-col">
-              <div class="pt-slot-header-row">
-                <span class="pt-slot-status-badge badge-gray">
-                  <i class="fa-solid fa-ban"></i> Đã hủy
-                </span>
-                <span class="pt-slot-id">${booking.id}</span>
-              </div>
-              <h4 class="pt-slot-member-name text-muted">${escapeHtml(booking.memberName)}</h4>
-              <div class="pt-slot-meta-row">
-                <span><i class="fa-solid fa-box"></i> ${escapeHtml(booking.packageName)}</span>
-              </div>
-              <div class="pt-slot-cancel-reason">
-                Lý do: ${escapeHtml(booking.cancelReason || 'Buổi tập đã bị hủy')}
-              </div>
+            <div class="pt-card-top-right">
+              ${buttonsHtml}
             </div>
           </div>
-        `;
-      }
-      });
+          <div class="pt-card-bottom-row pt-slot-meta-row">
+            <strong class="pt-card-member-name"><i class="fa-regular fa-user"></i> ${escapeHtml(booking.memberName)}</strong>
+            <span class="pt-card-divider">·</span>
+            <span class="pt-card-pkg-name">${escapeHtml([booking.memberCode, booking.packageName].filter(Boolean).join(' - '))}</span>
+          </div>
+          ${booking.status === 'CANCELLED' ? (
+            booking.cancelReason ? `
+              <div class="pt-card-notes-row" style="font-size: 11.5px; color: rgba(255,255,255,0.88); margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+                <i class="fa-solid fa-circle-exclamation" style="margin-right: 4px;"></i> <span>Lý do hủy: ${escapeHtml(booking.cancelReason)}</span>
+              </div>
+            ` : ''
+          ) : `
+            ${(booking.workoutNotes || booking.fitnessNotes) ? `
+              <div class="pt-card-notes-row" style="font-size: 11.5px; color: rgba(255,255,255,0.88); margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+                <i class="fa-solid fa-clipboard-user" style="margin-right: 4px;"></i> <span>Đánh giá của PT: ${escapeHtml([booking.workoutNotes, booking.fitnessNotes].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(' · '))}</span>
+              </div>
+            ` : ''}
+          `}
+        </div>
+      `;
     });
 
     $grid.html(html);
+    dayBookings.filter(b => b.participants.length > 1 || b.participantSource === 'LEGACY_OWNER_ONLY').forEach(booking => {
+      const card = $grid.find('.pt-slot-card').filter(function () { return $(this).attr('data-booking-id') === booking.id; });
+      const detail = $('<div class="pt-slot-participants pt-slot-fitness-notes">');
+      if (booking.participantSource === 'LEGACY_OWNER_ONLY') {
+        detail.text('Lịch cũ chưa lưu danh sách người tham gia.');
+      } else {
+        $('<strong>').text('Thành viên tham gia: ').appendTo(detail);
+        $('<span>').text(booking.participants.map(member => [member.member_name, member.member_code].filter(Boolean).join(' · ')).join('; ')).appendTo(detail);
+      }
+      detail.insertAfter(card.find('.pt-slot-meta-row').first());
+    });
+    dayBookings.filter(b => b.workoutNotes && b.status !== 'DONE' && b.status !== 'COMPLETED').forEach(booking => {
+      const $card = $grid.find('[data-booking-id]').filter(function () { return $(this).attr('data-booking-id') === booking.id; });
+      $('<div class="pt-slot-fitness-notes">').text(booking.workoutNotes).appendTo($card.find('.pt-slot-info-col'));
+    });
   }
 
   /**
    * Gắn sự kiện tương tác
    */
   function bindEvents() {
+    $(document).off('click', '#ptCreateBooking').on('click', '#ptCreateBooking', openBookingPopup);
+    $(document).off('keydown.ptSchedule').on('keydown.ptSchedule', '.pt-date-chip, #btnToggleCalendarMode, #btnToggleBar', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $(this).trigger('click'); }
+    });
+    $('#btnToggleCalendarMode, #btnToggleBar').attr({ role: 'button', tabindex: '0', 'aria-label': 'Mở rộng hoặc thu gọn lịch' });
     $(document).off('click', '#btnRetrySchedule').on('click', '#btnRetrySchedule', syncWithBackend);
     // 1. Chọn ngày trên Horizontal Strip (Chế độ Thu gọn)
     $(document).off('click', '.pt-date-chip').on('click', '.pt-date-chip', function () {
@@ -667,8 +864,8 @@
       if (!newDate) return;
 
       ScheduleState.selectedDateStr = newDate;
-      $('.pt-date-chip').removeClass('active');
-      $(this).addClass('active');
+      $('.pt-date-chip').removeClass('active').attr('aria-pressed', 'false');
+      $(this).addClass('active').attr('aria-pressed', 'true');
 
       renderSlots();
     });
@@ -778,8 +975,8 @@
    */
   function openConfirmModal(bookingId) {
     const booking = ScheduleState.bookings.find(b => b.id === bookingId);
-    if (!booking || booking.ptConfirmed || ['DONE', 'CANCELLED', 'NO_SHOW'].includes(booking.status)) return;
-    if (new Date(booking.date + 'T' + booking.startTime) > new Date()) return;
+    if (!booking || booking.ptConfirmed || !['UPCOMING', 'AWAITING_CONFIRMATION'].includes(booking.status)) return;
+    if (!isSlotStartedOrPassed(booking.date, booking.startTime)) return;
 
     ScheduleState.activeBookingForConfirm = booking;
 
@@ -824,20 +1021,20 @@
 
             <div style="margin-bottom: 12px;">
               <label for="dxFitnessNotesInput" style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 6px;">
-                Ghi chú đánh giá thể lực & bài tập
+                Đánh giá của PT
               </label>
               <textarea 
                 id="dxFitnessNotesInput" 
                 class="pt-textarea" 
                 rows="3" 
                 maxlength="2000" 
-                placeholder="Nhập nội dung bài tập, thể trạng học viên, dặn dò dinh dưỡng..." 
+                placeholder="Nhập đánh giá buổi học, thể trạng học viên..." 
                 style="width: 100%; box-sizing: border-box; background: var(--border-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 8px; font-size: 12px; resize: vertical;"
               >${escapeHtml(currentNotes)}</textarea>
             </div>
 
             <div style="font-size: 12px; color: #65736d; background: var(--border-color); padding: 8px; border-radius: 6px; line-height: 1.4;">
-              <i class="fa-solid fa-shield-halved" style="color: #237b58;"></i> <strong>Cơ chế xác nhận kép:</strong> Khi cả HLV và Hội viên cùng xác nhận, hệ thống sẽ chuyển buổi tập sang DONE và trừ 1 buổi khả dụng.
+              <i class="fa-solid fa-shield-halved" style="color: #237b58;"></i> <strong>Trạng thái:</strong> Chờ xác nhận của PT và hội viên. Không trừ thêm buổi đã giữ khi đặt lịch.
             </div>
           </div>
         `);
@@ -870,7 +1067,7 @@
               btnEvent.component.option('text', 'Đang lưu...');
 
               try {
-                const res = await apiClient.pt.ptConfirm(booking.id, { workout_notes: fitnessNotes });
+                const res = await apiClient.pt.ptConfirm(booking.id, { workout_notes: fitnessNotes, fitness_assessment: fitnessNotes });
                 if (!res?.data) throw new Error('Máy chủ chưa xác nhận lưu kết quả.');
                 const saved = res.data.booking || res.data;
                 const toastMessage = saved.status === 'COMPLETED' || saved.completed === true
@@ -950,14 +1147,20 @@
     const currentPt = window.ptApp?.currentUser;
     const currentPtId = currentPt?.pt_profile_id;
     if (!currentPtId) return;
+    const sequence = ++syncSequence;
 
     ScheduleState.isLoading = true;
     ScheduleState.hasError = false;
     renderSlots();
 
     try {
-      const res = await apiClient.pt.listBookings(currentPtId ? { pt_id: currentPtId } : {});
-      if (window.ptApp?.currentUser?.pt_profile_id !== currentPtId) return;
+      const results = await Promise.allSettled([apiClient.pt.listBookings({ pt_id: currentPtId }), ownTrainer(currentPtId)]);
+      if (sequence !== syncSequence || window.ptApp?.currentUser?.pt_profile_id !== currentPtId) return;
+      if (results[1].status === 'fulfilled') { trainerProfile = results[1].value; showWorkHours(); }
+      else { trainerProfile = null; $('#ptWorkHours').text('Không tải được giờ làm việc'); }
+      if (results[0].status === 'rejected') throw results[0].reason;
+      const res = results[0].value;
+      apiRows(res);
       ScheduleState.isLoading = false;
 
       if (res && res.data && Array.isArray(res.data)) {
@@ -982,14 +1185,18 @@
           const startTime = item.start_time ? item.start_time.slice(0, 5) : '';
           const endTime = item.end_time ? item.end_time.slice(0, 5) : '';
 
+          const duration = startTime && endTime ? (Date.parse(`2000-01-01T${endTime}:00Z`) - Date.parse(`2000-01-01T${startTime}:00Z`)) / 60000 : null;
           return {
             id: item.id,
             sessionNumber: item.session_number || null,
             date: dateStr,
             startTime: startTime,
             endTime: endTime,
+            durationLabel: duration > 0 ? `${duration} phút` : '',
             slot: `${startTime} - ${endTime}`,
             memberName: item.member_name || 'Hội viên',
+            participants: Array.isArray(item.participants) ? item.participants : [],
+            participantSource: item.participant_source,
             memberCode: item.member_code || 'HV',
             packageName: item.package_name || item.package_name_snapshot || 'Chưa cập nhật',
             branchName: item.branch_name || 'Chưa cập nhật',
@@ -1010,6 +1217,7 @@
         }
       }
     } catch (e) {
+      if (sequence !== syncSequence || window.ptApp?.currentUser?.pt_profile_id !== currentPtId) return;
       ScheduleState.isLoading = false;
       ScheduleState.hasError = true;
       renderSlots();
@@ -1054,7 +1262,19 @@
     style.textContent = `
       .pt-schedule-topbar {
         margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
       }
+      .pt-booking-content { max-height: 65vh; overflow-y: auto; padding: 0 4px 12px; }
+      .pt-booking-message { color: var(--accent-danger, #c43d40); font-size: 13px; white-space: normal; overflow-wrap: anywhere; margin-bottom: 12px; }
+      .pt-booking-popup .dx-popup-content { padding: 14px; }
+      .pt-booking-popup .dx-button-mode-contained.dx-button-default { background: var(--primary); color: #fff; }
+      #view-schedule .pt-slot-info-col { min-width: 0; overflow-wrap: anywhere; }
+      #view-schedule .pt-slot-header-row { flex-wrap: wrap; gap: 6px; }
+      #view-schedule .pt-slot-id { max-width: 100%; overflow-wrap: anywhere; }
       .pt-schedule-main-title {
         font-size: 17px;
         font-weight: 800;
@@ -1359,186 +1579,191 @@
         overflow: hidden;
         transition: transform 0.2s ease, border-color 0.2s ease;
       }
-      .pt-slot-time-col {
-        width: 86px;
-        flex-shrink: 0;
-        background: var(--border-color);
-        border-right: 1px solid var(--border-color);
-        padding: 14px 8px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-      }
-      .pt-slot-time-text {
-        font-size: 12px;
-        font-weight: 800;
-        color: var(--text-main);
-        line-height: 1.3;
-      }
-      .pt-slot-index {
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--text-sub);
-        margin-top: 4px;
-        text-transform: uppercase;
-      }
-      .pt-slot-info-col {
-        flex: 1;
-        padding: 12px 14px;
+      .pt-slot-card.pt-appointment-card {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 8px;
+        padding: 10px 14px;
         display: flex;
         flex-direction: column;
         justify-content: center;
-      }
-
-      /* 1. Slot Trống */
-      .pt-slot-card.slot-empty {
-        border-style: dashed;
-        border-color: var(--border-color);
-        opacity: 0.75;
-      }
-      .pt-slot-card.slot-empty:hover {
-        opacity: 1;
-        border-color: var(--border-color);
-      }
-      .pt-empty-badge {
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--text-muted);
-        display: inline-flex;
-        align-items: center;
         gap: 6px;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 10px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
       }
-      .pt-empty-hint {
-        font-size: 12px;
-        color: var(--text-sub);
-        margin-top: 4px;
-      }
-
-      /* 2. Slot UPCOMING */
       .pt-slot-card.slot-upcoming {
-        border-left: 4px solid #286aa4;
-        background: var(--bg-card);
+        background: #1e40af !important;
+        border-left: 5px solid #60a5fa !important;
+        box-shadow: 0 2px 8px rgba(30, 64, 175, 0.35) !important;
+        border-top: none !important;
+        border-right: none !important;
+        border-bottom: none !important;
       }
-      .pt-slot-header-row {
+      .pt-slot-card.slot-awaiting {
+        background: #b45309 !important;
+        border-left: 5px solid #fbbf24 !important;
+        box-shadow: 0 2px 8px rgba(180, 83, 9, 0.35) !important;
+        border-top: none !important;
+        border-right: none !important;
+        border-bottom: none !important;
+      }
+      .pt-slot-card.slot-done {
+        background: #047857 !important;
+        border-left: 5px solid #34d399 !important;
+        box-shadow: 0 2px 8px rgba(4, 120, 87, 0.35) !important;
+        border-top: none !important;
+        border-right: none !important;
+        border-bottom: none !important;
+      }
+      .pt-slot-card.slot-cancelled {
+        background: #991b1b !important;
+        border-left: 5px solid #f87171 !important;
+        box-shadow: 0 2px 8px rgba(153, 27, 27, 0.35) !important;
+        border-top: none !important;
+        border-right: none !important;
+        border-bottom: none !important;
+      }
+      .pt-card-top-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 4px;
+        width: 100%;
+        gap: 8px;
+        flex-wrap: wrap;
       }
-      .pt-slot-status-badge {
-        font-size: 12px;
+      .pt-card-top-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: nowrap;
+      }
+      .pt-card-top-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: nowrap;
+        flex-shrink: 0;
+      }
+      .pt-card-time {
+        font-size: 13px;
         font-weight: 700;
-        padding: 2px 7px;
-        border-radius: 4px;
+        color: #ffffff !important;
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+        white-space: nowrap;
       }
-      .badge-blue { background: rgba(59, 130, 246, 0.2); color: #286aa4; }
-      .badge-amber { background: rgba(245, 158, 11, 0.2); color: #996217; }
-      .badge-emerald { background: rgba(16, 185, 129, 0.2); color: #237b58; }
-      .badge-gray { background: rgba(148, 163, 184, 0.2); color: #65736d; }
-
-      .pt-slot-id {
-        font-size: 12px;
-        color: var(--text-sub);
-        font-family: monospace;
+      .pt-card-dur-tag {
+        background: rgba(255, 255, 255, 0.22);
+        color: #ffffff !important;
+        padding: 1.5px 7px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
       }
-      .pt-slot-member-name {
-        font-size: 14px;
-        font-weight: 800;
-        color: var(--text-main);
-        margin-bottom: 4px;
+      .pt-card-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10.5px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.22);
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        white-space: nowrap;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       }
-      .pt-slot-meta-row {
+      .pt-card-bottom-row {
         display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        font-size: 12px;
-        color: var(--text-muted);
-        margin-bottom: 6px;
+        align-items: center;
+        gap: 6px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        line-height: 1.35;
+        color: #ffffff;
       }
-      .pt-slot-actions {
-        margin-top: 6px;
+      .pt-card-member-name {
+        font-size: 13px;
+        font-weight: 800;
+        color: #ffffff !important;
+        white-space: nowrap;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
       }
-      .btn-confirm-trigger {
-        width: 100%;
-        background: var(--bg-card);
-        color: var(--text-main);
-        border: none;
-        border-radius: 6px;
-        padding: 7px 12px;
+      .pt-card-divider {
+        color: rgba(255, 255, 255, 0.5);
+        font-weight: 700;
+      }
+      .pt-card-pkg-name {
         font-size: 12px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.92) !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      }
+      .pt-btn-card-complete {
+        border-radius: 4px;
+        padding: 3px 9px;
+        font-size: 11px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        transition: all 0.15s ease-in-out;
+        border: 1px solid;
+        outline: none;
+      }
+      .pt-btn-card-complete.is-ended {
+        background: #10b981 !important;
+        color: #ffffff !important;
+        border-color: #059669 !important;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      }
+      .pt-btn-card-complete.is-ended:hover {
+        background: #059669 !important;
+        transform: translateY(-1px);
+      }
+      .pt-btn-card-complete.is-waiting {
+        background: #94a3b8 !important;
+        color: #ffffff !important;
+        border-color: #64748b !important;
+        cursor: not-allowed;
+        opacity: 0.88;
+      }
+      .pt-btn-card-cancel {
+        background: #dc2626 !important;
+        color: #ffffff !important;
+        border: 1px solid #ef4444 !important;
+        border-radius: 4px;
+        padding: 3px 9px;
+        font-size: 11px;
         font-weight: 700;
         cursor: pointer;
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        gap: 6px;
-        box-shadow: none;
-        transition: filter 0.2s ease;
+        gap: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        transition: all 0.15s ease-in-out;
+        white-space: nowrap;
+        outline: none;
       }
-      .btn-confirm-trigger:hover {
-        filter: brightness(1.1);
-      }
-      .pt-locked-hint {
-        font-size: 12px;
-        color: var(--text-sub);
-        font-style: italic;
-      }
-
-      /* 3. Slot AWAITING CONFIRMATION */
-      .pt-slot-card.slot-awaiting {
-        border-left: 4px solid #996217;
-        background: var(--bg-card);
-      }
-      .pt-awaiting-notice {
-        font-size: 12px;
-        color: #996217;
-        background: rgba(245, 158, 11, 0.12);
-        padding: 4px 8px;
-        border-radius: 4px;
-        margin: 4px 0 6px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-
-      /* 4. Slot DONE */
-      .pt-slot-card.slot-done {
-        border-left: 4px solid #237b58;
-        background: var(--bg-card);
-      }
-      .pt-slot-fitness-notes {
-        font-size: 12px;
-        color: var(--text-main);
-        background: var(--border-color);
-        padding: 5px 8px;
-        border-radius: 4px;
-        margin-top: 4px;
-        border-left: 2px solid var(--primary);
-      }
-      .pt-slot-done-footer {
-        font-size: 12px;
-        color: var(--primary);
-        margin-top: 6px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-weight: 700;
-      }
-
-      /* 5. Slot CANCELLED */
-      .pt-slot-card.slot-cancelled {
-        border-left: 4px solid #65736d;
-        opacity: 0.65;
-      }
-      .pt-slot-cancel-reason {
-        font-size: 12px;
-        color: #c43d40;
-        margin-top: 3px;
+      .pt-btn-card-cancel:hover {
+        background: #b91c1c !important;
+        transform: translateY(-1px);
       }
 
       /* Bottom Sheet Modal Confirmation */
@@ -1816,7 +2041,19 @@
 
   return {
     init,
-    reset: () => { ScheduleState.bookings = []; ScheduleState.hasError = false; ScheduleState.isLoading = false; closeConfirmModal(); renderSlots(); },
+    reset: () => { syncSequence++; trainerProfile = null; bookingPopup?.hide(); ScheduleState.bookings = []; ScheduleState.hasError = false; ScheduleState.isLoading = false; closeConfirmModal(); renderSlots(); },
+    openBookingModal: openBookingPopup,
+    openBookingFromNotification: async (referenceId, shouldOpenResult) => {
+      if (!ScheduleState.bookings.some(b => b.id === referenceId)) await syncWithBackend();
+      const booking = ScheduleState.bookings.find(b => b.id === referenceId);
+      if (!booking || ScheduleState.hasError) {
+        window.ptApp?.showToast?.('Không tìm thấy buổi tập trong lịch của bạn.', 'error');
+        return false;
+      }
+      selectDate(booking.date, booking.id);
+      if (shouldOpenResult) openConfirmModal(booking.id);
+      return true;
+    },
     refresh: syncWithBackend,
     syncWithBackend,
     selectDate,

@@ -40,34 +40,44 @@
 
 - **Lỗi kết nối mạng:** Hệ thống vẫn xóa token và dữ liệu cache cục bộ trên thiết bị để đảm bảo an toàn, sau đó chuyển HLV về màn hình Đăng nhập.
 
+- Mất mạng chỉ xác nhận đã xóa phiên tại thiết bị, chưa xác minh thu hồi server. Thu hồi phiên khác/tất cả theo PT04-US01.
+
 ## Activity Diagram — Swimlane
 **Trigger:** HLV bấm nút Đăng xuất tại màn hình Tài khoản PT.
 
+
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — Mobile App PT / PT05 · Đăng xuất"]
-    subgraph L0["Swimlane — Huấn luyện viên (PT)"]
-      I01(("Initial"))
-      A01["Bấm nút [ Đăng xuất ] tại tab PT04 · Tài khoản"]
-      D01{"Xác nhận trên Popup Đăng xuất?"}
-      A02["Bấm [ Xác nhận đăng xuất ]"]
-      A03["Bấm [ Hủy ]"]
-      F01((("Final — Về màn hình Đăng nhập PT (PT05-US01)")))
-      F02((("Final — Duy trì phiên làm việc PT")))
-
-      I01 --> A01
-      A01 --> D01
-      D01 -->|Xác nhận| A02
-      D01 -->|Hủy| A03 --> F02
+  subgraph B["Boundary - Mobile PT / PT05-US03"]
+    subgraph L0["Swimlane - PT"]
+      I(("Initial"))
+      A["Bấm Đăng xuất hiện tại"]
+      D{"Xác nhận?"}
+      Y["Xác nhận đăng xuất"]
     end
-
-    subgraph L1["Swimlane — SYS"]
-      S01["Hiển thị Popup Xác nhận Đăng xuất"]
-      S02["Thu hồi token xác thực, kết thúc session và xóa cache phiên làm việc"]
-      S03["Điều hướng người dùng về màn hình Đăng nhập PT (PT05-US01)"]
-
-      A01 --> S01 --> D01
-      A02 --> S02 --> S03 --> F01
+    subgraph L1["Swimlane - SYS"]
+      POP["Mở popup xác nhận"]
+      FC((("Final - Hủy, giữ phiên")))
+      REQ["POST auth/logout-current"]
+      RES{"Kết quả server?"}
+      OK["Ghi nhận phiên đã thu hồi hoặc đã hết hạn"]
+      ERR["Báo chưa xác minh thu hồi server khi lỗi mạng"]
+      M(("Merge - Kết thúc tại thiết bị"))
+      CLEAR["Xóa token/cache phiên, về PT05-US01"]
+      F((("Final - Đã đăng xuất thiết bị")))
     end
+    I --> A
+    A --> POP
+    POP --> D
+    D -->|Hủy| FC
+    D -->|Có| Y
+    Y --> REQ
+    REQ --> RES
+    RES -->|Thành công hoặc phiên đã hết hạn| OK
+    RES -->|Lỗi mạng| ERR
+    OK --> M
+    ERR --> M
+    M --> CLEAR
+    CLEAR --> F
   end
-```\n
+```

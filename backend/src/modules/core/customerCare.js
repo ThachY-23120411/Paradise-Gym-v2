@@ -1,5 +1,6 @@
 const express = require('express');
 const H = require('./http');
+const {listExpiring}=require('./registrationState');
 const { pool, route, fail, text, date, today, only, isStaff, role, scope, row, audit } = H;
 const router = express.Router();
 
@@ -20,14 +21,7 @@ router.get('/customer-care/summary', route(async req => {
   `, [branchIds]);
 
   // 2. Gói sắp hết hạn trong vòng 4 ngày tới (<= 4 ngày)
-  const expiringRes = await pool.query(`
-    SELECT COUNT(*) AS count
-    FROM registrations r
-    JOIN member_profiles m ON m.id = r.member_id
-    WHERE ($1::uuid[] IS NULL OR r.sold_branch_id = ANY($1))
-      AND r.status = 'ACTIVE'
-      AND r.end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '4 days')
-  `, [branchIds]);
+  const expiring = await listExpiring(pool,branchIds);
 
   // 3. Đăng ký mới hôm nay
   const newRegsRes = await pool.query(`
@@ -42,7 +36,7 @@ router.get('/customer-care/summary', route(async req => {
     SELECT COALESCE(SUM(p.amount), 0) AS total_cash
     FROM payments p
     WHERE ($1::uuid[] IS NULL OR p.branch_id = ANY($1))
-      AND p.status = 'COMPLETED'
+
       AND DATE(p.confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh') = CURRENT_DATE
   `, [branchIds]);
 
@@ -63,7 +57,7 @@ router.get('/customer-care/summary', route(async req => {
 
   return {
     birthdays_today: parseInt(birthdaysRes.rows[0].count, 10),
-    expiring_soon_4days: parseInt(expiringRes.rows[0].count, 10),
+    expiring_soon_4days: expiring.length,
     new_registrations_today: parseInt(newRegsRes.rows[0].count, 10),
     today_revenue: parseFloat(todayCashRes.rows[0].total_cash),
     pending_renewals: parseInt(pendingRenewalRes.rows[0].count, 10)
@@ -102,23 +96,7 @@ router.get('/customer-care/expiring', route(async req => {
   role(req, 'QTV', 'RECEPTIONIST');
   const branchIds = scope(req);
 
-  const expiringList = (await pool.query(`
-    SELECT r.id, r.reg_code, r.package_name_snapshot, r.start_date, r.end_date, r.status,
-           (r.end_date - CURRENT_DATE) AS days_left,
-           m.id AS member_id, m.member_code, m.full_name AS member_name, m.phone AS member_phone, m.avatar_url,
-           b.branch_name,
-           pt.full_name AS pt_name
-    FROM registrations r
-    JOIN member_profiles m ON m.id = r.member_id
-    JOIN branches b ON b.id = r.sold_branch_id
-    LEFT JOIN pt_profiles pt ON pt.id = r.assigned_pt_id
-    WHERE ($1::uuid[] IS NULL OR r.sold_branch_id = ANY($1))
-      AND r.status = 'ACTIVE'
-      AND r.end_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '4 days')
-    ORDER BY r.end_date ASC
-  `, [branchIds])).rows;
-
-  return expiringList;
+  return listExpiring(pool,branchIds);
 }));
 
 // GET /customer-care/today-registrations - Danh sách đăng ký mới hôm nay kèm doanh thu
@@ -131,7 +109,7 @@ router.get('/customer-care/today-registrations', route(async req => {
            m.member_code, m.full_name AS member_name, m.phone AS member_phone,
            b.branch_name,
            COALESCE(a.full_name, a.login_phone) AS created_by_name,
-           EXISTS(SELECT 1 FROM payments p WHERE p.registration_id = r.id AND p.status = 'COMPLETED') AS is_paid
+           EXISTS(SELECT 1 FROM payments p WHERE p.registration_id = r.id) AS is_paid
     FROM registrations r
     JOIN member_profiles m ON m.id = r.member_id
     JOIN branches b ON b.id = r.sold_branch_id

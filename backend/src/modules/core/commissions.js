@@ -4,6 +4,83 @@ const H = require('./http');
 const { pool, route, fail, text, date, today, choice, only, isStaff, role, scope, row, audit, page, search } = H;
 const router = express.Router();
 
+function liveSummary(comm, sessions) {
+  if (comm.status === 'PAID') return comm;
+  const sum = field => Math.round(sessions.reduce((total, session) => total + Number(session[field] || 0), 0) * 100) / 100;
+  return { ...comm, total_pt_sessions_taught: sessions.length, pt_revenue_share: sum('session_pt_value'), total_commission_amount: sum('session_commission') };
+}
+
+function commissionPeriod(query) {
+  const vnNow = new Date(Date.now() + 7 * 3600000);
+  const month = query.month == null ? vnNow.getUTCMonth() + 1 : Number(query.month);
+  const year = query.year == null ? vnNow.getUTCFullYear() : Number(query.year);
+  if (!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year < 2026 || year > 9999) fail(400, 'Kỳ hoa hồng không hợp lệ');
+  return { month, year };
+}
+
+function publicCommission(comm) {
+  const { details_snapshot, ...summary } = comm;
+  return summary;
+}
+
+function paidDetails(comm) {
+  const available = Array.isArray(comm.details_snapshot);
+  return { sessions: available ? comm.details_snapshot : [], details_snapshot_available: available };
+}
+
+async function commissionSessions(db, comm) {
+  return (await db.query(`
+    SELECT b.id, b.registration_id, b.member_id, b.pt_id, b.branch_id,
+           b.session_number, b.booking_date, b.start_time, b.end_time,
+           b.status, b.pt_confirmed_at, b.member_confirmed_at,
+           $4::numeric commission_percentage,
+           m.full_name member_name, m.member_code, m.phone member_phone,
+           r.package_name_snapshot,
+           COALESCE(
+             NULLIF(r.pt_price_snapshot, 0),
+             NULLIF(pkg.pt_price, 0),
+             CASE
+               WHEN r.package_type_snapshot = 'PT_SESSION' THEN r.price_snapshot
+               WHEN r.package_type_snapshot = 'COMBO' THEN ROUND(r.price_snapshot * 0.7, 2)
+               ELSE 0
+             END
+           ) pt_price_snapshot,
+           r.total_pt_sessions_snapshot,
+           ROUND(
+             COALESCE(
+               NULLIF(r.pt_price_snapshot, 0),
+               NULLIF(pkg.pt_price, 0),
+               CASE
+                 WHEN r.package_type_snapshot = 'PT_SESSION' THEN r.price_snapshot
+                 WHEN r.package_type_snapshot = 'COMBO' THEN ROUND(r.price_snapshot * 0.7, 2)
+                 ELSE 0
+               END
+             ) / NULLIF(r.total_pt_sessions_snapshot, 0), 2
+           ) session_pt_value,
+           ROUND(
+             (
+               COALESCE(
+                 NULLIF(r.pt_price_snapshot, 0),
+                 NULLIF(pkg.pt_price, 0),
+                 CASE
+                   WHEN r.package_type_snapshot = 'PT_SESSION' THEN r.price_snapshot
+                   WHEN r.package_type_snapshot = 'COMBO' THEN ROUND(r.price_snapshot * 0.7, 2)
+                   ELSE 0
+                 END
+               ) / NULLIF(r.total_pt_sessions_snapshot, 0)
+             ) * ($4::numeric / 100.0), 2
+           ) session_commission
+    FROM pt_bookings b
+    JOIN registrations r ON r.id = b.registration_id
+    LEFT JOIN packages pkg ON pkg.id = r.package_id
+    JOIN member_profiles m ON m.id = b.member_id
+    WHERE b.pt_id = $1 AND b.status = 'COMPLETED'
+      AND EXTRACT(MONTH FROM b.booking_date) = $2
+      AND EXTRACT(YEAR FROM b.booking_date) = $3
+    ORDER BY b.booking_date ASC, b.start_time ASC
+  `, [comm.pt_id, comm.month, comm.year, comm.commission_percentage])).rows;
+}
+
 function checkCommissionConfigAccess(req, branchId) {
   role(req, 'QTV');
   if (req.user.permissions?.commission_config !== true) {
@@ -281,7 +358,7 @@ async function getPtCommissionRate(db, ptId, bookingBranchId, completedAt = new 
   }
 
   // 3. Không có fallback 20% ngầm -> Ném lỗi hệ thống rõ ràng
-  throw new Error(`BRANCH_DEFAULT_COMMISSION_NOT_CONFIGURED: Chi nhánh ${bookingBranchId} chưa có cấu hình hoa hồng mặc định tại thời điểm ${atTime.toISOString()}`);
+  fail(409, `BRANCH_DEFAULT_COMMISSION_NOT_CONFIGURED: Chưa có cấu hình tỷ lệ hoa hồng từ quản lý tại thời điểm ${atTime.toISOString()}. Vui lòng liên hệ QTV.`, 'BRANCH_DEFAULT_COMMISSION_NOT_CONFIGURED');
 }
 
 // POST /commissions/calculate - Tính toán lại hoa hồng cho tất cả PT trong tháng
@@ -290,6 +367,8 @@ router.post('/commissions/calculate', route(async req => {
   const month = parseInt(req.body.month, 10);
   const year = parseInt(req.body.year, 10);
   const branchId = req.body.branch_id;
+  const branchIds = scope(req);
+  if (branchId) H.branch(req, branchId);
   if (!month || month < 1 || month > 12) fail(400, 'Tháng không hợp lệ (1-12)');
   if (!year || year < 2026) fail(400, 'Năm không hợp lệ');
 
@@ -299,11 +378,18 @@ router.post('/commissions/calculate', route(async req => {
       SELECT p.id, p.full_name, p.pt_code, p.branch_id
       FROM pt_profiles p
       WHERE ($1::uuid IS NULL OR p.branch_id = $1) AND p.status = 'ACTIVE'
-    `, [branchId || null])).rows;
+        AND ($2::uuid[] IS NULL OR p.branch_id = ANY($2))
+    `, [branchId || null, branchIds])).rows;
 
     const results = [];
 
     for (const pt of pts) {
+      await row(db, 'pt_profiles', pt.id, true);
+      const existing = (await db.query('SELECT * FROM pt_commissions WHERE pt_id=$1 AND month=$2 AND year=$3 FOR UPDATE', [pt.id, month, year])).rows[0];
+      if (existing?.status === 'PAID') {
+        results.push(publicCommission(existing));
+        continue;
+      }
       // 2. Lấy các buổi COMPLETED trong tháng của PT
       const completedSessions = (await db.query(`
         SELECT b.id, b.session_number, b.booking_date,
@@ -333,19 +419,10 @@ router.post('/commissions/calculate', route(async req => {
         ptRevenueShare += sessionPtValue;
       }
 
-      const commissionRate = await getPtCommissionRate(db, pt.id, pt.branch_id, `${year}-${String(month).padStart(2, '0')}-01`);
+      const commissionRate = await getPtCommissionRate(db, pt.id, pt.branch_id, `${year}-${String(month).padStart(2, '0')}-01T00:00:00+07:00`);
       const totalCommission = (ptRevenueShare * commissionRate) / 100;
 
       // 3. Cập nhật hoặc lưu vào pt_commissions (nếu chưa PAID hợp lệ)
-      const existing = (await db.query(`
-        SELECT * FROM pt_commissions WHERE pt_id = $1 AND month = $2 AND year = $3
-      `, [pt.id, month, year])).rows[0];
-
-      if (existing && existing.status === 'PAID' && Number(existing.total_commission_amount) > 0) {
-        results.push(existing);
-        continue; // Đã thanh toán hợp lệ, không sửa đè
-      }
-
       let commRecord;
       if (existing) {
         commRecord = (await db.query(`
@@ -363,7 +440,7 @@ router.post('/commissions/calculate', route(async req => {
         `, [pt.id, month, year, totalSessionsTaught, ptRevenueShare, commissionRate, totalCommission])).rows[0];
       }
 
-      results.push({ ...commRecord, pt_name: pt.full_name, pt_code: pt.pt_code });
+      results.push({ ...publicCommission(commRecord), pt_name: pt.full_name, pt_code: pt.pt_code });
     }
 
     return results;
@@ -372,6 +449,7 @@ router.post('/commissions/calculate', route(async req => {
 
 // GET /commissions/monthly & GET /commissions - Xem bảng kê hoa hồng tháng
 const listMonthlyCommissions = async req => {
+  role(req, 'QTV');
   const month = parseInt(req.query.month, 10) || (new Date().getMonth() + 1);
   const year = parseInt(req.query.year, 10) || new Date().getFullYear();
   const branchIds = isStaff(req) ? scope(req) : null;
@@ -390,13 +468,14 @@ const listMonthlyCommissions = async req => {
     ORDER BY pt.full_name ASC
   `, [month, year, branchIds])).rows;
 
-  return list;
+  return list.map(publicCommission);
 };
 router.get('/commissions/monthly', route(listMonthlyCommissions));
 router.get('/commissions', route(listMonthlyCommissions));
 
 // GET /commissions/payout-history - Lịch sử chi trả hoa hồng PT
 router.get('/commissions/payout-history', route(async req => {
+  role(req, 'QTV');
   const branchIds = isStaff(req) ? scope(req) : null;
   const { pt_id, payout_method, from_date, to_date, branch_id, month, year, search } = req.query;
 
@@ -457,11 +536,12 @@ router.get('/commissions/payout-history', route(async req => {
   query += ` ORDER BY COALESCE(c.paid_at, c.created_at) DESC, c.created_at DESC`;
 
   const list = (await pool.query(query, params)).rows;
-  return list;
+  return list.map(publicCommission);
 }));
 
 // GET /commissions/:id/details - Xem chi tiết các buổi dạy của một bản kê hoa hồng
 router.get('/commissions/:id/details', route(async req => {
+  role(req, 'QTV', 'PT');
   const comm = (await pool.query(`
     SELECT c.*, pt.full_name pt_name, pt.pt_code, pt.phone pt_phone,
            pt.bank_name, pt.bank_account_no, pt.bank_account_name,
@@ -474,55 +554,15 @@ router.get('/commissions/:id/details', route(async req => {
     WHERE c.id = $1
   `, [req.params.id])).rows[0];
   if (!comm) fail(404, 'Không tìm thấy bản kê hoa hồng');
-  const sessions = (await pool.query(`
-    SELECT b.id, b.session_number, b.booking_date, b.start_time, b.end_time,
-           m.full_name member_name, m.member_code, m.phone member_phone,
-           r.package_name_snapshot,
-           COALESCE(
-             NULLIF(r.pt_price_snapshot, 0),
-             NULLIF(pkg.pt_price, 0),
-             CASE
-               WHEN r.package_type_snapshot = 'PT_SESSION' THEN r.price_snapshot
-               WHEN r.package_type_snapshot = 'COMBO' THEN ROUND(r.price_snapshot * 0.7, 2)
-               ELSE 0
-             END
-           ) pt_price_snapshot,
-           r.total_pt_sessions_snapshot,
-           ROUND(
-             COALESCE(
-               NULLIF(r.pt_price_snapshot, 0),
-               NULLIF(pkg.pt_price, 0),
-               CASE
-                 WHEN r.package_type_snapshot = 'PT_SESSION' THEN r.price_snapshot
-                 WHEN r.package_type_snapshot = 'COMBO' THEN ROUND(r.price_snapshot * 0.7, 2)
-                 ELSE 0
-               END
-             ) / NULLIF(r.total_pt_sessions_snapshot, 0), 2
-           ) session_pt_value,
-           ROUND(
-             (
-               COALESCE(
-                 NULLIF(r.pt_price_snapshot, 0),
-                 NULLIF(pkg.pt_price, 0),
-                 CASE
-                   WHEN r.package_type_snapshot = 'PT_SESSION' THEN r.price_snapshot
-                   WHEN r.package_type_snapshot = 'COMBO' THEN ROUND(r.price_snapshot * 0.7, 2)
-                   ELSE 0
-                 END
-               ) / NULLIF(r.total_pt_sessions_snapshot, 0)
-             ) * ($4::numeric / 100.0), 2
-           ) session_commission
-    FROM pt_bookings b
-    JOIN registrations r ON r.id = b.registration_id
-    LEFT JOIN packages pkg ON pkg.id = r.package_id
-    JOIN member_profiles m ON m.id = b.member_id
-    WHERE b.pt_id = $1 AND b.status = 'COMPLETED'
-      AND EXTRACT(MONTH FROM b.booking_date) = $2
-      AND EXTRACT(YEAR FROM b.booking_date) = $3
-    ORDER BY b.booking_date ASC, b.start_time ASC
-  `, [comm.pt_id, comm.month, comm.year, comm.commission_percentage])).rows;
+  const trainer = await row(pool, 'pt_profiles', comm.pt_id);
+  if (req.user.active_role === 'PT') {
+    if (comm.pt_id !== req.user.pt_profile_id) fail(403, 'Bạn chỉ được xem hoa hồng của mình', 'FORBIDDEN');
+  } else H.branch(req, trainer.branch_id);
+  if (comm.status === 'PAID') return { commission: publicCommission(comm), ...paidDetails(comm) };
+  if (comm.status !== 'PAID') comm.commission_percentage = await getPtCommissionRate(pool, comm.pt_id, trainer.branch_id, `${comm.year}-${String(comm.month).padStart(2, '0')}-01T00:00:00+07:00`);
+  const sessions = await commissionSessions(pool, comm);
 
-  return { commission: comm, sessions };
+  return { commission: publicCommission(liveSummary(comm, sessions)), sessions, details_snapshot_available: false };
 }));
 
 // PUT /commissions/:id/status - Duyệt hoặc chuyển trạng thái đã chi trả
@@ -532,6 +572,12 @@ router.put('/commissions/:id/status', route(async req => {
   
   return transaction(async db => {
     const comm = await row(db, 'pt_commissions', req.params.id, true);
+    const trainer = await row(db, 'pt_profiles', comm.pt_id);
+    H.branch(req, trainer.branch_id);
+    if (comm.status === 'PAID') {
+      if (nextStatus === 'PAID') return publicCommission(comm);
+      fail(409, 'Bảng kê đã chi trả không được thay đổi');
+    }
 
     if (nextStatus === 'PAID' && Number(comm.total_commission_amount) <= 0) {
       fail(400, 'Không thể thực hiện chi trả cho khoản hoa hồng bằng 0đ.');
@@ -541,6 +587,7 @@ router.put('/commissions/:id/status', route(async req => {
     const payoutRef = nextStatus === 'PAID' ? (req.body.payout_ref ? text(req.body.payout_ref, 'payout_ref', 100) : null) : comm.payout_ref;
     const payoutNote = nextStatus === 'PAID' ? (req.body.payout_note ? text(req.body.payout_note, 'payout_note', 500) : null) : comm.payout_note;
     const paidBy = nextStatus === 'PAID' ? req.user.account_id : (nextStatus === 'APPROVED' ? comm.paid_by_account_id : null);
+    const snapshot = nextStatus === 'PAID' ? await commissionSessions(db, comm) : null;
 
     // Cập nhật thông tin ngân hàng nếu được gửi kèm
     if (nextStatus === 'PAID' && req.body.bank_name && req.body.bank_account_no) {
@@ -558,10 +605,11 @@ router.put('/commissions/:id/status', route(async req => {
           payout_method = $3,
           payout_ref = $4,
           payout_note = $5,
-          paid_by_account_id = $6
+          paid_by_account_id = $6,
+          details_snapshot = $7::jsonb
       WHERE id = $1
       RETURNING *
-    `, [comm.id, nextStatus, payoutMethod, payoutRef, payoutNote, paidBy])).rows[0];
+    `, [comm.id, nextStatus, payoutMethod, payoutRef, payoutNote, paidBy, snapshot === null ? null : JSON.stringify(snapshot)])).rows[0];
 
     // Gửi thông báo đến tài khoản PT khi chi trả
     if (nextStatus === 'PAID') {
@@ -581,7 +629,7 @@ router.put('/commissions/:id/status', route(async req => {
     }
 
     await audit(db, req, 'pt_commissions', comm.id, `COMMISSION_STATUS_${nextStatus}`, comm, updated);
-    return updated;
+    return publicCommission(updated);
   });
 }));
 
@@ -591,102 +639,23 @@ router.get('/pt/my-commissions', route(async req => {
   const ptId = req.user.pt_profile_id;
   if (!ptId) fail(400, 'Không tìm thấy hồ sơ PT');
 
-  const month = parseInt(req.query.month, 10) || (new Date().getMonth() + 1);
-  const year = parseInt(req.query.year, 10) || new Date().getFullYear();
+  const { month, year } = commissionPeriod(req.query);
 
   let comm = (await pool.query(`
     SELECT * FROM pt_commissions WHERE pt_id = $1 AND month = $2 AND year = $3
   `, [ptId, month, year])).rows[0];
+  if (comm?.status === 'PAID') return { summary: publicCommission(comm), ...paidDetails(comm) };
 
-  // Nếu chưa có bản ghi pt_commissions, tự động tính nhanh tạm tính
-  if (!comm) {
-    const sessions = (await pool.query(`
-      SELECT b.id, b.session_number, b.booking_date,
-             r.pt_price_snapshot, r.total_pt_sessions_snapshot, r.price_snapshot, r.package_type_snapshot,
-             pkg.pt_price AS pkg_pt_price
-      FROM pt_bookings b
-      JOIN registrations r ON r.id = b.registration_id
-      LEFT JOIN packages pkg ON pkg.id = r.package_id
-      WHERE b.pt_id = $1 AND b.status = 'COMPLETED'
-        AND EXTRACT(MONTH FROM b.booking_date) = $2
-        AND EXTRACT(YEAR FROM b.booking_date) = $3
-    `, [ptId, month, year])).rows;
-
+  if (!comm || comm.status !== 'PAID') {
     const ptProfile = await row(pool, 'pt_profiles', ptId);
-    const rate = await getPtCommissionRate(pool, ptId, ptProfile.branch_id, `${year}-${String(month).padStart(2, '0')}-01`);
-
-    let rev = 0;
-    for (const s of sessions) {
-      let ptPrice = Number(s.pt_price_snapshot) || 0;
-      if (!ptPrice || ptPrice <= 0) {
-        if (Number(s.pkg_pt_price) > 0) ptPrice = Number(s.pkg_pt_price);
-        else if (s.package_type_snapshot === 'PT_SESSION') ptPrice = Number(s.price_snapshot) || 0;
-        else if (s.package_type_snapshot === 'COMBO') ptPrice = Math.round((Number(s.price_snapshot) || 0) * 0.7);
-      }
-      rev += ptPrice / (Number(s.total_pt_sessions_snapshot) || 1);
-    }
-    comm = {
-      pt_id: ptId,
-      month,
-      year,
-      total_pt_sessions_taught: sessions.length,
-      pt_revenue_share: rev,
-      commission_percentage: rate,
-      total_commission_amount: (rev * rate) / 100,
-      status: 'PENDING'
-    };
+    const rate = await getPtCommissionRate(pool, ptId, ptProfile.branch_id, `${year}-${String(month).padStart(2, '0')}-01T00:00:00+07:00`);
+    comm = { ...comm, pt_id: ptId, month, year, commission_percentage: rate, status: comm?.status || 'PENDING' };
   }
 
   // Danh sách chi tiết các buổi dạy
-  const sessions = (await pool.query(`
-    SELECT b.id, b.session_number, b.booking_date, b.start_time, b.end_time,
-           m.full_name member_name, m.member_code,
-           r.package_name_snapshot,
-           COALESCE(
-             NULLIF(r.pt_price_snapshot, 0),
-             NULLIF(pkg.pt_price, 0),
-             CASE
-               WHEN r.package_type_snapshot = 'PT_SESSION' THEN r.price_snapshot
-               WHEN r.package_type_snapshot = 'COMBO' THEN ROUND(r.price_snapshot * 0.7, 2)
-               ELSE 0
-             END
-           ) pt_price_snapshot,
-           r.total_pt_sessions_snapshot,
-           ROUND(
-             COALESCE(
-               NULLIF(r.pt_price_snapshot, 0),
-               NULLIF(pkg.pt_price, 0),
-               CASE
-                 WHEN r.package_type_snapshot = 'PT_SESSION' THEN r.price_snapshot
-                 WHEN r.package_type_snapshot = 'COMBO' THEN ROUND(r.price_snapshot * 0.7, 2)
-                 ELSE 0
-               END
-             ) / NULLIF(r.total_pt_sessions_snapshot, 0), 2
-           ) session_pt_value,
-           ROUND(
-             (
-               COALESCE(
-                 NULLIF(r.pt_price_snapshot, 0),
-                 NULLIF(pkg.pt_price, 0),
-                 CASE
-                   WHEN r.package_type_snapshot = 'PT_SESSION' THEN r.price_snapshot
-                   WHEN r.package_type_snapshot = 'COMBO' THEN ROUND(r.price_snapshot * 0.7, 2)
-                   ELSE 0
-                 END
-               ) / NULLIF(r.total_pt_sessions_snapshot, 0)
-             ) * ($4::numeric / 100.0), 2
-           ) session_commission
-    FROM pt_bookings b
-    JOIN registrations r ON r.id = b.registration_id
-    LEFT JOIN packages pkg ON pkg.id = r.package_id
-    JOIN member_profiles m ON m.id = b.member_id
-    WHERE b.pt_id = $1 AND b.status = 'COMPLETED'
-      AND EXTRACT(MONTH FROM b.booking_date) = $2
-      AND EXTRACT(YEAR FROM b.booking_date) = $3
-    ORDER BY b.booking_date DESC
-  `, [ptId, month, year, comm.commission_percentage || 20])).rows;
+  const sessions = await commissionSessions(pool, comm);
 
-  return { summary: comm, sessions };
+  return { summary: publicCommission(liveSummary(comm, sessions)), sessions, details_snapshot_available: false };
 }));
 
 module.exports = { router, getPtCommissionRate, checkCommissionConfigAccess };

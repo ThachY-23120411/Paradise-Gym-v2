@@ -203,6 +203,13 @@
         </div>
       </div>
 
+      <div class="field-group">
+        <label class="field-label" for="actRole">Loại tài khoản <span class="required">*</span></label>
+        <select id="actRole" class="input-control" required>
+          <option value="MEMBER">Hội viên</option>
+          <option value="PT">Huấn luyện viên (PT)</option>
+        </select>
+      </div>
       <button type="button" class="btn-secondary" id="btnActLookup">
         <i class="fa-solid fa-magnifying-glass"></i> Tra cứu hồ sơ
       </button>
@@ -212,6 +219,7 @@
         <i class="fa-solid fa-user-check"></i>
         <div>
           Hồ sơ tìm thấy: <strong id="actProfileName" style="color:#fff;"></strong><br>
+          <span id="actProfileCode"></span><br>
           <span id="actProfileBranch" style="color:var(--text-muted); font-size:12px;"></span>
         </div>
       </div>
@@ -382,6 +390,6 @@
   <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="../shared/apiClient.js"></script>
-  <script src="js/login.js"></script>
+  <script src="js/login.js?v=20260921-activation"></script>
 </body>
 </html>

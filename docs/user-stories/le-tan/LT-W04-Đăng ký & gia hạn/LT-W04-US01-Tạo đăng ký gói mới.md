@@ -46,12 +46,16 @@
 | Tiền giảm trừ [AUTO] | `Currency Readonly` | `READONLY (AUTO-FILL)` | optional | `DYNAMIC` | Số tiền giảm tương ứng từ voucher |
 | Tổng tiền cần thu 100% | `Currency Readonly (Bold)` | `READONLY (AUTO-FILL)` | required | `DYNAMIC` | Số tiền thực thu bắt buộc thanh toán đủ |
 
+- Đăng ký mới/gia hạn còn chờ được giữ đến khi thanh toán hoặc người dùng chủ động hủy; QR hết hạn sau 15 phút không hủy đăng ký, không có tự hủy sau 3 ngày. Tạo đăng ký chưa tạo payment. Tiếp tục thanh toán ở W08-US02 hoặc hủy đơn chờ ở W04-US03.
+
 ## Alternate Flows
 - Khách có voucher hợp lệ: Lễ tân áp mã giảm giá, số tiền cần thu được trừ trực tiếp.
 - Khách hủy đăng ký: Đóng modal, không tạo bản ghi.
 - **Lưu đăng ký và thu tiền ngay (AF-03)**: Lễ tân bấm `[Lưu đăng ký và thu tiền]`, SYS lưu đăng ký `PENDING_PAYMENT` và tự động mở modal Ghi nhận thanh toán với thông tin đơn vừa tạo.
 
 ## Exception Flows
+- Trường hợp thanh toán khi toàn bộ kỳ gốc đã qua: PAY-OQ-01 còn mở; hiện giữ ngày gốc và trả EXPIRED, không tự dời ngày và không cam kết quyền tập ACTIVE/SCHEDULED.
+
 - Mua gói PT khi chưa có gói Gym còn hạn: Chặn lưu và báo lỗi.
 - Đã có gói Gym hiệu lực: Chặn đăng ký gói Gym trùng và gợi ý chuyển sang Gia hạn.
 
@@ -83,10 +87,11 @@ flowchart TB
 
       I01 --> A01
       A01 --> A02 --> S01 --> D01
-      D01 -->|Đạt| S02 --> A03 --> A04 --> D02
+      D01 -->|Đạt| S02 --> A03 --> A04 --> S03
       D01 -->|Không đạt| S04 --> F02
-      D02 -->|Xác nhận lưu đăng ký| S03 --> F01
-      D02 -->|Lưu đăng ký và thu tiền| S03 --> S05 --> F03
+      S03 --> D02
+      D02 -->|Xác nhận lưu đăng ký| F01
+      D02 -->|Lưu đăng ký và thu tiền| S05 --> F03
     end
   end
 ```

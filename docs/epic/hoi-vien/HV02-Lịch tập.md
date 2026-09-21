@@ -8,6 +8,8 @@
 
 ## Thành phần giao diện (UI Components & Layout)
 
+Với lịch PT nhóm, trưởng nhóm (chủ booking từ API) đại diện Hủy/Xác nhận theo điều kiện thời gian và trạng thái. Thành viên khác chỉ xem trên danh sách và thẻ lịch theo giờ; không hiển thị hai nút này và không mở dialog xác nhận.
+
 Không gian nghiệp vụ bên trong Menu **`HV02 · Lịch tập`** (nằm giữa Header và Bottom Navigation Bar chung của ứng dụng) được phân chia thành **2 sub-tab chính** thông qua bộ chuyển tab nội bộ (Segmented Control):
 
 1. **Sub-tab `Lịch của tôi`:**

@@ -34,7 +34,7 @@ window.ParadiseApp = (function () {
       $('<button class="icon-button">')
         .attr({
           'data-route': menu.id,
-          'title': `${menu.code} - ${menu.text}`,
+          'title': menu.text,
           'aria-label': menu.text
         })
         .toggleClass('active', menu.id === active)
@@ -47,7 +47,7 @@ window.ParadiseApp = (function () {
     allowedMenus().forEach(menu => {
       if (menu.group) $('<div class="nav-group">').text(menu.group).appendTo(nav);
       $('<a class="menu-nav-item">').attr({ href: '#' + menu.id, 'data-menu': menu.id, title: menu.text })
-        .append($('<i>').addClass('fa-solid fa-' + menu.icon), $('<span class="menu-nav-text">').text(menu.text), $('<small>').text(menu.code)).appendTo(nav);
+        .append($('<i>').addClass('fa-solid fa-' + menu.icon), $('<span class="menu-nav-text">').text(menu.text)).appendTo(nav);
     });
     $('#sidebarRoleIndicator').text(isAdmin() ? 'QTV' : 'LT');
     $('#scopeLabel').text(isAdmin() ? 'Quản trị vận hành' : 'Tiếp đón & chăm sóc');

@@ -1,0 +1,132 @@
+{
+  "workspace": "E:\\Desktop\\para",
+  "servedRoot": "E:\\Desktop\\para\\frontend",
+  "server": "http://127.0.0.1:57277",
+  "sourceProvenance": [
+    {
+      "url": "http://127.0.0.1:57277/mobile/index.html",
+      "sourcePath": "E:\\Desktop\\para\\frontend\\mobile\\index.html",
+      "sha256": "4830f511226aa68cc9feaa8b476fc3a2010b6b10298cb56007ec03b2de0e7736",
+      "diskSha256": "4830f511226aa68cc9feaa8b476fc3a2010b6b10298cb56007ec03b2de0e7736",
+      "matched": true
+    },
+    {
+      "url": "http://127.0.0.1:57277/mobile/js/login.js",
+      "sourcePath": "E:\\Desktop\\para\\frontend\\mobile\\js\\login.js",
+      "sha256": "0d5289409c1ecc9ba56e2710d7347414f43adebcce7acd34b96b1b27a4f4ecca",
+      "diskSha256": "0d5289409c1ecc9ba56e2710d7347414f43adebcce7acd34b96b1b27a4f4ecca",
+      "matched": true
+    },
+    {
+      "url": "http://127.0.0.1:57277/mobile/pt/index.html",
+      "sourcePath": "E:\\Desktop\\para\\frontend\\mobile\\pt\\index.html",
+      "sha256": "76c5ae0afbc0d60b99697b94dd68b011718e7363db6da165a1fa923170accf0d",
+      "diskSha256": "76c5ae0afbc0d60b99697b94dd68b011718e7363db6da165a1fa923170accf0d",
+      "matched": true
+    },
+    {
+      "url": "http://127.0.0.1:57277/mobile/pt/js/auth.js",
+      "sourcePath": "E:\\Desktop\\para\\frontend\\mobile\\pt\\js\\auth.js",
+      "sha256": "8d4ec30a1213ce00da49fdac0b7ae722cb0685baad8e79cbd1837da4a33df1ae",
+      "diskSha256": "8d4ec30a1213ce00da49fdac0b7ae722cb0685baad8e79cbd1837da4a33df1ae",
+      "matched": true
+    },
+    {
+      "url": "http://127.0.0.1:57277/mobile/pt/js/app.js",
+      "sourcePath": "E:\\Desktop\\para\\frontend\\mobile\\pt\\js\\app.js",
+      "sha256": "65f93d3a4bcb7ce65a717a1035f8e21b681f038256cbbf50ea6ecc3cbb2c1ae3",
+      "diskSha256": "65f93d3a4bcb7ce65a717a1035f8e21b681f038256cbbf50ea6ecc3cbb2c1ae3",
+      "matched": true
+    },
+    {
+      "url": "http://127.0.0.1:57277/shared/apiClient.js",
+      "sourcePath": "E:\\Desktop\\para\\frontend\\shared\\apiClient.js",
+      "sha256": "62dc34808b3c6895cea83b7744df9f3bfffb704b7ed54ecdd172f521da6127c4",
+      "diskSha256": "62dc34808b3c6895cea83b7744df9f3bfffb704b7ed54ecdd172f521da6127c4",
+      "matched": true
+    }
+  ],
+  "browserDocuments": [
+    {
+      "story": "PT05-US02",
+      "requested": "http://127.0.0.1:57277/mobile/pt/",
+      "final": "http://127.0.0.1:57277/mobile/",
+      "scripts": [
+        "https://code.jquery.com/jquery-3.7.1.min.js",
+        "http://127.0.0.1:57277/shared/apiClient.js",
+        "http://127.0.0.1:57277/mobile/js/login.js?v=20260921-activation"
+      ]
+    },
+    {
+      "story": "PT05-US01",
+      "requested": "http://127.0.0.1:57277/mobile/pt/",
+      "final": "http://127.0.0.1:57277/mobile/",
+      "scripts": [
+        "https://code.jquery.com/jquery-3.7.1.min.js",
+        "http://127.0.0.1:57277/shared/apiClient.js",
+        "http://127.0.0.1:57277/mobile/js/login.js?v=20260921-activation"
+      ]
+    },
+    {
+      "story": "PT05-US01",
+      "requested": "http://127.0.0.1:57277/mobile/pt/",
+      "final": "http://127.0.0.1:57277/mobile/",
+      "scripts": [
+        "https://code.jquery.com/jquery-3.7.1.min.js",
+        "http://127.0.0.1:57277/shared/apiClient.js",
+        "http://127.0.0.1:57277/mobile/js/login.js?v=20260921-activation"
+      ]
+    },
+    {
+      "story": "PT05-US01",
+      "requested": "http://127.0.0.1:57277/mobile/pt/",
+      "final": "http://127.0.0.1:57277/mobile/",
+      "scripts": [
+        "https://code.jquery.com/jquery-3.7.1.min.js",
+        "http://127.0.0.1:57277/shared/apiClient.js",
+        "http://127.0.0.1:57277/mobile/js/login.js?v=20260921-activation"
+      ]
+    }
+  ],
+  "lookupEvidence": [
+    {
+      "url": "http://127.0.0.1:57276/api/v1/auth/activation-lookup",
+      "pageUrl": "http://127.0.0.1:57277/mobile/",
+      "identifier": "0909210020",
+      "requestedRole": "PT",
+      "status": 200,
+      "response": {
+        "success": true,
+        "data": {
+          "can_activate": true,
+          "status": "PENDING_ACTIVATION",
+          "masked_name": "A*** B*** T***",
+          "masked_code": "PT***1",
+          "masked_phone": "090****020",
+          "branch_name": "Auth Test Branch"
+        },
+        "message": "Success"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:57276/api/v1/auth/activation-lookup",
+      "pageUrl": "http://127.0.0.1:57277/mobile/",
+      "identifier": "PT001",
+      "requestedRole": "PT",
+      "status": 200,
+      "response": {
+        "success": true,
+        "data": {
+          "can_activate": true,
+          "status": "PENDING_ACTIVATION",
+          "masked_name": "A*** B*** T***",
+          "masked_code": "PT***1",
+          "masked_phone": "090****020",
+          "branch_name": "Auth Test Branch"
+        },
+        "message": "Success"
+      }
+    }
+  ],
+  "privacy": "masked_name/masked_code are intentional. Full-identity language in US02 is a documentation discrepancy; do not remove API privacy masking."
+}

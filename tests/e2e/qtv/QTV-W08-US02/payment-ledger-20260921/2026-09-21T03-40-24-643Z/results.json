@@ -1,0 +1,638 @@
+{
+  "result": "BLOCKED",
+  "database": "paradise_payment_test_33032_1789962024643",
+  "backend": "http://127.0.0.1:49155",
+  "ui": "http://127.0.0.1:49156",
+  "migrations": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4a1ed6fc35f89ed4ed22dd40ba0d342df40674a1c0644cf6c12148403cccaba8"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    },
+    {
+      "file": "014_successful_payment_ledger.sql",
+      "sha256": "3c16e83463bb97a594ca06ce3c0079710c4d78b64da2f5544f2f6697bb2a1a14"
+    }
+  ],
+  "provenance": [
+    {
+      "file": "web/index.html",
+      "sha256": "b890d4565d72d8b36e245a34bdd793beb4cf13c4dbbf8015c5c67ffec6814f98"
+    },
+    {
+      "file": "web/js/modules/sales.js",
+      "sha256": "6836b1a287e85f466759220dae76ffbaac0d4c96f5a0b18ae1b9413ac9eda26f"
+    },
+    {
+      "file": "web/js/ui.js",
+      "sha256": "a631804f1193ee7ca9024aa6a839dfff240f79d59dca6f527543f5cf037cdd95"
+    },
+    {
+      "file": "mobile/member/js/packages-notifications.js",
+      "sha256": "0b5ee8eee1b6610d0519d4b55ebaa6fe5db0c4daa29304619d525a55e0d81d5a"
+    },
+    {
+      "file": "shared/apiClient.js",
+      "sha256": "62dc34808b3c6895cea83b7744df9f3bfffb704b7ed54ecdd172f521da6127c4"
+    }
+  ],
+  "steps": [
+    {
+      "name": "ledger-controls",
+      "action": "Open payment ledger",
+      "expected": "User correction + US01/US03: two KPIs; no payment-status filter/column or pending KPI",
+      "actual": {
+        "labels": [
+          "Từ ngày",
+          "Đến ngày",
+          "Tìm giao dịch",
+          "Phương thức"
+        ],
+        "columns": [
+          " ",
+          "Thao tác",
+          "Mã phiếu",
+          "Thời gian",
+          "Hội viên",
+          "Đăng ký",
+          "Phương thức",
+          "Số tiền",
+          "Người thu",
+          "Chi nhánh",
+          "Thao tác"
+        ],
+        "kpis": "Tổng thực thu\n1.500.000 ₫\nLượt thanh toán thành công\n3 lượt"
+      },
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-01-ledger-controls.png"
+    },
+    {
+      "name": "all-time-ledger",
+      "action": "Clear date restrictions",
+      "expected": "US01 date filters allow complete history",
+      "actual": "Thu tiền & thanh toán\nGhi nhận thanh toán\nTổng thực thu\n1.500.000 ₫\nLượt thanh toán thành công\n3 lượt\nTừ ngày\nĐến ngày\nToàn thời gian\nHôm nay\nTìm giao dịch\nPhương thức\nThao tác\nMã phiếu\t\nThời gian\t\nHội viên\t\nĐăng ký\tPhương thức\t\nSố tiền\t\nNgười thu\t\nChi nhánh\t\nPT003\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK008\nNot Near Five Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT002\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK007\nNear Four Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT001\t10:40:27 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK006\nScheduled Paid\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\n\n\n\n\n102050\nTrang 1/1 · 3 bản ghi1\nĐang tải...",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-02-all-time-ledger.png"
+    },
+    {
+      "name": "open-payment",
+      "action": "Open QTV Cash payment form",
+      "expected": "US02 MF2: payment form with same active member and pending registrations",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-03-open-payment.png"
+    },
+    {
+      "name": "open-options",
+      "action": "Open Gói tập đăng ký chờ thanh toán",
+      "expected": "US02 field-level searchable options shown",
+      "actual": "DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK003 · LT Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK002 · QTV Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK001 · QTV Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK005 · Pending Cancel\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-04-open-options.png"
+    },
+    {
+      "name": "select-option",
+      "action": "Choose QTV Cash",
+      "expected": "Selected value shown before submit",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-05-select-option.png"
+    },
+    {
+      "name": "cash-filled-before-submit",
+      "action": "Enter note for QTV Cash",
+      "expected": "Cash selected; no bank-reference field; entered note captured before settlement",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-06-cash-filled-before-submit.png"
+    },
+    {
+      "name": "settled-receipt",
+      "action": "Confirm QTV Cash payment",
+      "expected": "US02 MF10-12: exactly one final payment and receipt, same member, correct method, registration active",
+      "actual": "PARADISE GYM\nPHIẾU THU\nSố phiếu\nPT004\nThời gian\n10:40:34 21/9/2026\nNgười nộp tiền\nPayment Same Member\nSố điện thoại\n0909210110\nĐăng ký\nDK001\nGói tập\nQTV Cash\nKỳ hiệu lực\n21/09/2026 - 21/10/2026\nPhương thức\nTiền mặt\nMã giao dịch\n--\nNgười thu\n0909210100\nChi nhánh\nPayment Branch A\nThực thu 100%\n500.000 ₫\nGhi chú\nCash QTV Cash",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-07-settled-receipt.png"
+    },
+    {
+      "name": "ledger-after-settlement",
+      "action": "Close receipt",
+      "expected": "New successful row visible in source ledger without status",
+      "actual": "Thu tiền & thanh toán\nGhi nhận thanh toán\nTổng thực thu\n2.000.000 ₫\nLượt thanh toán thành công\n4 lượt\nTừ ngày\nĐến ngày\nToàn thời gian\nHôm nay\nTìm giao dịch\nPhương thức\nThao tác\nMã phiếu\t\nThời gian\t\nHội viên\t\nĐăng ký\tPhương thức\t\nSố tiền\t\nNgười thu\t\nChi nhánh\t\nPT004\t10:40:34 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK001\nQTV Cash\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT003\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK008\nNot Near Five Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT002\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK007\nNear Four Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT001\t10:40:27 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK006\nScheduled Paid\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\n\n\n\n\n\n\n102050\nTrang 1/1 · 4 bản ghi1",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-08-ledger-after-settlement.png"
+    },
+    {
+      "name": "same-member-payment-history",
+      "action": "Open authenticated same-member payment history",
+      "expected": "Downstream shows same package, amount and payment method after source settlement",
+      "actual": "PT004\n500.000 đ\n\nQTV Cash\n\n10:40:34 21/9/2026 · Tiền mặt\n\nXem phiếu thu",
+      "status": "PASS",
+      "section": "downstream",
+      "filename": "downstream-09-same-member-payment-history.png"
+    },
+    {
+      "name": "open-payment",
+      "action": "Open QTV Bank payment form",
+      "expected": "US02 MF2: payment form with same active member and pending registrations",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-10-open-payment.png"
+    },
+    {
+      "name": "open-options",
+      "action": "Open Gói tập đăng ký chờ thanh toán",
+      "expected": "US02 field-level searchable options shown",
+      "actual": "DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK003 · LT Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK002 · QTV Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK005 · Pending Cancel\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-11-open-options.png"
+    },
+    {
+      "name": "select-option",
+      "action": "Choose QTV Bank",
+      "expected": "Selected value shown before submit",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-12-select-option.png"
+    },
+    {
+      "name": "bank-qr-intent",
+      "action": "Select bank transfer",
+      "expected": "US02 MF7: QR intent has 15-minute TTL; registration pending and absent from final ledger",
+      "actual": {
+        "registrationId": "d43da72d-3158-4fd5-834e-3e07378b67d8",
+        "intentId": "9520f0ab-4a30-434f-bb73-6d3097bddba9",
+        "state": "PENDING",
+        "ttlSeconds": 900
+      },
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-13-bank-qr-intent.png"
+    },
+    {
+      "name": "manual-bank-modal",
+      "action": "Open manual reconciliation",
+      "expected": "Manual BANK_TRANSFER form requires transaction reference and reconciliation checkbox",
+      "actual": "Giao dịch\nPAY005\nSố tiền\n500.000 ₫\nPhương thức\nChuyển khoản\nMã giao dịch trên chứng từ ngân hàng *\nGhi chú đối soát\nĐối chiếu thực thu\nĐã đối chiếu và nhận đủ 500.000 ₫\nHủy\nXác nhận đã nhận đủ tiền",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-14-manual-bank-modal.png"
+    },
+    {
+      "name": "required-bank-reference",
+      "action": "Submit with empty bank reference",
+      "expected": "User requirement: missing transaction reference blocks settlement",
+      "actual": "Required-field validation visible; no ledger row",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-15-required-bank-reference.png"
+    },
+    {
+      "name": "manual-bank-filled-before-submit",
+      "action": "Enter actual test reference and confirm reconciliation checkbox",
+      "expected": "Input Capture Before Submit: bank reference visible, method remains BANK_TRANSFER",
+      "actual": "Giao dịch\nPAY005\nSố tiền\n500.000 ₫\nPhương thức\nChuyển khoản\nMã giao dịch trên chứng từ ngân hàng *\nGhi chú đối soát\nĐối chiếu thực thu\nĐã đối chiếu và nhận đủ 500.000 ₫\nHủy\nXác nhận đã nhận đủ tiền",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-16-manual-bank-filled-before-submit.png"
+    },
+    {
+      "name": "settled-receipt",
+      "action": "Confirm QTV Bank payment",
+      "expected": "US02 MF10-12: exactly one final payment and receipt, same member, correct method, registration active",
+      "actual": "PARADISE GYM\nPHIẾU THU\nSố phiếu\nPT005\nThời gian\n10:40:42 21/9/2026\nNgười nộp tiền\nPayment Same Member\nSố điện thoại\n0909210110\nĐăng ký\nDK002\nGói tập\nQTV Bank\nKỳ hiệu lực\n21/09/2026 - 21/10/2026\nPhương thức\nChuyển khoản\nMã giao dịch\nREF-QTV-Bank\nNgười thu\n0909210100\nChi nhánh\nPayment Branch A\nThực thu 100%\n500.000 ₫",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-17-settled-receipt.png"
+    },
+    {
+      "name": "ledger-after-settlement",
+      "action": "Close receipt",
+      "expected": "New successful row visible in source ledger without status",
+      "actual": "Thu tiền & thanh toán\nGhi nhận thanh toán\nTổng thực thu\n2.500.000 ₫\nLượt thanh toán thành công\n5 lượt\nTừ ngày\nĐến ngày\nToàn thời gian\nHôm nay\nTìm giao dịch\nPhương thức\nThao tác\nMã phiếu\t\nThời gian\t\nHội viên\t\nĐăng ký\tPhương thức\t\nSố tiền\t\nNgười thu\t\nChi nhánh\t\nPT005\t10:40:42 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK002\nQTV Bank\n\tChuyển khoản\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT004\t10:40:34 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK001\nQTV Cash\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT003\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK008\nNot Near Five Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT002\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK007\nNear Four Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT001\t10:40:27 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK006\nScheduled Paid\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\n\n\n\n\n\n\n\n\n102050\nTrang 1/1 · 5 bản ghi1",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-18-ledger-after-settlement.png"
+    },
+    {
+      "name": "same-member-payment-history",
+      "action": "Open authenticated same-member payment history",
+      "expected": "Downstream shows same package, amount and payment method after source settlement",
+      "actual": "PT005\n500.000 đ\n\nQTV Bank\n\n10:40:42 21/9/2026 · Chuyển khoản Ngân hàng (VietQR)\n\nXem phiếu thu",
+      "status": "PASS",
+      "section": "downstream",
+      "filename": "downstream-19-same-member-payment-history.png"
+    },
+    {
+      "name": "filter-registration",
+      "action": "Filter Scheduled Paid",
+      "expected": "Matching registration visible before opening detail",
+      "actual": "Missing Scheduled Paid: DK008\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · Payment Branch A\n\tNot Near Five Days\t21/09/2026 - 26/09/2026\t500.000 ₫\t--\tĐang hiệu lực\t",
+      "status": "FAIL",
+      "section": "source",
+      "filename": "step-20-filter-registration.png"
+    },
+    {
+      "name": "blocked",
+      "action": "QTV registration guards",
+      "expected": "Complete scenario",
+      "actual": "Missing Scheduled Paid: DK008\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · Payment Branch A\n\tNot Near Five Days\t21/09/2026 - 26/09/2026\t500.000 ₫\t--\tĐang hiệu lực\t",
+      "status": "FAIL",
+      "section": "source",
+      "filename": "step-21-blocked.png"
+    }
+  ],
+  "state": [
+    {
+      "registrationId": "155519a1-45e8-43ba-a28c-2b54dd2e9a1d",
+      "paymentId": "f4600b6c-e7d1-49a5-a91e-14f824976292",
+      "memberId": "2c3919bc-87e1-404a-a616-94fdc533d547",
+      "method": "CASH",
+      "reference": null,
+      "amount": 500000
+    },
+    {
+      "registrationId": "d43da72d-3158-4fd5-834e-3e07378b67d8",
+      "paymentId": "9520f0ab-4a30-434f-bb73-6d3097bddba9",
+      "memberId": "2c3919bc-87e1-404a-a616-94fdc533d547",
+      "method": "BANK_TRANSFER",
+      "reference": "REF-QTV-Bank",
+      "amount": 500000
+    }
+  ],
+  "issues": [
+    "filter-registration: Missing Scheduled Paid: DK008\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · Payment Branch A\n\tNot Near Five Days\t21/09/2026 - 26/09/2026\t500.000 ₫\t--\tĐang hiệu lực\t",
+    "QTV registration guards: Missing Scheduled Paid: DK008\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · Payment Branch A\n\tNot Near Five Days\t21/09/2026 - 26/09/2026\t500.000 ₫\t--\tĐang hiệu lực\t",
+    "blocked: Missing Scheduled Paid: DK008\t10:40:28 21/9/2026\tPayment Same Member\nHV001 · Payment Branch A\n\tNot Near Five Days\t21/09/2026 - 26/09/2026\t500.000 ₫\t--\tĐang hiệu lực\t"
+  ],
+  "cleanup": {
+    "browserClosed": true,
+    "apiClosed": true,
+    "staticClosed": true,
+    "poolsClosed": true,
+    "databaseDropped": true
+  },
+  "network": [
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/discounts",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "POST",
+      "path": "/api/v1/payments/f4600b6c-e7d1-49a5-a91e-14f824976292/confirm",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/payments/f4600b6c-e7d1-49a5-a91e-14f824976292/receipt",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/registrations/155519a1-45e8-43ba-a28c-2b54dd2e9a1d",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/members/2c3919bc-87e1-404a-a616-94fdc533d547",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/discounts",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "POST",
+      "path": "/api/v1/payments/9520f0ab-4a30-434f-bb73-6d3097bddba9/confirm",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/payments/9520f0ab-4a30-434f-bb73-6d3097bddba9/receipt",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/registrations/d43da72d-3158-4fd5-834e-3e07378b67d8",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/members/2c3919bc-87e1-404a-a616-94fdc533d547",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "isolated": "http://127.0.0.1:49155"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "isolated": "http://127.0.0.1:49155"
+    }
+  ],
+  "fixture": {
+    "memberId": "2c3919bc-87e1-404a-a616-94fdc533d547",
+    "branches": [
+      "7e2881b8-5418-4fef-ab96-c78cf99a90ef",
+      "aea78cac-86ee-40fb-9f24-628f07879ef4"
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "step-01-ledger-controls.png",
+      "sha256": "f57f97489facebaaf0bb6ce1a8d78d16b264aa611f2a43012c1b2b064e386ac1"
+    },
+    {
+      "file": "step-02-all-time-ledger.png",
+      "sha256": "9bec2446a38f97e62c1c6be907f8f12211f577cfe155ea89e129d065082f68ed"
+    },
+    {
+      "file": "step-03-open-payment.png",
+      "sha256": "564e34b0a4806c97c2ff7299b1771bcd509c64fb556a68aaff5ff7903e2a08f9"
+    },
+    {
+      "file": "step-04-open-options.png",
+      "sha256": "a06e43722bedb44fa0ef986308f15823091bc89f976cdd4387d1771a8125d61b"
+    },
+    {
+      "file": "step-05-select-option.png",
+      "sha256": "f89dc537123fcd092822c7255c0265a4a74d289a239d4aaeaa747a5290c0f403"
+    },
+    {
+      "file": "step-06-cash-filled-before-submit.png",
+      "sha256": "3e20e7eefb3c8750da449e27e15fe166fd9adb219938ae8742bb1824f500f4a8"
+    },
+    {
+      "file": "step-07-settled-receipt.png",
+      "sha256": "d7b4c1e1891c3d4b05d90bb4aff710c853b522ed615178ab618c729b4e25f82c"
+    },
+    {
+      "file": "step-08-ledger-after-settlement.png",
+      "sha256": "b0d00070e2933e37d4fca636d417f0eba3969a0eae2a3327effe47ed5c3cebce"
+    },
+    {
+      "file": "downstream-09-same-member-payment-history.png",
+      "sha256": "9c667a3db0a57d3f8392efc1fb164f4462ca985b14c4eaff816d90275db40760"
+    },
+    {
+      "file": "step-10-open-payment.png",
+      "sha256": "5c1c58a2c208e69fe093a88f7ebce7056e97ff2d7dcec08644c98dead392431d"
+    },
+    {
+      "file": "step-11-open-options.png",
+      "sha256": "79a5542f3811cdaa7184c31e0cb6770f281fe8b753ce235ffdbd8815c699cd5e"
+    },
+    {
+      "file": "step-12-select-option.png",
+      "sha256": "67c6b3614bcef68edc11dd9e29c9f60bd717a339aa374c066c738525592520b7"
+    },
+    {
+      "file": "step-13-bank-qr-intent.png",
+      "sha256": "1a4b754b032fcf4ff46d3d7080323be12c7832d0bcdbc3a6f4cd9680e6e29ff1"
+    },
+    {
+      "file": "step-14-manual-bank-modal.png",
+      "sha256": "0384b01480c8219f3b63f8168d202eb5f39e1bea492df21765117b2ffea2219a"
+    },
+    {
+      "file": "step-15-required-bank-reference.png",
+      "sha256": "4d502c4013a451d338b5be5cdf5efc49ea9ed52961d5173ce8425ab410715338"
+    },
+    {
+      "file": "step-16-manual-bank-filled-before-submit.png",
+      "sha256": "8fea9597cc869dcf8340a4c79348658ff2cc8ee4ed03d7cacd190aea9eaa66ab"
+    },
+    {
+      "file": "step-17-settled-receipt.png",
+      "sha256": "e643c9aed4e4140edccbc94d8eecf0d36b005716a9034db50e887d194663e68a"
+    },
+    {
+      "file": "step-18-ledger-after-settlement.png",
+      "sha256": "b3a983b3d9d47e331be84b8da8d5cf18867dbd0ba934a230154df54fef025237"
+    },
+    {
+      "file": "downstream-19-same-member-payment-history.png",
+      "sha256": "c02e4c2cdbd2ab6326a56b438ba92199979f2dabb3ad1103ba5e2b98072d8c22"
+    },
+    {
+      "file": "step-20-filter-registration.png",
+      "sha256": "3f30b4b7d4ecd9cd55913d8555bf494d23bfbd980a8deb74b7c75fb0b93c712e"
+    },
+    {
+      "file": "step-21-blocked.png",
+      "sha256": "749a856f00bfe85d3584a70363a06e8bd35a199d92554526a1fea7c8b1d74f89"
+    }
+  ]
+}

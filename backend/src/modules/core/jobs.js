@@ -25,7 +25,7 @@ async function runScheduledNotifications(now=new Date()) {
     const registrations=(await db.query(`SELECT r.*,m.account_id,m.full_name member_name,r.end_date-($1::timestamptz AT TIME ZONE b.timezone)::date days_left
       FROM registrations r JOIN member_profiles m ON m.id=r.member_id JOIN branches b ON b.id=r.sold_branch_id
       WHERE r.status IN ('ACTIVE','SCHEDULED') AND r.end_date-($1::timestamptz AT TIME ZONE b.timezone)::date IN (7,3,0)
-      AND EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id AND p.status='COMPLETED')
+      AND EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id)
       AND EXISTS(SELECT 1 FROM notification_rules nr WHERE nr.branch_id=r.sold_branch_id AND nr.event_type='PACKAGE_EXPIRING' AND nr.is_enabled)`,[now])).rows;
     for(const r of registrations)sent+=await emit(db,{event:'PACKAGE_EXPIRING',branchId:r.sold_branch_id,referenceId:r.id,referenceType:'REGISTRATION',accounts:[r.account_id],audienceRoles:['MEMBER'],personal:true,key:`PACKAGE_EXPIRING:${r.id}:${r.end_date}:${r.days_left}`,variables:{member_name:r.member_name,package_name:r.package_name_snapshot,expiry_date:r.end_date,days_left:r.days_left}});
     const birthdays=(await db.query(`SELECT m.id,m.account_id,m.full_name,m.home_branch_id,b.branch_name,($1::timestamptz AT TIME ZONE b.timezone)::date birthday_date

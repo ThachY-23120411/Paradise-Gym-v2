@@ -11,6 +11,8 @@
     constructor() {
       this.currentView = 'password'; // 'password' | 'otp' | '2fa' | 'activate' | 'register'
       this.temp2faData = null;
+      this.activationProfile = null;
+      this.activationVersion = 0;
       this.otpCountdown = null;
       this.lockoutUntil = 0;
       this.lockoutTimer = null;
@@ -121,6 +123,12 @@
       });
 
       // Activation: Lookup
+      $('#actIdentifier, #actRole').on('input change', () => {
+        const isCode = /^PT[0-9]+$/i.test($('#actIdentifier').val().trim());
+        if (isCode) $('#actRole').val('PT');
+        $('#actRole').prop('disabled', isCode);
+        this.resetActivation();
+      });
       $('#btnActLookup').on('click', function () {
         self.handleActivationLookup();
       });
@@ -373,6 +381,23 @@
     // ========================================================
     // 4. FIRST-TIME ACTIVATION (Member & PT)
     // ========================================================
+    resetActivation() {
+      this.activationVersion++;
+      this.activationProfile = null;
+      if (this.otpCountdown) clearInterval(this.otpCountdown);
+      $('#actTimer').hide();
+      $('#btnActRequestOtp').prop('disabled', false);
+      $('#actProfilePreview, #actStepOtp, #actOtpInputGroup, #actPasswordGroup, #actDevHint').hide();
+      $('#otpBoxesAct input, #actOtpCodeHidden, #actPassword, #actConfirmPassword').val('');
+      $('#btnActSubmit').prop('disabled', true);
+    }
+
+    activationContext() {
+      const raw = $('#actIdentifier').val().trim();
+      const role = /^PT[0-9]+$/i.test(raw) ? 'PT' : $('#actRole').val();
+      return this.activationProfile?.identifier === raw && this.activationProfile.role === role ? this.activationProfile : null;
+    }
+
     async handleActivationLookup() {
       const raw = $('#actIdentifier').val().trim();
       if (!raw) {
@@ -381,12 +406,15 @@
       }
 
       const btn = $('#btnActLookup');
+      this.resetActivation();
+      const version = this.activationVersion;
       btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Đang tra cứu...');
 
       try {
         const isPt = /^PT[0-9]+$/i.test(raw);
-        const role = isPt ? 'PT' : 'MEMBER';
+        const role = isPt ? 'PT' : $('#actRole').val();
         const res = await apiClient.auth.activationLookup(raw, role);
+        if (version !== this.activationVersion) return;
         btn.prop('disabled', false).html('<i class="fa-solid fa-magnifying-glass"></i> Tra cứu hồ sơ');
 
         if (res.data?.status === 'ACTIVE') {
@@ -396,26 +424,33 @@
           return;
         }
 
-        $('#actProfileName').text(res.data?.full_name || res.data?.masked_name || 'Hội viên / HLV');
-        $('#actProfileBranch').text(res.data?.branch_name || res.data?.home_branch_name || 'Chi nhánh Paradise');
+        if (!res.data?.can_activate) throw new Error('Hồ sơ chưa đủ điều kiện kích hoạt.');
+        this.activationProfile = { identifier: raw, role };
+        $('#actProfileName').text(res.data.masked_name || 'Chưa có thông tin');
+        $('#actProfileCode').text(res.data.masked_code || '').toggle(!!res.data.masked_code);
+        $('#actProfileBranch').text(res.data.branch_name || res.data.home_branch_name || '').toggle(!!(res.data.branch_name || res.data.home_branch_name));
         $('#actProfilePreview').slideDown(200);
         $('#actStepOtp').slideDown(200);
         this.showToast('Tìm thấy hồ sơ hợp lệ! Vui lòng bấm [Nhận mã kích hoạt].', 'success');
       } catch (err) {
+        if (version !== this.activationVersion) return;
         btn.prop('disabled', false).html('<i class="fa-solid fa-magnifying-glass"></i> Tra cứu hồ sơ');
         this.showToast(err.data?.message || err.message || 'Không tìm thấy hồ sơ', 'error');
+      } finally {
+        btn.prop('disabled', false).html('<i class="fa-solid fa-magnifying-glass"></i> Tra cứu hồ sơ');
       }
     }
 
     async handleActivationRequestOtp() {
-      const raw = $('#actIdentifier').val().trim();
-      const isPt = /^PT[0-9]+$/i.test(raw);
-      const role = isPt ? 'PT' : 'MEMBER';
+      const profile = this.activationContext();
+      if (!profile) return this.showToast('Vui lòng tra cứu lại hồ sơ trước khi nhận OTP.', 'warning');
+      const { identifier: raw, role } = profile;
       const btn = $('#btnActRequestOtp');
       btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...');
 
       try {
         const res = await apiClient.auth.requestOtp(raw, null, role);
+        if (this.activationContext() !== profile) return;
         btn.prop('disabled', false).text('Gửi lại mã');
         $('#actOtpInputGroup').slideDown(200);
         $('#actPasswordGroup').slideDown(200);
@@ -425,7 +460,7 @@
           $('#actDevHint').text(`Mã OTP phát triển: ${res.data.dev_otp}`).show();
         }
         this.startOtpTimer('actTimer', btn, res.data?.ttl_seconds || 60);
-        this.showToast('Mã OTP kích hoạt đã gửi tới SĐT đăng ký', 'info');
+        this.showToast(res.data?.dev_otp ? 'OTP phát triển, không gửi SMS.' : 'Yêu cầu gửi OTP đã được tiếp nhận.', 'info');
       } catch (err) {
         btn.prop('disabled', false).text('Nhận mã OTP');
         this.showToast(err.data?.message || err.message, 'error');
@@ -433,6 +468,8 @@
     }
 
     async handleActivationSubmit() {
+      const profile = this.activationContext();
+      if (!profile) return this.showToast('Vui lòng tra cứu lại hồ sơ trước khi kích hoạt.', 'warning');
       const raw = $('#actIdentifier').val().trim();
       const code = $('#actOtpCodeHidden').val().trim();
       const pass = $('#actPassword').val();
@@ -454,8 +491,8 @@
       const btn = $('#btnActSubmit');
       btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Đang kích hoạt...');
 
-      const isPt = /^PT[0-9]+$/i.test(raw);
-      const role = isPt ? 'PT' : 'MEMBER';
+      const role = profile.role;
+      $('#actIdentifier, #actRole, #btnActLookup').prop('disabled', true);
 
       try {
         const res = await apiClient.auth.loginWithOtp(raw, code, pass, role);
@@ -465,6 +502,9 @@
       } catch (err) {
         btn.prop('disabled', false).html('<i class="fa-solid fa-check"></i> HOÀN TẤT KÍCH HOẠT');
         this.showToast(err.data?.message || err.message, 'error');
+      } finally {
+        $('#actIdentifier, #btnActLookup').prop('disabled', false);
+        $('#actRole').prop('disabled', /^PT[0-9]+$/i.test($('#actIdentifier').val().trim()));
       }
     }
 

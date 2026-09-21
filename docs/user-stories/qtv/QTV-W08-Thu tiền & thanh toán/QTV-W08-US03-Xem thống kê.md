@@ -1,70 +1,56 @@
 # QTV-W08-US03 - Xem thống kê
 
 ## Preconditions
-- QTV đã đăng nhập vào Web QTV, có quyền tài chính và đang ở menu W08 Thu tiền & thanh toán.
+- QTV đã đăng nhập và có quyền tài chính trong phạm vi chi nhánh được phân quyền.
 
 ## Trigger
-- QTV truy cập menu **W08 · Thu tiền & thanh toán** trên thanh điều hướng chính hoặc thay đổi giá trị tại **Bộ lọc thời gian thanh toán**.
-- Màn hình liên quan: Web QTV — W08 Thu tiền & thanh toán, Khối Thống kê nhanh (KPI Summary Cards).
+- Mở W08, đổi bộ lọc hoặc có giao dịch thu thành công.
 
 ## Main Flow
+1. SYS đọc payments theo thời gian (mặc định Hôm nay), phương thức, từ khóa và scope của danh sách W08-US01.
+2. SYS hiển thị đúng hai KPI: Tổng thực thu (tổng số tiền đã thu đủ sau giảm giá) và Lượt thanh toán thành công (số payment).
+3. Đổi bộ lọc hoặc làm mới sau khi thu tiền cập nhật đồng thời hai KPI và bảng. Hai thẻ chỉ đọc, không có thao tác lọc theo trạng thái.
 
-1. QTV truy cập menu W08 Thu tiền & thanh toán (hoặc điều chỉnh giá trị tại Bộ lọc thời gian thanh toán).
-2. SYS tự động tổng hợp và hiển thị **Khối Thống kê nhanh (KPI Summary Cards)** ở phần trên cùng của màn hình theo mốc thời gian đã chọn (mặc định là Hôm nay `TODAY`):
-   - **Thẻ Tổng thực thu**: Tổng số tiền thực thu 100% từ các giao dịch thanh toán thành công trong mốc thời gian lọc (ví dụ: `5.650.000 đ`). Có nút badge `[Lọc]` / `[✓ Đang lọc]`.
-   - **Thẻ Lượt thanh toán thành công**: Tổng số lượt giao dịch payment đã thu tiền thành công 100% trong mốc thời gian lọc (ví dụ: `12 lượt`). Có nút badge `[Lọc]` / `[✓ Đang lọc]`.
-   - **Thẻ Đơn chờ thanh toán**: Tổng số lượng đơn đăng ký (`Registration`) đang ở trạng thái `PENDING_PAYMENT` và tổng giá trị các đơn này đang chờ khách đóng tiền để kích hoạt gói (ví dụ: `3 đơn · 4.500.000 đ`). Có nút badge `[↗ Xem đơn]`.
-3. QTV theo dõi các chỉ số tài chính dòng tiền thực thu và tình hình các đơn chờ thanh toán theo thời gian thực.
-4. Khi QTV chọn ngày khác hoặc khoảng ngày tại **Bộ lọc thời gian thanh toán**, SYS lập tức tính toán và làm mới số liệu của cả 3 thẻ KPI đồng bộ với bảng danh sách payment bên dưới.
+### Field-level specification — Khối thống kê
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| --- | --- | --- | --- | --- | --- |
+| Tổng thực thu | Currency metric | READONLY | required | Không | Tổng amount của payments theo bộ lọc/scope; không cộng payment_intents hay giá trị đăng ký chưa trả. |
+| Lượt thanh toán thành công | Count metric | READONLY | required | Không | Số payments cùng bộ lọc/scope; không đếm số lần tạo QR hoặc số lần thử xác nhận. |
+
+## Business Rules
+- payments chỉ chứa giao dịch thành công và không có status. W08 không có KPI đơn chờ thanh toán, dropdown/cột trạng thái hoặc badge lọc thành công.
+- Đăng ký chờ tiếp tục được quản lý tại W04; khởi tạo/hết hạn QR không làm tăng doanh thu.
 
 ## Alternate Flows
-- **AF-01 — Bấm thẻ KPI Tổng thực thu / Lượt thanh toán thành công để lọc nhanh giao dịch thành công:**
-  1. QTV bấm vào thẻ **Tổng thực thu** hoặc thẻ **Lượt thanh toán thành công**.
-  2. SYS đồng bộ giá trị dropdown `Trạng thái = COMPLETED (Thành công)`, làm mới DataGrid bên dưới hiển thị danh sách các giao dịch thành công và gắn nhãn visual `[✓ Đang lọc]` kèm highlight viền/nền xanh cho 2 thẻ KPI.
-  3. Khi QTV bấm lại lần nữa vào thẻ đang kích hoạt, SYS tự động chuyển trạng thái về `Tất cả` (`''`) và hoàn nguyên visual về mặc định.
-- **AF-02 — Bấm thẻ KPI Đơn chờ thanh toán để xem chi tiết đơn đăng ký:**
-  1. QTV bấm vào thẻ **Đơn chờ thanh toán**.
-  2. SYS điều hướng sang màn hình **W04 · Đăng ký & gia hạn** kèm tham số bộ lọc `status = PENDING_PAYMENT` để xem và xử lý các đơn chờ đóng tiền.
+- Không có giao dịch: cả hai KPI bằng 0.
+- Làm mới hoặc đổi bộ lọc: tính lại cùng điều kiện với danh sách.
 
-### Field-level specification — Khối Thống kê nhanh (KPI Summary Cards)
-| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| Thẻ Tổng thực thu | `Interactive Stat Card (Currency)` | `READONLY` (Clickable) | required | `DYNAMIC` | Tổng số tiền đã thu thành công 100% theo ngày/khoảng ngày được chọn tại Bộ lọc thời gian thanh toán (mặc định hôm nay `TODAY`, ví dụ: `5.650.000 đ`). Bấm để kích hoạt lọc DataGrid theo `Trạng thái = COMPLETED`; bấm lại để hoàn nguyên `Tất cả`. Nguồn từ các bản ghi Payment `CONFIRMED` |
-| Thẻ Lượt thanh toán thành công | `Interactive Stat Card (Count)` | `READONLY` (Clickable) | required | `DYNAMIC` | Tổng số lượt giao dịch thanh toán thành công 100% theo ngày/khoảng ngày được chọn tại Bộ lọc thời gian thanh toán (mặc định hôm nay `TODAY`, ví dụ: `12 lượt`). Bấm để kích hoạt lọc DataGrid theo `Trạng thái = COMPLETED`; bấm lại để hoàn nguyên `Tất cả` |
-| Thẻ Đơn chờ thanh toán | `Interactive Stat Card (Count & Currency)` | `READONLY` (Clickable) | required | `DYNAMIC` | Số lượng đơn và tổng giá trị các gói đang ở trạng thái `PENDING_PAYMENT` chờ hội viên đóng tiền để kích hoạt gói tính đến hiện tại hoặc theo thời gian lọc (ví dụ: `3 đơn · 4.500.000 đ`). Bấm để điều hướng sang màn hình W04 Đăng ký & gia hạn với bộ lọc `status = PENDING_PAYMENT` |
-
-- **Business rules / logic:**
-  - Các chỉ số KPI phản ánh trung thực và tức thời dòng tiền thực thu 100% từ các giao dịch thành công.
-  - Tuyệt đối không có chỉ số công nợ hay nợ đọng; phân định rõ số tiền đã thu vào quỹ và số tiền của các đơn đăng ký đang chờ đóng tiền (`PENDING_PAYMENT`).
-  - Số liệu tự động cập nhật ngay khi:
-    1. Thay đổi ngày/khoảng ngày tại Bộ lọc thời gian thanh toán.
-    2. Có giao dịch thanh toán mới thành công.
-    3. Có đơn đăng ký mới được tạo ở trạng thái `PENDING_PAYMENT` từ menu W04.
+## Exception Flows
+- Lỗi truy vấn hoặc mất quyền: hiển thị lỗi/không khả dụng; không trình bày lỗi thành số 0 hợp lệ.
 
 ## Activity Diagram — Swimlane
-**Trigger:** QTV mở menu W08 hoặc đổi bộ lọc thời gian để theo dõi thống kê dòng tiền.
 
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — Web QTV W08 / Khối Thống kê nhanh"]
-    subgraph L0["Swimlane — QTV"]
-      I01(("Initial"))
-      A01["Mở menu W08 Thu tiền & thanh toán hoặc đổi Bộ lọc thời gian"]
-      A02["Theo dõi các thẻ chỉ số KPI dòng tiền thực thu và đơn chờ thanh toán"]
-      F01((("Final — Đã nắm bắt tình hình dòng tiền theo thời gian chọn")))
-
-      I01 --> A01
-      A02 --> F01
+  subgraph B["Boundary - Web QTV / W08 Thống kê"]
+    subgraph L0["Swimlane - QTV"]
+      I(("Initial"))
+      A["Mở W08 hoặc thay đổi bộ lọc"]
     end
-    subgraph L1["Swimlane — SYS"]
-      S01["Tính toán tổng số tiền thực thu 100% từ các Payment thành công theo mốc thời gian lọc"]
-      S02["Thống kê số lượng đơn Registration đang PENDING_PAYMENT và tổng giá trị"]
-      S03["Hiển thị và làm mới 3 thẻ KPI Summary lên đầu trang W08"]
-
-      A01 --> S01
-      S01 --> S02
-      S02 --> S03
-      S03 --> A02
+    subgraph L1["Swimlane - SYS"]
+      S["Truy vấn tổng amount và số payments trong scope"]
+      D{"Truy vấn thành công?"}
+      V["Hiển thị hai KPI theo bộ lọc, bằng 0 khi rỗng"]
+      E["Hiển thị lỗi hoặc không khả dụng"]
+      F((("Final - Đã xem thống kê")))
+      FE((("Final - Không có kết quả hợp lệ")))
     end
+    I --> A
+    A --> S
+    S --> D
+    D -->|Có| V
+    V --> F
+    D -->|Không| E
+    E --> FE
   end
 ```

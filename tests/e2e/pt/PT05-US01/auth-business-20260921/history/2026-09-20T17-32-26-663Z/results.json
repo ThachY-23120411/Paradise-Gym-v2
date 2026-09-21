@@ -1,0 +1,647 @@
+{
+  "story": "PT05-US01",
+  "result": "BLOCKED",
+  "database": "paradise_auth_test_30404_1789925495216",
+  "ui": "http://127.0.0.1:49765",
+  "backend": "http://127.0.0.1:49764/api/v1",
+  "fixture": {
+    "trainer": {
+      "id": "70802033-6870-407d-b3ed-59896c0db581",
+      "account_id": "a42f29de-f61c-471c-938e-907753159558",
+      "branch_id": "b17f5fcd-a729-4bba-a0d0-af506830bb91",
+      "pt_code": "PT001",
+      "full_name": "Auth Business Trainer",
+      "phone": "0909210020",
+      "email": null,
+      "gender": null,
+      "bio": null,
+      "specialties": "Strength",
+      "status": "ACTIVE",
+      "work_start_time": "08:00:00",
+      "work_end_time": "18:00:00",
+      "work_days": "MON_TO_FRI",
+      "created_at": "2026-09-20T17:31:36.371Z",
+      "updated_at": "2026-09-20T17:31:36.371Z",
+      "show_phone_to_members": false,
+      "avatar_url": null,
+      "face_enrolled": false,
+      "bank_name": null,
+      "bank_account_no": null,
+      "bank_account_name": null
+    },
+    "branch": "b17f5fcd-a729-4bba-a0d0-af506830bb91",
+    "branchName": "Auth Test Branch",
+    "setup": "QTV created pending PT through real API. No activation/session injected into browser. 2FA later enabled as isolated account prerequisite."
+  },
+  "migrations": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4e4c4da7561e9e39faecbc5bc3c152158be9543531add85b6904bea7c3cb047a"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    }
+  ],
+  "steps": [
+    {
+      "action": "Enter login-pt-code",
+      "expected": "US input field retains entered value before submission",
+      "actual": "PT001",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-01-login-pt-code.png"
+    },
+    {
+      "action": "Enter invalid-password",
+      "expected": "US input field retains entered value before submission",
+      "actual": "Password input filled (value not logged)",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-02-invalid-password.png"
+    },
+    {
+      "action": "Reject invalid-password",
+      "expected": "PT05 AF-04: invalid credential shows error, no session, retry remains available",
+      "actual": {
+        "status": 401,
+        "code": "INVALID_CREDENTIALS",
+        "message": "Số điện thoại hoặc mật khẩu không đúng.",
+        "failedAttempts": 1,
+        "sessionAbsent": true
+      },
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-03-invalid-password.png"
+    },
+    {
+      "action": "Enter valid-password",
+      "expected": "US input field retains entered value before submission",
+      "actual": "Password input filled (value not logged)",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-04-valid-password.png"
+    },
+    {
+      "action": "Blocked: Password login and invalid password",
+      "expected": "Complete actual UI scenario",
+      "actual": "response.json: Protocol error (Network.getResponseBody): No resource with given identifier found\nResponse body is not available for a response that was navigated away from. Read response.body() before triggering any navigation.",
+      "status": "FAIL",
+      "section": "source",
+      "filename": "step-05-blocker.png"
+    },
+    {
+      "action": "Switch to OTP login",
+      "expected": "US01 Trigger fields: phone visible, password hidden; OTP boxes hidden until request",
+      "actual": "OTP mode conditional fields correct",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-06-otp-mode.png"
+    },
+    {
+      "action": "Enter otp-login-phone",
+      "expected": "US input field retains entered value before submission",
+      "actual": "0909210020",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-07-otp-login-phone.png"
+    },
+    {
+      "action": "Request login OTP",
+      "expected": "US01: real development challenge, 60-second TTL and six input boxes",
+      "actual": {
+        "delivery": "DEVELOPMENT_ONLY",
+        "ttl": 60
+      },
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-08-otp-login-challenge.png"
+    },
+    {
+      "action": "Enter invalid-login-otp",
+      "expected": "Six OTP digits entered before submit",
+      "actual": "Six test OTP digits entered; value excluded from JSON",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-09-invalid-login-otp.png"
+    },
+    {
+      "action": "Reject invalid-login-otp",
+      "expected": "PT05 AF-04: invalid credential shows error, no session, retry remains available",
+      "actual": {
+        "status": 400,
+        "code": "OTP_INVALID",
+        "message": "Mã OTP không đúng hoặc đã hết hạn.",
+        "failedAttempts": 1,
+        "sessionAbsent": true
+      },
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-10-invalid-login-otp.png"
+    },
+    {
+      "action": "Enter valid-login-otp",
+      "expected": "Six OTP digits entered before submit",
+      "actual": "Six test OTP digits entered; value excluded from JSON",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-11-valid-login-otp.png"
+    },
+    {
+      "action": "otp-login: authenticated PT destination",
+      "expected": "PT05 Main Flow: valid session for same trainer opens PT06 overview",
+      "actual": {
+        "tab": "overview",
+        "id": "70802033-6870-407d-b3ed-59896c0db581",
+        "role": "PT",
+        "hasToken": true
+      },
+      "status": "PASS",
+      "section": "downstream",
+      "filename": "downstream-12-otp-login.png"
+    },
+    {
+      "action": "Enter 2fa-pt-code",
+      "expected": "US input field retains entered value before submission",
+      "actual": "PT001",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-13-2fa-pt-code.png"
+    },
+    {
+      "action": "Enter 2fa-password",
+      "expected": "US input field retains entered value before submission",
+      "actual": "Password input filled (value not logged)",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-14-2fa-password.png"
+    },
+    {
+      "action": "Submit valid password with 2FA enabled",
+      "expected": "US01 Main Flow 5: challenge shown; no full session before second factor",
+      "actual": {
+        "requires2fa": true,
+        "delivery": "DEVELOPMENT_ONLY",
+        "ttl": 60,
+        "maskedPhone": "090****020",
+        "sessionAbsent": true
+      },
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-15-2fa-challenge.png"
+    },
+    {
+      "action": "Enter invalid-2fa-otp",
+      "expected": "Six OTP digits entered before submit",
+      "actual": "Six test OTP digits entered; value excluded from JSON",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-16-invalid-2fa-otp.png"
+    },
+    {
+      "action": "Reject invalid-2fa-otp",
+      "expected": "PT05 AF-04: invalid credential shows error, no session, retry remains available",
+      "actual": {
+        "status": 400,
+        "code": "OTP_INVALID",
+        "message": "Mã OTP không đúng hoặc đã hết hạn.",
+        "failedAttempts": 1,
+        "sessionAbsent": true
+      },
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-17-invalid-2fa-otp.png"
+    },
+    {
+      "action": "Enter valid-2fa-otp",
+      "expected": "Six OTP digits entered before submit",
+      "actual": "Six test OTP digits entered; value excluded from JSON",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-18-valid-2fa-otp.png"
+    },
+    {
+      "action": "2fa-login: authenticated PT destination",
+      "expected": "PT05 Main Flow: valid session for same trainer opens PT06 overview",
+      "actual": {
+        "tab": "overview",
+        "id": "70802033-6870-407d-b3ed-59896c0db581",
+        "role": "PT",
+        "hasToken": true
+      },
+      "status": "PASS",
+      "section": "downstream",
+      "filename": "downstream-19-2fa-login.png"
+    }
+  ],
+  "checks": [
+    {
+      "name": "otp-login real session",
+      "status": "PASS",
+      "actual": {
+        "accountId": "a42f29de-f61c-471c-938e-907753159558",
+        "trainerId": "70802033-6870-407d-b3ed-59896c0db581",
+        "httpStatus": 200
+      }
+    },
+    {
+      "name": "2FA prerequisite",
+      "status": "PASS",
+      "actual": "Enabled on the same activated account in disposable DB only; no existing sessions injected into new browser context."
+    },
+    {
+      "name": "2fa-login real session",
+      "status": "PASS",
+      "actual": {
+        "accountId": "a42f29de-f61c-471c-938e-907753159558",
+        "trainerId": "70802033-6870-407d-b3ed-59896c0db581",
+        "httpStatus": 200
+      }
+    }
+  ],
+  "issues": [
+    "Password login and invalid password: response.json: Protocol error (Network.getResponseBody): No resource with given identifier found\nResponse body is not available for a response that was navigated away from. Read response.body() before triggering any navigation.",
+    "Blocked: Password login and invalid password: response.json: Protocol error (Network.getResponseBody): No resource with given identifier found\nResponse body is not available for a response that was navigated away from. Read response.body() before triggering any navigation."
+  ],
+  "blocked": [
+    "Password login and invalid password"
+  ],
+  "pageErrors": [],
+  "network": [
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/branches",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/login-password",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/login-password",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/notifications",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/me",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/notifications",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/notifications",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/mobile/profile",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/mobile/pt/statistics",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/pt-bookings",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/mobile/preferences",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/pt/my-commissions",
+      "method": "GET",
+      "status": 409
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/registrations",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/branches",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/request-otp",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/login-otp",
+      "method": "POST",
+      "status": 400
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/login-otp",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/notifications",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/me",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/notifications",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/notifications",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/mobile/pt/statistics",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/mobile/profile",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/mobile/preferences",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/pt-bookings",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/registrations",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/pt/my-commissions",
+      "method": "GET",
+      "status": 409
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/branches",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/login-password",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/verify-2fa",
+      "method": "POST",
+      "status": 400
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/verify-2fa",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/notifications",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/notifications",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/auth/me",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/notifications",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/mobile/profile",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/mobile/pt/statistics",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/pt-bookings",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/mobile/preferences",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/registrations",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "story": "PT05-US01",
+      "path": "/api/v1/pt/my-commissions",
+      "method": "GET",
+      "status": 409
+    }
+  ],
+  "cleanup": {
+    "browserClosed": true,
+    "serverClosed": true,
+    "uiClosed": true,
+    "databaseDropped": true,
+    "errors": []
+  },
+  "screenshots": [
+    {
+      "file": "step-01-login-pt-code.png",
+      "sha256": "f5012cd8992a1c5c45e4adb3ed6f9a98b860bd520ae6d1bce2420bbedb04cd0d"
+    },
+    {
+      "file": "step-02-invalid-password.png",
+      "sha256": "4ddd169b3b1de00c577a7c365904512d838b6cc31df52a264a2cd951a02bc96d"
+    },
+    {
+      "file": "step-03-invalid-password.png",
+      "sha256": "49e2fcd541e8a1225e96803fae9fab78aa579c4273218be554556db9f9de3505"
+    },
+    {
+      "file": "step-04-valid-password.png",
+      "sha256": "cb557b6b510aa7e2178b52584795d49a5501518cd4e5824377f7959c03a734c7"
+    },
+    {
+      "file": "step-05-blocker.png",
+      "sha256": "c47a858cf15cd2507deba0547cd4e27f7b7672b75c1ae1c08e120ec2c10dd693"
+    },
+    {
+      "file": "step-06-otp-mode.png",
+      "sha256": "2b243268e23a0998696374699aaf4805c254f0e9a91566713c4dba6307cf0039"
+    },
+    {
+      "file": "step-07-otp-login-phone.png",
+      "sha256": "f67ec629f7bdf99cef145e4ba206a55368ebcb565b98d499cd257e2c1e2daf61"
+    },
+    {
+      "file": "step-08-otp-login-challenge.png",
+      "sha256": "38af39ac283a46b68429e130859d318e99229a8d6086b1c6c9f58600489b9fa0"
+    },
+    {
+      "file": "step-09-invalid-login-otp.png",
+      "sha256": "65284f4bd2c3771af3684b6d38679cca41dbf066e5e4dbd73017d15cadb2ad6d"
+    },
+    {
+      "file": "step-10-invalid-login-otp.png",
+      "sha256": "10b8b4cc2edc71ea1139a21ce1053132488084a1027f4552687bf50d91c3331f"
+    },
+    {
+      "file": "step-11-valid-login-otp.png",
+      "sha256": "1be3fa87b19544ed2dedd98c9edde1d2d7c97ff65d1e264347e8d1149597c8d7"
+    },
+    {
+      "file": "downstream-12-otp-login.png",
+      "sha256": "2ab1289d84db3766dc72004348cbea3e1311f877c5a8bfcb06f3f6f35e7349bf"
+    },
+    {
+      "file": "step-13-2fa-pt-code.png",
+      "sha256": "4f9471618aed9f04c373486cfcc60636f22511aeb62f6b391f64d50147eca2d3"
+    },
+    {
+      "file": "step-14-2fa-password.png",
+      "sha256": "6d4189f8085ccab702fe3ff8150c2f2e33460a6f3e53e0fa868805795388db01"
+    },
+    {
+      "file": "step-15-2fa-challenge.png",
+      "sha256": "b3a643914f85967c01202817c9d61a7ddabf38562c1ce65f5214be4c94d00da4"
+    },
+    {
+      "file": "step-16-invalid-2fa-otp.png",
+      "sha256": "56f8e3c56b2b434edadf2e898b209d9f37f0370866a7cb26c4cbafce9317ea25"
+    },
+    {
+      "file": "step-17-invalid-2fa-otp.png",
+      "sha256": "fe31087f1af8f22cedf859debefd9491d48b423e361d99a8b0c79b1beab66e19"
+    },
+    {
+      "file": "step-18-valid-2fa-otp.png",
+      "sha256": "85ebb855fbcbfa5cd5ff929237340f4d99cf30951e96da42fa58b89dd374b0cf"
+    },
+    {
+      "file": "downstream-19-2fa-login.png",
+      "sha256": "0f077805e67653269fe23d1a07d04dad9b78a04a1e1660a057bf91b25d8fead4"
+    }
+  ]
+}

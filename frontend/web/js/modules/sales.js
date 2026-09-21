@@ -4,7 +4,7 @@ window.SalesModule = (function () {
 
   const registrationStatuses = {
     PENDING_PAYMENT: 'Chờ thanh toán', ACTIVE: 'Đang hiệu lực', FROZEN: 'Đang đóng băng', SCHEDULED: 'Chưa đến ngày hiệu lực',
-    SCHEDULED_FREEZE: 'Chờ đóng băng', EXPIRING: 'Sắp hết hạn', EXPIRED: 'Đã hết hạn', CANCELLED: 'Đã hủy'
+    EXPIRING: 'Sắp hết hạn', EXPIRED: 'Đã hết hạn', CANCELLED: 'Đã hủy'
   };
   const paymentStatuses = { COMPLETED: 'Thành công', CONFIRMED: 'Thành công', PENDING: 'Chờ thanh toán', EXPIRED: 'Hết hạn', CANCELLED: 'Đã hủy', FAILED: 'Thất bại' };
   let currentView = null;
@@ -89,13 +89,12 @@ window.SalesModule = (function () {
     $('<span>').text(' Đang tải...').appendTo($parent);
   }
   function badge($parent, status, payment = false) {
-    const tone = ['ACTIVE', 'COMPLETED', 'CONFIRMED'].includes(status) ? 'success' : ['PENDING', 'PENDING_PAYMENT', 'EXPIRING', 'SCHEDULED_FREEZE'].includes(status) ? 'warning' : ['CANCELLED', 'FAILED'].includes(status) ? 'danger' : 'info';
+    const tone = ['ACTIVE', 'COMPLETED', 'CONFIRMED'].includes(status) ? 'success' : ['PENDING', 'PENDING_PAYMENT', 'EXPIRING'].includes(status) ? 'warning' : ['CANCELLED', 'FAILED'].includes(status) ? 'danger' : 'info';
     const label = (payment ? paymentStatuses : registrationStatuses)[status] || value(status);
-    const textLabel = status === 'FROZEN' ? `❄️ ${label}` : status === 'SCHEDULED_FREEZE' ? `⏳ ${label}` : label;
+    const textLabel = status === 'FROZEN' ? `❄️ ${label}` : label;
     const $badge = $('<span>').addClass(`status-badge badge-${tone}`).text(textLabel).appendTo($parent);
     if (status === 'EXPIRED') $badge.css({ background: '#f4f4f5', color: '#52525b', borderColor: '#a1a1aa' });
     if (status === 'FROZEN') $badge.css({ background: '#e0f2fe', color: '#0369a1', borderColor: '#7dd3fc', fontWeight: 600 });
-    if (status === 'SCHEDULED_FREEZE') $badge.css({ background: '#fef3c7', color: '#92400e', borderColor: '#fcd34d', fontWeight: 600 });
   }
   function twoLines($parent, title, subtitle) {
     $('<strong>').text(value(title)).appendTo($parent);
@@ -229,12 +228,12 @@ window.SalesModule = (function () {
       { caption: 'Thao tác', width: 250, fixed: true, fixedPosition: 'right', cellTemplate(el, c) {
         const $actions = $('<div>').css({ display: 'flex', gap: 3, flexWrap: 'wrap' }).appendTo(el);
         iconButton($actions, 'Chi tiết đăng ký', 'info', () => openRegistrationDetail(c.data.id));
-        if (isGroupPT(c.data) && ['ACTIVE', 'SCHEDULED', 'SCHEDULED_FREEZE'].includes(c.data.status)) {
+        if (isGroupPT(c.data) && ['ACTIVE', 'SCHEDULED'].includes(c.data.status)) {
           const countText = c.data.max_group_members ? ` (${c.data.total_group_members || 1}/${c.data.max_group_members})` : '';
           button($actions, `Mời vào nhóm${countText}`, 'group', () => openGroupMembersModal(c.data.id, () => view.reload()));
         }
-        if (hasPT(c.data) && !c.data.assigned_pt_id && ['ACTIVE', 'SCHEDULED', 'SCHEDULED_FREEZE'].includes(c.data.status)) button($actions, 'Gán PT', 'user', () => openAssignment(c.data.id));
-        if (['ACTIVE', 'EXPIRED', 'EXPIRING', 'SCHEDULED', 'SCHEDULED_FREEZE', 'FROZEN'].includes(c.data.status)) button($actions, 'Gia hạn', 'repeat', () => openRegistrationModal({ renewalId: c.data.id }));
+        if (hasPT(c.data) && !c.data.assigned_pt_id && ['ACTIVE', 'SCHEDULED'].includes(c.data.status)) button($actions, 'Gán PT', 'user', () => openAssignment(c.data.id));
+        if (['ACTIVE', 'EXPIRED', 'EXPIRING', 'SCHEDULED', 'FROZEN'].includes(c.data.status)) button($actions, 'Gia hạn', 'repeat', () => openRegistrationModal({ renewalId: c.data.id }));
         if (c.data.status === 'PENDING_PAYMENT') {
           button($actions, 'Thu tiền', 'money', () => openPaymentModal(c.data.id), true);
           button($actions, 'Hủy đơn', 'close', () => openCancelModal(c.data, () => view.reload()), false, { stylingMode: 'outlined', elementAttr: { style: 'color: #dc2626; border-color: #fca5a5;' } });
@@ -508,7 +507,7 @@ window.SalesModule = (function () {
           button($groupActions, 'Quản lý thành viên nhóm', 'group', () => openGroupMembersModal(r.id, load));
         }
 
-        if (r.is_frozen || ['ACTIVE', 'SCHEDULED', 'SCHEDULED_FREEZE', 'FROZEN'].includes(r.status) || (r.freezes && r.freezes.length > 0)) {
+        if (r.is_frozen || ['ACTIVE', 'SCHEDULED', 'FROZEN'].includes(r.status) || (r.freezes && r.freezes.length > 0)) {
           const $contractSec = section(dialog.body, 'Đóng băng & Chuyển nhượng gói');
           const $contractActions = $('<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">').appendTo($contractSec);
           if (r.is_frozen) {
@@ -521,11 +520,7 @@ window.SalesModule = (function () {
                 if (currentView?.reload) await currentView.reload();
               } catch (err) { notify(err.message, 'error'); }
             }, true);
-          } else if (r.status === 'SCHEDULED_FREEZE' || r.has_scheduled_freeze) {
-            const schedF = r.freezes?.find(f => f.status === 'SCHEDULED');
-            const schedText = schedF ? `⏳ GÓI ĐÃ LÊN LỊCH ĐÓNG BĂNG (${dateText(schedF.start_date)} - ${dateText(schedF.end_date)})` : '⏳ GÓI ĐÃ LÊN LỊCH ĐÓNG BĂNG';
-            $('<div style="margin-bottom:8px;">').append($('<span class="status-badge" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;font-weight:600;padding:4px 10px;">').text(schedText)).appendTo($contractSec);
-            button($contractActions, 'Chuyển nhượng gói', 'repeat', () => openTransferModal(r, async () => { await load(); if (currentView?.reload) await currentView.reload(); }));
+          
           } else if (['ACTIVE', 'SCHEDULED'].includes(r.status)) {
             button($contractActions, 'Đóng băng gói', 'hourglass-half', () => openFreezeModal(r, async () => { await load(); if (currentView?.reload) await currentView.reload(); }));
             button($contractActions, 'Chuyển nhượng gói', 'repeat', () => openTransferModal(r, async () => { await load(); if (currentView?.reload) await currentView.reload(); }));
@@ -553,7 +548,7 @@ window.SalesModule = (function () {
                     <td style="padding:6px;color:#475569;">${escapeHtml(f.reason || '--')}</td>
                     <td style="padding:6px;text-align:center;">
                       <span class="status-badge" style="font-size:10px;padding:2px 6px;border-radius:4px;${f.status === 'ACTIVE' ? 'background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;font-weight:600;' : f.status === 'SCHEDULED' ? 'background:#fef3c7;color:#92400e;border:1px solid #fcd34d;font-weight:600;' : 'background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;'}">
-                        ${f.status === 'ACTIVE' ? 'Đang bảo lưu' : f.status === 'SCHEDULED' ? 'Chờ đóng băng' : 'Đã kết thúc'}
+                        ${f.status === 'ACTIVE' ? 'Đang bảo lưu' : 'Đã kết thúc'}
                       </span>
                     </td>
                     <td style="padding:6px;color:#64748b;">${escapeHtml(f.approved_by_name || '--')}</td>
@@ -909,69 +904,16 @@ window.SalesModule = (function () {
       reason: ''
     };
 
-    // Khối tóm tắt xem trước trực quan (Chuẩn Forest Clean)
-    const $summarySec = $('<div style="margin: 10px 0 16px; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">').appendTo(dialog.body);
-    const $statusPreview = $('<div>').appendTo($summarySec);
-    const $endDatePreview = $('<div style="margin-top: 4px;">').appendTo($summarySec);
-
     let isUpdating = false;
-
-    function updatePreview() {
-      const isImmediate = dateKey(model.start_date) === dateKey(todayDate);
-      if (isImmediate) {
-        $statusPreview.html(`Trạng thái sau khi lưu: <span style="font-weight: 600; color: #0369a1;">❄️ Kích hoạt đóng băng ngay hôm nay</span>`);
-      } else {
-        const workoutUntil = addDays(model.start_date, -1);
-        $statusPreview.html(`Trạng thái sau khi lưu: <span style="font-weight: 600; color: #b45309;">⏳ Chờ đóng băng</span> (Hội viên vẫn được đi tập đến hết ${dateText(workoutUntil)})`);
-      }
-
-      const newExpiry = addDays(expiryDate, model.freeze_days);
-      $endDatePreview.html(`Hạn dùng mới dự kiến: <strong style="color: #15803d;">${dateText(newExpiry)}</strong> <span class="text-muted">(lùi thêm +${model.freeze_days} ngày)</span>`);
-    }
-
-    updatePreview();
-
-    const maxStartDate = addDays(expiryDate, -1);
     let formInstance = null;
 
     const items = [
       field('start_date', 'Ngày bắt đầu đóng băng', 'dxDateBox', {
         type: 'date',
         displayFormat: 'dd/MM/yyyy',
-        min: todayDate,
-        max: maxStartDate,
-        onValueChanged: (e) => {
-          if (isUpdating || !e.value) return;
-          isUpdating = true;
-          try {
-            model.start_date = day(e.value);
-            const remaining = daysBetween(model.start_date, expiryDate);
-            const maxDays = Math.max(1, remaining);
-
-            const daysEditor = formInstance?.getEditor('freeze_days');
-            if (daysEditor) {
-              daysEditor.option('max', maxDays);
-            }
-
-            if (model.freeze_days > maxDays) {
-              model.freeze_days = maxDays;
-              if (daysEditor) daysEditor.option('value', maxDays);
-            }
-
-            model.reactivate_date = addDays(model.start_date, model.freeze_days);
-            const reactivateEditor = formInstance?.getEditor('reactivate_date');
-            if (reactivateEditor) {
-              reactivateEditor.option('min', addDays(model.start_date, 1));
-              reactivateEditor.option('max', expiryDate);
-              reactivateEditor.option('value', model.reactivate_date);
-            }
-
-            updatePreview();
-          } finally {
-            isUpdating = false;
-          }
-        }
-      }, true),
+        value: todayDate,
+        readOnly: true
+      }, false),
 
       field('freeze_days', 'Số ngày tạm dừng / đóng băng', 'dxNumberBox', {
         min: 1,
@@ -982,12 +924,11 @@ window.SalesModule = (function () {
           isUpdating = true;
           try {
             model.freeze_days = parseInt(e.value, 10) || 1;
-            model.reactivate_date = addDays(model.start_date, model.freeze_days);
+            model.reactivate_date = addDays(todayDate, model.freeze_days);
             const reactivateEditor = formInstance?.getEditor('reactivate_date');
             if (reactivateEditor) {
               reactivateEditor.option('value', model.reactivate_date);
             }
-            updatePreview();
           } finally {
             isUpdating = false;
           }
@@ -1004,14 +945,13 @@ window.SalesModule = (function () {
           isUpdating = true;
           try {
             model.reactivate_date = day(e.value);
-            const diffDays = daysBetween(model.start_date, model.reactivate_date);
+            const diffDays = daysBetween(todayDate, model.reactivate_date);
             if (diffDays > 0) {
               model.freeze_days = diffDays;
               const daysEditor = formInstance?.getEditor('freeze_days');
               if (daysEditor) {
                 daysEditor.option('value', diffDays);
               }
-              updatePreview();
             }
           } finally {
             isUpdating = false;
@@ -1039,13 +979,12 @@ window.SalesModule = (function () {
         await api().request(`/registrations/${idPath(r.id)}/freeze`, {
           method: 'POST',
           body: {
-            start_date: dateKey(model.start_date),
+            start_date: dateKey(todayDate),
             freeze_days: model.freeze_days,
             reason: model.reason
           }
         });
-        const isImm = dateKey(model.start_date) === dateKey(todayDate);
-        notify(isImm ? `Đã kích hoạt đóng băng gói tập ${model.freeze_days} ngày!` : `Đã lên lịch đóng băng gói tập từ ngày ${dateText(model.start_date)}!`);
+        notify(`Đã kích hoạt đóng băng gói tập ${model.freeze_days} ngày!`);
         closeDialog(dialog);
         if (onComplete) await onComplete();
       } catch (err) { errorBlock($error, err); }
@@ -1102,50 +1041,13 @@ window.SalesModule = (function () {
     const view = viewRoot(containerId, 'Thu tiền & thanh toán', 'Ghi nhận thanh toán', () => openPaymentModal(null, memberId));
     view.context = context;
     const $stats = $('<div>').addClass('sales-kpi-summary').css({ display: 'grid', minWidth: 0, gridTemplateColumns: 'repeat(auto-fit, minmax(min(190px, 100%), 1fr))', gap: 16, marginBottom: 20, padding: '16px 0', borderBottom: '1px solid var(--border-color, #e5e7eb)' }).insertBefore(view.filters);
-    const filters = { from: context.date ? day(context.date) : day(new Date()), to: context.date ? day(context.date) : day(new Date()), q: '', status: '', payment_method: '' };
+    const filters = { from: context.date ? day(context.date) : day(new Date()), to: context.date ? day(context.date) : day(new Date()), q: '', payment_method: '' };
     const schedule = () => { clearTimeout(view.debounce); view.debounce = setTimeout(() => view.reload?.(), 280); };
-    let statusBox = null;
-    const statCells = [];
-    view.statValues = ['Tổng thực thu', 'Lượt thanh toán thành công', 'Đơn chờ thanh toán'].map((label, idx) => {
-      const $cell = $('<div>').css({ minWidth: 0, overflowWrap: 'anywhere', padding: '6px 12px', borderRadius: 8, transition: 'all 0.18s ease', border: '1px solid transparent' }).appendTo($stats);
-      statCells[idx] = $cell;
-      if (idx === 0 || idx === 1) {
-        $cell.css({ cursor: 'pointer' })
-          .attr('title', 'Bấm để lọc danh sách các giao dịch thành công')
-          .on('mouseenter', () => {
-            if (filters.status !== 'COMPLETED') $cell.css({ background: '#f0fdf4', borderColor: '#bbf7d0' });
-          })
-          .on('mouseleave', () => {
-            if (filters.status !== 'COMPLETED') $cell.css({ background: 'transparent', borderColor: 'transparent' });
-          })
-          .on('click', () => {
-            const nextStatus = filters.status === 'COMPLETED' ? '' : 'COMPLETED';
-            if (statusBox) statusBox.option('value', nextStatus);
-            else { filters.status = nextStatus; schedule(); }
-          });
-      } else if (idx === 2) {
-        $cell.css({ cursor: 'pointer' })
-          .attr('title', 'Bấm để xem danh sách Đơn chờ thanh toán tại Đăng ký & gia hạn')
-          .on('mouseenter', () => $cell.css({ background: '#fef3c7', borderColor: '#fcd34d' }))
-          .on('mouseleave', () => $cell.css({ background: 'transparent', borderColor: 'transparent' }))
-          .on('click', () => {
-            if (window.ParadiseApp?.navigateTo) {
-              window.ParadiseApp.navigateTo('registrations', { status: 'PENDING_PAYMENT' });
-            }
-          });
-      }
+    view.statValues = ['Tổng thực thu', 'Lượt thanh toán thành công'].map(label => {
+      const $cell = $('<div>').css({ minWidth: 0, overflowWrap: 'anywhere', padding: '6px 12px', borderRadius: 8, border: '1px solid transparent' }).appendTo($stats);
       const $label = $('<div>').addClass('text-muted').css({ display: 'flex', alignItems: 'center', gap: 6 }).appendTo($cell);
       $('<span>').text(label).appendTo($label);
-      if (idx === 0 || idx === 1) {
-        $cell.badge = $('<span>').css({ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: '#f1f5f9', color: '#64748b', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 3 })
-          .html('<i class="fa-solid fa-filter" style="font-size:9px;"></i>Lọc')
-          .appendTo($label);
-      } else if (idx === 2) {
-        $('<span>').css({ fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#fef3c7', color: '#b45309', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 3 })
-          .html('<i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px;"></i>Xem đơn')
-          .appendTo($label);
-      }
-      return $('<strong>').css({ display: 'block', marginTop: 8, fontSize: 22, overflowWrap: 'anywhere', color: idx === 2 ? '#b45309' : 'inherit' }).text('--').appendTo($cell);
+      return $('<strong>').css({ display: 'block', marginTop: 8, fontSize: 22, overflowWrap: 'anywhere' }).text('--').appendTo($cell);
     });
     const fromBox = filter(view.filters, 'Từ ngày', 'dxDateBox', {
       type: 'date',
@@ -1182,25 +1084,19 @@ window.SalesModule = (function () {
     }, false, { hint: 'Xem giao dịch hôm nay', height: 36 });
     filter(view.filters, 'Tìm giao dịch', 'dxTextBox', { mode: 'search', placeholder: 'Mã phiếu, mã ĐK, hội viên, SĐT', valueChangeEvent: 'input', onValueChanged: e => { filters.q = e.value; schedule(); } });
     filter(view.filters, 'Phương thức', 'dxSelectBox', { items: [{ id: '', text: 'Tất cả' }, { id: 'CASH', text: 'Tiền mặt' }, { id: 'BANK_TRANSFER', text: 'Chuyển khoản' }], value: '', valueExpr: 'id', displayExpr: 'text', onValueChanged: e => { filters.payment_method = e.value; schedule(); } });
-    statusBox = filter(view.filters, 'Trạng thái', 'dxSelectBox', { items: [{ id: '', text: 'Tất cả' }, { id: 'COMPLETED', text: 'Thành công' }, { id: 'PENDING', text: 'Chờ thanh toán' }, { id: 'EXPIRED', text: 'Hết hạn' }], value: '', valueExpr: 'id', displayExpr: 'text', onValueChanged: e => { filters.status = e.value; schedule(); } });
     iconButton(view.filters, 'Làm mới giao dịch', 'refresh', () => view.reload());
     view.grid = grid(view.panel, [
-      { dataField: 'payment_code', caption: 'Mã phiếu', minWidth: 125 },
-      { dataField: 'event_at', caption: 'Thời gian', minWidth: 145, customizeText: c => timestamp(c.value) },
-      { dataField: 'member_name', caption: 'Hội viên', minWidth: 170, cellTemplate: (el, c) => twoLines(el, c.value, [c.data.member_code, c.data.member_phone].filter(Boolean).join(' · ')) },
-      { dataField: 'registration_code', caption: 'Đăng ký', minWidth: 175, cellTemplate: (el, c) => twoLines(el, c.value, value(c.data.package_name)) },
-      { caption: 'Phương thức', calculateCellValue: method, minWidth: 120 },
-      { dataField: 'amount', caption: 'Số tiền', alignment: 'right', minWidth: 130, cellTemplate: (el, c) => $('<strong>').css('color', '#237b58').text(money(c.value)).appendTo(el) },
-      { dataField: 'collected_by_name', caption: 'Người thu', minWidth: 145 },
-      { dataField: 'branch_name', caption: 'Chi nhánh', minWidth: 110 },
-      { dataField: 'status', caption: 'Trạng thái', minWidth: 130, cellTemplate: (el, c) => badge(el, c.value, true) },
-      { caption: 'Thao tác', width: 95, fixed: true, fixedPosition: 'right', cellTemplate(el, c) {
-        const $actions = $('<div>').css('display', 'flex').appendTo(el);
-        if (confirmed(c.data)) iconButton($actions, 'Xem và in phiếu thu', 'doc', () => openReceipt(c.data));
-        if (c.data.status === 'PENDING') {
-          iconButton($actions, 'Kiểm tra trạng thái thanh toán', 'refresh', e => checkPayment(c.data, e.component));
-          iconButton($actions, 'Xác nhận đã đối chiếu tiền', 'check', () => openManualConfirmation(c.data));
-        }
+      { dataField: 'payment_code', caption: 'Mã phiếu', width: 100 },
+      { dataField: 'event_at', caption: 'Thời gian', width: 135, customizeText: c => timestamp(c.value) },
+      { dataField: 'member_name', caption: 'Hội viên', minWidth: 140, cellTemplate: (el, c) => twoLines(el, c.value, [c.data.member_code, c.data.member_phone].filter(Boolean).join(' · ')) },
+      { dataField: 'registration_code', caption: 'Đăng ký', minWidth: 145, cellTemplate: (el, c) => twoLines(el, c.value, value(c.data.package_name)) },
+      { caption: 'Phương thức', calculateCellValue: method, width: 110 },
+      { dataField: 'amount', caption: 'Số tiền', alignment: 'right', width: 115, cellTemplate: (el, c) => $('<strong>').css('color', '#237b58').text(money(c.value)).appendTo(el) },
+      { dataField: 'collected_by_name', caption: 'Người thu', width: 110 },
+      { dataField: 'branch_name', caption: 'Chi nhánh', width: 140 },
+      { caption: 'Thao tác', width: 165, fixed: true, fixedPosition: 'right', alignment: 'center', cellTemplate(el, c) {
+        const $actions = $('<div>').css({ display: 'flex', justifyContent: 'center', alignItems: 'center' }).appendTo(el);
+        button($actions, 'Xuất phiếu thu', 'doc', () => openReceipt(c.data), false, { stylingMode: 'outlined', type: 'default', height: 28, elementAttr: { style: 'font-size: 11px; font-weight: 600;' } });
       } }
     ]);
     view.reload = async () => {
@@ -1215,10 +1111,7 @@ window.SalesModule = (function () {
         const queryParams = { member_id: memberId };
         if (filters.from) queryParams.date_from = dateKey(filters.from);
         if (filters.to) queryParams.date_to = dateKey(filters.to);
-        const [payments, pending] = await Promise.all([
-          allRows('/payments', queryParams),
-          allRows('/registrations', { status: 'PENDING_PAYMENT', member_id: memberId })
-        ]);
+        const payments = await allRows('/payments', queryParams);
         if (!alive(view) || generation !== view.generation) return;
         const q = (filters.q || '').trim().toLocaleLowerCase('vi');
         const dateScopedPayments = payments.map(normalizePayment).filter(p => {
@@ -1228,30 +1121,12 @@ window.SalesModule = (function () {
           return (!memberId || p.member_id === memberId) && fromOk && toOk;
         });
         const rows = dateScopedPayments.filter(p => {
-          return (!filters.status || (filters.status === 'COMPLETED' ? confirmed(p) : p.status === filters.status)) && (!filters.payment_method || (filters.payment_method === 'CASH' ? p.payment_method === 'CASH' : ['BANK_TRANSFER', 'BANK_TRANSFER_VIETQR'].includes(p.payment_method))) && (!q || [p.payment_code, p.registration_code, p.member_name, p.member_phone].some(v => String(v || '').toLocaleLowerCase('vi').includes(q)));
+          return (!filters.payment_method || (filters.payment_method === 'CASH' ? p.payment_method === 'CASH' : ['BANK_TRANSFER', 'BANK_TRANSFER_VIETQR'].includes(p.payment_method))) && (!q || [p.payment_code, p.registration_code, p.member_name, p.member_phone].some(v => String(v || '').toLocaleLowerCase('vi').includes(q)));
         });
-        view.records = rows; view.pending = pending.filter(r => r.status === 'PENDING_PAYMENT' && (!memberId || r.member_id === memberId));
+        view.records = rows;
         view.grid.option('dataSource', rows);
-        const successful = dateScopedPayments.filter(p => confirmed(p) && (!filters.payment_method || (filters.payment_method === 'CASH' ? p.payment_method === 'CASH' : ['BANK_TRANSFER', 'BANK_TRANSFER_VIETQR'].includes(p.payment_method))));
-        view.statValues[0].text(money(successful.reduce((sum, p) => sum + Number(p.amount), 0)));
-        view.statValues[1].text(`${successful.length} lượt`);
-        view.statValues[2].text(`${view.pending.length} đơn · ${money(view.pending.reduce((sum, r) => sum + Number(r.price_snapshot), 0))}`);
-        const isCompleted = filters.status === 'COMPLETED';
-        [statCells[0], statCells[1]].forEach($c => {
-          if ($c) {
-            if (isCompleted) {
-              $c.css({ background: '#ecfdf5', borderColor: '#86efac' })
-                .attr('title', 'Đang lọc giao dịch thành công. Bấm lại để bỏ lọc (xem tất cả)');
-              $c.badge?.css({ background: '#237b58', color: '#ffffff' })
-                .html('<i class="fa-solid fa-check" style="font-size:9px;"></i>Đang lọc');
-            } else {
-              $c.css({ background: 'transparent', borderColor: 'transparent' })
-                .attr('title', 'Bấm để lọc danh sách các giao dịch thành công');
-              $c.badge?.css({ background: '#f1f5f9', color: '#64748b' })
-                .html('<i class="fa-solid fa-filter" style="font-size:9px;"></i>Lọc');
-            }
-          }
-        });
+        view.statValues[0].text(money(rows.reduce((sum, p) => sum + Number(p.amount), 0)));
+        view.statValues[1].text(`${rows.length} lượt`);
       } catch (err) { if (alive(view) && generation === view.generation) { view.grid.option('dataSource', []); view.statValues.forEach(v => v.text('--')); errorBlock(view.error, err, view.reload); } }
       finally { if (alive(view) && generation === view.generation) view.grid.endCustomLoading(); }
     };
@@ -1660,7 +1535,7 @@ window.SalesModule = (function () {
         if (receipt.note) info($paper, 'Ghi chú', receipt.note);
         const $actions = $('<div>').css({ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }).appendTo(dialog.body);
         button($actions, 'Đóng', 'close', () => closeDialog(dialog));
-        button($actions, 'In phiếu thu', 'print', () => printReceipt($paper), true);
+        button($actions, 'Xuất / In phiếu thu', 'print', () => printReceipt($paper), true);
       } catch (err) { if (!dialog.closed) errorBlock(dialog.body, err, load); }
     };
     await load();
@@ -1684,7 +1559,7 @@ window.SalesModule = (function () {
   }
   return {
     render, renderRegistrations, renderPayments, openRegistrationModal, openRegistrationDetail, openAssignment,
-    openGroupMembersModal,
+    openGroupMembersModal, openFreezeModal,
     openPaymentModal, openReceipt, openManualConfirmation, dispose, refresh: refreshCurrent,
     loadRegistrationForPayment: openPaymentModal,
     resetSaleForm: () => openRegistrationModal()

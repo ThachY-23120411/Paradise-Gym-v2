@@ -44,6 +44,8 @@
     + **Khi gói cũ đã hết hạn** (`EXPIRED`): Mặc định bắt đầu từ ngày mai (`Ngày bắt đầu mới = Ngày hiện tại + 1 ngày`).
     + QTV có thể tùy chỉnh lại ngày bắt đầu này theo nhu cầu thực tế của hội viên. Số buổi PT gói mới không cộng dồn vào số buổi gói cũ.
 
+- Đăng ký mới/gia hạn còn chờ được giữ đến khi thanh toán hoặc người dùng chủ động hủy; QR hết hạn sau 15 phút không hủy đăng ký, không có tự hủy sau 3 ngày. Tạo đăng ký chưa tạo payment. Tiếp tục thanh toán ở W08-US02 hoặc hủy đơn chờ ở W04-US03.
+
 ## Alternate Flows
 
 ### AF-01 - Tùy chỉnh Ngày bắt đầu mới
@@ -56,6 +58,8 @@
 3. SYS đóng modal gia hạn và tự động mở modal **Ghi nhận thanh toán** (W08) với thông tin đăng ký gia hạn vừa tạo được prefill sẵn sàng để thu tiền.
 
 ## Exception Flows
+- Trường hợp thanh toán khi toàn bộ kỳ gốc đã qua: PAY-OQ-01 còn mở; hiện giữ ngày gốc và trả EXPIRED, không tự dời ngày và không cam kết quyền tập ACTIVE/SCHEDULED.
+
 - Gói cũ đã ngừng bán và không chọn gói gia hạn thay thế: SYS chặn không cho tạo gia hạn.
 
 ## Activity Diagram — Swimlane
@@ -81,9 +85,10 @@ flowchart TB
       S03["Tạo Registration mới (PENDING_PAYMENT), gán renewedFrom"]
       S04["Mở ngay modal Ghi nhận thanh toán với dữ liệu prefill"]
       A01 --> S01 --> S02 --> A02
-      A03 --> D01
-      D01 -->|Xác nhận lưu gia hạn| S03 --> F01
-      D01 -->|Lưu gia hạn và thu tiền| S03 --> S04 --> F02
+      A03 --> S03
+      S03 --> D01
+      D01 -->|Xác nhận lưu gia hạn| F01
+      D01 -->|Lưu gia hạn và thu tiền| S04 --> F02
     end
   end
 ```

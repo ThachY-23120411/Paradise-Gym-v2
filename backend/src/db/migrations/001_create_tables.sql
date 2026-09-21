@@ -339,5 +339,4 @@ CREATE INDEX IF NOT EXISTS idx_registrations_active_lookup
 ON registrations(member_id, status, start_date, end_date);
 
 CREATE INDEX IF NOT EXISTS idx_payments_report_lookup 
-ON payments(branch_id, confirmed_at, status) 
-WHERE status = 'COMPLETED';
+ON payments(branch_id, confirmed_at);

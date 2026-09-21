@@ -16,6 +16,10 @@ async function migrate() {
     await db.query(fs.readFileSync(path.join(__dirname, 'migrations/008_branch_default_commission_rate.sql'), 'utf8'));
     await db.query(fs.readFileSync(path.join(__dirname, 'migrations/009_pt_commission_payout_details.sql'), 'utf8'));
     await db.query(fs.readFileSync(path.join(__dirname, 'migrations/010_scheduled_package_freezes.sql'), 'utf8'));
+    await db.query(fs.readFileSync(path.join(__dirname, 'migrations/011_pt_bookings_no_overlap_indexes.sql'), 'utf8'));
+    await db.query(fs.readFileSync(path.join(__dirname, 'migrations/012_pt_commission_session_snapshot.sql'), 'utf8'));
+    await db.query(fs.readFileSync(path.join(__dirname, 'migrations/013_pt_booking_participants.sql'), 'utf8'));
+    await db.query(fs.readFileSync(path.join(__dirname, 'migrations/014_successful_payment_ledger.sql'), 'utf8'));
   });
 }
 if (require.main === module) migrate().then(() => console.log('Additive web migration applied; existing records preserved.')).catch(err => {

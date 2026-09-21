@@ -1,0 +1,582 @@
+{
+  "result": "BLOCKED",
+  "database": "paradise_payment_test_23392_1789962240403",
+  "backend": "http://127.0.0.1:58896",
+  "ui": "http://127.0.0.1:58897",
+  "migrations": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4a1ed6fc35f89ed4ed22dd40ba0d342df40674a1c0644cf6c12148403cccaba8"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    },
+    {
+      "file": "014_successful_payment_ledger.sql",
+      "sha256": "3c16e83463bb97a594ca06ce3c0079710c4d78b64da2f5544f2f6697bb2a1a14"
+    }
+  ],
+  "provenance": [
+    {
+      "file": "web/index.html",
+      "sha256": "b890d4565d72d8b36e245a34bdd793beb4cf13c4dbbf8015c5c67ffec6814f98"
+    },
+    {
+      "file": "web/js/modules/sales.js",
+      "sha256": "6836b1a287e85f466759220dae76ffbaac0d4c96f5a0b18ae1b9413ac9eda26f"
+    },
+    {
+      "file": "web/js/ui.js",
+      "sha256": "a631804f1193ee7ca9024aa6a839dfff240f79d59dca6f527543f5cf037cdd95"
+    },
+    {
+      "file": "mobile/member/js/packages-notifications.js",
+      "sha256": "0b5ee8eee1b6610d0519d4b55ebaa6fe5db0c4daa29304619d525a55e0d81d5a"
+    },
+    {
+      "file": "shared/apiClient.js",
+      "sha256": "62dc34808b3c6895cea83b7744df9f3bfffb704b7ed54ecdd172f521da6127c4"
+    }
+  ],
+  "steps": [
+    {
+      "name": "ledger-controls",
+      "action": "Open payment ledger",
+      "expected": "User correction + US01/US03: two KPIs; no payment-status filter/column or pending KPI",
+      "actual": {
+        "labels": [
+          "Từ ngày",
+          "Đến ngày",
+          "Tìm giao dịch",
+          "Phương thức"
+        ],
+        "columns": [
+          " ",
+          "Thao tác",
+          "Mã phiếu",
+          "Thời gian",
+          "Hội viên",
+          "Đăng ký",
+          "Phương thức",
+          "Số tiền",
+          "Người thu",
+          "Chi nhánh",
+          "Thao tác"
+        ],
+        "kpis": "Tổng thực thu\n2.500.000 ₫\nLượt thanh toán thành công\n5 lượt"
+      },
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-01-ledger-controls.png"
+    },
+    {
+      "name": "all-time-ledger",
+      "action": "Clear date restrictions",
+      "expected": "US01 date filters allow complete history",
+      "actual": "Thu tiền & thanh toán\nGhi nhận thanh toán\nTổng thực thu\n2.500.000 ₫\nLượt thanh toán thành công\n5 lượt\nTừ ngày\nĐến ngày\nToàn thời gian\nHôm nay\nTìm giao dịch\nPhương thức\nThao tác\nMã phiếu\t\nThời gian\t\nHội viên\t\nĐăng ký\tPhương thức\t\nSố tiền\t\nNgười thu\t\nChi nhánh\t\nPT005\t10:44:23 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK002\nQTV Bank\n\tChuyển khoản\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT004\t10:44:07 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK001\nQTV Cash\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT003\t10:44:02 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK008\nNot Near Five Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT002\t10:44:02 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK007\nNear Four Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT001\t10:44:02 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK006\nScheduled Paid\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\n\n\n\n\n\n\n\n\n102050\nTrang 1/1 · 5 bản ghi1\nĐang tải...",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-02-all-time-ledger.png"
+    },
+    {
+      "name": "open-payment",
+      "action": "Open LT Cash payment form",
+      "expected": "US02 MF2: payment form with same active member and pending registrations",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-03-open-payment.png"
+    },
+    {
+      "name": "open-options",
+      "action": "Open Gói tập đăng ký chờ thanh toán",
+      "expected": "US02 field-level searchable options shown",
+      "actual": "DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK003 · LT Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-04-open-options.png"
+    },
+    {
+      "name": "select-option",
+      "action": "Choose LT Cash",
+      "expected": "Selected value shown before submit",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-05-select-option.png"
+    },
+    {
+      "name": "cash-filled-before-submit",
+      "action": "Enter note for LT Cash",
+      "expected": "Cash selected; no bank-reference field; entered note captured before settlement",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-06-cash-filled-before-submit.png"
+    },
+    {
+      "name": "settled-receipt",
+      "action": "Confirm LT Cash payment",
+      "expected": "US02 MF10-12: exactly one final payment and receipt, same member, correct method, registration active",
+      "actual": "PARADISE GYM\nPHIẾU THU\nSố phiếu\nPT006\nThời gian\n10:44:37 21/9/2026\nNgười nộp tiền\nPayment Same Member\nSố điện thoại\n0909210110\nĐăng ký\nDK003\nGói tập\nLT Cash\nKỳ hiệu lực\n21/09/2026 - 21/10/2026\nPhương thức\nTiền mặt\nMã giao dịch\n--\nNgười thu\n0909210101\nChi nhánh\nPayment Branch A\nThực thu 100%\n500.000 ₫\nGhi chú\nCash LT Cash",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-07-settled-receipt.png"
+    },
+    {
+      "name": "ledger-after-settlement",
+      "action": "Close receipt",
+      "expected": "New successful row visible in source ledger without status",
+      "actual": "Thu tiền & thanh toán\nGhi nhận thanh toán\nTổng thực thu\n3.000.000 ₫\nLượt thanh toán thành công\n6 lượt\nTừ ngày\nĐến ngày\nToàn thời gian\nHôm nay\nTìm giao dịch\nPhương thức\nThao tác\nMã phiếu\t\nThời gian\t\nHội viên\t\nĐăng ký\tPhương thức\t\nSố tiền\t\nNgười thu\t\nChi nhánh\t\nPT006\t10:44:37 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK003\nLT Cash\n\tTiền mặt\t500.000 ₫\t0909210101\tPayment Branch A\t\nPT005\t10:44:23 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK002\nQTV Bank\n\tChuyển khoản\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT004\t10:44:07 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK001\nQTV Cash\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT003\t10:44:02 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK008\nNot Near Five Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT002\t10:44:02 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK007\nNear Four Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT001\t10:44:02 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK006\nScheduled Paid\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\n\n\n\n\n\n\n\n\n\n\n102050\nTrang 1/1 · 6 bản ghi1",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-08-ledger-after-settlement.png"
+    },
+    {
+      "name": "same-member-payment-history",
+      "action": "Open authenticated same-member payment history",
+      "expected": "Downstream shows same package, amount and payment method after source settlement",
+      "actual": "PT006\n500.000 đ\n\nLT Cash\n\n10:44:37 21/9/2026 · Tiền mặt\n\nXem phiếu thu",
+      "status": "PASS",
+      "section": "downstream",
+      "filename": "downstream-09-same-member-payment-history.png"
+    },
+    {
+      "name": "open-payment",
+      "action": "Open LT Bank payment form",
+      "expected": "US02 MF2: payment form with same active member and pending registrations",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-10-open-payment.png"
+    },
+    {
+      "name": "open-options",
+      "action": "Open Gói tập đăng ký chờ thanh toán",
+      "expected": "US02 field-level searchable options shown",
+      "actual": "DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-11-open-options.png"
+    },
+    {
+      "name": "select-option",
+      "action": "Choose LT Bank",
+      "expected": "Selected value shown before submit",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-12-select-option.png"
+    },
+    {
+      "name": "bank-qr-intent",
+      "action": "Select bank transfer",
+      "expected": "US02 MF7: QR intent has 15-minute TTL; registration pending and absent from final ledger",
+      "actual": {
+        "registrationId": "cfe61d60-23c3-4c34-920d-2fd547252493",
+        "intentId": "7060d17f-4dba-4dee-ac45-6ca8318c209c",
+        "state": "PENDING",
+        "ttlSeconds": 900
+      },
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-13-bank-qr-intent.png"
+    },
+    {
+      "name": "manual-bank-modal",
+      "action": "Open manual reconciliation",
+      "expected": "Manual BANK_TRANSFER form requires transaction reference and reconciliation checkbox",
+      "actual": "Giao dịch\nPAY007\nSố tiền\n500.000 ₫\nPhương thức\nChuyển khoản\nMã giao dịch trên chứng từ ngân hàng *\nGhi chú đối soát\nĐối chiếu thực thu\nĐã đối chiếu và nhận đủ 500.000 ₫\nHủy\nXác nhận đã nhận đủ tiền",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-14-manual-bank-modal.png"
+    },
+    {
+      "name": "required-bank-reference",
+      "action": "Submit with empty bank reference",
+      "expected": "User requirement: missing transaction reference blocks settlement",
+      "actual": "Required-field validation visible; no ledger row",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-15-required-bank-reference.png"
+    },
+    {
+      "name": "manual-bank-filled-before-submit",
+      "action": "Enter actual test reference and confirm reconciliation checkbox",
+      "expected": "Input Capture Before Submit: bank reference visible, method remains BANK_TRANSFER",
+      "actual": "Giao dịch\nPAY007\nSố tiền\n500.000 ₫\nPhương thức\nChuyển khoản\nMã giao dịch trên chứng từ ngân hàng *\nGhi chú đối soát\nĐối chiếu thực thu\nĐã đối chiếu và nhận đủ 500.000 ₫\nHủy\nXác nhận đã nhận đủ tiền",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-16-manual-bank-filled-before-submit.png"
+    },
+    {
+      "name": "settled-receipt",
+      "action": "Confirm LT Bank payment",
+      "expected": "US02 MF10-12: exactly one final payment and receipt, same member, correct method, registration active",
+      "actual": "PARADISE GYM\nPHIẾU THU\nSố phiếu\nPT007\nThời gian\n10:44:45 21/9/2026\nNgười nộp tiền\nPayment Same Member\nSố điện thoại\n0909210110\nĐăng ký\nDK004\nGói tập\nLT Bank\nKỳ hiệu lực\n21/09/2026 - 21/10/2026\nPhương thức\nChuyển khoản\nMã giao dịch\nREF-LT-Bank\nNgười thu\n0909210101\nChi nhánh\nPayment Branch A\nThực thu 100%\n500.000 ₫",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-17-settled-receipt.png"
+    },
+    {
+      "name": "ledger-after-settlement",
+      "action": "Close receipt",
+      "expected": "New successful row visible in source ledger without status",
+      "actual": "Thu tiền & thanh toán\nGhi nhận thanh toán\nTổng thực thu\n3.500.000 ₫\nLượt thanh toán thành công\n7 lượt\nTừ ngày\nĐến ngày\nToàn thời gian\nHôm nay\nTìm giao dịch\nPhương thức\nThao tác\nMã phiếu\t\nThời gian\t\nHội viên\t\nĐăng ký\tPhương thức\t\nSố tiền\t\nNgười thu\t\nChi nhánh\t\nPT007\t10:44:45 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK004\nLT Bank\n\tChuyển khoản\t500.000 ₫\t0909210101\tPayment Branch A\t\nPT006\t10:44:37 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK003\nLT Cash\n\tTiền mặt\t500.000 ₫\t0909210101\tPayment Branch A\t\nPT005\t10:44:23 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK002\nQTV Bank\n\tChuyển khoản\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT004\t10:44:07 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK001\nQTV Cash\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT003\t10:44:02 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK008\nNot Near Five Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT002\t10:44:02 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK007\nNear Four Days\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\nPT001\t10:44:02 21/9/2026\tPayment Same Member\nHV001 · 0909210110\n\tDK006\nScheduled Paid\n\tTiền mặt\t500.000 ₫\t0909210100\tPayment Branch A\t\n\n\n\n\n\n\n\n\n\n\n\n\n102050\nTrang 1/1 · 7 bản ghi1",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-18-ledger-after-settlement.png"
+    },
+    {
+      "name": "blocked",
+      "action": "LT manual bank and member downstream",
+      "expected": "Complete scenario",
+      "actual": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:58897/mobile/member/#payments/history\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "status": "FAIL",
+      "section": "source",
+      "filename": "step-19-blocked.png"
+    },
+    {
+      "name": "other-branch-no-ledger",
+      "action": "Open receptionist of Branch B",
+      "expected": "LT US01 scope: cannot see Branch A member payments",
+      "actual": "Thu tiền & thanh toán\nGhi nhận thanh toán\nTổng thực thu\n0 ₫\nLượt thanh toán thành công\n0 lượt\nTừ ngày\nĐến ngày\nToàn thời gian\nHôm nay\nTìm giao dịch\nPhương thức\nThao tác\nMã phiếu\t\nThời gian\t\nHội viên\t\nĐăng ký\tPhương thức\t\nSố tiền\t\nNgười thu\t\nChi nhánh\t\n\t\t\t\t\t\t\t\t\n102050\nTrang 1/1 · 0 bản ghi1\nĐang tải...",
+      "status": "PASS",
+      "section": "downstream",
+      "filename": "downstream-20-other-branch-no-ledger.png"
+    }
+  ],
+  "state": [
+    {
+      "registrationId": "d79a19df-420f-477a-85c2-17004eb93188",
+      "paymentId": "a94326c4-f2be-4cd4-8385-d477e0e2d70e",
+      "memberId": "abe613ec-e68c-4d9d-8e36-a17cfe9e4835",
+      "method": "CASH",
+      "reference": null,
+      "amount": 500000
+    },
+    {
+      "registrationId": "cfe61d60-23c3-4c34-920d-2fd547252493",
+      "paymentId": "7060d17f-4dba-4dee-ac45-6ca8318c209c",
+      "memberId": "abe613ec-e68c-4d9d-8e36-a17cfe9e4835",
+      "method": "BANK_TRANSFER",
+      "reference": "REF-LT-Bank",
+      "amount": 500000
+    }
+  ],
+  "issues": [
+    "LT manual bank and member downstream: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:58897/mobile/member/#payments/history\", waiting until \"domcontentloaded\"\u001b[22m\n",
+    "blocked: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:58897/mobile/member/#payments/history\", waiting until \"domcontentloaded\"\u001b[22m\n"
+  ],
+  "cleanup": {
+    "browserClosed": true,
+    "apiClosed": true,
+    "staticClosed": true,
+    "poolsClosed": true,
+    "databaseDropped": true
+  },
+  "network": [
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/discounts",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "POST",
+      "path": "/api/v1/payments/a94326c4-f2be-4cd4-8385-d477e0e2d70e/confirm",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/payments/a94326c4-f2be-4cd4-8385-d477e0e2d70e/receipt",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/registrations/d79a19df-420f-477a-85c2-17004eb93188",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/members/abe613ec-e68c-4d9d-8e36-a17cfe9e4835",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/discounts",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "POST",
+      "path": "/api/v1/payments/7060d17f-4dba-4dee-ac45-6ca8318c209c/confirm",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/payments/7060d17f-4dba-4dee-ac45-6ca8318c209c/receipt",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/registrations/cfe61d60-23c3-4c34-920d-2fd547252493",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "isolated": "http://127.0.0.1:58896"
+    },
+    {
+      "role": "lt",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:58896"
+    }
+  ],
+  "fixture": {
+    "memberId": "abe613ec-e68c-4d9d-8e36-a17cfe9e4835",
+    "branches": [
+      "3c3a3c58-286e-406f-bb9b-3153ed135a64",
+      "e8079932-e07f-49b5-993e-abc8f7026ffb"
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "step-01-ledger-controls.png",
+      "sha256": "c6fe477c0f2f463f0b811772275de2a1d856ff3d2ec64bab91fd2f9b8e14f082"
+    },
+    {
+      "file": "step-02-all-time-ledger.png",
+      "sha256": "bd4b2f130e93a591c0a7a0ff1d8bd4dd4282aae6efe3c177273fb257bac4c97f"
+    },
+    {
+      "file": "step-03-open-payment.png",
+      "sha256": "f1a8d3ba9db7240d921312360cd6f86173f2fe77658e886d7fbbea1c116421d6"
+    },
+    {
+      "file": "step-04-open-options.png",
+      "sha256": "41e31431532c6676a2a2d9585291454ba71ccdf59814834acd2977a99110eadf"
+    },
+    {
+      "file": "step-05-select-option.png",
+      "sha256": "de6eb18630cc7032e35df63a6245a9c4cf343177e626ab6d4b98c9fe96b86e35"
+    },
+    {
+      "file": "step-06-cash-filled-before-submit.png",
+      "sha256": "dcab960dac62e9987fd68c2e9164328da53004e88f7e4a738d8cc640ba38fb89"
+    },
+    {
+      "file": "step-07-settled-receipt.png",
+      "sha256": "2fd5158a12f03cff53ccc511deaf68606f94c065d84daea7deae772194891548"
+    },
+    {
+      "file": "step-08-ledger-after-settlement.png",
+      "sha256": "3093b5319a3235b66591b43ab26dd72b733a15503694c6c90a18aab62c28f75d"
+    },
+    {
+      "file": "downstream-09-same-member-payment-history.png",
+      "sha256": "87acbb6bf44e104bda94ef638109f1767e1d73bb0cc18091ad16bb2ce2c2d8fa"
+    },
+    {
+      "file": "step-10-open-payment.png",
+      "sha256": "6a170c33278d689b7ae6430ed13623d304e1d552a77a9c2a7c44389c40b1a5ba"
+    },
+    {
+      "file": "step-11-open-options.png",
+      "sha256": "ef6ea9cbdf8776c040c1a18753cc2f1a702754fbe39967f3cdac30118ca5c9ab"
+    },
+    {
+      "file": "step-12-select-option.png",
+      "sha256": "f570d7c01e83f4a01d1ab579cfb1ce7fede7f61abc9e43401a3ef069b356e44f"
+    },
+    {
+      "file": "step-13-bank-qr-intent.png",
+      "sha256": "eaf7510ee87e874b8c22c820c2b34a9c67e778dd7c305466ea97252d47216f89"
+    },
+    {
+      "file": "step-14-manual-bank-modal.png",
+      "sha256": "a02cb314c7391d5e0ba981a514acca099df398259712da047dd766a836f8ca2c"
+    },
+    {
+      "file": "step-15-required-bank-reference.png",
+      "sha256": "81d418bd0fa23c80353c0e0600bb5b99a568ab0cd5af3b4b144a1bd6b2f9ab46"
+    },
+    {
+      "file": "step-16-manual-bank-filled-before-submit.png",
+      "sha256": "33129629614edd320c1e500acdf0bec163e8a986ead78e8be247b53b09322910"
+    },
+    {
+      "file": "step-17-settled-receipt.png",
+      "sha256": "d4ec0c25b9e87484caf1079787ca2f8413c2adaa993191c53c6665ccb5e8ba88"
+    },
+    {
+      "file": "step-18-ledger-after-settlement.png",
+      "sha256": "f5a3f512cebb49606c40a40e44ae72de67bc5998cc3247fab10b0a56dd2e2b88"
+    },
+    {
+      "file": "step-19-blocked.png",
+      "sha256": "47752eeee89accd0a2e95de3147d4389aaca20217647369e87fcf16ba68f7730"
+    },
+    {
+      "file": "downstream-20-other-branch-no-ledger.png",
+      "sha256": "2d5fdf910b1526ce9db7c152926eeaaf775bc0f6224b92c93b5ffa3d31c27754"
+    }
+  ]
+}

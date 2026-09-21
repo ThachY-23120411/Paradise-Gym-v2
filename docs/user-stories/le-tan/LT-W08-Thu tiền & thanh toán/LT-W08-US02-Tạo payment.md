@@ -1,78 +1,151 @@
 # LT-W08-US02 - Tạo payment
 
 ## Preconditions
-- Lễ tân đã đăng nhập vào Web Lễ tân, có quyền thu tiền tại quầy.
-- Đã tồn tại bản ghi Đăng ký gói tập (`Registration`) ở trạng thái **`PENDING_PAYMENT` (Chờ thanh toán)** trong chi nhánh.
+- Lễ tân đăng nhập, có quyền thu tiền trong chi nhánh phục vụ của Lễ tân.
+- Đăng ký còn chờ thanh toán (PENDING_PAYMENT); chưa có payment thành công.
 
 ## Trigger
-- Lễ tân bấm nút **[ + Ghi nhận thanh toán ]** trên màn hình W08 (hoặc được hệ thống tự động chuyển tiếp sau khi tạo đăng ký mới tại W04).
-- Màn hình liên quan: Web Lễ tân — W08 Thu tiền & thanh toán, modal **Ghi nhận thanh toán** (`payment-form`).
+- Bấm Ghi nhận thanh toán ở W08, Thu tiền ở W04 hoặc chuyển tiếp sau lưu đăng ký/gia hạn.
 
 ## Main Flow
-
-1. Lễ tân bấm nút **[ + Ghi nhận thanh toán ]** trên màn hình W08 (hoặc mở từ nút **[Thu tiền]** của một đơn đăng ký cụ thể tại W04).
-2. SYS mở modal **Ghi nhận thanh toán**.
-3. Tại trường **Hội viên cần thanh toán**, Lễ tân gõ tìm kiếm theo SĐT, Họ tên hội viên hoặc Mã hội viên (danh sách chỉ gồm các hội viên đang có đơn `PENDING_PAYMENT` thuộc chi nhánh).
-4. SYS tự động kích hoạt và nạp danh sách toàn bộ các gói tập đăng ký chờ thanh toán của chính hội viên đó vào trường **Gói tập đăng ký chờ thanh toán**.
-5. Lễ tân chọn gói tập cần thanh toán từ dropdown (nếu hội viên có nhiều gói đang chờ thanh toán) hoặc hệ thống tự động chọn sẵn gói duy nhất.
-6. SYS hiển thị **Số tiền thanh toán 100%** (Giá niêm yết của gói đăng ký hoặc giá sau mã giảm giá).
-7. Lễ tân chọn **Phương thức thanh toán**: `Tiền mặt` (`CASH`) hoặc `Chuyển khoản` (`BANK_TRANSFER`):
-   - **Nếu chọn Tiền mặt**: Lễ tân nhận tiền mặt đủ 100% tại quầy từ hội viên.
-   - **Nếu chọn Chuyển khoản**: SYS tự động sinh và hiển thị **Mã QR VietQR động** chứa chính xác số tiền 100% và cú pháp nội dung chuyển khoản để hội viên quét mã bằng ứng dụng ngân hàng ngay tại quầy.
-8. Lễ tân (nếu cần) nhập mã giảm giá hoặc ghi chú giao dịch.
-9. Lễ tân bấm nút xác nhận thanh toán trên modal (hoặc hệ thống tự động ghi nhận khi nhận tín hiệu chuyển khoản thành công).
-10. SYS kiểm tra tính hợp lệ và ghi nhận giao dịch Payment thành công (100% số tiền đã thu, tuyệt đối không có trạng thái Pending cho bản ghi Payment).
-11. SYS tự động kích hoạt Đơn đăng ký (`Registration`) từ `PENDING_PAYMENT` sang **`ACTIVE`** (hoặc **`SCHEDULED`** nếu ngày bắt đầu gói ở tương lai).
-12. SYS đóng modal, làm mới danh sách payment W08 và cho phép Lễ tân xem/in phiếu thu cho hội viên tại quầy.
+1. SYS mở modal Ghi nhận thanh toán; Lễ tân tìm Hội viên bằng tên, mã hoặc SĐT.
+2. SYS nạp các đăng ký chờ của đúng hội viên trong scope. Lễ tân chọn đăng ký; nếu mở từ W04 thì prefill đúng đăng ký đó.
+3. SYS hiển thị giá snapshot, voucher và số tiền phải trả 100% sau giảm giá; không cho nhập khoản thu thiếu.
+4. Lễ tân chọn CASH hoặc BANK_TRANSFER và nhập ghi chú tùy chọn. Với CASH, nhận đủ tiền thực tế rồi bấm xác nhận.
+5. SYS kiểm tra lại quyền, đăng ký còn chờ, số tiền/voucher và chưa thu; ghi đúng một payment thành công không có status, đúng một phiếu thu, audit và thông báo.
+6. Với kỳ gốc chưa kết thúc, đăng ký chuyển ACTIVE khi đã đến ngày bắt đầu hoặc SCHEDULED nếu ngày bắt đầu ở tương lai. Kỳ gốc đã kết thúc: giữ EXPIRED theo hiện trạng và PAY-OQ-01 còn mở, không tự dời ngày. Làm mới W04, W08 và gói/lịch sử thanh toán của đúng hội viên.
 
 ### Field-level specification — Modal Ghi nhận thanh toán
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| Hội viên cần thanh toán | `Combobox (Search & Select)` | `USER-INPUT` | required | `TRIGGER` | Ô tìm kiếm theo SĐT, Họ tên hoặc Mã hội viên; danh sách chỉ hiển thị các hội viên đang có đơn ở trạng thái `PENDING_PAYMENT` tại chi nhánh. Khi người dùng chọn hội viên, kích hoạt nạp danh sách các gói tập tương ứng vào trường bên dưới |
-| Gói tập đăng ký chờ thanh toán | `Combobox (dxSelectBox)` | `USER-INPUT` | required | `DYNAMIC` | Danh sách các gói tập / đơn đăng ký đang chờ thanh toán (`PENDING_PAYMENT`) của riêng hội viên đã chọn ở trường trên (hiển thị Mã ĐK, Tên gói, Kỳ hiệu lực, Giá tiền). Cho phép người dùng chọn gói cụ thể nếu hội viên có nhiều gói đăng ký đang chờ nộp tiền; tự động chọn sẵn nếu chỉ có 1 gói |
-| Số tiền thanh toán 100% | `Readonly Text (Green)` | `READONLY` | required | `DYNAMIC` | Hiển thị 100% giá niêm yết của gói đăng ký hoặc giá sau khi trừ mã giảm giá (chữ xanh lá nổi bật); chỉ đọc, cố định thanh toán 1 lần duy nhất |
-| Mã giảm giá / Voucher (nếu có) | `Searchable Dropdown (dxSelectBox) + Button [Áp dụng]` | `USER-INPUT` | optional | `Không` | Dropdown hiển thị danh sách các mã voucher đang có hiệu lực tại chi nhánh (Mã, Tên, % giảm hoặc số tiền, đơn tối thiểu); hỗ trợ chọn trực tiếp từ danh sách để tự động áp dụng hoặc nhập mã tùy ý |
-| Phương thức thanh toán | `Radio Group` | `USER-INPUT (PREFILL)` | required | `TRIGGER` | Mặc định chọn `Tiền mặt` (`CASH`); tùy chọn: `Tiền mặt` hoặc `Chuyển khoản` (`BANK_TRANSFER`). Đóng vai trò kích hoạt hiển thị mã VietQR động |
-| Khối Mã QR VietQR | `QR Code Display` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** Phương thức thanh toán là `Chuyển khoản`; **Ẩn khi** Phương thức thanh toán là `Tiền mặt`. Mã VietQR động chứa số tài khoản gym, số tiền 100% và cú pháp `{Mã ĐK} {Mã HV} PARADISE` |
-| Ghi chú giao dịch | `Text Area` | `USER-INPUT` | optional | Không | Ghi chú thêm cho giao dịch thu tiền (tối đa 255 ký tự) |
+| --- | --- | --- | --- | --- | --- |
+| Hội viên cần thanh toán | Search Combobox | USER-INPUT / PREFILL | required | TRIGGER | Tên/mã/SĐT từ hồ sơ trong scope có đăng ký chờ; chọn mới xóa lựa chọn đăng ký cũ. |
+| Gói tập đăng ký chờ thanh toán | Select Box | USER-INPUT / PREFILL | required | DYNAMIC: luôn hiện, danh sách đổi theo Hội viên | Mã ĐK, tên gói, kỳ hiệu lực và giá từ đăng ký chờ; prefill khi mở từ W04; không có đơn thì báo rỗng. |
+| Số tiền thanh toán 100% | Currency | READONLY | required | Không | Snapshot đăng ký và giảm giá hợp lệ; phải thu đủ 100% một lần. |
+| Mã giảm giá / Voucher (nếu có) | Searchable Select Box | USER-INPUT / PREFILL | optional | TRIGGER | Voucher hợp lệ theo chi nhánh/đăng ký; kiểm tra trước tạo yêu cầu, đổi mã phải cập nhật yêu cầu QR và số tiền. |
+| Số tiền giảm | Currency | READONLY / AUTO-FILL | required | Không | Kết quả xác thực voucher, mặc định 0. |
+| Phương thức thanh toán | Radio Group | USER-INPUT / PREFILL | required | TRIGGER | CASH hoặc BANK_TRANSFER; mặc định CASH cho thu tiền mặt mới. Khi đối soát yêu cầu chuyển khoản giữ BANK_TRANSFER, không đổi sang CASH. |
+| Mã QR VietQR | QR Image | READONLY | conditional | CONDITIONAL: hiện khi BANK_TRANSFER có yêu cầu còn hạn; ẩn khi CASH hoặc QR hết hạn | Nguồn payment_intents; chính xác tài khoản, số tiền và nội dung chuyển khoản; chưa tạo payment. |
+| Ngân hàng / Số tài khoản / Chủ tài khoản | Readonly Text | READONLY | conditional | CONDITIONAL: hiện khi BANK_TRANSFER; ẩn khi CASH | Thông tin thụ hưởng từ cấu hình chi nhánh do SYS cung cấp. |
+| Nội dung chuyển khoản | Readonly Text | READONLY | conditional | CONDITIONAL: hiện khi BANK_TRANSFER; ẩn khi CASH | Nội dung liên kết đúng yêu cầu QR và đăng ký do SYS sinh. |
+| Hạn QR / thời gian còn lại | Countdown / Text | READONLY | conditional | CONDITIONAL: hiện khi có yêu cầu BANK_TRANSFER; ẩn khi CASH hoặc chưa có yêu cầu | Hết hạn sau 15 phút từ lúc tạo yêu cầu; hết hạn QR không hủy đăng ký. |
+| Ghi chú giao dịch | Text Area | USER-INPUT | optional | Không | Nhân viên nhập tối đa 255 ký tự; không thay thế mã giao dịch đối soát. |
 
-- **Business rules / logic:**
-  - **Quy trình kích hoạt gói**: `Registration (PENDING_PAYMENT)` ➔ **Tạo Payment (100% thành công)** ➔ `Registration (ACTIVE / SCHEDULED)`.
-  - Payment được tạo ra luôn ở trạng thái đã hoàn tất (100% đã thu tiền). Tuyệt đối không tồn tại trạng thái Pending đối với bản ghi Payment.
-  - Lễ tân chỉ thu tiền các đơn đăng ký thuộc phạm vi chi nhánh phục vụ (`branch scope`).
-  - Cho phép áp dụng mã giảm giá / voucher hợp lệ để giảm trừ trực tiếp số tiền thanh toán thực thu.
+Thao tác modal: Áp dụng/Bỏ voucher, xác nhận CASH, tạo/làm mới QR, kiểm tra kết quả đã ghi nhận, đối soát thủ công, mô phỏng chuyển khoản trong kiểm thử, Đóng. Các nút submit/cancel không nằm trong bảng field của form.
+
+### Field-level specification — Modal Xác nhận đối chiếu thanh toán
+Modal chỉ mở khi đối chiếu thủ công yêu cầu BANK_TRANSFER; không mở cho CASH. Các field bên dưới luôn hiển thị trong modal này.
+
+| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
+| --- | --- | --- | --- | --- | --- |
+| Giao dịch | Readonly Text | READONLY | required | Không | payment_code hoặc ID của yêu cầu được chọn. |
+| Số tiền | Currency | READONLY | required | Không | amount của yêu cầu; phải kiểm chứng đã nhận đủ. |
+| Phương thức | Readonly Text | READONLY | required | Không | BANK_TRANSFER của yêu cầu được chọn. |
+| Mã giao dịch trên chứng từ ngân hàng | Textbox | USER-INPUT | required | Không | transaction_ref; tối đa 100 ký tự, bỏ khoảng trắng đầu/cuối; không rỗng hoặc trùng giao dịch khác. |
+| Ghi chú đối soát | Textarea | PREFILL | optional | Không | Ghi chú ban đầu được truyền từ yêu cầu; cho sửa, tối đa 255 ký tự. |
+| Đối chiếu thực thu | Checkbox | USER-INPUT | required | Không | Ban đầu chưa tích; phải tích xác nhận đã đối chiếu và nhận đủ số tiền trước khi submit. |
+
+Thao tác: Xác nhận đã nhận đủ tiền hoặc Đóng. Không đưa các nút form vào bảng field.
+
+## Alternate Flows
+### AF-01 - Chuyển khoản qua QR
+1. Chọn BANK_TRANSFER: SYS tạo hoặc trả yêu cầu QR còn hiệu lực trong payment_intents. Chưa tạo payments/phiếu thu.
+2. Hội viên quét QR chuyển khoản đủ số tiền. Nhân viên kiểm tra kết quả đã ghi nhận trong hệ thống; giai đoạn này không yêu cầu IPN/webhook hay API truy vấn ngân hàng tự động.
+3. Nếu chưa có kết quả, giữ đăng ký chờ và dùng AF-02 để đối soát. Luồng kiểm thử chủ động dùng AF-03.
+### AF-02 - Đối soát chuyển khoản thủ công
+1. Nhân viên chọn đối soát đúng đăng ký/yêu cầu. SYS mở modal Xác nhận đối chiếu thanh toán; nhân viên kiểm chứng giao dịch thực nhận, nhập Mã giao dịch trên chứng từ ngân hàng và tích Đối chiếu thực thu sau khi đã nhận đủ tiền.
+2. Xác nhận; SYS kiểm tra quyền, số tiền, mã tham chiếu không trùng và đăng ký còn chờ. Ghi payment BANK_TRANSFER, phiếu thu và kích hoạt đúng một lần như bước 5-6. Không ghi CASH thay cho chuyển khoản.
+3. QR đã hết hạn nhưng tiền đã tới: vẫn đối soát theo tham chiếu thực tế nếu đăng ký còn chờ; không dùng QR hết hạn để mô phỏng chuyển khoản.
+### AF-03 - Mô phỏng chuyển khoản có chủ đích để kiểm thử
+1. Với yêu cầu QR còn hạn và đăng ký còn chờ, kích hoạt mô phỏng chuyển khoản.
+2. SYS đi qua cùng kiểm tra và ghi nhận BANK_TRANSFER thành công đúng một lần. Đây là luồng kiểm thử được duyệt, không phải bằng chứng tiền thật hoặc IPN.
+### AF-04 - QR hết hạn, đổi voucher hoặc đóng modal
+1. Hết 15 phút, yêu cầu QR hết hiệu lực; đổi voucher tạo/cập nhật yêu cầu với số tiền mới và vô hiệu yêu cầu cũ. Không đổi đăng ký thành đã hủy.
+2. Người dùng có thể tạo QR mới cho cùng đăng ký hoặc đóng modal. Đăng ký còn chờ tới khi thanh toán hoặc được hủy chủ động tại W04/HV03, kể cả sau 3 ngày.
 
 ## Exception Flows
-- Không tìm thấy đơn đăng ký nào ở trạng thái `PENDING_PAYMENT` theo thông tin nhập: SYS hiển thị thông báo "Không tìm thấy đơn đăng ký chờ thanh toán phù hợp".
+- Trường hợp thanh toán khi toàn bộ kỳ gốc đã qua: PAY-OQ-01 còn mở; hiện giữ ngày gốc và trả EXPIRED, không tự dời ngày và không cam kết quyền tập ACTIVE/SCHEDULED.
+
+- Chưa tích Đối chiếu thực thu: báo Cần xác nhận đã đối chiếu và nhận đủ số tiền, không gửi ghi nhận thanh toán.
+- Không tìm thấy đơn, sai scope/quyền, thiếu mã giao dịch, số tiền không đủ hoặc voucher không hợp lệ: báo lỗi, không tạo payment/phiếu thu và không kích hoạt.
+- Yêu cầu QR hết hạn/đã thay thế: từ chối mô phỏng/xác nhận tự động; tạo QR mới hoặc đối soát giao dịch thật.
+- Đăng ký đã hủy: không cho thanh toán qua yêu cầu cũ. Thanh toán và hủy cùng lúc: kiểm tra lại trạng thái, chỉ một kết quả có hiệu lực.
+- Gửi lại yêu cầu đã thu: trả kết quả đã ghi nhận; không thêm payment, phiếu thu hoặc doanh thu lần hai. Mã ngân hàng đã dùng cho đơn khác bị từ chối.
+- Lỗi kết nối: báo chưa xác định kết quả, tải lại đúng đăng ký trước khi thử tiếp; không mặc định thành công.
 
 ## Activity Diagram — Swimlane
-**Trigger:** Lễ tân bấm nút Ghi nhận thanh toán tại menu W08.
 
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — Web Lễ tân W08 / Modal Ghi nhận thanh toán"]
-    subgraph L0["Swimlane — Lễ tân"]
-      I01(("Initial"))
-      A01["Bấm nút Ghi nhận thanh toán"]
-      A02["Tìm và chọn Đơn đăng ký PENDING_PAYMENT chi nhánh từ combobox"]
-      A03["Chọn Phương thức: Tiền mặt hoặc Chuyển khoản (quét VietQR) & Xác nhận"]
-      F01((("Final — Tạo payment 100% & Kích hoạt gói thành công")))
-
-      I01 --> A01
+  subgraph Boundary["Boundary - Web Lễ tân / W08 Ghi nhận thanh toán"]
+    subgraph L0["Swimlane - Lễ tân"]
+      I(("Initial"))
+      A["Mở modal, chọn hội viên và đăng ký chờ"]
+      B["Xem số tiền, áp voucher và chọn phương thức"]
+      DU{"Thao tác?"}
+      C["Nhận đủ tiền mặt và xác nhận"]
+      UQ{"Xử lý yêu cầu QR?"}
+      MAN["Đối chiếu tiền nhận, nhập mã ngân hàng và tích Đối chiếu thực thu"]
+      SIM["Kích hoạt mô phỏng chuyển khoản kiểm thử"]
+      CLOSE["Đóng modal, giữ đăng ký chờ"]
     end
-    subgraph L1["Swimlane — SYS"]
-      S01["Mở modal Ghi nhận thanh toán"]
-      S02["Lọc danh sách Registration PENDING_PAYMENT thuộc chi nhánh"]
-      S03["Prefill thông tin Hội viên, Gói tập & Số tiền 100% giá gói"]
-      S04["Hiển thị mã VietQR động nếu chọn Chuyển khoản"]
-      S05["Ghi nhận bản ghi Payment thành công 100%"]
-      S06["Cập nhật trạng thái Registration sang ACTIVE / SCHEDULED"]
-      S07["Đóng modal & làm mới danh sách payment W08"]
-
-      A01 --> S01
-      S01 --> A02
-      A02 --> S02 --> S03 --> A03
-      A03 --> S04 --> S05 --> S06 --> S07 --> F01
+    subgraph L1["Swimlane - SYS"]
+      S["Kiểm tra quyền chi nhánh và nạp đúng đăng ký"]
+      DS{"Có đơn chờ trong scope?"}
+      P["Hiển thị giá snapshot, giảm giá và tiền phải trả"]
+      Q["Tạo hoặc tải payment_intent và QR hạn 15 phút"]
+      M(("Merge - Gửi ghi nhận thu"))
+      V["Kiểm tra đăng ký, số tiền, voucher, tham chiếu và hạn intent theo cách ghi nhận"]
+      DV{"Kết quả kiểm tra?"}
+      SAVE["Ghi một payment và phiếu thu; giữ đúng CASH hoặc BANK_TRANSFER; lưu audit"]
+      DPER{"Kỳ gốc đã kết thúc?"}
+      ACT["Cập nhật ACTIVE hoặc SCHEDULED theo kỳ gốc và thông báo"]
+      PAST["Giữ kỳ gốc, trả EXPIRED theo hiện trạng; chính sách PAY-OQ-01 còn mở"]
+      FPST((("Final - Đã thu, chưa có quyền tập hiện tại")))
+      F((("Final - Đã thu đủ một lần")))
+      OLD["Trả payment và phiếu thu đã có"]
+      FO((("Final - Không ghi trùng")))
+      ERR["Báo lỗi điều kiện, thiếu tham chiếu hoặc đăng ký đã hủy"]
+      ME(("Merge - Lỗi"))
+      FE((("Final - Không ghi nhận mới")))
+      EXP["Báo QR hết hạn; giữ đăng ký chờ"]
+      FX((("Final - Có thể tạo QR mới hoặc đối soát")))
+      WAIT["Hiển thị kết quả chưa ghi nhận; giữ đăng ký chờ"]
+      FW((("Final - Chờ thanh toán")))
+      FC((("Final - Đóng modal")))
     end
+    I --> A
+    A --> S
+    S --> DS
+    DS -->|Có| P
+    DS -->|Không| ME
+    P --> B
+    B --> DU
+    DU -->|CASH| C
+    C --> M
+    DU -->|BANK_TRANSFER| Q
+    Q --> UQ
+    DU -->|Đóng| CLOSE
+    CLOSE --> FC
+    UQ -->|Đối soát giao dịch thật, kể cả QR hết hạn| MAN
+    MAN --> M
+    UQ -->|Mô phỏng khi QR còn hạn| SIM
+    SIM --> M
+    UQ -->|QR hết hạn| EXP
+    EXP --> FX
+    UQ -->|Kiểm tra chưa có kết quả hoặc đóng| WAIT
+    WAIT --> FW
+    M --> V
+    V --> DV
+    DV -->|Hợp lệ và chưa thu| SAVE
+    SAVE --> DPER
+    DPER -->|Chưa| ACT
+    DPER -->|Đã qua toàn bộ kỳ| PAST
+    PAST --> FPST
+    ACT --> F
+    DV -->|Đã thu cùng giao dịch| OLD
+    OLD --> FO
+    DV -->|Không hợp lệ hoặc lỗi kết nối| ERR
+    ERR --> ME
+    ME --> FE
   end
 ```

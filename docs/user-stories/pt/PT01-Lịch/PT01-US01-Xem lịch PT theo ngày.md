@@ -1,92 +1,95 @@
 # PT01-US01 - Xem lịch PT theo ngày
 
 ## Preconditions
-- Huấn luyện viên (PT) đã đăng nhập ứng dụng Mobile bằng tài khoản PT hợp lệ.
-- PT được phân công giảng dạy cho ít nhất một Hội viên có gói tập PT còn hiệu lực.
+- PT đã đăng nhập bằng tài khoản hợp lệ; danh sách lịch có thể rỗng.
 
 ## Trigger
-- PT chọn menu footer `PT01 · Lịch` trên ứng dụng Mobile PT.
-- Màn hình liên quan: Mobile App PT — Tab `PT01 · Lịch`.
+- PT mở PT01 · Lịch.
 
 ## Main Flow
+1. SYS chọn hôm nay theo múi giờ chi nhánh và tải lịch của chính PT từ API.
+2. PT chọn ngày bằng Calendar thu gọn/mở rộng; SYS nạp lại dữ liệu theo ngày.
+3. SYS sắp xếp booking theo giờ bắt đầu thực tế; mỗi thẻ hiển thị ngày, giờ bắt đầu/kết thúc, học viên hoặc danh sách nhóm từ snapshot booking được phép xem, gói, chi nhánh và trạng thái. Không tạo năm ca hai tiếng hay khung trống giả.
+4. Trạng thái API BOOKED hiển thị Đã đặt; PENDING_COMPLETION/AWAITING_CONFIRMATION hiển thị Chờ xác nhận; COMPLETED hiển thị Hoàn thành; CANCELLED hiển thị Đã hủy. DONE/UPCOMING chỉ là tên hiển thị legacy, không phải trạng thái mới.
+5. PT mở Ghi nhận kết quả (PT01-US02) khi buổi đã kết thúc, chưa xác nhận vế PT và API cho phép; mở Đặt lịch hộ (PT01-US03) từ nút Đặt lịch.
+6. SYS luôn kiểm tra own scope. PT không được hủy lịch; lịch đã hủy/hoàn thành chỉ đọc. Đổi ngày xem không tạo/sửa booking.
 
-1. PT mở tab **PT01 · Lịch** trên footer navigation.
-2. Hệ thống nạp bộ chọn ngày Calendar / DatePicker (dạng lịch tháng, ví dụ `< Tháng 9 Năm 2026 >`), mặc định chọn ngày hiện tại.
-3. Hệ thống hiển thị tiêu đề ngày được chọn (ví dụ: `07/09/2026 - Khung làm việc cố định: 08:00 - 18:00`) cùng **Lưới 5 khung giờ làm việc cố định** (Slots 2 tiếng: `08:00-10:00`, `10:00-12:00`, `12:00-14:00`, `14:00-16:00`, `16:00-18:00`).
-4. Tại từng khung giờ trong ngày:
-   - **Khung giờ trống:** Hiển thị thẻ `Khung giờ trống` viền nét đứt màu xám nhạt (chỉ đọc, tuyệt đối không có nút đặt lịch hay icon `[ + ]` vì PT không tự đặt lịch).
-   - **Khung giờ có lịch đặt — Trạng thái `Đã đặt` (`UPCOMING`):** Thẻ viền xanh dương, hiển thị Họ tên học viên, Gói tập, Chi nhánh, Badge `Đã đặt`. Đến giờ hoặc qua giờ tập, hiển thị nút màu xanh `[ Xác nhận hoàn thành ]`.
-   - **Khung giờ có lịch đặt — Trạng thái `Chờ xác nhận hoàn thành` (`AWAITING_CONFIRMATION`):** Thẻ viền vàng cam, Badge `Chờ xác nhận`. Hiển thị nút màu xanh `[ Xác nhận hoàn thành ]` nếu PT chưa ghi nhận kết quả (hoặc nhãn `Chờ Hội viên xác nhận` nếu PT đã ghi nhận).
-   - **Khung giờ có lịch đặt — Trạng thái `Hoàn thành` (`DONE` / Đã ghi nhận):** Thẻ viền xanh lá, Badge `Đã ghi nhận` (đã đủ xác nhận 2 chiều và trừ 1 buổi; không có nút thao tác).
-   - **Khung giờ có lịch đặt — Trạng thái `Đã hủy` (`CANCELLED`):** Thẻ làm mờ màu xám, Badge `Đã hủy` (không có nút thao tác).
-5. PT có thể chọn bất kỳ ngày nào khác trên Calendar / DatePicker để chuyển sang xem lịch tập của ngày đó.
-6. **Quy tắc nghiệp vụ:**
-   - PT chỉ xem được các buổi tập nằm trong phạm vi phân công (assignment scope) của chính mình.
-   - PT **không có quyền hủy lịch tập** (nút/thao tác Hủy lịch không xuất hiện đối với vai trò PT; chỉ có Hội viên hoặc Lễ tân/QTV thực hiện hủy lịch).
-   - Khi PT bấm `[ Xác nhận hoàn thành ]` tại ca tập `Đã đặt` (đến giờ) hoặc `Chờ xác nhận hoàn thành`, hệ thống chuyển sang modal ghi nhận kết quả buổi học (`PT01-US02`).
+### Field-level specification — Màn hình Lịch
+| Field / control | UI | State | Required | Conditional / dynamic | Source / validation |
+| --- | --- | --- | --- | --- | --- |
+| Ngày xem | Calendar / Date picker | PREFILL, USER-INPUT | required | TRIGGER | Hôm nay theo chi nhánh; chọn ngày tải API lịch |
+| Chuyển tháng; mở rộng/thu gọn lịch | Icon buttons | USER-INPUT | optional | Không | Điều khiển Calendar, không thay đổi booking |
+| Ngày và giờ làm việc | Text | READONLY | required | Không | Ngày đã chọn và cấu hình API; thiếu cấu hình ghi chưa cập nhật, không mặc định 08:00–18:00 |
+| Danh sách booking | List | READONLY | required | DYNAMIC: luôn hiện, tập bản ghi theo ngày | API lịch own scope, giờ thực tế và trạng thái máy chủ |
+| Học viên, gói, chi nhánh, giờ, trạng thái trên thẻ | Text / badges | READONLY | required | Không | Bản ghi booking; không thay giờ bằng ca cố định |
+| Người tham gia và trưởng nhóm | Readonly list | READONLY | conditional | CONDITIONAL: hiện với booking nhóm; ẩn với booking cá nhân | Snapshot bất biến của booking API; không bổ sung người mới từ nhóm hiện tại |
+| Xác nhận hoàn thành | Button | USER-INPUT | conditional | CONDITIONAL: hiện khi đã hết giờ, chưa xác nhận vế PT và còn quyền; ẩn khi chưa hết giờ, đã xác nhận, hoàn thành/hủy hoặc mất quyền | PT01-US02; kiểm tra lại trên server |
+| Đặt lịch | Icon + text button | USER-INPUT | required | Không | PT01-US03; không cấp quyền hủy |
+| Rỗng / lỗi | Status | READONLY | conditional | CONDITIONAL: hiện khi tải thành công không có lịch hoặc tải lỗi; ẩn khi có dữ liệu hợp lệ | Phân biệt ngày không có lịch với lỗi API |
+| Thử lại | Button | USER-INPUT | conditional | CONDITIONAL: hiện khi tải lỗi; ẩn khi đang tải hoặc thành công | Gọi lại API theo ngày hiện tại |
 
-### Field-level specification — Màn hình Lịch PT theo ngày
-| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Bộ chọn ngày linh hoạt 2 chế độ (Expandable / Collapsible Calendar)** | `DatePicker / Horizontal Calendar Strip` | `USER-INPUT (PREFILL)` | required | `TRIGGER`: Chạm chọn ngày trên dải cuộn ngang (Thu gọn) hoặc trên lưới cả tháng (Mở rộng) để nạp lại danh sách 5 ca tập của ngày tương ứng; hỗ trợ chạm nút/tiêu đề tháng để chuyển đổi qua lại giữa 2 chế độ | Bộ chọn ngày thông minh 2 chế độ: Chế độ Thu gọn (Dải ngày cuộn ngang bo góc, ngày chọn nền xanh ngọc) và Chế độ Mở rộng (Lưới cả tháng 7 cột T2-CN giúp chạm chọn tức thì bất kỳ ngày nào trong tháng mà không cần vuốt ngang). Mặc định chọn ngày hiện tại (`DD/MM/YYYY`) |
-| **Tiêu đề ngày & Khung giờ cố định** | `Text Label` | `READONLY` | required | `DYNAMIC`: Cập nhật ngày theo giá trị chọn ở TRIGGER | Hiển thị: `DD/MM/YYYY - Khung làm việc cố định: 08:00 - 18:00` |
-| **Lưới 5 khung giờ làm việc** | `Grid Container` | `READONLY` | required | Không | Khung bố cục lưới (Grid Container) gồm 5 khung giờ 2 tiếng cố định: `08:00-10:00`, `10:00-12:00`, `12:00-14:00`, `14:00-16:00`, `16:00-18:00` |
-| **Thẻ khung giờ trống** | `Slot Card (Empty)` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có khung giờ chưa có học viên đặt lịch; **Ẩn khi** tất cả các khung giờ trong ngày đều đã có lịch đặt | Thẻ card viền nét đứt màu xám nhạt, hiển thị Khung giờ và nhãn `Khung giờ trống` (**chỉ đọc, tuyệt đối không có nút đặt lịch hay nút icon `[ + ]`** vì PT không tự đặt lịch) |
-| **Thẻ ca tập — Trạng thái `Đã đặt` (`UPCOMING`)** | `Booking Card (Actionable)` | `USER-INPUT / READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có ca tập ở trạng thái `Đã đặt` (`UPCOMING`); **Ẩn khi** trong ngày không có ca tập nào ở trạng thái này | Thẻ card viền bo bên trái màu xanh dương; hiển thị Khung giờ, Họ tên học viên, Tên gói PT, Chi nhánh, Badge trạng thái `Đã đặt` (xanh dương). Đến giờ hoặc qua giờ tập, hiển thị nút màu xanh `[ Xác nhận hoàn thành ]` (mở Bottom Sheet `PT01-US02`) |
-| **Thẻ ca tập — Trạng thái `Chờ xác nhận hoàn thành` (`AWAITING_CONFIRMATION`)** | `Booking Card (Actionable)` | `USER-INPUT / READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có ca tập đang ở trạng thái `Chờ xác nhận hoàn thành` (`AWAITING_CONFIRMATION`); **Ẩn khi** không có ca tập nào ở trạng thái này | Thẻ card viền bo bên trái màu vàng cam; hiển thị Khung giờ, Họ tên học viên, Tên gói PT, Chi nhánh, Badge trạng thái `Chờ xác nhận` (vàng cam) kèm nút bấm màu xanh `[ Xác nhận hoàn thành ]` nếu PT chưa ghi nhận kết quả vế của mình (hoặc hiển thị nhãn `Chờ Hội viên xác nhận`) |
-| **Thẻ ca tập — Trạng thái `Hoàn thành` (`DONE`)** | `Booking Card (Readonly)` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có ca tập đã hoàn tất xác nhận 2 chiều và chuyển sang trạng thái `DONE` (`Đã ghi nhận`); **Ẩn khi** không có ca tập nào ở trạng thái này | Thẻ card viền bo bên trái màu xanh lá; hiển thị Khung giờ, Họ tên học viên, Tên gói PT, Chi nhánh, Badge trạng thái `Đã ghi nhận` (xanh lá); hiển thị thông tin đã trừ 1 buổi; không có nút thao tác |
-| **Thẻ ca tập — Trạng thái `Đã hủy` (`CANCELLED`)** | `Booking Card (Disabled)` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** trong ngày có ca tập đã bị Hội viên hoặc Quản trị viên/Lễ tân hủy (`CANCELLED`); **Ẩn khi** không có ca tập nào bị hủy | Thẻ card làm mờ (opacity thấp), gạch ngang khung giờ hoặc hiển thị màu xám; hiển thị Họ tên học viên, Tên gói PT, Badge trạng thái `Đã hủy` (xám); khóa hoàn toàn tương tác, không có nút xác nhận |
+- Booking nhóm hiển thị toàn bộ snapshot gồm trưởng nhóm; người gia nhập sau không tự thêm vào lịch cũ. Trưởng nhóm đại diện phía Hội viên xác nhận/hủy; các thành viên khác chỉ đọc lịch. PT không được hủy; một booking nhóm chỉ dùng một buổi hợp đồng.
 
 ## Alternate Flows
-
-### AF-01 — PT xem lịch dạy của ngày khác trên Calendar
-1. PT chọn ngày khác trên lưới lịch tháng (DatePicker).
-2. SYS nạp danh sách 5 khung giờ của ngày được chọn và hiển thị trạng thái các buổi tập tương ứng.
-
-### AF-02 — Ngày không có lịch đặt nào
-1. PT chọn ngày mà tất cả 5 khung giờ đều chưa có người đặt.
-2. SYS hiển thị nhãn `Khung giờ trống` cho toàn bộ 5 slot trong ngày.
+- AF-01: Đổi ngày/tháng hoặc chế độ Calendar, SYS tải lại lịch của ngày được chọn.
+- AF-02: Không có lịch, SYS hiển thị trạng thái rỗng; vẫn có thể mở form đặt lịch.
+- AF-03: Chọn Đặt lịch mở PT01-US03; chọn ca đủ điều kiện mở PT01-US02; không chọn thao tác thì kết thúc xem.
 
 ## Exception Flows
-
-- Lỗi kết nối mạng: SYS hiển thị thông báo "Không thể nạp dữ liệu lịch tập, vui lòng kiểm tra kết nối mạng và thử lại".
-- PT chưa được phân công học viên nào: SYS hiển thị thông báo "Bạn chưa có buổi tập nào được phân công".
+- EF-01: Lỗi API hoặc phiên hết hạn: hiển thị lỗi/thông báo đăng nhập lại; không tạo dữ liệu lịch thay thế.
+- EF-02: Quyền/trạng thái ca thay đổi: kiểm tra lại trước khi mở thao tác, từ chối và tải trạng thái mới.
 
 ## Activity Diagram — Swimlane
-**Trigger:** PT chọn menu footer PT01 · Lịch trên ứng dụng Mobile.
 
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — Mobile App PT / PT01 · Lịch tập PT"]
-    subgraph L0["Swimlane — Huấn luyện viên (PT)"]
-      I01(("Initial"))
-      A01["Mở footer PT01 · Lịch"]
-      A02["Chọn ngày xem lịch trên Calendar DatePicker"]
-      A03["Bấm nút Xác nhận hoàn thành tại khung giờ đã đặt"]
-      F01((("Final — Xem lịch tập PT thành công")))
-      F02((("Final — Chuyển sang màn hình Ghi nhận kết quả buổi PT")))
+  subgraph B["Boundary - Mobile PT / PT01 - Lịch"]
+    subgraph L0["Swimlane - PT"]
+      I(("Initial"))
+      A["Mở Lịch và chọn ngày"]
+      D{"Thao tác tiếp theo?"}
+      C["Chọn ngày khác"]
+      B["Chọn Đặt lịch"]
+      R["Chọn Xác nhận hoàn thành"]
     end
-
-    subgraph L1["Swimlane — SYS"]
-      S01["Mặc định chọn ngày hiện tại và hiển thị Calendar DatePicker"]
-      S02["Tải và hiển thị danh sách 5 khung giờ 2 tiếng của ngày được chọn"]
-      D01{"Khung giờ có lịch đã đặt?"}
-      S03["Hiển thị nhãn Khung giờ trống"]
-      S04["Hiển thị thông tin học viên, gói tập và nút Xác nhận hoàn thành đối với buổi đã qua / đang diễn ra"]
-      D02{"PT chọn Xác nhận hoàn thành?"}
-
-      I01 --> A01
-      A01 --> S01
-      S01 --> A02
-      A02 --> S02
-      S02 --> D01
-      D01 -- "Không" --> S03
-      S03 --> F01
-      D01 -- "Có" --> S04
-      S04 --> D02
-      D02 -- "Không" --> F01
-      D02 -- "Có" --> A03
-      A03 --> F02
+    subgraph L1["Swimlane - SYS"]
+      M(("Merge - Tải ngày"))
+      S["Truy vấn lịch own scope"]
+      E{"Kết quả tải?"}
+      ERR["Báo lỗi tải hoặc phiên"]
+      FE((("Final - Chưa tải được")))
+      EMPTY["Hiển thị ngày không có lịch"]
+      LIST["Hiển thị booking giờ thực và snapshot người tham gia nhóm nếu có"]
+      V(("Merge - Đã hiển thị"))
+      FB((("Final - Mở PT01-US03")))
+      Q{"Ca còn đủ quyền xác nhận?"}
+      OK["Mở PT01-US02"]
+      FO((("Final - Ghi nhận kết quả")))
+      NO["Báo trạng thái thay đổi"]
+      FN((("Final - Không mở thao tác")))
+      F((("Final - Đã xem")))
     end
+    I --> A
+    A --> M
+    C --> M
+    M --> S
+    S --> E
+    E -->|Lỗi| ERR
+    ERR --> FE
+    E -->|Rỗng| EMPTY
+    E -->|Có lịch| LIST
+    EMPTY --> V
+    LIST --> V
+    V --> D
+    D -->|Đổi ngày| C
+    D -->|Đặt lịch| B
+    B --> FB
+    D -->|Xác nhận| R
+    R --> Q
+    Q -->|Có| OK
+    OK --> FO
+    Q -->|Không| NO
+    NO --> FN
+    D -->|Xong| F
   end
 ```

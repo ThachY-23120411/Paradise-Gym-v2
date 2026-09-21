@@ -1,0 +1,551 @@
+{
+  "result": "BLOCKED",
+  "steps": [
+    {
+      "n": 1,
+      "name": "purchase-catalog",
+      "action": "Open Mua goi",
+      "expected": "HV03-US03 MF1: real API package name, price and purchase action",
+      "actual": "HV Purchase Gym\n\n500.000 đ\n\n30 ngày · Gym không giới hạn lượt\n\nXem chi tiết\nMua gói",
+      "status": "PASS",
+      "file": "step-01-purchase-catalog.png",
+      "section": "source"
+    },
+    {
+      "n": 2,
+      "name": "purchase-buy-dialog",
+      "action": "Click Mua goi",
+      "expected": "MF2: selected package and bank transfer purchase form",
+      "actual": "Mua gói\nHV Purchase Gym\n\n500.000 đ\n\nHình thức thanh toán: Chuyển khoản Ngân hàng (VietQR)\n\n Mã giảm giá / Voucher\n Chọn voucher\nÁp dụng\n Tiếp tục thanh toán (500.000 đ)",
+      "status": "PASS",
+      "file": "step-02-purchase-buy-dialog.png",
+      "section": "source"
+    },
+    {
+      "n": 3,
+      "name": "purchase-empty-voucher",
+      "action": "Apply blank voucher",
+      "expected": "Empty voucher validation leaves price unchanged",
+      "actual": "Vui lòng nhập mã giảm giá",
+      "status": "PASS",
+      "file": "step-03-purchase-empty-voucher.png",
+      "section": "source"
+    },
+    {
+      "n": 4,
+      "name": "purchase-qr",
+      "action": "Continue payment; create registration and intent",
+      "expected": "MF5/6 plus user override: pending registration, 15min QR intent; no final payment",
+      "actual": {
+        "registrationId": "f60e0139-db38-43fc-a2c6-2ea82fff8e9a",
+        "intentId": "edbc2176-8cd0-422f-bdf6-71c48037053b",
+        "expiry": "2026-09-21T03:50:04.629Z"
+      },
+      "status": "PASS",
+      "file": "step-04-purchase-qr.png",
+      "section": "source"
+    },
+    {
+      "n": 5,
+      "name": "simulate-transfer-success",
+      "action": "Click Toi da chuyen khoan",
+      "expected": "User-approved simulate-transfer creates one final payment and receipt; activates same registration",
+      "actual": "Thanh toán thành công!",
+      "status": "PASS",
+      "file": "step-05-simulate-transfer-success.png",
+      "section": "source"
+    },
+    {
+      "n": 6,
+      "name": "paid-package-active",
+      "action": "Open Goi cua toi after success",
+      "expected": "Same paid registration active, freeze available",
+      "actual": "HV Purchase Gym\nĐang hoạt động\n\nDK001 · 21/9/2026 - 21/10/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nĐóng băng",
+      "status": "PASS",
+      "file": "step-06-paid-package-active.png",
+      "section": "source"
+    },
+    {
+      "n": 7,
+      "name": "successful-statusless-history",
+      "action": "Open payment history",
+      "expected": "HV03-US06 MF2-4: successful payment renders without status property",
+      "actual": "PT001\n500.000 đ\n\nHV Purchase Gym\n\n10:35:05 21/9/2026 · Chuyển khoản Ngân hàng (VietQR)\n\nĐã thanh toán\nXem phiếu thu",
+      "status": "PASS",
+      "file": "step-07-successful-statusless-history.png",
+      "section": "source"
+    },
+    {
+      "n": 8,
+      "name": "receipt",
+      "action": "Open receipt",
+      "expected": "Same member, purchased package and amount",
+      "actual": "Phiếu thu\nMã phiếu thu\nPT001\nTên hội viên\nHV Purchase Member\nGói tập\nHV Purchase Gym\nSố tiền\n500.000 đ\nNgày thanh toán\n10:35:05 21/9/2026",
+      "status": "PASS",
+      "file": "step-08-receipt.png",
+      "section": "source"
+    },
+    {
+      "n": 9,
+      "name": "lt-DK001-Đang",
+      "action": "Open LT registrations for the SAME registration",
+      "expected": "Same member/code and expected registration status",
+      "actual": "DK001\t10:35:04 21/9/2026\tHV Purchase Member\nHV001 · HV Payment Branch A\n\tHV Purchase Gym\t21/09/2026 - 21/10/2026\t500.000 ₫\t--\tĐang hiệu lực\t",
+      "status": "PASS",
+      "file": "downstream-09-lt-DK001-Đang.png",
+      "section": "downstream"
+    },
+    {
+      "n": 10,
+      "name": "pending-catalog",
+      "action": "Open Mua goi",
+      "expected": "HV03-US03 MF1: real API package name, price and purchase action",
+      "actual": "HV Purchase Gym\n\n500.000 đ\n\n30 ngày · Gym không giới hạn lượt\n\nXem chi tiết\nMua gói",
+      "status": "PASS",
+      "file": "step-10-pending-catalog.png",
+      "section": "source"
+    },
+    {
+      "n": 11,
+      "name": "pending-buy-dialog",
+      "action": "Click Mua goi",
+      "expected": "MF2: selected package and bank transfer purchase form",
+      "actual": "Mua gói\nHV Purchase Gym\n\n500.000 đ\n\nHình thức thanh toán: Chuyển khoản Ngân hàng (VietQR)\n\n Mã giảm giá / Voucher\n Chọn voucher\nÁp dụng\n Tiếp tục thanh toán (500.000 đ)",
+      "status": "PASS",
+      "file": "step-11-pending-buy-dialog.png",
+      "section": "source"
+    },
+    {
+      "n": 12,
+      "name": "pending-empty-voucher",
+      "action": "Apply blank voucher",
+      "expected": "Empty voucher validation leaves price unchanged",
+      "actual": "Vui lòng nhập mã giảm giá",
+      "status": "PASS",
+      "file": "step-12-pending-empty-voucher.png",
+      "section": "source"
+    },
+    {
+      "n": 13,
+      "name": "pending-qr",
+      "action": "Continue payment; create registration and intent",
+      "expected": "MF5/6 plus user override: pending registration, 15min QR intent; no final payment",
+      "actual": {
+        "registrationId": "e98e6d47-5466-45e3-8487-6946e48888b1",
+        "intentId": "295c214b-947f-4b34-aea1-019f98ab68b9",
+        "expiry": "2026-09-21T03:50:11.013Z"
+      },
+      "status": "PASS",
+      "file": "step-13-pending-qr.png",
+      "section": "source"
+    },
+    {
+      "n": 14,
+      "name": "pending-older-than-three-days",
+      "action": "Reload order after isolated 4-day age and QR expiry fixture",
+      "expected": "User override: QR expiry/age never auto-cancels registration; cancel action available",
+      "actual": "HV Purchase Gym\n500.000 đ\n\nMã ĐK: DK002 · Ngày tạo: 17/9/2026\n\nChờ thanh toán 100%\n\nThanh toán ngay (VietQR)\nHủy đơn",
+      "status": "PASS",
+      "file": "step-14-pending-older-than-three-days.png",
+      "section": "source"
+    },
+    {
+      "n": 15,
+      "name": "expired-intent-reissued",
+      "action": "Continue payment after QR expiry",
+      "expected": "Fresh 15min QR for same pending order; final history still one successful payment",
+      "actual": "Mã QR còn hiệu lực 15:00",
+      "status": "PASS",
+      "file": "step-15-expired-intent-reissued.png",
+      "section": "source"
+    },
+    {
+      "n": 16,
+      "name": "qr-countdown-expired",
+      "action": "Advance browser clock 15min without waiting on real bank",
+      "expected": "Expired QR hidden, simulation unavailable, recreate action; order still pending",
+      "actual": "false == true",
+      "status": "FAIL",
+      "file": "step-16-qr-countdown-expired.png",
+      "section": "source"
+    },
+    {
+      "n": 17,
+      "name": "execution-blocker",
+      "action": "Capture blocked actual DOM",
+      "expected": "Dependent steps not claimed",
+      "actual": "false == true\n\n'FAIL' !== 'PASS'\n",
+      "status": "FAIL",
+      "file": "step-17-execution-blocker.png",
+      "section": "source"
+    }
+  ],
+  "issues": [
+    {
+      "name": "qr-countdown-expired",
+      "actual": "false == true"
+    },
+    {
+      "name": "execution-blocker",
+      "actual": "AssertionError [ERR_ASSERTION]: false == true\n\n'FAIL' !== 'PASS'\n\n    at capture (E:\\Desktop\\para\\tests\\e2e\\hv\\HV03-US03\\payment-intents.cjs:106:10)\n    at async run (E:\\Desktop\\para\\tests\\e2e\\hv\\HV03-US03\\payment-intents.cjs:192:3)\n    at async E:\\Desktop\\para\\tests\\e2e\\hv\\HV03-US03\\payment-intents.cjs:245:9"
+    },
+    {
+      "name": "execution-blocker",
+      "actual": "false == true\n\n'FAIL' !== 'PASS'\n"
+    },
+    {
+      "name": "source-drift-during-run",
+      "actual": "backend/src/modules/core/commerce.js"
+    }
+  ],
+  "migrations": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4e4c4da7561e9e39faecbc5bc3c152158be9543531add85b6904bea7c3cb047a"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    },
+    {
+      "file": "014_successful_payment_ledger.sql",
+      "sha256": "551292a2b35aa89c5ac2f687a078e62a38cbddedd604c5d82dc1ae2ad0c16581"
+    }
+  ],
+  "state": [
+    {
+      "fixture": {
+        "branches": [
+          "8a4c4989-bebf-4533-a8b4-a574d4365549",
+          "6adee361-24fd-4400-a075-a602cfc444f3"
+        ],
+        "memberId": "b05e8c5f-16ff-4f16-b37b-bf758ee03c99",
+        "packageId": "aea35600-bd61-40e2-a312-65cfe9c7a133"
+      },
+      "note": "All fixtures via API or explicit setup SQL only in disposable DB; no shared seed/reset."
+    },
+    {
+      "paidRegistrationId": "f60e0139-db38-43fc-a2c6-2ea82fff8e9a",
+      "paymentId": "edbc2176-8cd0-422f-bdf6-71c48037053b"
+    },
+    {
+      "retry": "One final payment/receipt after repeating same approved simulation endpoint"
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/members/b05e8c5f-16ff-4f16-b37b-bf758ee03c99",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/members/b05e8c5f-16ff-4f16-b37b-bf758ee03c99",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/group-invitations",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/packages",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 63853
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/registrations",
+      "target": 63853
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 63853
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/edbc2176-8cd0-422f-bdf6-71c48037053b/simulate-transfer",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments/edbc2176-8cd0-422f-bdf6-71c48037053b/receipt",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/packages",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 63853
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/registrations",
+      "target": 63853
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 63853
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 63853
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 63853
+    }
+  ],
+  "sources": {
+    "frontend/mobile/member/js/packages-notifications.js": "b0abae2f5a9ffecc1cdd132089fbcca91801ebd6d5cbb8a4106834b77cb51276",
+    "backend/src/modules/core/commerce.js": "36cf1427ca7133623b68dd15d1ecd1e7d46c6d9cf89ac68c8b8e57bbf115b80e"
+  },
+  "changed": [
+    "backend/src/modules/core/commerce.js"
+  ],
+  "cleanup": {
+    "browser": true,
+    "server": true,
+    "connections": true,
+    "database": true
+  },
+  "screenshots": [
+    {
+      "file": "step-01-purchase-catalog.png",
+      "bytes": 29860,
+      "sha256": "b0ce9c4ab53359449116b5921ccc380af5a2848befaa5f949cf48c40abe0a9fb"
+    },
+    {
+      "file": "step-02-purchase-buy-dialog.png",
+      "bytes": 50693,
+      "sha256": "c3ac1a8e70caf63ca68561dac51b208e0fa1b85fa0733f8043e71668f3b69e3c"
+    },
+    {
+      "file": "step-03-purchase-empty-voucher.png",
+      "bytes": 52125,
+      "sha256": "7ed873052142596f917e7f97c9563575db9637d8295545fc66f45856ac586eb5"
+    },
+    {
+      "file": "step-04-purchase-qr.png",
+      "bytes": 75557,
+      "sha256": "b20035615cb400f9623ce4d87b866402b2c27c9294683dcee8270546e786a32a"
+    },
+    {
+      "file": "step-05-simulate-transfer-success.png",
+      "bytes": 60893,
+      "sha256": "7fb54231c9fbed04f439999d0c8096b6994e304894f162c90a41fdc6006897da"
+    },
+    {
+      "file": "step-06-paid-package-active.png",
+      "bytes": 41547,
+      "sha256": "595843dbedcbe32e22d33143e0822073cd9fe3f5245f9afb977ed3e65fc66547"
+    },
+    {
+      "file": "step-07-successful-statusless-history.png",
+      "bytes": 34064,
+      "sha256": "2597e5a777996af152d0ccc954f229582857e0038a89e3630b0b75a84c194e95"
+    },
+    {
+      "file": "step-08-receipt.png",
+      "bytes": 49168,
+      "sha256": "be30cc18c1f12ce14d2b090c0ae00a2312011e4d1574778936a99e57637e2637"
+    },
+    {
+      "file": "downstream-09-lt-DK001-Đang.png",
+      "bytes": 90336,
+      "sha256": "8522a0e10d50d75e417a601b310774c5dc826098864ef6c483de9ab2865d3068"
+    },
+    {
+      "file": "step-10-pending-catalog.png",
+      "bytes": 30021,
+      "sha256": "ff6484b61ba314a94ed4f4df4307f604859a2a61d0b80a10a1490ded08f58146"
+    },
+    {
+      "file": "step-11-pending-buy-dialog.png",
+      "bytes": 50693,
+      "sha256": "c3ac1a8e70caf63ca68561dac51b208e0fa1b85fa0733f8043e71668f3b69e3c"
+    },
+    {
+      "file": "step-12-pending-empty-voucher.png",
+      "bytes": 52125,
+      "sha256": "1d103aad6d8576004ed7a7de3bd5b7fe981d4372190d39b45a57b4a3a5a23a84"
+    },
+    {
+      "file": "step-13-pending-qr.png",
+      "bytes": 75851,
+      "sha256": "00e3bf32a7c809167f55de0c5874dca80c6674064da2a1a82c2ec2309c943ef5"
+    },
+    {
+      "file": "step-14-pending-older-than-three-days.png",
+      "bytes": 30445,
+      "sha256": "91c4d3b3a7cf728ac6591637c34c1fc25f7dabd4022c65242adade55f9dce462"
+    },
+    {
+      "file": "step-15-expired-intent-reissued.png",
+      "bytes": 75738,
+      "sha256": "b16163feabac04626a17169e7273687891a4a607b838892dd1f15654281f8faf"
+    },
+    {
+      "file": "step-16-qr-countdown-expired.png",
+      "bytes": 75738,
+      "sha256": "b16163feabac04626a17169e7273687891a4a607b838892dd1f15654281f8faf"
+    },
+    {
+      "file": "step-17-execution-blocker.png",
+      "bytes": 76737,
+      "sha256": "270901381c95d974a0df290d6e451f8f29a2ee369d430a34ffa2e9a2048dae62"
+    }
+  ]
+}

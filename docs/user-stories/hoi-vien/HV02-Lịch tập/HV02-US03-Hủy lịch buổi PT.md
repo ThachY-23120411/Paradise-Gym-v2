@@ -1,6 +1,7 @@
 # HV02-US03 - Hủy lịch buổi PT
 
 ## Preconditions
+- Hội viên là chủ booking (`booking.member_id` khớp `member_profile_id`); với lịch nhóm, đây là trưởng nhóm đại diện. Thành viên nhóm khác chỉ xem và không có nút Hủy; API từ chối thao tác không đúng chủ booking.
 - Hội viên đã đăng nhập Mobile bằng tài khoản hợp lệ.
 - Hội viên có buổi tập PT ở trạng thái `Đã đặt` (`UPCOMING`).
 

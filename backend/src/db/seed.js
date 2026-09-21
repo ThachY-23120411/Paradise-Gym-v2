@@ -69,6 +69,8 @@ async function runSeed() {
     console.log(`⏳ Executing DDL: ${ddlPath}`);
     const ddlSql = fs.readFileSync(ddlPath, 'utf8');
     await client.query(ddlSql);
+    // Bootstrap nullable package durations before the base catalog seed uses them.
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '002_web_rebuild.sql'), 'utf8'));
     console.log('✅ 22 Tables and Indexes created successfully.');
 
     // 3. Execute comprehensive relational seed data
@@ -76,7 +78,6 @@ async function runSeed() {
     console.log(`⏳ Executing Seed Data: ${seedPath}`);
     const seedSql = fs.readFileSync(seedPath, 'utf8');
     await client.query(seedSql);
-    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '002_web_rebuild.sql'), 'utf8'));
     await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '003_mobile_preferences.sql'), 'utf8'));
     await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '004_device_sessions.sql'), 'utf8'));
     await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '005_remove_pt_certificates.sql'), 'utf8'));
@@ -85,11 +86,15 @@ async function runSeed() {
     await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '008_branch_default_commission_rate.sql'), 'utf8'));
     await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '009_pt_commission_payout_details.sql'), 'utf8'));
     await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '010_scheduled_package_freezes.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '011_pt_bookings_no_overlap_indexes.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '012_pt_commission_session_snapshot.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '013_pt_booking_participants.sql'), 'utf8'));
     
     // 3.1. Execute Boss Feedback Extensions Seed Data
     const bossSeedPath = path.join(__dirname, 'seeds', '002_boss_feedback_seed.sql');
     console.log(`⏳ Executing Boss Feedback Seed Data: ${bossSeedPath}`);
     await client.query(fs.readFileSync(bossSeedPath, 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '014_successful_payment_ledger.sql'), 'utf8'));
 
     await repairPlaceholderPasswords(client);
     console.log('✅ Seed SQL executed successfully.');
@@ -99,7 +104,7 @@ async function runSeed() {
       'branches', 'roles', 'accounts', 'account_roles', 'account_branch_scopes',
       'member_profiles', 'pt_profiles', 'packages', 'package_branches',
       'registrations', 'registration_allowed_branches', 'pt_assignment_requests',
-      'payments', 'receipts', 'pt_bookings', 'devices', 'access_logs',
+      'payments', 'payment_intents', 'receipts', 'pt_bookings', 'devices', 'access_logs',
       'notification_templates', 'notifications', 'audit_logs',
       'discounts', 'pt_commission_configs', 'community_classes', 'holidays'
     ];

@@ -39,6 +39,10 @@ router.put('/mobile/profile',route(async req=>{
   role(req,'MEMBER','PT');
   if(req.user.active_role==='PT'){
     only(req.body,['email','bio','specialties']);
+    for(const [field,limit] of [['email',150],['bio',1000],['specialties',500]]) {
+      const value=req.body[field];
+      if(value!==undefined&&value!==null&&(typeof value!=='string'||value.length>limit))fail(400,`${field} phải là văn bản tối đa ${limit} ký tự.`);
+    }
     return transaction(async db=>{
       const old=(await db.query('SELECT * FROM pt_profiles WHERE id=$1 FOR UPDATE',[req.user.pt_profile_id])).rows[0];
       if(!old)fail(404,'Không tìm thấy hồ sơ HLV.');
@@ -102,7 +106,7 @@ router.get('/mobile/pt/statistics',route(async req=>{
   const result=(await pool.query(`SELECT
     (SELECT count(DISTINCT r.member_id)::int FROM registrations r JOIN member_profiles m ON m.id=r.member_id
       WHERE r.assigned_pt_id=$1 AND m.status='ACTIVE' AND r.status IN ('ACTIVE','SCHEDULED','EXPIRED') AND r.start_date<=$3::date AND (r.end_date IS NULL OR r.end_date>=$2::date)
-      AND EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id AND p.status='COMPLETED')) active_students,
+      AND EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id)) active_students,
     count(*) FILTER(WHERE bk.status='COMPLETED' AND bk.pt_confirmed_at IS NOT NULL AND bk.member_confirmed_at IS NOT NULL)::int completed_sessions,
     count(*) FILTER(WHERE bk.status='BOOKED' AND (bk.booking_date+bk.start_time) AT TIME ZONE b.timezone>NOW())::int upcoming_sessions,
     count(*) FILTER(WHERE bk.status IN ('PENDING_COMPLETION','AWAITING_CONFIRMATION') OR (bk.status='BOOKED' AND (bk.booking_date+bk.end_time) AT TIME ZONE b.timezone<=NOW()))::int awaiting_confirmation,

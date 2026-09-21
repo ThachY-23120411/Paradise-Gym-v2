@@ -1,0 +1,266 @@
+{
+  "result": "BLOCKED",
+  "database": "paradise_payment_test_10288_1789961876580",
+  "backend": "http://127.0.0.1:55415",
+  "ui": "http://127.0.0.1:55416",
+  "migrations": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4e4c4da7561e9e39faecbc5bc3c152158be9543531add85b6904bea7c3cb047a"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    },
+    {
+      "file": "014_successful_payment_ledger.sql",
+      "sha256": "3c16e83463bb97a594ca06ce3c0079710c4d78b64da2f5544f2f6697bb2a1a14"
+    }
+  ],
+  "provenance": [
+    {
+      "file": "web/index.html",
+      "sha256": "b890d4565d72d8b36e245a34bdd793beb4cf13c4dbbf8015c5c67ffec6814f98"
+    },
+    {
+      "file": "web/js/modules/sales.js",
+      "sha256": "6836b1a287e85f466759220dae76ffbaac0d4c96f5a0b18ae1b9413ac9eda26f"
+    },
+    {
+      "file": "web/js/ui.js",
+      "sha256": "a631804f1193ee7ca9024aa6a839dfff240f79d59dca6f527543f5cf037cdd95"
+    },
+    {
+      "file": "mobile/member/js/packages-notifications.js",
+      "sha256": "0b5ee8eee1b6610d0519d4b55ebaa6fe5db0c4daa29304619d525a55e0d81d5a"
+    },
+    {
+      "file": "shared/apiClient.js",
+      "sha256": "62dc34808b3c6895cea83b7744df9f3bfffb704b7ed54ecdd172f521da6127c4"
+    }
+  ],
+  "steps": [
+    {
+      "name": "ledger-controls",
+      "action": "Open payment ledger",
+      "expected": "User correction + US01/US03: two KPIs; no payment-status filter/column or pending KPI",
+      "actual": "page.evaluate: Error: E0009 - Component 'dxDataGrid' has not been initialized for an element.\n\nFor additional information on this error message, see: https://js.devexpress.com/error/23_2/E0009\n    at d (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2148739)\n    at Object.Error (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2148146)\n    at HTMLDivElement.<anonymous> (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2404237)\n    at ce.each (https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js:2:3129)\n    at ce.fn.init.each (https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js:2:1594)\n    at i.default.fn.<computed> [as dxDataGrid] (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2404170)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:37)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "status": "FAIL",
+      "section": "source",
+      "filename": "step-01-ledger-controls.png"
+    },
+    {
+      "name": "blocked",
+      "action": "QTV ledger controls",
+      "expected": "Complete scenario",
+      "actual": "page.evaluate: Error: E0009 - Component 'dxDataGrid' has not been initialized for an element.\n\nFor additional information on this error message, see: https://js.devexpress.com/error/23_2/E0009\n    at d (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2148739)\n    at Object.Error (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2148146)\n    at HTMLDivElement.<anonymous> (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2404237)\n    at ce.each (https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js:2:3129)\n    at ce.fn.init.each (https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js:2:1594)\n    at i.default.fn.<computed> [as dxDataGrid] (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2404170)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:37)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "status": "FAIL",
+      "section": "source",
+      "filename": "step-02-blocked.png"
+    },
+    {
+      "name": "open-payment",
+      "action": "Open QTV Cash payment form",
+      "expected": "US02 MF2: payment form with same active member and pending registrations",
+      "actual": "Hội viên cần thanh toán *\nGói tập đăng ký chờ thanh toán *\nSố tiền thanh toán 100%\nMã giảm giá / Voucher (nếu có)\nÁp dụng\nPhương thức thanh toán *\nTiền mặt\nChuyển khoản\nGhi chú giao dịch\nHủy\nXác nhận đã thu đủ tiền mặt",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-03-open-payment.png"
+    },
+    {
+      "name": "open-options",
+      "action": "Open Gói tập đăng ký chờ thanh toán",
+      "expected": "US02 field-level searchable options shown",
+      "actual": "DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK003 · LT Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK002 · QTV Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK001 · QTV Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK005 · Pending Cancel\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-04-open-options.png"
+    },
+    {
+      "name": "select-option",
+      "action": "Choose QTV Cash",
+      "expected": "Selected value shown before submit",
+      "actual": "DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK003 · LT Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK002 · QTV Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK001 · QTV Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK005 · Pending Cancel\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+      "status": "PASS",
+      "section": "source",
+      "filename": "step-05-select-option.png"
+    },
+    {
+      "name": "cash-filled-before-submit",
+      "action": "Enter note for QTV Cash",
+      "expected": "Cash selected; no bank-reference field; entered note captured before settlement",
+      "actual": "Missing Tiền mặt: DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK003 · LT Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK002 · QTV Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK001 · QTV Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK005 · Pending Cancel\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+      "status": "FAIL",
+      "section": "source",
+      "filename": "step-06-cash-filled-before-submit.png"
+    },
+    {
+      "name": "blocked",
+      "action": "QTV cash and member downstream",
+      "expected": "Complete scenario",
+      "actual": "Missing Tiền mặt: DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK003 · LT Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK002 · QTV Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK001 · QTV Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK005 · Pending Cancel\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+      "status": "FAIL",
+      "section": "source",
+      "filename": "step-07-blocked.png"
+    },
+    {
+      "name": "blocked",
+      "action": "QTV manual bank and member downstream",
+      "expected": "Complete scenario",
+      "actual": "locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Ghi nhận thanh toán', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <div tabindex=\"0\" role=\"button\" title=\"Ghi nhận thanh toán\" aria-label=\"Ghi nhận thanh toán\" class=\"dx-widget dx-button dx-button-mode-contained dx-button-default dx-button-has-text dx-button-has-icon\">…</div>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    29 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+      "status": "FAIL",
+      "section": "source",
+      "filename": "step-08-blocked.png"
+    },
+    {
+      "name": "blocked",
+      "action": "QTV registration guards",
+      "expected": "Complete scenario",
+      "actual": "locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebarList [data-menu=\"registrations\"]')\u001b[22m\n\u001b[2m    - locator resolved to <a class=\"menu-nav-item\" href=\"#registrations\" data-menu=\"registrations\" title=\"Đăng ký & gia hạn\">…</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    29 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+      "status": "FAIL",
+      "section": "source",
+      "filename": "step-09-blocked.png"
+    }
+  ],
+  "state": [],
+  "issues": [
+    "ledger-controls: page.evaluate: Error: E0009 - Component 'dxDataGrid' has not been initialized for an element.\n\nFor additional information on this error message, see: https://js.devexpress.com/error/23_2/E0009\n    at d (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2148739)\n    at Object.Error (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2148146)\n    at HTMLDivElement.<anonymous> (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2404237)\n    at ce.each (https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js:2:3129)\n    at ce.fn.init.each (https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js:2:1594)\n    at i.default.fn.<computed> [as dxDataGrid] (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2404170)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:37)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+    "QTV ledger controls: page.evaluate: Error: E0009 - Component 'dxDataGrid' has not been initialized for an element.\n\nFor additional information on this error message, see: https://js.devexpress.com/error/23_2/E0009\n    at d (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2148739)\n    at Object.Error (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2148146)\n    at HTMLDivElement.<anonymous> (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2404237)\n    at ce.each (https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js:2:3129)\n    at ce.fn.init.each (https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js:2:1594)\n    at i.default.fn.<computed> [as dxDataGrid] (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2404170)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:37)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+    "blocked: page.evaluate: Error: E0009 - Component 'dxDataGrid' has not been initialized for an element.\n\nFor additional information on this error message, see: https://js.devexpress.com/error/23_2/E0009\n    at d (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2148739)\n    at Object.Error (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2148146)\n    at HTMLDivElement.<anonymous> (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2404237)\n    at ce.each (https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js:2:3129)\n    at ce.fn.init.each (https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js:2:1594)\n    at i.default.fn.<computed> [as dxDataGrid] (https://cdnjs.cloudflare.com/ajax/libs/devextreme-dist/23.2.5/js/dx.all.js:19:2404170)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:37)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+    "cash-filled-before-submit: Missing Tiền mặt: DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK003 · LT Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK002 · QTV Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK001 · QTV Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK005 · Pending Cancel\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+    "QTV cash and member downstream: Missing Tiền mặt: DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK003 · LT Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK002 · QTV Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK001 · QTV Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK005 · Pending Cancel\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+    "blocked: Missing Tiền mặt: DK004 · LT Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK003 · LT Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK002 · QTV Bank\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK001 · QTV Cash\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫\nDK005 · Pending Cancel\nKỳ: 21/09/2026 - 21/10/2026\n500.000 ₫",
+    "QTV manual bank and member downstream: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Ghi nhận thanh toán', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <div tabindex=\"0\" role=\"button\" title=\"Ghi nhận thanh toán\" aria-label=\"Ghi nhận thanh toán\" class=\"dx-widget dx-button dx-button-mode-contained dx-button-default dx-button-has-text dx-button-has-icon\">…</div>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    29 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "blocked: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Ghi nhận thanh toán', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <div tabindex=\"0\" role=\"button\" title=\"Ghi nhận thanh toán\" aria-label=\"Ghi nhận thanh toán\" class=\"dx-widget dx-button dx-button-mode-contained dx-button-default dx-button-has-text dx-button-has-icon\">…</div>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    29 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "QTV registration guards: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebarList [data-menu=\"registrations\"]')\u001b[22m\n\u001b[2m    - locator resolved to <a class=\"menu-nav-item\" href=\"#registrations\" data-menu=\"registrations\" title=\"Đăng ký & gia hạn\">…</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    29 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "blocked: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebarList [data-menu=\"registrations\"]')\u001b[22m\n\u001b[2m    - locator resolved to <a class=\"menu-nav-item\" href=\"#registrations\" data-menu=\"registrations\" title=\"Đăng ký & gia hạn\">…</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    29 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div data-bind=\"dxControlsDescendantBindings: true\" class=\"dx-overlay-wrapper dx-popup-wrapper sales-modal dx-overlay-shader\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+  ],
+  "cleanup": {
+    "browserClosed": true,
+    "apiClosed": true,
+    "staticClosed": true,
+    "poolsClosed": true,
+    "databaseDropped": true
+  },
+  "network": [
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "isolated": "http://127.0.0.1:55415"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "isolated": "http://127.0.0.1:55415"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "isolated": "http://127.0.0.1:55415"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "isolated": "http://127.0.0.1:55415"
+    },
+    {
+      "role": "qtv",
+      "method": "GET",
+      "path": "/api/v1/discounts",
+      "isolated": "http://127.0.0.1:55415"
+    }
+  ],
+  "fixture": {
+    "memberId": "867a43cc-78e6-48b0-a572-d54a050bface",
+    "branches": [
+      "4a2544d3-1454-41a7-aa4a-b1183649ed24",
+      "0c67cfc8-ff9c-4733-b380-b7551e2f3864"
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "step-01-ledger-controls.png",
+      "sha256": "a7ebb6319d53e2f7280dbc4dd3a4d406e99a3f5e42ec0b38b885e3b0dc928ee4"
+    },
+    {
+      "file": "step-02-blocked.png",
+      "sha256": "97782bec31622b2f0e418e7aa12df434da838f3b313863ff9d8a5e992a4e689b"
+    },
+    {
+      "file": "step-03-open-payment.png",
+      "sha256": "7bcb334efb4df5e6e68a7ddea23cf31012f9ef05e39eb62e0c5099859d8e79c8"
+    },
+    {
+      "file": "step-04-open-options.png",
+      "sha256": "e2491fbd0ee801fe94db4f2925ca40eca0df7de0e1cd56b32ec80e46708fdc46"
+    },
+    {
+      "file": "step-05-select-option.png",
+      "sha256": "023c5ba0fd347a8685d98d7ef006013c4675cb9100c946cc4ecbb62d19396af6"
+    },
+    {
+      "file": "step-06-cash-filled-before-submit.png",
+      "sha256": "49d10d4d38618a69bea5a7973cb3749eb8667c408821493772448e8c5cf0d610"
+    },
+    {
+      "file": "step-07-blocked.png",
+      "sha256": "276f34c8249fccb7c6c934b2ae688541b9ec067719009a31d18d9f79d7f20f5c"
+    },
+    {
+      "file": "step-08-blocked.png",
+      "sha256": "23eec69970c3e88537613bd130c18a66bab4539d6b6fc38317f4a1fe76fdce71"
+    },
+    {
+      "file": "step-09-blocked.png",
+      "sha256": "c377ea34d813a86e10800467e73a7dc6a6e2f2784a4766d8177c91de3744fb4e"
+    }
+  ]
+}

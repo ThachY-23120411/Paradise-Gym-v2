@@ -205,8 +205,38 @@ h3 { font-size: 15px; font-weight: 600; }
 .dx-scheduler-appointment { background: #1e40af; border-radius: 6px; overflow: hidden; }
 .dx-scheduler-header { background: white; border-color: var(--border-color); }
 .dx-scheduler-cell-sizes-vertical { height: 52px !important; }
-.dx-scheduler-date-table-cell,
-.dx-scheduler-time-panel-cell { height: 52px !important; }
+.dx-scheduler-date-table-cell { height: 52px !important; }
+.dx-scheduler-time-panel-cell {
+  height: 52px !important;
+  vertical-align: top !important;
+  padding: 0 !important;
+  position: relative !important;
+  overflow: visible !important;
+}
+.dx-scheduler-time-panel {
+  overflow: visible !important;
+}
+.pt-time-panel-label {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  pointer-events: none;
+  line-height: 1;
+}
+.pt-time-panel-label.is-first-cell {
+  top: 4px;
+  transform: none;
+}
+.pt-time-panel-label.is-last-cell {
+  top: auto;
+  bottom: 0;
+  transform: translateY(50%);
+}
 
 /* PT Scheduler Appointment Cards per Specification (QTV-W06-US01 & LT-W06-US01) */
 .dx-scheduler-appointment.pt-appointment-booked {

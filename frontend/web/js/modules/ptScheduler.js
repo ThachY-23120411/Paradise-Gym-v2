@@ -1066,25 +1066,19 @@ window.PtSchedulerModule = (function () {
               notify(`Buổi tập chưa kết thúc (kết thúc lúc ${clock(booking.end_time)}). Chưa thể xác nhận hoàn thành.`, 'warning');
               return;
             }
-            showBookingDetail(state, booking);
+            confirmBookingCompletion(state, booking);
           });
 
-        $('<button type="button" class="pt-btn-card-cancel">')
-          .html('<i class="fa-solid fa-xmark"></i> Hủy lịch')
-          .attr('title', 'Hủy lịch PT này (QTV-W06-US04 / LT-W06-US04)')
-          .appendTo(topRight)
-          .on('click', e => {
-            e.preventDefault(); e.stopPropagation();
-            showCancellation(state, booking);
-          });
-      } else if (['AWAITING_CONFIRMATION', 'PENDING_COMPLETION'].includes(booking.status)) {
-        $('<button type="button" class="pt-btn-card-complete is-ended">')
-          .html('<i class="fa-solid fa-check-double"></i> Đối soát xác nhận')
-          .appendTo(topRight)
-          .on('click', e => {
-            e.preventDefault(); e.stopPropagation();
-            showBookingDetail(state, booking);
-          });
+        if (!isEnded) {
+          $('<button type="button" class="pt-btn-card-cancel">')
+            .html('<i class="fa-solid fa-xmark"></i> Hủy lịch')
+            .attr('title', 'Hủy lịch PT này (QTV-W06-US04 / LT-W06-US04)')
+            .appendTo(topRight)
+            .on('click', e => {
+              e.preventDefault(); e.stopPropagation();
+              showCancellation(state, booking);
+            });
+        }
       }
 
       // Hàng 2: Tên hội viên & Gói tập rõ ràng, nổi bật
@@ -1104,7 +1098,7 @@ window.PtSchedulerModule = (function () {
         .html(`<i class="fa-regular fa-clock" style="margin-right: 3px;"></i>${clock(booking.start_time)}-${clock(booking.end_time)}`)
         .appendTo(headerRow);
 
-      if (booking.status === 'BOOKED') {
+      if (booking.status === 'BOOKED' && !isEnded) {
         $('<button type="button" class="pt-btn-card-cancel-mini">')
           .html('<i class="fa-solid fa-xmark"></i>')
           .attr('title', 'Hủy lịch PT')
@@ -1143,16 +1137,7 @@ window.PtSchedulerModule = (function () {
               notify(`Buổi tập chưa kết thúc (kết thúc lúc ${clock(booking.end_time)}).`, 'warning');
               return;
             }
-            showBookingDetail(state, booking);
-          });
-      } else if (['AWAITING_CONFIRMATION', 'PENDING_COMPLETION'].includes(booking.status)) {
-        $('<button type="button" class="pt-btn-card-complete-mini is-ended">')
-          .html('<i class="fa-solid fa-check-double"></i>')
-          .attr('title', 'Đối soát')
-          .appendTo(footerRow)
-          .on('click', e => {
-            e.preventDefault(); e.stopPropagation();
-            showBookingDetail(state, booking);
+            confirmBookingCompletion(state, booking);
           });
       }
     }
@@ -1361,18 +1346,35 @@ window.PtSchedulerModule = (function () {
           start_time: startStr
         });
       },
-      timeCellTemplate: (cell, _, element) => {
-        $(element).css({ height: 42, verticalAlign: 'middle', padding: '0 6px' });
+      timeCellTemplate: (cell, index, element) => {
+        $(element).css({ verticalAlign: 'top', padding: 0, position: 'relative' });
         const h = String(cell.date.getHours()).padStart(2, '0');
         const m = String(cell.date.getMinutes()).padStart(2, '0');
+        const isFirst = (cell.date.getHours() === 6 && cell.date.getMinutes() === 0) || index === 0;
+
+        const labelDiv = $('<div class="pt-time-panel-label">')
+          .toggleClass('is-first-cell', isFirst)
+          .appendTo(element);
+
         if (m === '00') {
-          $('<span style="font-weight: 700; color: #1e293b; font-size: 12px;">').text(`${h}:00`).appendTo(element);
+          $('<span style="font-weight: 700; color: #1e293b; font-size: 12px; background: #ffffff; padding: 0 4px; border-radius: 3px;">')
+            .text(`${h}:00`)
+            .appendTo(labelDiv);
         } else {
-          $('<span style="font-size: 11px; color: #94a3b8;">').text(`${h}:${m}`).appendTo(element);
+          $('<span style="font-size: 11px; color: #64748b; background: #ffffff; padding: 0 4px; border-radius: 3px;">')
+            .text(`${h}:${m}`)
+            .appendTo(labelDiv);
+        }
+
+        if (cell.date.getHours() === 21 && cell.date.getMinutes() === 30) {
+          const endDiv = $('<div class="pt-time-panel-label is-last-cell">').appendTo(element);
+          $('<span style="font-weight: 700; color: #1e293b; font-size: 12px; background: #ffffff; padding: 0 4px; border-radius: 3px;">')
+            .text('22:00')
+            .appendTo(endDiv);
         }
       },
       dataCellTemplate: (cell, _, element) => {
-        $(element).css({ height: 42, cursor: 'pointer' });
+        $(element).css({ cursor: 'pointer' });
       },
       appointmentTemplate: (data, _, element) => appointmentContent(state, data.appointmentData, element),
       onOptionChanged: event => {
@@ -1426,8 +1428,10 @@ window.PtSchedulerModule = (function () {
           const actions = $('<div>').css({ display: 'flex', gap: 6, flexWrap: 'wrap' }).appendTo(cell);
           button(actions, { icon: 'find', hint: 'Chi tiết buổi tập', onClick: () => showBookingDetail(state, booking) });
           if (booking.status === 'BOOKED') {
-            button(actions, { icon: 'close', text: 'Hủy lịch', type: 'danger', stylingMode: 'contained', onClick: () => showCancellation(state, booking) });
-            button(actions, { icon: 'check', text: 'Xác nhận hoàn thành', type: 'default', stylingMode: 'contained', disabled: !ended(booking), onClick: () => showBookingDetail(state, booking) });
+            if (!ended(booking)) {
+              button(actions, { icon: 'close', text: 'Hủy lịch', type: 'danger', stylingMode: 'contained', onClick: () => showCancellation(state, booking) });
+            }
+            button(actions, { icon: 'check', text: 'Xác nhận hoàn thành', type: 'default', stylingMode: 'contained', disabled: !ended(booking), onClick: () => confirmBookingCompletion(state, booking) });
           }
         } }
       ]
@@ -1853,6 +1857,228 @@ window.PtSchedulerModule = (function () {
       }
     });
   }
+  async function showConfirmActorModal(state, booking, onDone) {
+    if (!ended(booking)) {
+      notify(`Buổi tập chưa kết thúc (kết thúc lúc ${clock(booking.end_time)}). Chưa thể xác nhận hoàn thành.`, 'warning');
+      return;
+    }
+    let latest;
+    try {
+      latest = await freshBooking(booking);
+    } catch (e) {
+      latest = booking;
+    }
+    if (!pendingBooking(latest)) {
+      notify('Buổi tập đã hoàn thành hoặc đã hủy. Vui lòng tải lại lịch.', 'warning');
+      return;
+    }
+    if (latest.pt_confirmed_at && latest.member_confirmed_at) {
+      notify('Cả Huấn luyện viên và Học viên đều đã xác nhận buổi tập này.', 'info');
+      return;
+    }
+
+    const host = $('<div>').appendTo(state.root);
+    let popupInstance, formInstance, busy = false;
+
+    // Ưu tiên chọn bên chưa xác nhận
+    let defaultActor = 'PT';
+    if (!latest.pt_confirmed_at && latest.member_confirmed_at) {
+      defaultActor = 'PT';
+    } else if (latest.pt_confirmed_at && !latest.member_confirmed_at) {
+      defaultActor = 'MEMBER';
+    } else if (!latest.pt_confirmed_at && !latest.member_confirmed_at) {
+      defaultActor = 'PT';
+    }
+
+    const actorOptions = [
+      { id: 'PT', text: `Huấn luyện viên (PT: ${latest.pt_name || trainerLabel(state.trainer) || 'HLV'})`, disabled: !!latest.pt_confirmed_at },
+      { id: 'MEMBER', text: `Học viên (${latest.member_name || 'Hội viên'})`, disabled: !!latest.member_confirmed_at },
+      { id: 'BOTH', text: 'Cả hai bên (HLV & Học viên cùng xác nhận)', disabled: !!(latest.pt_confirmed_at && latest.member_confirmed_at) }
+    ];
+
+    const formData = {
+      confirm_for: defaultActor,
+      workout_notes: latest.workout_notes || latest.workout_content || '',
+      fitness_assessment: latest.fitness_assessment || ''
+    };
+
+    popupInstance = host.dxPopup({
+      title: 'Xác nhận hoàn thành buổi tập',
+      width: 540,
+      maxWidth: 'calc(100vw - 24px)',
+      height: 'auto',
+      maxHeight: '90vh',
+      showCloseButton: true,
+      hideOnOutsideClick: false,
+      onHiding: event => { if (busy) event.cancel = true; },
+      onHidden: () => {
+        state.popups = state.popups.filter(item => item !== popupInstance);
+        popupInstance.dispose();
+        host.remove();
+      },
+      contentTemplate: container => {
+        const root = $('<div>').appendTo(container);
+
+        // 1. Tóm tắt thông tin buổi tập
+        const summary = $('<div class="confirm-actor-summary">')
+          .css({ padding: '12px 16px', background: '#f8faf9', border: '1px solid #dfe6e2', borderRadius: '6px', marginBottom: '14px', fontSize: '13px', lineHeight: '1.6' })
+          .appendTo(root);
+        summary.html(`
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span><i class="fa-regular fa-user" style="color:var(--primary); margin-right:6px;"></i>Hội viên: <strong>${latest.member_name || '--'}</strong> (${latest.member_code || ''})</span>
+            <span><i class="fa-solid fa-dumbbell" style="color:var(--primary); margin-right:6px;"></i>PT: <strong>${latest.pt_name || trainerLabel(state.trainer) || '--'}</strong></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; color: #556059; font-size: 12px;">
+            <span><i class="fa-regular fa-clock" style="margin-right:6px;"></i>${clock(latest.start_time)} - ${clock(latest.end_time)} (${dayDate(latest.booking_date).toLocaleDateString('vi-VN')})</span>
+            <span>${latest.package_name || latest.package_name_snapshot || ''}</span>
+          </div>
+        `);
+
+        // 2. Trạng thái xác nhận hiện tại
+        const statusBlock = $('<div>')
+          .css({ padding: '10px 14px', background: '#ffffff', border: '1px solid #dfe6e2', borderRadius: '6px', marginBottom: '16px' })
+          .appendTo(root);
+        const ptBadge = latest.pt_confirmed_at
+          ? `<span class="badge badge-success"><i class="fa-solid fa-check"></i> Đã xác nhận (${new Date(latest.pt_confirmed_at).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} ${new Date(latest.pt_confirmed_at).toLocaleDateString('vi-VN')})</span>`
+          : `<span class="badge badge-warning"><i class="fa-regular fa-clock"></i> Chưa xác nhận</span>`;
+        const memberBadge = latest.member_confirmed_at
+          ? `<span class="badge badge-success"><i class="fa-solid fa-check"></i> Đã xác nhận (${new Date(latest.member_confirmed_at).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})} ${new Date(latest.member_confirmed_at).toLocaleDateString('vi-VN')})</span>`
+          : `<span class="badge badge-warning"><i class="fa-regular fa-clock"></i> Chưa xác nhận</span>`;
+        statusBlock.html(`
+          <div style="font-size: 12px; font-weight: 600; color: #253e30; margin-bottom: 8px;">Trạng thái xác nhận hiện tại:</div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Huấn luyện viên (PT):</span>
+              ${ptBadge}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Học viên (Hội viên):</span>
+              ${memberBadge}
+            </div>
+          </div>
+        `);
+
+        // 3. Form chọn bên xác nhận & nhập đánh giá
+        const formDiv = $('<div>').appendTo(root);
+        formInstance = formDiv.dxForm({
+          formData: formData,
+          labelLocation: 'top',
+          showColonAfterLabel: false,
+          items: [
+            {
+              dataField: 'confirm_for',
+              label: { text: 'Chọn bên xác nhận hoàn thành' },
+              editorType: 'dxRadioGroup',
+              editorOptions: {
+                dataSource: actorOptions,
+                valueExpr: 'id',
+                displayExpr: 'text',
+                value: defaultActor,
+                layout: 'vertical',
+                onValueChanged: e => {
+                  const isPT = ['PT', 'BOTH'].includes(e.value);
+                  formInstance.itemOption('workout_notes', 'visible', isPT);
+                  formInstance.itemOption('fitness_assessment', 'visible', isPT);
+                }
+              },
+              validationRules: [{ type: 'required', message: 'Vui lòng chọn bên xác nhận' }]
+            },
+            {
+              dataField: 'workout_notes',
+              label: { text: 'Nội dung bài tập (tùy chọn)' },
+              editorType: 'dxTextArea',
+              visible: ['PT', 'BOTH'].includes(defaultActor),
+              editorOptions: {
+                height: 70,
+                placeholder: 'Ghi lại nội dung bài tập đã thực hiện trong buổi...'
+              }
+            },
+            {
+              dataField: 'fitness_assessment',
+              label: { text: 'Đánh giá thể lực (tùy chọn)' },
+              editorType: 'dxTextBox',
+              visible: ['PT', 'BOTH'].includes(defaultActor),
+              editorOptions: {
+                placeholder: 'Nhận xét thể lực hoặc mức độ hoàn thành bài tập...'
+              }
+            }
+          ]
+        }).dxForm('instance');
+      },
+      toolbarItems: [
+        {
+          widget: 'dxButton',
+          toolbar: 'bottom',
+          location: 'after',
+          options: {
+            text: 'Hủy',
+            stylingMode: 'outlined',
+            onClick: () => popupInstance.hide()
+          }
+        },
+        {
+          widget: 'dxButton',
+          toolbar: 'bottom',
+          location: 'after',
+          options: {
+            text: 'Xác nhận hoàn thành',
+            icon: 'check',
+            type: 'default',
+            stylingMode: 'contained',
+            onClick: async e => {
+              if (busy) return;
+              const validation = formInstance.validate();
+              if (!validation.isValid) return;
+
+              busy = true;
+              e.component.option('disabled', true);
+              formInstance.option('disabled', true);
+
+              try {
+                const currentData = formInstance.option('formData');
+                const payload = {
+                  confirm_for: currentData.confirm_for
+                };
+                if (['PT', 'BOTH'].includes(currentData.confirm_for)) {
+                  if (currentData.workout_notes) payload.workout_notes = currentData.workout_notes;
+                  if (currentData.fitness_assessment) payload.fitness_assessment = currentData.fitness_assessment;
+                }
+                const res = await api().request(`/pt-bookings/${encodeURIComponent(booking.id)}/confirm`, {
+                  method: 'POST',
+                  body: payload
+                });
+                popupInstance.hide();
+                if (res?.data?.is_completed || res?.is_completed) {
+                  notify('Buổi tập đã hoàn thành! Cả hai bên đều đã hoàn tất xác nhận và đã khấu trừ 1 buổi.', 'success');
+                } else {
+                  notify('Đã ghi nhận xác nhận hoàn thành. Buổi tập chuyển sang Chờ đối soát hoàn tất.', 'success');
+                }
+                if (onDone) {
+                  await onDone();
+                } else {
+                  await refreshBookingView(state);
+                }
+              } catch (err) {
+                notify(err.message || 'Không thể xác nhận hoàn thành.', 'error');
+              } finally {
+                busy = false;
+                if (host.closest('body').length) {
+                  e.component.option('disabled', false);
+                  formInstance.option('disabled', false);
+                }
+              }
+            }
+          }
+        }
+      ]
+    }).dxPopup('instance');
+
+    state.popups.push(popupInstance);
+    popupInstance.show();
+  }
+  async function confirmBookingCompletion(state, booking, onDone) {
+    return showConfirmActorModal(state, booking, onDone);
+  }
   async function showBookingDetail(state, booking) {
     const host = $('<div>').appendTo(state.root);
     let content, currentBooking, completeButton, cancelButton;
@@ -1872,17 +2098,10 @@ window.PtSchedulerModule = (function () {
           icon: 'check', text: 'Xác nhận hoàn thành', type: 'default', stylingMode: 'contained', visible: false, onInitialized: event => { completeButton = event.component; },
           onClick: async () => {
             if (busy || !currentBooking || !ended(currentBooking)) return;
-            busy = true; completeButton.option('disabled', true); cancelButton.option('disabled', true);
-            try {
-              // Staff reconcile existing confirmations; only PT/member mobile flows may sign.
-              const response = await api().request(`/pt-bookings/${encodeURIComponent(booking.id)}/confirm`, { method: 'POST' });
-              notify(response.message || 'Đã kiểm tra xác nhận buổi tập.'); await reload(); await refreshBookingView(state);
-            } catch (error) {
-              if (!closed) { content.find('.pt-detail-error').remove(); showError($('<div class="pt-detail-error">').prependTo(content), error); }
-            } finally {
-              busy = false;
-              if (!closed) { completeButton.option('disabled', !currentBooking || !ended(currentBooking)); cancelButton.option('disabled', false); }
-            }
+            showConfirmActorModal(state, currentBooking, async () => {
+              await reload();
+              await refreshBookingView(state);
+            });
           }
         } }
       ]
@@ -1901,15 +2120,16 @@ window.PtSchedulerModule = (function () {
           { label: { text: 'Trạng thái' }, template: (_, element) => badge(element, latest.status) },
           readonlyField('PT xác nhận', latest.pt_confirmed_at ? new Date(latest.pt_confirmed_at).toLocaleString('vi-VN') : 'Chưa xác nhận'),
           readonlyField('Hội viên xác nhận', latest.member_confirmed_at ? new Date(latest.member_confirmed_at).toLocaleString('vi-VN') : 'Chưa xác nhận'),
-          readonlyField('Khấu trừ buổi', latest.is_deducted ? 'Đã khấu trừ' : 'Chưa khấu trừ'), readonlyField('Ghi chú cho buổi', latest.notes || latest.note || latest.workout_notes)
+          readonlyField('Khấu trừ buổi', latest.is_deducted ? 'Đã khấu trừ' : 'Chưa khấu trừ')
         ];
         if (latest.session_number != null) details.push(readonlyField('Buổi số', String(latest.session_number)));
-        if (latest.workout_content || latest.workout_notes) details.push(readonlyField('Nội dung bài tập', latest.workout_content || latest.workout_notes));
+        if (latest.notes || latest.note) details.push(readonlyField('Ghi chú khi đặt lịch', latest.notes || latest.note));
+        if (latest.workout_notes || latest.workout_content) details.push(readonlyField('Nội dung bài tập', latest.workout_notes || latest.workout_content));
         if (latest.fitness_assessment) details.push(readonlyField('Đánh giá thể lực', latest.fitness_assessment));
         if (latest.cancelled_at) details.push(readonlyField('Thời điểm hủy', new Date(latest.cancelled_at).toLocaleString('vi-VN')));
         if (latest.cancel_reason) details.push(readonlyField('Lý do hủy', latest.cancel_reason));
         $('<div>').appendTo(content).dxForm({ readOnly: true, labelLocation: 'top', colCount: 2, colCountByScreen: { xs: 1 }, items: details });
-        completeButton.option({ visible: pendingBooking(latest), disabled: !ended(latest) }); cancelButton.option('visible', pendingBooking(latest));
+        completeButton.option({ visible: pendingBooking(latest), disabled: !ended(latest) }); cancelButton.option('visible', latest.status === 'BOOKED' && !ended(latest));
       } catch (error) { if (!closed) showError(content, error, reload); }
     }
     state.popups.push(popup); popup.show(); await reload();

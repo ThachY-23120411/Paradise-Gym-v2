@@ -30,7 +30,7 @@ Giao diện `W01 · Tổng quan vận hành` được tổ chức khoa học the
 ### 3. Khối Hôm nay cần xử lý — Chăm sóc khách hàng & Vận hành (Hàng 4 Thẻ KPI Chuyên Trách)
 Được thiết kế đồng bộ theo giao diện thẻ KPI (tương tự như thẻ Hội viên đang hoạt động) với biểu tượng màu, số đếm nổi bật, chú thích hành động và hỗ trợ click điều hướng trực tiếp:
 - **Sinh nhật hôm nay:** Số hội viên có sinh nhật đúng ngày hôm nay; click chuyển sang tab Sinh nhật của Chăm sóc khách hàng (W14) để gửi lời chúc hoặc tặng quà.
-- **Gói sắp hết hạn (<= 4 ngày):** Số lượng gói tập sẽ hết hạn trong vòng 4 ngày tới (tone đỏ cảnh báo nếu > 0); click chuyển sang tab Nhắc sắp hết hạn của W14.
+- **Gói sắp hết hạn (<= 4 ngày hoặc <= 3 buổi):** Số lượng gói tập còn <= 4 ngày hoặc <= 3 buổi theo quyền lợi áp dụng (tone đỏ cảnh báo nếu > 0); click chuyển sang tab Nhắc sắp hết hạn của W14.
 - **Chờ nhắc gia hạn (14 ngày qua):** Số gói tập đã hết hạn trong 14 ngày gần nhất chưa gia hạn lại; click chuyển sang tab Chờ gia hạn của W14.
 - **Đăng ký mới hôm nay:** Số hợp đồng mua gói mới hoặc gia hạn phát sinh trong ngày; click chuyển sang tab Đăng ký trong ngày của W14.
 
@@ -41,7 +41,7 @@ Hiển thị danh sách các hợp đồng gói tập vừa được tạo và t
 ### 5. Khối Ra/vào gần đây (Recent Check-ins)
 Hiển thị danh sách các lượt quét mã/nhận diện ra vào cổng:
 - Hỗ trợ 3 phương thức: **Nhận diện khuôn mặt (FaceID)**, **Quét mã QR Mobile**, và **Ghi nhận thủ công**.
-- Hiển thị: Họ tên, giờ check-in, tên gói, cửa check-in, badge kết quả (`Hợp lệ`, `Sắp hết hạn <= 4 ngày`, `Không đủ điều kiện`).
+- Hiển thị: Họ tên, giờ check-in, tên gói, cửa check-in, badge kết quả (`Hợp lệ`, `Sắp hết hạn <= 4 ngày hoặc <= 3 buổi`, `Không đủ điều kiện`).
 
 ### 6. Khối Lịch PT hôm nay (PT Schedule)
 Bảng hiển thị các ca huấn luyện viên cá nhân theo timeline linh động trong ngày:

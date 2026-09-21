@@ -8,6 +8,9 @@
 - Lễ tân truy cập menu sidebar **W01 · Tổng quan vận hành** trên Web Portal.
 - Màn hình liên quan: Web Lễ tân — Dashboard W01.
 
+## Quy tắc sắp hết hạn
+- Gói đã thanh toán, đang có hiệu lực và chưa hết hạn: theo thời gian còn <= 4 ngày, theo buổi còn <= 3 buổi; Combo dùng OR giữa các quyền lợi áp dụng. Nguồn hiển thị là is_expiring và display_status do SYS/API tính; status nội bộ ACTIVE vẫn dùng cho kiểm tra quyền tập. Không tạo enum/field DB mới và không tự tính ngưỡng riêng trên UI.
+
 ## Main Flow
 
 1. Lễ tân mở menu **W01 · Tổng quan vận hành**.
@@ -20,7 +23,7 @@
      + `Việc cần xử lý tại quầy`: Tổng số yêu cầu nghiệp vụ quầy trong ngày; click mở Chăm sóc khách hàng (LT-W14).
    - **Khối 2 — Hôm nay cần xử lý (Hàng 4 Thẻ KPI Chăm sóc khách hàng & Vận hành):** Thiết kế đồng bộ chuẩn thẻ KPI như Khối 1:
      + `Sinh nhật hôm nay`: Số khách có sinh nhật hôm nay; click chuyển sang tab Sinh nhật (LT-W14).
-     + `Gói sắp hết hạn (<= 4 ngày)`: Số lượng gói sắp hết hạn cần gọi điện mời gia hạn; click chuyển sang tab Nhắc sắp hết hạn (LT-W14).
+     + `Gói sắp hết hạn (<= 4 ngày hoặc <= 3 buổi)`: Số lượng gói sắp hết hạn cần gọi điện mời gia hạn; click chuyển sang tab Nhắc sắp hết hạn (LT-W14).
      + `Chờ nhắc gia hạn (14 ngày qua)`: Số gói hết hạn trong 14 ngày qua chưa gia hạn; click mở tab Chờ gia hạn (LT-W14).
      + `Đăng ký mới hôm nay`: Số hợp đồng đăng ký mới tạo trong ngày tại quầy; click mở tab Đăng ký trong ngày (LT-W14).
    - **Khối 3 — Việc cần xử lý tại quầy (Hàng 5 Thẻ KPI Tác vụ quầy):**
@@ -43,7 +46,7 @@
 | Thẻ KPI Việc cần xử lý tại quầy | `Metric Card` | `READONLY` | required | `DYNAMIC` | Tổng công việc quầy trong ngày; click mở LT-W14 |
 | Nút Mở CSKH | `Action Button` | `USER-INPUT` | optional | `Không` | Bấm mở màn hình Chăm sóc & thông báo LT-W14 |
 | Thẻ KPI CSKH — Sinh nhật hôm nay | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số khách sinh nhật hôm nay; click mở tab birthdays LT-W14 |
-| Thẻ KPI CSKH — Gói sắp hết hạn (<= 4 ngày) | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói hết hạn trong <= 4 ngày; click mở tab expiring LT-W14 |
+| Thẻ KPI CSKH — Gói sắp hết hạn (<= 4 ngày hoặc <= 3 buổi) | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói hết hạn trong <= 4 ngày hoặc <= 3 buổi; click mở tab expiring LT-W14 |
 | Thẻ KPI CSKH — Chờ nhắc gia hạn | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói hết hạn 14 ngày qua chưa gia hạn; click mở tab pending-renewals LT-W14 |
 | Thẻ KPI CSKH — Đăng ký mới hôm nay | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số hợp đồng tạo trong ngày; click mở tab today-regs LT-W14 |
 | Thẻ KPI Quầy — Đăng ký chưa thanh toán | `Metric Card` | `READONLY` | required | `DYNAMIC` | Hợp đồng chờ thanh toán; click mở LT-W04 |

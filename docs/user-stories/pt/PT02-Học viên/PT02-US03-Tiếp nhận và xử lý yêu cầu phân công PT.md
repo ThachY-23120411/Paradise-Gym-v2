@@ -1,90 +1,74 @@
-# PT02-US03 - Tiếp nhận và xử lý yêu cầu phân công PT
+# PT02-US03 - Lịch sử phân công PT (chỉ đọc)
+
+> Retired: luồng Tiếp nhận và xử lý yêu cầu phân công do hội viên chọn đã ngừng theo quyết định staff-only ngày 20/09/2026. Giữ nguyên ID và đường dẫn để bảo toàn tham chiếu/audit. US này chỉ mô tả tra cứu lịch sử legacy, không duy trì quyền chấp nhận/từ chối.
 
 ## Preconditions
-- Huấn luyện viên (PT) đang đăng nhập ứng dụng Mobile PT bằng tài khoản hợp lệ.
-- PT có yêu cầu chọn/phân công PT mới từ Hội viên ở trạng thái `Chờ tiếp nhận` (`PENDING`).
+- PT đăng nhập hợp lệ; bản ghi lịch sử truy cập phải thuộc chính PT.
+- Dữ liệu legacy có thể rỗng; không cần có yêu cầu chờ xử lý.
 
 ## Trigger
-- PT chọn sub-tab `Yêu cầu phân công` tại menu `PT02 · Học viên` hoặc bấm vào thông báo Yêu cầu phân công mới từ chuông thông báo `PT03`.
-- Màn hình liên quan: Mobile App PT — Sub-tab `Yêu cầu phân công` / Bottom Sheet `Xác nhận từ chối yêu cầu phân công`.
+- PT chọn tab Lịch sử phân công ở PT02 hoặc mở thông báo phân công legacy.
 
 ## Main Flow
+1. SYS xác định PT từ phiên, truy vấn lịch sử được phép xem từ API hiện có.
+2. SYS hiển thị dữ liệu lịch sử cùng trạng thái đã lưu, kể cả PENDING chưa xử lý.
+3. PT đọc học viên, hợp đồng, chi nhánh, thời điểm yêu cầu/phản hồi và ghi chú/lý do nếu API có trả.
+4. Không có Đồng ý, Từ chối, modal từ chối hay thao tác sửa/xóa/phân công. PENDING legacy là lịch sử chưa xử lý, không phải việc cần PT duyệt.
+5. Phân công hiện hành do Lễ tân/QTV quyết định; lịch sử không tự kích hoạt quyền đặt lịch. Muốn đặt hộ phải có phân công chính thức theo PT01-US03.
 
-1. PT mở sub-tab **Yêu cầu phân công** tại `PT02 · Học viên`.
-2. Hệ thống hiển thị danh sách các yêu cầu chọn PT từ Hội viên đang ở trạng thái `Chờ tiếp nhận` (`PENDING`).
-3. Mỗi yêu cầu hiển thị chi tiết: Họ tên Học viên, Mã HV, Số điện thoại, Tên gói PT đăng ký (ví dụ: `Gói PT 20 buổi`), Chi nhánh tập luyện, Thời gian gửi yêu cầu và Ghi chú/mong muốn của học viên (nếu có).
-4. PT xem chi tiết yêu cầu và đưa ra quyết định:
-   - **Đồng ý tiếp nhận:** PT bấm nút `[ Đồng ý tiếp nhận ]`. Hệ thống cập nhật trạng thái phân công thành `Đã tiếp nhận` (`ACCEPTED`), đưa học viên vào danh sách phụ trách chính thức của PT (`PT02-US01`) và kích hoạt quyền đặt lịch tập cho hai bên.
-   - **Từ chối tiếp nhận:** PT bấm nút `[ Từ chối ]`. Hệ thống hiển thị Bottom Sheet `Xác nhận từ chối yêu cầu phân công`. PT chọn lý do từ chối định sẵn (và nhập diễn giải chi tiết nếu chọn `Khác`), sau đó bấm xác nhận. Hệ thống cập nhật trạng thái yêu cầu thành `Đã từ chối` (`REJECTED`) và thông báo cho Hội viên / Quản lý để điều phối PT khác.
-5. Hệ thống gửi thông báo kết quả xử lý cho Hội viên và làm mới danh sách yêu cầu.
-6. **Quy tắc nghiệp vụ:**
-   - PT có quyền chủ động chấp nhận hoặc từ chối yêu cầu phân công tùy theo ca làm việc và tải công việc thực tế.
-   - Khi PT chấp nhận, học viên lập tức xuất hiện trong danh sách `PT02-US01` và cho phép tiến hành đặt lịch tập `PT01-US01`.
-   - Khi PT từ chối, gói tập của học viên trở về trạng thái chưa phân công PT để QTV/Lễ tân hoặc Học viên chọn PT khác.
-
-### Field-level specification — Danh sách Thẻ yêu cầu phân công (Sub-tab Yêu cầu phân công)
-| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Thẻ yêu cầu phân công PT** | `Request Card` | `USER-INPUT / READONLY` | conditional | `CONDITIONAL`: **Hiện khi** có yêu cầu phân công PT đang ở trạng thái `Chờ tiếp nhận` (`PENDING`); **Ẩn khi** không có yêu cầu nào chờ xử lý | Thẻ card hiển thị: Avatar chữ cái viết tắt, Họ và tên học viên, Mã HV, Số điện thoại, Chi nhánh đăng ký, Tên gói PT yêu cầu, Thời gian gửi yêu cầu (`DD/MM/YYYY HH:mm`) và Ghi chú mong muốn của học viên (nếu có) |
-| **Nút Đồng ý tiếp nhận** | `Action Button (Success)` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** thẻ yêu cầu ở trạng thái `PENDING`; **Ẩn khi** yêu cầu đã được chấp nhận hoặc từ chối | Nút Primary màu xanh lá trên thẻ yêu cầu; chạm để chấp nhận tiếp nhận học viên vào danh sách phụ trách chính thức |
-| **Nút Từ chối** | `Action Button (Danger Outline)` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** thẻ yêu cầu ở trạng thái `PENDING`; **Ẩn khi** yêu cầu đã được xử lý | Nút Secondary màu viền xám/đỏ nhạt trên thẻ yêu cầu; chạm để mở Bottom Sheet `Xác nhận từ chối yêu cầu phân công` |
-| **Thông báo không có yêu cầu chờ xử lý (Empty State)** | `Empty State Box` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** không có yêu cầu phân công nào đang chờ xử lý; **Ẩn khi** có ít nhất 1 yêu cầu ở trạng thái `PENDING` | Khối thông báo rỗng kèm icon minh họa và nhãn: `Không có yêu cầu phân công nào đang chờ xử lý` |
-
-### Field-level specification — Modal / Bottom Sheet Xác nhận từ chối yêu cầu phân công
-| Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Thông tin yêu cầu tóm tắt** | `Readonly Summary Box` | `READONLY` | required | Không | Hiển thị tóm tắt Họ và tên học viên cùng Tên gói PT bị từ chối tiếp nhận |
-| **Lý do từ chối** | `Select Dropdown / Radio Group` | `USER-INPUT` | required | `TRIGGER`: Chọn lý do để điều khiển hiển thị trường nhập chi tiết bổ sung | Dropdown / Radio selection chọn lý do định sẵn: `Trùng ca làm việc`, `Đã kín ca phụ trách`, `Không phù hợp mục tiêu tập luyện`, `Khác` |
-| **Chi tiết lý do khác** | `Textarea` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** trường `Lý do từ chối` nhận giá trị `Khác`; **Ẩn khi** trường `Lý do từ chối` nhận bất kỳ giá trị định sẵn nào khác | Ô nhập văn bản nhiều dòng (textarea), tối đa 255 ký tự; giải thích cụ thể lý do từ chối để chuyển tiếp cho ban quản trị / học viên |
+### Field-level specification — Lịch sử phân công
+| Field / control | UI | State | Required | Conditional / dynamic | Source / validation |
+| --- | --- | --- | --- | --- | --- |
+| Tab Lịch sử phân công | Tabs | USER-INPUT | required | TRIGGER | Chuyển từ Đang phụ trách sang dữ liệu lịch sử own scope |
+| Họ tên, mã học viên | Text | READONLY | required | Không | API bản ghi lịch sử; không suy ra hồ sơ ngoài quyền |
+| Hợp đồng / gói | Text | READONLY | required | Không | Tham chiếu đã lưu qua API |
+| Chi nhánh | Text | READONLY | required | Không | API bản ghi |
+| Trạng thái lịch sử | Badge | READONLY | required | Không | PENDING: Chưa xử lý (lịch sử); ACCEPTED: Đã tiếp nhận; REJECTED: Đã từ chối; giữ trạng thái nguồn |
+| Ngày yêu cầu | Timestamp | READONLY | required | Không | Thời điểm gốc API |
+| Ngày phản hồi | Timestamp | READONLY | optional | Không | API; chưa có thì hiển thị chưa có phản hồi |
+| Ghi chú / lý do đã lưu | Text | READONLY | optional | Không | API; rỗng ghi chưa có, không cho nhập mới |
+| Rỗng / lỗi | Status | READONLY | conditional | CONDITIONAL: hiện khi không có bản ghi hoặc tải lỗi; ẩn khi tải thành công có bản ghi | Không tạo lịch sử giả |
+| Thử lại | Button | USER-INPUT | conditional | CONDITIONAL: hiện khi lỗi; ẩn khi thành công/đang tải | Tải lại lịch sử |
 
 ## Alternate Flows
-
-### AF-01 — Không có yêu cầu chờ xử lý
-1. PT không có yêu cầu phân công mới nào đang chờ.
-2. SYS hiển thị thông báo "Không có yêu cầu phân công nào đang chờ xử lý".
+- AF-01: Không có bản ghi → hiển thị Chưa có lịch sử phân công.
+- AF-02: Link/thông báo cũ → mở lịch sử chỉ đọc nếu còn được phép xem; không mở form duyệt.
+- AF-03: Quay lại Đang phụ trách → PT02-US01, dựa trên phân công hiện hành.
 
 ## Exception Flows
-
-- Lỗi kết nối mạng: SYS thông báo không thể cập nhật trạng thái yêu cầu và giữ nguyên dữ liệu để PT thử lại.
+- EF-01: API lỗi → báo lỗi và cho tải lại; không thay lịch sử bằng danh sách phân công hiện tại.
+- EF-02: Bản ghi ngoài own scope hoặc đã không còn được phép truy cập → báo không thể xem; không lộ dữ liệu.
+- EF-03: Yêu cầu gọi lại accept/reject từ client cũ không được cấp quyền theo đặc tả mới; việc vô hiệu hóa backend thuộc Main, không suy ra đã triển khai từ tài liệu.
 
 ## Activity Diagram — Swimlane
-**Trigger:** PT mở sub-tab Yêu cầu phân công trong PT02 hoặc bấm thông báo phân công mới.
 
 ```mermaid
 flowchart TB
-  subgraph B["Boundary — Mobile App PT / PT02 · Xử lý yêu cầu phân công"]
-    subgraph L0["Swimlane — Huấn luyện viên (PT)"]
-      I01(("Initial"))
-      A01["Mở sub-tab Yêu cầu phân công tại PT02"]
-      D01{"Quyết định xử lý yêu cầu của PT?"}
-      A02["Bấm nút Đồng ý tiếp nhận"]
-      A03["Bấm nút Từ chối và chọn/nhập lý do từ chối"]
-      F01((("Final — Tiếp nhận học viên thành công, kích hoạt đặt lịch")))
-      F02((("Final — Từ chối yêu cầu phân công thành công")))
-      F03((("Final — Không có yêu cầu chờ xử lý")))
+  subgraph B["Boundary - Mobile PT / PT02-US03 - Lịch sử chỉ đọc"]
+    subgraph L0["Swimlane - PT"]
+      I(("Initial"))
+      A["Mở Lịch sử hoặc thông báo legacy"]
+      V["Đọc lịch sử phân công"]
     end
-
-    subgraph L1["Swimlane — SYS"]
-      S01["Tải danh sách các yêu cầu chọn PT đang chờ xử lý (PENDING)"]
-      D02{"Có yêu cầu chờ xử lý?"}
-      E01["Hiển thị thông báo Không có yêu cầu chờ xử lý"]
-      S02["Hiển thị danh sách thẻ yêu cầu phân công kèm thông tin học viên & gói"]
-      S03["Cập nhật trạng thái ACCEPTED, thêm học viên vào danh sách phụ trách và thông báo cho Học viên"]
-      S04["Cập nhật trạng thái REJECTED, ghi nhận lý do từ chối và thông báo cho Học viên/Quản lý"]
-
-      I01 --> A01
-      A01 --> S01
-      S01 --> D02
-      D02 -- "Không" --> E01
-      E01 --> F03
-      D02 -- "Có" --> S02
-      S02 --> D01
-      D01 -- "Chấp nhận" --> A02
-      A02 --> S03
-      S03 --> F01
-      D01 -- "Từ chối" --> A03
-      A03 --> S04
-      S04 --> F02
+    subgraph L1["Swimlane - SYS"]
+      S["Truy vấn API theo PT phiên"]
+      D{"Kết quả truy vấn?"}
+      R["Hiển thị bản ghi và trạng thái chỉ đọc"]
+      E["Hiển thị chưa có lịch sử"]
+      X["Báo lỗi hoặc ngoài scope"]
+      F((("Final - Đã xem lịch sử")))
+      FE((("Final - Danh sách rỗng")))
+      FX((("Final - Không thể xem")))
     end
+    I --> A
+    A --> S
+    S --> D
+    D -->|Có dữ liệu hợp lệ| R
+    R --> V
+    V --> F
+    D -->|Rỗng| E
+    E --> FE
+    D -->|Lỗi hoặc mất quyền| X
+    X --> FX
   end
 ```

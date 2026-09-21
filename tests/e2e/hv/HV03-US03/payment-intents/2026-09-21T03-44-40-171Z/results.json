@@ -1,0 +1,1604 @@
+{
+  "result": "FAIL (post-run visual evidence audit)",
+  "steps": [
+    {
+      "n": 1,
+      "name": "purchase-catalog",
+      "action": "Open Mua goi",
+      "expected": "HV03-US03 MF1: real API package name, price and purchase action",
+      "actual": "HV Purchase Gym\n\n500.000 đ\n\n30 ngày · Gym không giới hạn lượt\n\nXem chi tiết\nMua gói",
+      "status": "PASS",
+      "file": "step-01-purchase-catalog.png",
+      "section": "source"
+    },
+    {
+      "n": 2,
+      "name": "purchase-buy-dialog",
+      "action": "Click Mua goi",
+      "expected": "MF2: selected package and bank transfer purchase form",
+      "actual": "Mua gói\nHV Purchase Gym\n\n500.000 đ\n\nHình thức thanh toán: Chuyển khoản Ngân hàng (VietQR)\n\n Mã giảm giá / Voucher\n Chọn voucher\nÁp dụng\n Tiếp tục thanh toán (500.000 đ)",
+      "status": "PASS",
+      "file": "step-02-purchase-buy-dialog.png",
+      "section": "source"
+    },
+    {
+      "n": 3,
+      "name": "purchase-empty-voucher",
+      "action": "Apply blank voucher",
+      "expected": "Empty voucher validation leaves price unchanged",
+      "actual": "Vui lòng nhập mã giảm giá",
+      "status": "PASS",
+      "file": "step-03-purchase-empty-voucher.png",
+      "section": "source"
+    },
+    {
+      "n": 4,
+      "name": "purchase-qr",
+      "action": "Continue payment; create registration and intent",
+      "expected": "MF5/6 plus user override: pending registration, 15min QR intent; no final payment",
+      "actual": {
+        "registrationId": "778ccae3-8a12-4424-8dbb-b9628e57bf7f",
+        "intentId": "34eaffa3-2c9e-46b4-8e01-e051ef6d5825",
+        "expiry": "2026-09-21T03:59:46.159Z"
+      },
+      "status": "PASS",
+      "file": "step-04-purchase-qr.png",
+      "section": "source"
+    },
+    {
+      "n": 5,
+      "name": "simulate-transfer-success",
+      "action": "Click Toi da chuyen khoan",
+      "expected": "User-approved simulate-transfer creates one final payment and receipt; activates same registration",
+      "actual": "Thanh toán thành công!",
+      "status": "PASS",
+      "file": "step-05-simulate-transfer-success.png",
+      "section": "source"
+    },
+    {
+      "n": 6,
+      "name": "paid-package-active",
+      "action": "Open Goi cua toi after success",
+      "expected": "Same paid registration active, freeze available",
+      "actual": "HV Purchase Gym\nĐang hoạt động\n\nDK001 · 21/9/2026 - 21/10/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nĐóng băng",
+      "status": "PASS",
+      "file": "step-06-paid-package-active.png",
+      "section": "source"
+    },
+    {
+      "n": 7,
+      "name": "successful-statusless-history",
+      "action": "Open payment history",
+      "expected": "HV03-US06 MF2-4: successful payment renders without status property",
+      "actual": "PT001\n500.000 đ\n\nHV Purchase Gym\n\n10:44:46 21/9/2026 · Chuyển khoản Ngân hàng (VietQR)\n\nXem phiếu thu",
+      "status": "PASS",
+      "file": "step-07-successful-statusless-history.png",
+      "section": "source"
+    },
+    {
+      "n": 8,
+      "name": "receipt",
+      "action": "Open receipt",
+      "expected": "Same member, purchased package and amount",
+      "actual": "Phiếu thu\nMã phiếu thu\nPT001\nTên hội viên\nHV Purchase Member\nGói tập\nHV Purchase Gym\nSố tiền\n500.000 đ\nNgày thanh toán\n10:44:46 21/9/2026",
+      "status": "PASS",
+      "file": "step-08-receipt.png",
+      "section": "source"
+    },
+    {
+      "n": 9,
+      "name": "lt-DK001-Đang",
+      "action": "Open LT registrations for the SAME registration",
+      "expected": "Same member/code and expected registration status",
+      "actual": "DK001\t10:44:46 21/9/2026\tHV Purchase Member\nHV001 · HV Payment Branch A\n\tHV Purchase Gym\t21/09/2026 - 21/10/2026\t500.000 ₫\t--\tĐang hiệu lực\t",
+      "status": "PASS",
+      "file": "downstream-09-lt-DK001-Đang.png",
+      "section": "downstream"
+    },
+    {
+      "n": 10,
+      "name": "pending-catalog",
+      "action": "Open Mua goi",
+      "expected": "HV03-US03 MF1: real API package name, price and purchase action",
+      "actual": "HV Purchase Gym\n\n500.000 đ\n\n30 ngày · Gym không giới hạn lượt\n\nXem chi tiết\nMua gói",
+      "status": "PASS",
+      "file": "step-10-pending-catalog.png",
+      "section": "source"
+    },
+    {
+      "n": 11,
+      "name": "pending-buy-dialog",
+      "action": "Click Mua goi",
+      "expected": "MF2: selected package and bank transfer purchase form",
+      "actual": "Mua gói\nHV Purchase Gym\n\n500.000 đ\n\nHình thức thanh toán: Chuyển khoản Ngân hàng (VietQR)\n\n Mã giảm giá / Voucher\n Chọn voucher\nÁp dụng\n Tiếp tục thanh toán (500.000 đ)",
+      "status": "PASS",
+      "file": "step-11-pending-buy-dialog.png",
+      "section": "source"
+    },
+    {
+      "n": 12,
+      "name": "pending-empty-voucher",
+      "action": "Apply blank voucher",
+      "expected": "Empty voucher validation leaves price unchanged",
+      "actual": "Vui lòng nhập mã giảm giá",
+      "status": "PASS",
+      "file": "step-12-pending-empty-voucher.png",
+      "section": "source"
+    },
+    {
+      "n": 13,
+      "name": "pending-qr",
+      "action": "Continue payment; create registration and intent",
+      "expected": "MF5/6 plus user override: pending registration, 15min QR intent; no final payment",
+      "actual": {
+        "registrationId": "66dcfe69-9a01-45e3-8a77-cf37df048c22",
+        "intentId": "a9e643c3-4118-4af7-8323-62cb6d47a2ea",
+        "expiry": "2026-09-21T03:59:52.600Z"
+      },
+      "status": "PASS",
+      "file": "step-13-pending-qr.png",
+      "section": "source"
+    },
+    {
+      "n": 14,
+      "name": "pending-older-than-three-days",
+      "action": "Reload order after isolated 4-day age and QR expiry fixture",
+      "expected": "User override: QR expiry/age never auto-cancels registration; cancel action available",
+      "actual": "HV Purchase Gym\n500.000 đ\n\nMã ĐK: DK002 · Ngày tạo: 17/9/2026\n\nChờ thanh toán 100%\n\nThanh toán ngay (VietQR)\nHủy đơn",
+      "status": "PASS",
+      "file": "step-14-pending-older-than-three-days.png",
+      "section": "source"
+    },
+    {
+      "n": 15,
+      "name": "pending-mine-freeze-blocked",
+      "action": "Open pending filter in Goi cua toi",
+      "expected": "Unpaid pending package has cancel/pay actions and no freeze",
+      "actual": "HV Purchase Gym\nChờ thanh toán\n\nDK002 · 21/9/2026 - 21/10/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nTiếp tục thanh toán\nHủy đơn",
+      "status": "PASS",
+      "file": "step-15-pending-mine-freeze-blocked.png",
+      "section": "source"
+    },
+    {
+      "n": 16,
+      "name": "pending-detail-freeze-blocked",
+      "action": "Open unpaid package detail",
+      "expected": "No freeze action in unpaid detail",
+      "actual": "Chi tiết gói tập\nHV Purchase Gym\nChờ thanh toán\n\nMã hợp đồng: DK002\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 21/9/2026 - 21/10/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nĐóng\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-16-pending-detail-freeze-blocked.png",
+      "section": "source"
+    },
+    {
+      "n": 17,
+      "name": "expired-intent-reissued",
+      "action": "Continue payment after QR expiry",
+      "expected": "Fresh 15min QR for same pending order; final history still one successful payment",
+      "actual": "Mã QR còn hiệu lực 15:00",
+      "status": "PASS",
+      "file": "step-17-expired-intent-reissued.png",
+      "section": "source"
+    },
+    {
+      "n": 18,
+      "name": "qr-countdown-expired",
+      "action": "Advance browser clock 15min without waiting on real bank",
+      "expected": "Expired QR hidden, simulation unavailable, recreate action; order still pending",
+      "actual": "Mã QR đã hết hạn. Đơn đăng ký vẫn đang chờ thanh toán.",
+      "status": "PASS",
+      "file": "step-18-qr-countdown-expired.png",
+      "section": "source"
+    },
+    {
+      "n": 19,
+      "name": "recreate-qr-action",
+      "action": "Align isolated server expiry and browser clock; click recreate QR",
+      "expected": "Same registration gets a usable fresh QR with no payment",
+      "actual": "Mã QR còn hiệu lực 15:00",
+      "status": "PASS",
+      "file": "step-19-recreate-qr-action.png",
+      "section": "source"
+    },
+    {
+      "n": 20,
+      "name": "pending-cancel-confirmation",
+      "action": "Click Huy don",
+      "expected": "Explicit confirmation before cancelling same order",
+      "actual": "Hủy đơn chờ thanh toán\n\nHủy đơn DK002 của gói HV Purchase Gym?\n\nQuay lại\nXác nhận hủy đơn",
+      "status": "PASS",
+      "file": "step-20-pending-cancel-confirmation.png",
+      "section": "source"
+    },
+    {
+      "n": 21,
+      "name": "pending-cancel-success",
+      "action": "Confirm cancellation",
+      "expected": "Order disappears from pending; no final payment or receipt generated",
+      "actual": "Thanh toán\nLịch sử thanh toán\nChờ thanh toán\n\nBạn không có đơn đăng ký nào đang chờ thanh toán.",
+      "status": "PASS",
+      "file": "step-21-pending-cancel-success.png",
+      "section": "source"
+    },
+    {
+      "n": 22,
+      "name": "lt-DK002-Đã hủy",
+      "action": "Open LT registrations for the SAME registration",
+      "expected": "Same member/code and expected registration status",
+      "actual": "DK002\t10:44:53 17/9/2026\tHV Purchase Member\nHV001 · HV Payment Branch A\n\tHV Purchase Gym\t21/09/2026 - 21/10/2026\t500.000 ₫\t--\tĐã hủy\t",
+      "status": "PASS",
+      "file": "downstream-22-lt-DK002-Đã hủy.png",
+      "section": "downstream"
+    },
+    {
+      "n": 23,
+      "name": "freeze-form",
+      "action": "Open freeze for paid active package",
+      "expected": "Current paid package may freeze",
+      "actual": "Đóng băng gói tập\n\nGói tập: HV Purchase Gym\n\nMã hợp đồng: DK001 · Hạn cũ: 21/10/2026\n\nSố ngày đóng băng *\n7 ngày\n14 ngày\n30 ngày\n60 ngày\nHạn gói tập sẽ được tự động lùi tương ứng với số ngày đóng băng thực tế.\nLý do đóng băng\nHủy\n Xác nhận đóng băng",
+      "status": "PASS",
+      "file": "step-23-freeze-form.png",
+      "section": "source"
+    },
+    {
+      "n": 24,
+      "name": "freeze-invalid-input",
+      "action": "Enter zero freeze days before submit",
+      "expected": "Input captured separately from validation submit",
+      "actual": "0",
+      "status": "PASS",
+      "file": "step-24-freeze-invalid-input.png",
+      "section": "source"
+    },
+    {
+      "n": 25,
+      "name": "freeze-zero-validation",
+      "action": "Submit zero days",
+      "expected": "Invalid days blocked; contract remains ACTIVE",
+      "actual": "Vui lòng nhập số ngày đóng băng hợp lệ (lớn hơn 0)",
+      "status": "PASS",
+      "file": "step-25-freeze-zero-validation.png",
+      "section": "source"
+    },
+    {
+      "n": 26,
+      "name": "freeze-valid-input",
+      "action": "Enter two days before submit",
+      "expected": "Separate input screenshot",
+      "actual": "2 days",
+      "status": "PASS",
+      "file": "step-26-freeze-valid-input.png",
+      "section": "source"
+    },
+    {
+      "n": 27,
+      "name": "freeze-success",
+      "action": "Confirm freeze",
+      "expected": "Paid active package becomes frozen",
+      "actual": "HV Purchase Gym\n❄️ Đang đóng băng\n\nDK001 · 21/9/2026 - 23/10/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nMở đóng băng trước hạn",
+      "status": "PASS",
+      "file": "step-27-freeze-success.png",
+      "section": "source"
+    },
+    {
+      "n": 28,
+      "name": "lt-DK001-Đang đóng băng",
+      "action": "Open LT registrations for the SAME registration",
+      "expected": "Same member/code and expected registration status",
+      "actual": "DK001\t10:44:46 21/9/2026\tHV Purchase Member\nHV001 · HV Payment Branch A\n\tHV Purchase Gym\t21/09/2026 - 23/10/2026\t500.000 ₫\t--\t❄️ Đang đóng băng\t",
+      "status": "PASS",
+      "file": "downstream-28-lt-DK001-Đang đóng băng.png",
+      "section": "downstream"
+    },
+    {
+      "n": 29,
+      "name": "scheduled-freeze-blocked",
+      "action": "View paid future package fixture",
+      "expected": "User override: SCHEDULED package cannot freeze",
+      "actual": "HV Purchase Gym\nChưa đến ngày hiệu lực\n\nDK003 · 28/9/2026 - 28/10/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói",
+      "status": "PASS",
+      "file": "step-29-scheduled-freeze-blocked.png",
+      "section": "source"
+    },
+    {
+      "n": 30,
+      "name": "scheduled-detail-freeze-blocked",
+      "action": "Open scheduled package detail",
+      "expected": "No freeze action in detail either",
+      "actual": "Chi tiết gói tập\nHV Purchase Gym\nChưa đến ngày hiệu lực\n\nMã hợp đồng: DK003\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 28/9/2026 - 28/10/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nĐóng\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-30-scheduled-detail-freeze-blocked.png",
+      "section": "source"
+    },
+    {
+      "n": 31,
+      "name": "time-four-days",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; GYM_TIME, days=4, remaining PT=null, remaining Gym=null",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary time-four-days\nSắp hết hạn\n\nDK004 · 21/9/2026 - 25/9/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-31-time-four-days.png",
+      "section": "source"
+    },
+    {
+      "n": 32,
+      "name": "time-four-days-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary time-four-days\nSắp hết hạn\n\nMã hợp đồng: DK004\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 21/9/2026 - 25/9/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-32-time-four-days-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 33,
+      "name": "time-five-days",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=false; GYM_TIME, days=5, remaining PT=null, remaining Gym=null",
+      "actual": {
+        "is_expiring": false,
+        "display_status": "ACTIVE",
+        "text": "Boundary time-five-days\nĐang hoạt động\n\nDK005 · 21/9/2026 - 26/9/2026\n\nGym: đã dùng 0/30 ngày\n\nChi tiết gói\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-33-time-five-days.png",
+      "section": "source"
+    },
+    {
+      "n": 34,
+      "name": "time-five-days-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary time-five-days\nĐang hoạt động\n\nMã hợp đồng: DK005\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 21/9/2026 - 26/9/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-34-time-five-days-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 35,
+      "name": "gym-three-sessions",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; GYM_SESSION, days=20, remaining PT=null, remaining Gym=3",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary gym-three-sessions\nSắp hết hạn\n\nDK006 · 21/9/2026 - 11/10/2026\n\nGym: đã dùng 0/30 ngày\n\nGym: còn 3/3 lượt\n\nChi tiết gói\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-35-gym-three-sessions.png",
+      "section": "source"
+    },
+    {
+      "n": 36,
+      "name": "gym-three-sessions-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary gym-three-sessions\nSắp hết hạn\n\nMã hợp đồng: DK006\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 21/9/2026 - 11/10/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nGym: còn 3/3 lượt\n\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-36-gym-three-sessions-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 37,
+      "name": "gym-four-sessions",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=false; GYM_SESSION, days=1, remaining PT=null, remaining Gym=4",
+      "actual": {
+        "is_expiring": false,
+        "display_status": "ACTIVE",
+        "text": "Boundary gym-four-sessions\nĐang hoạt động\n\nDK007 · 21/9/2026 - 22/9/2026\n\nGym: đã dùng 0/30 ngày\n\nGym: còn 4/4 lượt\n\nChi tiết gói\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-37-gym-four-sessions.png",
+      "section": "source"
+    },
+    {
+      "n": 38,
+      "name": "gym-four-sessions-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary gym-four-sessions\nĐang hoạt động\n\nMã hợp đồng: DK007\n\nHình thức: Gym Tiêu Chuẩn\nHiệu lực: 21/9/2026 - 22/9/2026\nChi nhánh: HV Payment Branch A\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nGym: còn 4/4 lượt\n\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-38-gym-four-sessions-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 39,
+      "name": "pt-three-sessions",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; PT_SESSION, days=20, remaining PT=3, remaining Gym=null",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary pt-three-sessions\nSắp hết hạn\n\nDK008 · 21/9/2026 - 11/10/2026\n\nPT: đã dùng 0/3 buổi · Còn 3 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-39-pt-three-sessions.png",
+      "section": "source"
+    },
+    {
+      "n": 40,
+      "name": "pt-three-sessions-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary pt-three-sessions\nSắp hết hạn\n\nMã hợp đồng: DK008\n\nHình thức: PT Kèm 1-1 Cá nhân\nHiệu lực: 21/9/2026 - 11/10/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nPT: đã dùng 0/3 buổi · Còn 3 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-40-pt-three-sessions-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 41,
+      "name": "pt-four-sessions",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=false; PT_SESSION, days=1, remaining PT=4, remaining Gym=null",
+      "actual": {
+        "is_expiring": false,
+        "display_status": "ACTIVE",
+        "text": "Boundary pt-four-sessions\nĐang hoạt động\n\nDK009 · 21/9/2026 - 22/9/2026\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-41-pt-four-sessions.png",
+      "section": "source"
+    },
+    {
+      "n": 42,
+      "name": "pt-four-sessions-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary pt-four-sessions\nĐang hoạt động\n\nMã hợp đồng: DK009\n\nHình thức: PT Kèm 1-1 Cá nhân\nHiệu lực: 21/9/2026 - 22/9/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-42-pt-four-sessions-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 43,
+      "name": "combo-time-or",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; COMBO, days=4, remaining PT=4, remaining Gym=null",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary combo-time-or\nSắp hết hạn\n\nDK010 · 21/9/2026 - 25/9/2026\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-43-combo-time-or.png",
+      "section": "source"
+    },
+    {
+      "n": 44,
+      "name": "combo-time-or-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary combo-time-or\nSắp hết hạn\n\nMã hợp đồng: DK010\n\nHình thức: Combo Gym + PT\nHiệu lực: 21/9/2026 - 25/9/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-44-combo-time-or-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 45,
+      "name": "combo-pt-or",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; COMBO, days=20, remaining PT=3, remaining Gym=null",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary combo-pt-or\nSắp hết hạn\n\nDK011 · 21/9/2026 - 11/10/2026\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/3 buổi · Còn 3 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-45-combo-pt-or.png",
+      "section": "source"
+    },
+    {
+      "n": 46,
+      "name": "combo-pt-or-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary combo-pt-or\nSắp hết hạn\n\nMã hợp đồng: DK011\n\nHình thức: Combo Gym + PT\nHiệu lực: 21/9/2026 - 11/10/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/3 buổi · Còn 3 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-46-combo-pt-or-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 47,
+      "name": "combo-gym-or",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=true; COMBO, days=20, remaining PT=4, remaining Gym=3",
+      "actual": {
+        "is_expiring": true,
+        "display_status": "EXPIRING",
+        "text": "Boundary combo-gym-or\nSắp hết hạn\n\nDK012 · 21/9/2026 - 11/10/2026\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-47-combo-gym-or.png",
+      "section": "source"
+    },
+    {
+      "n": 48,
+      "name": "combo-gym-or-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary combo-gym-or\nSắp hết hạn\n\nMã hợp đồng: DK012\n\nHình thức: Combo Gym + PT\nHiệu lực: 21/9/2026 - 11/10/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-48-combo-gym-or-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 49,
+      "name": "combo-unlimited-gym",
+      "action": "Load real paid registration boundary fixture",
+      "expected": "Backend canonical is_expiring=false; COMBO, days=20, remaining PT=4, remaining Gym=null",
+      "actual": {
+        "is_expiring": false,
+        "display_status": "ACTIVE",
+        "text": "Boundary combo-unlimited-gym\nĐang hoạt động\n\nDK013 · 21/9/2026 - 11/10/2026\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\n\nPT: Chưa chọn (Liên hệ Lễ tân)\n\nChi tiết gói\nChọn PT phụ trách\nĐóng băng"
+      },
+      "status": "PASS",
+      "file": "step-49-combo-unlimited-gym.png",
+      "section": "source"
+    },
+    {
+      "n": 50,
+      "name": "combo-unlimited-gym-detail",
+      "action": "Open detail for same boundary registration",
+      "expected": "Detail uses exactly the same backend flag as list",
+      "actual": "Chi tiết gói tập\nBoundary combo-unlimited-gym\nĐang hoạt động\n\nMã hợp đồng: DK013\n\nHình thức: Combo Gym + PT\nHiệu lực: 21/9/2026 - 11/10/2026\nChi nhánh: HV Payment Branch A\nHLV phụ trách: Chưa chỉ định \nLiên hệ Lễ tân\nTiến độ sử dụng\n\nGym: đã dùng 0/30 ngày\n\nPT: đã dùng 0/4 buổi · Còn 4 buổi\n\nĐang giữ chỗ: 0 buổi\nĐóng\n Đóng băng gói\n Gia hạn gói",
+      "status": "PASS",
+      "file": "step-50-combo-unlimited-gym-detail.png",
+      "section": "source"
+    },
+    {
+      "n": 51,
+      "name": "lt-branch-b-isolation",
+      "action": "Open authenticated LT Branch B",
+      "expected": "Branch B cannot see Branch A purchase member/order",
+      "actual": "Branch B has no Branch A registration or member",
+      "status": "PASS",
+      "file": "downstream-51-lt-branch-b-isolation.png",
+      "section": "downstream"
+    },
+    {
+      "n": 52,
+      "name": "history-width-320",
+      "action": "View real history at 320px",
+      "expected": "Payment content remains visible with no horizontal overflow",
+      "actual": {
+        "width": 320,
+        "scroll": 320
+      },
+      "status": "PASS",
+      "file": "step-52-history-width-320.png",
+      "section": "source"
+    },
+    {
+      "n": 53,
+      "name": "history-width-1440",
+      "action": "View real history at 1440px",
+      "expected": "Payment content remains visible with no horizontal overflow",
+      "actual": {
+        "width": 1440,
+        "scroll": 1440
+      },
+      "status": "PASS",
+      "file": "step-53-history-width-1440.png",
+      "section": "source"
+    }
+  ],
+  "issues": [{ "name": "post-run-downstream-visual-evidence", "actual": "LT status clipped behind fixed columns at 1440px; DOM assertions alone insufficient. Fresh full rerun required with status-cell hit-test and visible annotation." }],
+  "migrations": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4a1ed6fc35f89ed4ed22dd40ba0d342df40674a1c0644cf6c12148403cccaba8"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    },
+    {
+      "file": "014_successful_payment_ledger.sql",
+      "sha256": "3c16e83463bb97a594ca06ce3c0079710c4d78b64da2f5544f2f6697bb2a1a14"
+    }
+  ],
+  "state": [
+    {
+      "fixture": {
+        "branches": [
+          "f8855edc-cb61-4a1d-aa4c-f62746ca171d",
+          "b42c99c6-a909-4462-a266-c796e82ad612"
+        ],
+        "memberId": "8e7572ee-6335-46de-965a-c4f695501953",
+        "packageId": "d606ca01-93b7-4365-9757-0e55a9d7684a"
+      },
+      "note": "All fixtures via API or explicit setup SQL only in disposable DB; no shared seed/reset."
+    },
+    {
+      "paidRegistrationId": "778ccae3-8a12-4424-8dbb-b9628e57bf7f",
+      "paymentId": "34eaffa3-2c9e-46b4-8e01-e051ef6d5825"
+    },
+    {
+      "retry": "One final payment/receipt after repeating same approved simulation endpoint"
+    },
+    {
+      "fixture": "Legacy Combo actual Gym quota, not supported by new catalog creation",
+      "packageId": "10f638f5-378d-4d09-87df-7d83505bc698",
+      "total_gym_sessions": 3
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/members/8e7572ee-6335-46de-965a-c4f695501953",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/members/8e7572ee-6335-46de-965a-c4f695501953",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/group-invitations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pt-bookings",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/packages",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 49904
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/34eaffa3-2c9e-46b4-8e01-e051ef6d5825/simulate-transfer",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments/34eaffa3-2c9e-46b4-8e01-e051ef6d5825/receipt",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/packages",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 49904
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/create-invoice",
+      "target": 49904
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/registrations/66dcfe69-9a01-45e3-8a77-cf37df048c22/cancel",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/registrations/778ccae3-8a12-4424-8dbb-b9628e57bf7f/freeze",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/registrations",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments",
+      "target": 49904
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "target": 49904
+    }
+  ],
+  "sources": {
+    "backend/package-lock.json": "ab04a3ecda1e2bd07c6f69e32970b4fba19577f80d0b2e020782db6705faa817",
+    "backend/package.json": "a456801aaff2493ddd535ada8840df20843c85f21d2ff643e839721e2b89994e",
+    "backend/src/config/betterAuth.js": "1aad3557955cda210649877b9cf384d6eaca0a181a2851efca8da8a5e543d829",
+    "backend/src/config/db.js": "33fcd4f65fb22d477d505c8e1959435e295f11d84abdc411d30163893a5682a9",
+    "backend/src/config/env.js": "4f8fffadbd5ebaf0fab3d2b7466d8a36cf46b6265c3991d364925a099c90cb22",
+    "backend/src/db/initDb.js": "a1bcf062c0552ad8a3acc643266727d24a02ad85e18dbf1a126b4b3feee24ae4",
+    "backend/src/db/migrate.js": "004558a7c646683ea239fe981982b261c4178f03f7f02262a01deb092c888268",
+    "backend/src/db/migrations/001_create_tables.sql": "4a1ed6fc35f89ed4ed22dd40ba0d342df40674a1c0644cf6c12148403cccaba8",
+    "backend/src/db/migrations/002_web_rebuild.sql": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b",
+    "backend/src/db/migrations/003_mobile_preferences.sql": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb",
+    "backend/src/db/migrations/004_device_sessions.sql": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430",
+    "backend/src/db/migrations/005_remove_pt_certificates.sql": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb",
+    "backend/src/db/migrations/006_boss_feedback_schema_upgrade.sql": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa",
+    "backend/src/db/migrations/007_commission_configs_uniqueness_and_history.sql": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a",
+    "backend/src/db/migrations/008_branch_default_commission_rate.sql": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2",
+    "backend/src/db/migrations/009_pt_commission_payout_details.sql": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996",
+    "backend/src/db/migrations/010_scheduled_package_freezes.sql": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806",
+    "backend/src/db/migrations/011_pt_bookings_no_overlap_indexes.sql": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db",
+    "backend/src/db/migrations/012_pt_commission_session_snapshot.sql": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a",
+    "backend/src/db/migrations/013_pt_booking_participants.sql": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2",
+    "backend/src/db/migrations/014_successful_payment_ledger.sql": "3c16e83463bb97a594ca06ce3c0079710c4d78b64da2f5544f2f6697bb2a1a14",
+    "backend/src/db/postgres.js": "ce672b5b34b57e88dffe43309fbd8ac530ff042f9b020c95043c16ba7de85dd7",
+    "backend/src/db/seed.js": "3e6f89e17cbf619db670408c2281e094889b196ab65ce490b690b54a188ef6d8",
+    "backend/src/db/seeds/001_seed_data.sql": "87a7aad06dd0c53e04ddf0f42318aa7da6d70953bcea015e243f35f464a33a53",
+    "backend/src/db/seeds/002_boss_feedback_seed.sql": "a0c7983a79b52d8d24b165ed5dd3c92b5669c0300768b4030bc353879269e347",
+    "backend/src/middlewares/auth.js": "65bd4152a8ba7af233ad88a7e8e6529aff41fbd9d2309123deae23f11f3fac5a",
+    "backend/src/middlewares/branchScope.js": "cb4e94e4eeab10a938689cf9110402cde543a0c673bec991d5e43f87d2b3b2ec",
+    "backend/src/middlewares/errorHandler.js": "23be9882b36210b8bcb264028dba17b55aa3f8db4489382eea6b536b3913184d",
+    "backend/src/middlewares/rateLimiter.js": "60abbe96f45f217914255f79c858c8ff6e3f48b27a8ddfd19a4247c95b2eef53",
+    "backend/src/middlewares/rbac.js": "65e192f09d80a968c237450281d0892a882beb7d7e58a4de6103790d9ffed0f0",
+    "backend/src/modules/access-gate/access-gate.controller.js": "eb59b3195557381ce50cd5666824f8ef3d64513f934b2374eedfb7048c37a5b6",
+    "backend/src/modules/access-gate/access-gate.routes.js": "89e37526591e0b4e3c10cd2a1e111ecd748b7172116806a6628034c5b0d6d882",
+    "backend/src/modules/access-gate/access-gate.service.js": "f46bc61fb3afd6727fab16d2d08d93329221a922a7c5e58418f58cef7502454e",
+    "backend/src/modules/audit-logs/audit-logs.routes.js": "df84f5e04f8b042252d3dca263083bdef158e74322b017f95d03a538bcfdd5f9",
+    "backend/src/modules/auth/auth.controller.js": "800a7c34d9a1eee929742470f7c40b086c7177ea627a78aaf7ec82605aee140d",
+    "backend/src/modules/auth/auth.routes.js": "27a0fd1669937441aaf782b2f165bb68f8d907493bf4b53c5aeaa005cc483c5e",
+    "backend/src/modules/auth/auth.service.js": "cc2bc808e9573cd308c9b37c1b78cbf66fc2c9fd059ba8fecc4093df333379b6",
+    "backend/src/modules/branches/branches.controller.js": "5619f29a055b44c0ccc8f266c9daa7bcb46e68a4f94beee0b2cca55d41efd59a",
+    "backend/src/modules/branches/branches.routes.js": "9675e0f6481c24a89e452ae3c3c7fd549fa9c22b143b0f0b2c4c7becf3e87aa5",
+    "backend/src/modules/branches/branches.service.js": "ee3ce8f570fef053715905eb11b405654367f83914d8f4a55a0eda4f8d5b4b7b",
+    "backend/src/modules/core/auth.js": "fe91873bf622040b8f626116029884be99c03c7b50089fb39931045a475f2926",
+    "backend/src/modules/core/avatar.js": "f50f1103db43e20c3b3a6d14852b0156543835a740ec59653a5a313015ffd0a1",
+    "backend/src/modules/core/bookings.js": "b23c978b7eca52ec5edb024f1d6ed85785fb86c6082ae4e991875e6a4f2ff0a3",
+    "backend/src/modules/core/catalog.js": "e365ff7ad9d16ad69da722a4d2cb82c20d80092675168fa34fd06b28fe411b31",
+    "backend/src/modules/core/commerce.js": "ccb5a9aa53d0375363c00de9f78a8ad6d91ccb6148f957e0c9e6883d22750365",
+    "backend/src/modules/core/commissions.js": "0002fc6b5ab37c1c4740c0677e15b13e1356d2dba687a2f0f74240d8863d98ab",
+    "backend/src/modules/core/community.js": "1b6a0fdd7658ed1b9724159e38ac9240521602c002c014d17ea892814010bc78",
+    "backend/src/modules/core/customerCare.js": "96fedc906660dff3c88b304f56976128fce592a936c997262027e982611a41e3",
+    "backend/src/modules/core/devices.js": "cbaac41383212cc5f5a056b5148dd46d12caa461120ba801ef8fdc815adb7e22",
+    "backend/src/modules/core/discounts.js": "d0fae2ba4de0e6aaa886325018e85299ec064faf71854fc8a9f645a532db08ec",
+    "backend/src/modules/core/holidays.js": "79aabfc18d0c404fc3005064daf0de00b1d04368777e17f80d0ae16e28979345",
+    "backend/src/modules/core/http.js": "3e490f1ee55bd0de741cb5e782505a6574d6c0c763f0d3b5cdf99e143057660a",
+    "backend/src/modules/core/jobs.js": "52aa885c70c84c55a2664c4cd89438e2899260b54d5297ad68748de8880bfb69",
+    "backend/src/modules/core/messages.js": "08a9a593e08d66f267495c02edc2b8e7552ec2aa2cbfcb72404cdb117e4c3604",
+    "backend/src/modules/core/mobile.js": "228b2b4798748d3dd540057bd7776d16d3dfd6c0d1d220b4f526d186974c12ee",
+    "backend/src/modules/core/notifications.js": "87c680ac3872fbcb4a5788bfa1788052aa5d1ab86c18706ffa34d70f6f7c933d",
+    "backend/src/modules/core/operations.js": "c146619288e9051250199aa7a9248552ea29248394c22c82a3a444748b1c3392",
+    "backend/src/modules/core/registrationState.js": "d3a1b8b9328fcce60027ea75af0ac72e1cf171030b3891c68cb6802ece36d30b",
+    "backend/src/modules/members/members.controller.js": "381441bb51af04b9fd814d334d631f3440d281d4d9f60649710b608c9a3a63e9",
+    "backend/src/modules/members/members.routes.js": "a75e4cc1ac6429645d46b655005a258d434861860814a04e056b00f07cf9b88e",
+    "backend/src/modules/members/members.service.js": "b716d1c650cacc47c886d0d5aef43c9f2991982b3f44e7f25a3ead52582a9455",
+    "backend/src/modules/notifications/notifications.routes.js": "98b74ddf8c25d5c7629148cbccb8b43907010c7c7020abb23eb1a37f28725d97",
+    "backend/src/modules/packages/packages.controller.js": "f77d6876999b503076240ed85313d366b1640efb9002f4247fb33add253159d5",
+    "backend/src/modules/packages/packages.routes.js": "892d66fdf3bbe2cb7e6f7f2313449d7bef91241ef34acf08f7955ae8af99e4e7",
+    "backend/src/modules/packages/packages.service.js": "1b839cdfff4cc06bd3ee73a1fa893e06070f1d80d0e46fcc49fb878adafddec5",
+    "backend/src/modules/payments/payments.controller.js": "d061daeb8ee80ef52dcd66e38ee77451d670755eed6d43402a278420b39cb67b",
+    "backend/src/modules/payments/payments.routes.js": "dbd5a73dac6aeb33af8e59d6015d152524f9882749961f2f7d49acb5877f5f55",
+    "backend/src/modules/payments/payments.service.js": "bdb1faf3c268baf8405e46b5ae0dbd453abc2fb3e5b9fcbe86bfbd13ed24e2d4",
+    "backend/src/modules/pt-bookings/pt-bookings.controller.js": "99c93e07befb9ac163562f0b848e66e7d69b42ba630ce29bb668f5ee884525cc",
+    "backend/src/modules/pt-bookings/pt-bookings.routes.js": "472b2ea937849ad56ce082fad795681639ad47a40bacabb9691691a8a983c73a",
+    "backend/src/modules/pt-bookings/pt-bookings.service.js": "c90e918195986e973956a9372d7a32e8eb0d4f65e0abb974d2d7b7b62d5a50c2",
+    "backend/src/modules/registrations/registrations.controller.js": "e369e90bd2bf2c53f0dfc6317c00cf7853a40fae4fb17978b7f97d63c062aedc",
+    "backend/src/modules/registrations/registrations.routes.js": "f7faa2fb3ce58f78f662c26d42bf773166a262e65ba4d3a87e4f3ef016ddcd60",
+    "backend/src/modules/registrations/registrations.service.js": "3f43358dcdf8d69b3a0f137bae4ed476677a6375c6e2f3de7d38f4cdc2d230f7",
+    "backend/src/server.js": "66b593bf8209cdfadf08a4a735122610f07dd2362c28f205aefe89596cd6855f",
+    "backend/src/utils/cloudStorage.js": "d8a25ab29e22f515454eaed0bef41a4135d85af0c3ccd534d04ab242b9f621ad",
+    "backend/src/utils/otp.js": "0053e68f6f36cdfa6a6f7e82872ce20922605d8de52deef388c4e1c3215ed812",
+    "backend/src/utils/response.js": "6a0b80c9168bdd9a8c4ac3a019d0f0c4258ab62bfe43b4fcf992cf60033ecb9d",
+    "backend/src/utils/token.js": "af2a1bf9e3b29becc58795c2cd0202c53c58a587e45c295fdc4197f48aa785f0",
+    "backend/src/utils/vietqr.js": "79a8fed787b010d669c0cb2929502d686ab43f9a71a3479ab072501cd3427bda",
+    "frontend/mobile/member/css/member.css": "a0ce8ee43f1dc1924c9c7a9303a0b9eafd6495e7381d3023c430ffc0fae58496",
+    "frontend/mobile/member/index.html": "aa64fadbab299561ac8af2211397658696d61a72e16ee8317055b2b23174f0e5",
+    "frontend/mobile/member/js/app.js": "3c7e7d08f444278cbb61bd2233e6250136fb99807311f9d13958eba19647af03",
+    "frontend/mobile/member/js/auth-account.js": "14d4f6ed120c20ec817ae2f5f20156aa76bc7fa6b8c258d3c0a1ac561e20bf12",
+    "frontend/mobile/member/js/home-schedule.js": "8b0a7cb831c5e96c99104d22d6dc3ff3abd40f62f03a2d1bc8df2960f2d82757",
+    "frontend/mobile/member/js/packages-notifications.js": "0b5ee8eee1b6610d0519d4b55ebaa6fe5db0c4daa29304619d525a55e0d81d5a",
+    "frontend/shared/apiClient.js": "62dc34808b3c6895cea83b7744df9f3bfffb704b7ed54ecdd172f521da6127c4",
+    "frontend/web/js/modules/sales.js": "6836b1a287e85f466759220dae76ffbaac0d4c96f5a0b18ae1b9413ac9eda26f",
+    "tests/e2e/hv/HV03-US03/payment-intents.cjs": "9705d39c4279c59f493ddcd96f16b8bb657f43a2bee6e90b0512882db3b83e50"
+  },
+  "finalSources": {
+    "backend/package-lock.json": "ab04a3ecda1e2bd07c6f69e32970b4fba19577f80d0b2e020782db6705faa817",
+    "backend/package.json": "a456801aaff2493ddd535ada8840df20843c85f21d2ff643e839721e2b89994e",
+    "backend/src/config/betterAuth.js": "1aad3557955cda210649877b9cf384d6eaca0a181a2851efca8da8a5e543d829",
+    "backend/src/config/db.js": "33fcd4f65fb22d477d505c8e1959435e295f11d84abdc411d30163893a5682a9",
+    "backend/src/config/env.js": "4f8fffadbd5ebaf0fab3d2b7466d8a36cf46b6265c3991d364925a099c90cb22",
+    "backend/src/db/initDb.js": "a1bcf062c0552ad8a3acc643266727d24a02ad85e18dbf1a126b4b3feee24ae4",
+    "backend/src/db/migrate.js": "004558a7c646683ea239fe981982b261c4178f03f7f02262a01deb092c888268",
+    "backend/src/db/migrations/001_create_tables.sql": "4a1ed6fc35f89ed4ed22dd40ba0d342df40674a1c0644cf6c12148403cccaba8",
+    "backend/src/db/migrations/002_web_rebuild.sql": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b",
+    "backend/src/db/migrations/003_mobile_preferences.sql": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb",
+    "backend/src/db/migrations/004_device_sessions.sql": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430",
+    "backend/src/db/migrations/005_remove_pt_certificates.sql": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb",
+    "backend/src/db/migrations/006_boss_feedback_schema_upgrade.sql": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa",
+    "backend/src/db/migrations/007_commission_configs_uniqueness_and_history.sql": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a",
+    "backend/src/db/migrations/008_branch_default_commission_rate.sql": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2",
+    "backend/src/db/migrations/009_pt_commission_payout_details.sql": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996",
+    "backend/src/db/migrations/010_scheduled_package_freezes.sql": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806",
+    "backend/src/db/migrations/011_pt_bookings_no_overlap_indexes.sql": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db",
+    "backend/src/db/migrations/012_pt_commission_session_snapshot.sql": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a",
+    "backend/src/db/migrations/013_pt_booking_participants.sql": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2",
+    "backend/src/db/migrations/014_successful_payment_ledger.sql": "3c16e83463bb97a594ca06ce3c0079710c4d78b64da2f5544f2f6697bb2a1a14",
+    "backend/src/db/postgres.js": "ce672b5b34b57e88dffe43309fbd8ac530ff042f9b020c95043c16ba7de85dd7",
+    "backend/src/db/seed.js": "3e6f89e17cbf619db670408c2281e094889b196ab65ce490b690b54a188ef6d8",
+    "backend/src/db/seeds/001_seed_data.sql": "87a7aad06dd0c53e04ddf0f42318aa7da6d70953bcea015e243f35f464a33a53",
+    "backend/src/db/seeds/002_boss_feedback_seed.sql": "a0c7983a79b52d8d24b165ed5dd3c92b5669c0300768b4030bc353879269e347",
+    "backend/src/middlewares/auth.js": "65bd4152a8ba7af233ad88a7e8e6529aff41fbd9d2309123deae23f11f3fac5a",
+    "backend/src/middlewares/branchScope.js": "cb4e94e4eeab10a938689cf9110402cde543a0c673bec991d5e43f87d2b3b2ec",
+    "backend/src/middlewares/errorHandler.js": "23be9882b36210b8bcb264028dba17b55aa3f8db4489382eea6b536b3913184d",
+    "backend/src/middlewares/rateLimiter.js": "60abbe96f45f217914255f79c858c8ff6e3f48b27a8ddfd19a4247c95b2eef53",
+    "backend/src/middlewares/rbac.js": "65e192f09d80a968c237450281d0892a882beb7d7e58a4de6103790d9ffed0f0",
+    "backend/src/modules/access-gate/access-gate.controller.js": "eb59b3195557381ce50cd5666824f8ef3d64513f934b2374eedfb7048c37a5b6",
+    "backend/src/modules/access-gate/access-gate.routes.js": "89e37526591e0b4e3c10cd2a1e111ecd748b7172116806a6628034c5b0d6d882",
+    "backend/src/modules/access-gate/access-gate.service.js": "f46bc61fb3afd6727fab16d2d08d93329221a922a7c5e58418f58cef7502454e",
+    "backend/src/modules/audit-logs/audit-logs.routes.js": "df84f5e04f8b042252d3dca263083bdef158e74322b017f95d03a538bcfdd5f9",
+    "backend/src/modules/auth/auth.controller.js": "800a7c34d9a1eee929742470f7c40b086c7177ea627a78aaf7ec82605aee140d",
+    "backend/src/modules/auth/auth.routes.js": "27a0fd1669937441aaf782b2f165bb68f8d907493bf4b53c5aeaa005cc483c5e",
+    "backend/src/modules/auth/auth.service.js": "cc2bc808e9573cd308c9b37c1b78cbf66fc2c9fd059ba8fecc4093df333379b6",
+    "backend/src/modules/branches/branches.controller.js": "5619f29a055b44c0ccc8f266c9daa7bcb46e68a4f94beee0b2cca55d41efd59a",
+    "backend/src/modules/branches/branches.routes.js": "9675e0f6481c24a89e452ae3c3c7fd549fa9c22b143b0f0b2c4c7becf3e87aa5",
+    "backend/src/modules/branches/branches.service.js": "ee3ce8f570fef053715905eb11b405654367f83914d8f4a55a0eda4f8d5b4b7b",
+    "backend/src/modules/core/auth.js": "fe91873bf622040b8f626116029884be99c03c7b50089fb39931045a475f2926",
+    "backend/src/modules/core/avatar.js": "f50f1103db43e20c3b3a6d14852b0156543835a740ec59653a5a313015ffd0a1",
+    "backend/src/modules/core/bookings.js": "b23c978b7eca52ec5edb024f1d6ed85785fb86c6082ae4e991875e6a4f2ff0a3",
+    "backend/src/modules/core/catalog.js": "e365ff7ad9d16ad69da722a4d2cb82c20d80092675168fa34fd06b28fe411b31",
+    "backend/src/modules/core/commerce.js": "ccb5a9aa53d0375363c00de9f78a8ad6d91ccb6148f957e0c9e6883d22750365",
+    "backend/src/modules/core/commissions.js": "0002fc6b5ab37c1c4740c0677e15b13e1356d2dba687a2f0f74240d8863d98ab",
+    "backend/src/modules/core/community.js": "1b6a0fdd7658ed1b9724159e38ac9240521602c002c014d17ea892814010bc78",
+    "backend/src/modules/core/customerCare.js": "96fedc906660dff3c88b304f56976128fce592a936c997262027e982611a41e3",
+    "backend/src/modules/core/devices.js": "cbaac41383212cc5f5a056b5148dd46d12caa461120ba801ef8fdc815adb7e22",
+    "backend/src/modules/core/discounts.js": "d0fae2ba4de0e6aaa886325018e85299ec064faf71854fc8a9f645a532db08ec",
+    "backend/src/modules/core/holidays.js": "79aabfc18d0c404fc3005064daf0de00b1d04368777e17f80d0ae16e28979345",
+    "backend/src/modules/core/http.js": "3e490f1ee55bd0de741cb5e782505a6574d6c0c763f0d3b5cdf99e143057660a",
+    "backend/src/modules/core/jobs.js": "52aa885c70c84c55a2664c4cd89438e2899260b54d5297ad68748de8880bfb69",
+    "backend/src/modules/core/messages.js": "08a9a593e08d66f267495c02edc2b8e7552ec2aa2cbfcb72404cdb117e4c3604",
+    "backend/src/modules/core/mobile.js": "228b2b4798748d3dd540057bd7776d16d3dfd6c0d1d220b4f526d186974c12ee",
+    "backend/src/modules/core/notifications.js": "87c680ac3872fbcb4a5788bfa1788052aa5d1ab86c18706ffa34d70f6f7c933d",
+    "backend/src/modules/core/operations.js": "c146619288e9051250199aa7a9248552ea29248394c22c82a3a444748b1c3392",
+    "backend/src/modules/core/registrationState.js": "d3a1b8b9328fcce60027ea75af0ac72e1cf171030b3891c68cb6802ece36d30b",
+    "backend/src/modules/members/members.controller.js": "381441bb51af04b9fd814d334d631f3440d281d4d9f60649710b608c9a3a63e9",
+    "backend/src/modules/members/members.routes.js": "a75e4cc1ac6429645d46b655005a258d434861860814a04e056b00f07cf9b88e",
+    "backend/src/modules/members/members.service.js": "b716d1c650cacc47c886d0d5aef43c9f2991982b3f44e7f25a3ead52582a9455",
+    "backend/src/modules/notifications/notifications.routes.js": "98b74ddf8c25d5c7629148cbccb8b43907010c7c7020abb23eb1a37f28725d97",
+    "backend/src/modules/packages/packages.controller.js": "f77d6876999b503076240ed85313d366b1640efb9002f4247fb33add253159d5",
+    "backend/src/modules/packages/packages.routes.js": "892d66fdf3bbe2cb7e6f7f2313449d7bef91241ef34acf08f7955ae8af99e4e7",
+    "backend/src/modules/packages/packages.service.js": "1b839cdfff4cc06bd3ee73a1fa893e06070f1d80d0e46fcc49fb878adafddec5",
+    "backend/src/modules/payments/payments.controller.js": "d061daeb8ee80ef52dcd66e38ee77451d670755eed6d43402a278420b39cb67b",
+    "backend/src/modules/payments/payments.routes.js": "dbd5a73dac6aeb33af8e59d6015d152524f9882749961f2f7d49acb5877f5f55",
+    "backend/src/modules/payments/payments.service.js": "bdb1faf3c268baf8405e46b5ae0dbd453abc2fb3e5b9fcbe86bfbd13ed24e2d4",
+    "backend/src/modules/pt-bookings/pt-bookings.controller.js": "99c93e07befb9ac163562f0b848e66e7d69b42ba630ce29bb668f5ee884525cc",
+    "backend/src/modules/pt-bookings/pt-bookings.routes.js": "472b2ea937849ad56ce082fad795681639ad47a40bacabb9691691a8a983c73a",
+    "backend/src/modules/pt-bookings/pt-bookings.service.js": "c90e918195986e973956a9372d7a32e8eb0d4f65e0abb974d2d7b7b62d5a50c2",
+    "backend/src/modules/registrations/registrations.controller.js": "e369e90bd2bf2c53f0dfc6317c00cf7853a40fae4fb17978b7f97d63c062aedc",
+    "backend/src/modules/registrations/registrations.routes.js": "f7faa2fb3ce58f78f662c26d42bf773166a262e65ba4d3a87e4f3ef016ddcd60",
+    "backend/src/modules/registrations/registrations.service.js": "3f43358dcdf8d69b3a0f137bae4ed476677a6375c6e2f3de7d38f4cdc2d230f7",
+    "backend/src/server.js": "66b593bf8209cdfadf08a4a735122610f07dd2362c28f205aefe89596cd6855f",
+    "backend/src/utils/cloudStorage.js": "d8a25ab29e22f515454eaed0bef41a4135d85af0c3ccd534d04ab242b9f621ad",
+    "backend/src/utils/otp.js": "0053e68f6f36cdfa6a6f7e82872ce20922605d8de52deef388c4e1c3215ed812",
+    "backend/src/utils/response.js": "6a0b80c9168bdd9a8c4ac3a019d0f0c4258ab62bfe43b4fcf992cf60033ecb9d",
+    "backend/src/utils/token.js": "af2a1bf9e3b29becc58795c2cd0202c53c58a587e45c295fdc4197f48aa785f0",
+    "backend/src/utils/vietqr.js": "79a8fed787b010d669c0cb2929502d686ab43f9a71a3479ab072501cd3427bda",
+    "frontend/mobile/member/css/member.css": "a0ce8ee43f1dc1924c9c7a9303a0b9eafd6495e7381d3023c430ffc0fae58496",
+    "frontend/mobile/member/index.html": "aa64fadbab299561ac8af2211397658696d61a72e16ee8317055b2b23174f0e5",
+    "frontend/mobile/member/js/app.js": "3c7e7d08f444278cbb61bd2233e6250136fb99807311f9d13958eba19647af03",
+    "frontend/mobile/member/js/auth-account.js": "14d4f6ed120c20ec817ae2f5f20156aa76bc7fa6b8c258d3c0a1ac561e20bf12",
+    "frontend/mobile/member/js/home-schedule.js": "8b0a7cb831c5e96c99104d22d6dc3ff3abd40f62f03a2d1bc8df2960f2d82757",
+    "frontend/mobile/member/js/packages-notifications.js": "0b5ee8eee1b6610d0519d4b55ebaa6fe5db0c4daa29304619d525a55e0d81d5a",
+    "frontend/shared/apiClient.js": "62dc34808b3c6895cea83b7744df9f3bfffb704b7ed54ecdd172f521da6127c4",
+    "frontend/web/js/modules/sales.js": "6836b1a287e85f466759220dae76ffbaac0d4c96f5a0b18ae1b9413ac9eda26f",
+    "tests/e2e/hv/HV03-US03/payment-intents.cjs": "9705d39c4279c59f493ddcd96f16b8bb657f43a2bee6e90b0512882db3b83e50"
+  },
+  "loadedBackendModules": [
+    "backend/src/config/env.js",
+    "backend/src/db/postgres.js",
+    "backend/src/modules/core/auth.js",
+    "backend/src/modules/core/avatar.js",
+    "backend/src/modules/core/bookings.js",
+    "backend/src/modules/core/catalog.js",
+    "backend/src/modules/core/commerce.js",
+    "backend/src/modules/core/commissions.js",
+    "backend/src/modules/core/community.js",
+    "backend/src/modules/core/customerCare.js",
+    "backend/src/modules/core/devices.js",
+    "backend/src/modules/core/discounts.js",
+    "backend/src/modules/core/holidays.js",
+    "backend/src/modules/core/http.js",
+    "backend/src/modules/core/messages.js",
+    "backend/src/modules/core/mobile.js",
+    "backend/src/modules/core/notifications.js",
+    "backend/src/modules/core/operations.js",
+    "backend/src/modules/core/registrationState.js",
+    "backend/src/server.js",
+    "backend/src/utils/cloudStorage.js",
+    "backend/src/utils/token.js",
+    "backend/src/utils/vietqr.js"
+  ],
+  "runtime": {
+    "node": "v22.20.0"
+  },
+  "changed": [],
+  "cleanup": {
+    "browser": true,
+    "server": true,
+    "connections": true,
+    "database": true
+  },
+  "screenshots": [
+    {
+      "file": "step-01-purchase-catalog.png",
+      "bytes": 29860,
+      "sha256": "b0ce9c4ab53359449116b5921ccc380af5a2848befaa5f949cf48c40abe0a9fb"
+    },
+    {
+      "file": "step-02-purchase-buy-dialog.png",
+      "bytes": 50707,
+      "sha256": "5a296c207365408573eff2166c537c66f3407fbdcf61d9cce5f5666687546288"
+    },
+    {
+      "file": "step-03-purchase-empty-voucher.png",
+      "bytes": 52329,
+      "sha256": "3fbe95d0ff948de83a501af34f21818c0c9ba23637e113c54012e47d95da2efa"
+    },
+    {
+      "file": "step-04-purchase-qr.png",
+      "bytes": 75269,
+      "sha256": "f939a0234cdf0accac974f67421300dd80153a33851fda5f4dd3c9c6d81e311e"
+    },
+    {
+      "file": "step-05-simulate-transfer-success.png",
+      "bytes": 61638,
+      "sha256": "2261961d649b495e325efa3088e2725abf89370927e410116e117329d662cb0b"
+    },
+    {
+      "file": "step-06-paid-package-active.png",
+      "bytes": 41547,
+      "sha256": "595843dbedcbe32e22d33143e0822073cd9fe3f5245f9afb977ed3e65fc66547"
+    },
+    {
+      "file": "step-07-successful-statusless-history.png",
+      "bytes": 32510,
+      "sha256": "257ba1c350861e9f0a4044b9c7d9f059802fdab71abd6325dab0b988d8a57487"
+    },
+    {
+      "file": "step-08-receipt.png",
+      "bytes": 48852,
+      "sha256": "53b13b4eedcc5ff77e0b924f30e8909efa999ebac0cbfcf68eebda6f0ff6f3e5"
+    },
+    {
+      "file": "downstream-09-lt-DK001-Đang.png",
+      "bytes": 90764,
+      "sha256": "b64485e6039690e721efcd0efa46d3ebbbd5182aeeec335442561f1ff8909ddd"
+    },
+    {
+      "file": "step-10-pending-catalog.png",
+      "bytes": 30021,
+      "sha256": "ff6484b61ba314a94ed4f4df4307f604859a2a61d0b80a10a1490ded08f58146"
+    },
+    {
+      "file": "step-11-pending-buy-dialog.png",
+      "bytes": 50646,
+      "sha256": "12336d45556c187162e44c16daa60388e394693f40e397c8ad79d4f388187930"
+    },
+    {
+      "file": "step-12-pending-empty-voucher.png",
+      "bytes": 52541,
+      "sha256": "01ec8af4a7022e342ee6d0b01c5202e9158d47752cfe265f3642c0f4eb37a681"
+    },
+    {
+      "file": "step-13-pending-qr.png",
+      "bytes": 75666,
+      "sha256": "b5b82271d3256154ae750619144dffbf14656c74f47e39d94ad42f3c6389ca6f"
+    },
+    {
+      "file": "step-14-pending-older-than-three-days.png",
+      "bytes": 30445,
+      "sha256": "91c4d3b3a7cf728ac6591637c34c1fc25f7dabd4022c65242adade55f9dce462"
+    },
+    {
+      "file": "step-15-pending-mine-freeze-blocked.png",
+      "bytes": 38572,
+      "sha256": "319b3612d76dcbbf8ef12a16429246841fe5d06cb8951f4f29504606e075c3c6"
+    },
+    {
+      "file": "step-16-pending-detail-freeze-blocked.png",
+      "bytes": 52116,
+      "sha256": "360c44be3a0879e489712d268a81f4e6ded194d68b8e4c903af8a620e720546d"
+    },
+    {
+      "file": "step-17-expired-intent-reissued.png",
+      "bytes": 75976,
+      "sha256": "567890bfd8d3e3aeaf3b8c5c96d1c315d96edb44d2301422650ce49fa0f09980"
+    },
+    {
+      "file": "step-18-qr-countdown-expired.png",
+      "bytes": 61674,
+      "sha256": "fc0c86005e35f293bd24377a51333c9fbf6b3bec466dd843672ece2dc8e2a09f"
+    },
+    {
+      "file": "step-19-recreate-qr-action.png",
+      "bytes": 75979,
+      "sha256": "7a8b44e7746bed02658b0bca16003222a3b5409e6c1251152204fb1d5dec6b3e"
+    },
+    {
+      "file": "step-20-pending-cancel-confirmation.png",
+      "bytes": 67492,
+      "sha256": "1cec2a70e4980ad1698607304e3e978cc23e9fff4193d465d55b7588e12c4145"
+    },
+    {
+      "file": "step-21-pending-cancel-success.png",
+      "bytes": 27617,
+      "sha256": "3ee335946950ae9277e1fcc197be9e72bc7eda61645be57085fdaff9e820dddb"
+    },
+    {
+      "file": "downstream-22-lt-DK002-Đã hủy.png",
+      "bytes": 100481,
+      "sha256": "a8e075fce10d4cb805b61a721e8217411c73b467efae0c6f3b947fd69179b2bf"
+    },
+    {
+      "file": "step-23-freeze-form.png",
+      "bytes": 60472,
+      "sha256": "e229d24487d245d1572e3b69556742fc82a6e21e15bc1da201067b53f80bd16a"
+    },
+    {
+      "file": "step-24-freeze-invalid-input.png",
+      "bytes": 60935,
+      "sha256": "0b885a9730af41223cfbfe277a8f826d72732845150392df9836f5ba60818003"
+    },
+    {
+      "file": "step-25-freeze-zero-validation.png",
+      "bytes": 62233,
+      "sha256": "cb6abe451f52b3b376367fb8481518279cf80d22f020eea0565f3f05d4128bb5"
+    },
+    {
+      "file": "step-26-freeze-valid-input.png",
+      "bytes": 62326,
+      "sha256": "938450606a60d9446c84c9b79f516b6708ef1bc6f484b0e7266898e2156cfa5f"
+    },
+    {
+      "file": "step-27-freeze-success.png",
+      "bytes": 45854,
+      "sha256": "356abcbf78ae7e4cee53d2e7df4fe6d92ccc53d46e312794795eeb38e16941c0"
+    },
+    {
+      "file": "downstream-28-lt-DK001-Đang đóng băng.png",
+      "bytes": 100270,
+      "sha256": "693fd7d2ca25bf09e8653c030a541efe04d4980f79bb771bcf3e21cb4e8e5277"
+    },
+    {
+      "file": "step-29-scheduled-freeze-blocked.png",
+      "bytes": 55675,
+      "sha256": "3aa782c58b55f7807859cbd20262e5eec97298224c0da539876b07b8f829ceef"
+    },
+    {
+      "file": "step-30-scheduled-detail-freeze-blocked.png",
+      "bytes": 63207,
+      "sha256": "2e7e7f65d4188cdccd7865d96f21105dc284ef19adcfaaa7b9b1e6a95d3a0aba"
+    },
+    {
+      "file": "step-31-time-four-days.png",
+      "bytes": 60540,
+      "sha256": "a276b0c25af8b4715793141e6859dfc9828b52beb7f5b1e58389349b0c2e53a5"
+    },
+    {
+      "file": "step-32-time-four-days-detail.png",
+      "bytes": 68635,
+      "sha256": "bf82c9b7e4fabb3c3c5d066820f363da2fa964f92c6f5a0ce1dfd58add0db344"
+    },
+    {
+      "file": "step-33-time-five-days.png",
+      "bytes": 62625,
+      "sha256": "9fb247ae19b0aba7c2ff27fe2712bdd7766023700a03c6b4e12f0722aa583d36"
+    },
+    {
+      "file": "step-34-time-five-days-detail.png",
+      "bytes": 69745,
+      "sha256": "c027aea522faaf07aa6dd8eb8910185badd70637b0ea8834d00d0f86fc748c12"
+    },
+    {
+      "file": "step-35-gym-three-sessions.png",
+      "bytes": 54790,
+      "sha256": "8b09a192d8473fba516626cb5d362c9e84730315f52177ad7755a9acea1b2695"
+    },
+    {
+      "file": "step-36-gym-three-sessions-detail.png",
+      "bytes": 66007,
+      "sha256": "15e566d876420ea66b906b09315fe7698ce54415c2f54846675480cd3a1fd67f"
+    },
+    {
+      "file": "step-37-gym-four-sessions.png",
+      "bytes": 53312,
+      "sha256": "1ce623836acff504aafe330536ac4a82c4d6d0d7f18f4b557f6de4a6e8d6731b"
+    },
+    {
+      "file": "step-38-gym-four-sessions-detail.png",
+      "bytes": 68130,
+      "sha256": "c015b112d1db6edb27a02ec1081fb87f628f57023e034808a6bca75b2b48454a"
+    },
+    {
+      "file": "step-39-pt-three-sessions.png",
+      "bytes": 56389,
+      "sha256": "b2ebc1c70068b28adfe1fec9850872f15a9ed4db2002cdacaf6ee0770175a8cf"
+    },
+    {
+      "file": "step-40-pt-three-sessions-detail.png",
+      "bytes": 67548,
+      "sha256": "ce876e8dca85e2e295b193f0b416b8a1e8ed61835d8921924a1a7e02b6fbc07e"
+    },
+    {
+      "file": "step-41-pt-four-sessions.png",
+      "bytes": 57698,
+      "sha256": "1898fe6c139109c4c65b724c18f8aa02c78e66d725332079bace83e0d6c487ab"
+    },
+    {
+      "file": "step-42-pt-four-sessions-detail.png",
+      "bytes": 68624,
+      "sha256": "002741ca7cc22eec00d0663853d9a54ab8685eb7d1005e1db997402bbe65ea1e"
+    },
+    {
+      "file": "step-43-combo-time-or.png",
+      "bytes": 58073,
+      "sha256": "ea699b7f6deb25e417065820785d1e161a9e22d1fed28ec6592d83ab2e06c4f8"
+    },
+    {
+      "file": "step-44-combo-time-or-detail.png",
+      "bytes": 71185,
+      "sha256": "65d01db37effad4b084839ede0dbe70b8ffc8008b7308b7380cc7d4015b03716"
+    },
+    {
+      "file": "step-45-combo-pt-or.png",
+      "bytes": 56820,
+      "sha256": "351a4f8ccac1cfdec3f5e79c749ad79eb5c796bc0e61a0da732fd8cd26c872b9"
+    },
+    {
+      "file": "step-46-combo-pt-or-detail.png",
+      "bytes": 69618,
+      "sha256": "008764799f8023ce69974bd922869bda25948759d26ccbc65cd5c60e9a2b97b6"
+    },
+    {
+      "file": "step-47-combo-gym-or.png",
+      "bytes": 56628,
+      "sha256": "9d68ef972f7c8e2a994466a0c6910985d3b56d7da184879cb3a65410652951c4"
+    },
+    {
+      "file": "step-48-combo-gym-or-detail.png",
+      "bytes": 69589,
+      "sha256": "57eaa25196a2213b09deeb59700cba81fac94d32f2544f1cbeca3a0481b393aa"
+    },
+    {
+      "file": "step-49-combo-unlimited-gym.png",
+      "bytes": 52749,
+      "sha256": "b5de374d2793450f0b0f15f88193239b96ee806f65040a14f68ddc142a8d46ba"
+    },
+    {
+      "file": "step-50-combo-unlimited-gym-detail.png",
+      "bytes": 66819,
+      "sha256": "7719afc11738126b418070e14cd7506a381e3c20ab3d4a7bdd70eb19e1e65044"
+    },
+    {
+      "file": "downstream-51-lt-branch-b-isolation.png",
+      "bytes": 82240,
+      "sha256": "04919e7722e19cf00a468d101d1eccc6cb2c18754343b49ec0664385a0722906"
+    },
+    {
+      "file": "step-52-history-width-320.png",
+      "bytes": 61647,
+      "sha256": "e91b54e5881db248f736a01abab3a684a7f89da79ac7e790972905be0a0745cc"
+    },
+    {
+      "file": "step-53-history-width-1440.png",
+      "bytes": 68097,
+      "sha256": "8b210f7e2214aa966a0d1a88c73862d515678a0798fe4d7c883a6d3346000f46"
+    }
+  ]
+}

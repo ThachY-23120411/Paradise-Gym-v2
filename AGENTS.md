@@ -1,5 +1,7 @@
 # Project Rules — Paradise Gym
 
+> Bổ sung kiểm thử 2026-09-21: Luồng ghi dữ liệu dùng PostgreSQL cô lập, không seed/reset database dùng chung. Ghi manifest migration; kiểm thử lại UI nguồn/downstream sau thay code. Áp dụng mục "Kinh nghiệm kiểm thử PT" trong skill `us-e2e-test-recorder` cho retry xác nhận kép và lịch sử snapshot.
+
 Current phase:
 
 Product Spec

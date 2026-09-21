@@ -250,13 +250,17 @@ window.CheckinModule = (function () {
       }
 
       // Expiring Warning Banner
-      if (g.is_expiring_soon) {
+      if (W().registrationNearExpiry({ ...g, is_expiring: g.is_expiring ?? g.is_expiring_soon })) {
         $('<div style="background:#fff8e6;border:2px solid #e09419;border-radius:8px;padding:14px;margin-bottom:16px;text-align:left;display:flex;gap:12px;align-items:center;">')
           .html(`
             <i class="fa-solid fa-triangle-exclamation" style="font-size:28px;color:#e09419;"></i>
             <div>
               <strong style="color:#945d04;font-size:14px;display:block;">CẢNH BÁO: GÓI TẬP SẮP HẾT HẠN</strong>
-              <span style="color:#7a510f;font-size:12px;">Gói của bạn sẽ hết hạn trong <strong>${g.days_remaining} ngày</strong> tới (${W().date(g.end_date)}). Vui lòng liên hệ quầy Lễ tân để gia hạn kịp thời.</span>
+              <span style="color:#7a510f;font-size:12px;">${W().escape([
+                g.days_remaining != null ? `Còn ${g.days_remaining} ngày` : null,
+                g.remaining_pt_sessions != null ? `Còn ${g.remaining_pt_sessions} buổi PT` : null,
+                g.remaining_gym_sessions != null ? `Còn ${g.remaining_gym_sessions} lượt Gym` : null
+              ].filter(Boolean).join(' · ') || 'Gói tập sắp hết hạn')}</span>
             </div>
           `).appendTo(content);
       }

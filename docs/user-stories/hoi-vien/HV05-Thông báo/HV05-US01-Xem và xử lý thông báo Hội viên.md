@@ -16,7 +16,7 @@
    - **Thông báo Kết quả xử lý Yêu cầu PT:** Phát khi PT chấp nhận hoặc từ chối yêu cầu phân công (`PT02-US03`). Nội dung: *"HLV [Tên PT] đã chấp nhận yêu cầu hướng dẫn gói [Tên gói]. Bạn có thể đặt lịch tập ngay!"* hoặc *"HLV [Tên PT] đã từ chối yêu cầu phân công"*.
    - **Thông báo Đặt lịch / Hủy lịch buổi PT:** Phát khi Lễ tân hoặc PT hỗ trợ đặt, đổi hoặc hủy lịch tập (`QTV-W06-US01/US02`, `PT01-US01`). Nội dung: *"Lịch tập ngày [DD/MM/YYYY] khung giờ [Khung giờ] với HLV [Tên PT] đã được cập nhật/hủy"*.
    - **Thông báo PT Xác nhận hoàn thành buổi tập:** Phát khi PT bấm xác nhận hoàn thành buổi tập (`PT01-US02`). Nội dung: *"HLV [Tên PT] đã xác nhận hoàn thành buổi tập [Khung giờ] ngày [DD/MM/YYYY]. Vui lòng xác nhận kết quả"*.
-   - **Thông báo Nhắc lịch tập & Nhắc hạn gói:** Phát tự động trước ca tập 1–2 giờ hoặc nhắc gói sắp hết hạn trước 7 ngày, 3 ngày và ngày hết hạn. Nội dung: *"Nhắc lịch tập: Bạn có buổi tập với HLV [Tên PT] vào lúc [Khung giờ] hôm nay"* hoặc *"Gói tập [Tên gói] của bạn sẽ hết hạn vào [DD/MM/YYYY]. Hãy gia hạn ngay!"*.
+   - **Thông báo Nhắc lịch tập & Nhắc hạn gói:** Phát tự động trước ca tập 1–2 giờ hoặc nhắc gói sắp hết hạn khi SYS xác định is_expiring (còn <= 4 ngày hoặc <= 3 buổi; Combo OR), theo cấu hình gửi hiện hành. Nội dung: *"Nhắc lịch tập: Bạn có buổi tập với HLV [Tên PT] vào lúc [Khung giờ] hôm nay"* hoặc *"Gói tập [Tên gói] của bạn sẽ hết hạn vào [DD/MM/YYYY]. Hãy gia hạn ngay!"*.
    - **Thông báo Chúc mừng sinh nhật:** Phát tự động vào đầu ngày sinh nhật của Hội viên.
 3. Hội viên có thể lọc danh sách thông báo theo trạng thái (`Tất cả` / `Chưa đọc`).
 4. Hội viên bấm chọn một thẻ thông báo cụ thể trong danh sách.
@@ -37,6 +37,8 @@
 | **Thao tác mở thông báo** | `Interactive row / Card action` | `USER-INPUT` | required | Không | Gọi `PUT /notifications/:id/read` bằng ID thật, rồi mở rộng nội dung tại chỗ; không chuyển màn hình hoặc cập nhật giao dịch/lịch tập |
 | **Trạng thái trống / lỗi tải** | `Empty state container` | `READONLY` | conditional | `CONDITIONAL`: **Hiện khi** danh sách lọc rỗng hoặc API tải lỗi; **Ẩn khi** có dữ liệu hợp lệ | Phân biệt chưa có thông báo và không thể kết nối; lỗi không hiển thị thông báo mẫu |
 | **Nút thử lại** | `Button / Secondary` | `USER-INPUT` | conditional | `CONDITIONAL`: **Hiện khi** API tải lỗi; **Ẩn khi** đang tải hoặc đã tải thành công | Gọi lại API danh sách, không tạo dữ liệu mới |
+
+- Thông báo cận hạn dùng số ngày hoặc số buổi thực tế tương ứng; gói không có ngày kết thúc không được hiển thị ngày hết hạn giả.
 
 ## Alternate Flows
 
@@ -67,6 +69,7 @@ flowchart TB
       S02["Hiển thị danh sách thông báo"]
       D01{"Hội viên chọn lọc thông báo Chưa đọc?"}
       S03["Hiển thị danh sách thông báo chưa đọc"]
+      M01(("Merge - Chọn thông báo"))
       S04["Đánh dấu Đã đọc và mở rộng nội dung chi tiết thông báo ngay trên màn hình"]
 
       I01 --> A01
@@ -75,8 +78,9 @@ flowchart TB
       S02 --> D01
       D01 -- "Có" --> A02
       A02 --> S03
-      S03 --> A03
-      D01 -- "Không" --> A03
+      S03 --> M01
+      D01 -- "Không" --> M01
+      M01 --> A03
       A03 --> S04
       S04 --> F01
     end

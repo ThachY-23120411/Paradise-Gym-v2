@@ -24,7 +24,7 @@
    - Chọn Năm hoa hồng: *2026* (mặc định, tùy chỉnh từ 2025 - 2030, có nút xóa để xem mọi năm).
    - Chọn lọc theo hình thức chi trả: *Tất cả*, *Chuyển khoản VietQR*, *Tiền mặt tại quầy*.
 6. SYS tự động lọc danh sách và cập nhật lại bộ 4 thẻ KPI tương ứng với kết quả lọc.
-7. QTV bấm nút **[Chi tiết]** trên một dòng giao dịch: SYS mở popup hiển thị đầy đủ danh sách các buổi tập cấu thành kèm khối chứng từ chi trả (Thời gian chi trả, Hình thức, Mã giao dịch / Phiếu chi, Người duyệt chi, Ghi chú).
+7. QTV bấm nút **[Chi tiết]** trên một dòng giao dịch: SYS mở popup hiển thị snapshot bất biến các buổi cấu thành (legacy thiếu snapshot thì thông báo thiếu chi tiết, không dựng lại) kèm khối chứng từ chi trả (Thời gian chi trả, Hình thức, Mã giao dịch / Phiếu chi, Người duyệt chi, Ghi chú).
 8. QTV bấm nút **[Xuất file]**: SYS xuất toàn bộ dữ liệu lịch sử chi trả ra file CSV/Excel để phục vụ lưu trữ sổ sách kế toán.
 
 ---
@@ -47,12 +47,27 @@
 
 ---
 
+### Đồng bộ snapshot PAID đã phê duyệt (20/09/2026)
+- Chi trả mới lưu tổng, chứng từ và snapshot chi tiết từng buổi nguyên tử trong cùng transaction. Lỗi lưu snapshot phải rollback toàn bộ; không có PAID mới chỉ chứa tổng.
+- PAID có snapshot: xem/xuất chi tiết từ snapshot bất biến, không tính lại từ booking, hồ sơ hoặc tỷ lệ hiện tại; tổng phải khớp toàn bộ chi tiết cùng bảng kê.
+- PAID legacy không snapshot: API details_snapshot_available=false và sessions=[]; vẫn hiển thị tổng/chứng từ lịch sử và thông báo Không có chi tiết lịch sử cho kỳ đã chi trả này. Không coi [] là 0 buổi/0 đồng, không tái dựng từ dữ liệu sống.
+- Giữ nguyên quyền QTV/branch scope. PT06-US02 chỉ đọc chính bảng kê PT; không mở quyền chi trả cho PT. Migration/ERD do backend owner cập nhật.
+
+### Field-level specification — Trạng thái snapshot trong popup Chi tiết
+| Field | UI | State | Required | Conditional / dynamic | Source / validation |
+| --- | --- | --- | --- | --- | --- |
+| Chi tiết từng buổi | Readonly list | READONLY | conditional | CONDITIONAL: hiện khi có snapshot PAID hoặc bảng kê chưa PAID có chi tiết tính hiện hành; ẩn khi PAID legacy thiếu snapshot | Học viên, gói, ngày/giờ, giá trị PT, hoa hồng từ nguồn cùng bảng kê; PAID chỉ dùng snapshot |
+| Thông báo không có chi tiết lịch sử | Text | READONLY | conditional | CONDITIONAL: hiện khi PAID và details_snapshot_available=false; ẩn khi có snapshot hoặc chưa PAID | API flag; không dùng danh sách rỗng để ghi 0 |
+| Tổng và chứng từ đã chi | Text | READONLY | required | Không | Tổng/chứng từ lịch sử, giữ nguyên kể cả thiếu snapshot |
+
 ## Alternate Flows
 
 ### AF-01 - Xuất Dữ Liệu Đối Soát Sổ Sách
 1. QTV thiết lập bộ lọc (ví dụ: lọc tất cả giao dịch `CASH` trong tháng vừa qua).
 2. QTV bấm **[Xuất file]**.
 3. SYS kết xuất file bảng tính CSV/Excel đầy đủ 12 cột thông tin chứng từ và trình duyệt tự động tải file về máy.
+
+- AF-02: PAID legacy thiếu snapshot → hiển thị tổng/chứng từ cùng thông báo thiếu chi tiết; không mất giao dịch khỏi lịch sử.
 
 ## Exception Flows
 - **Không có dữ liệu phù hợp:** Khi bộ lọc không tìm thấy giao dịch nào thỏa mãn, SYS hiển thị Empty State: *"Chưa có lịch sử chi trả nào phù hợp với bộ lọc."* và các thẻ KPI hiển thị về giá trị 0.
@@ -86,7 +101,11 @@ flowchart TB
       S03["Hiển thị 4 thẻ KPI và bảng lưới lịch sử chi trả"]
       M00(("Merge"))
       S04["Áp dụng bộ lọc, tính toán lại KPI và cập nhật bảng DataGrid"]
-      S06["Mở popup hiển thị danh sách buổi dạy và khối chứng từ chi trả"]
+      S06["Tải snapshot và chứng từ giao dịch PAID"]
+      DS{"details_snapshot_available?"}
+      LS["Giữ tổng, báo thiếu chi tiết legacy; không coi là 0"]
+      SS["Hiển thị snapshot bất biến và chứng từ"]
+      MS(("Merge - Chi tiết"))
       M01(("Merge"))
       S05["Kết xuất file CSV/Excel danh sách lịch sử chi trả và tải xuống"]
 
@@ -98,7 +117,12 @@ flowchart TB
       A02 --> S04
       S04 --> M01
       A03 --> S06
-      S06 --> M01
+      S06 --> DS
+      DS -->|false| LS
+      DS -->|true| SS
+      LS --> MS
+      SS --> MS
+      MS --> M01
       M01 --> M00
     end
   end

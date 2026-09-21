@@ -1,5 +1,7 @@
 # Báo Cáo Kiểm Thử E2E — HV03-US03: Mua gói và khởi tạo thanh toán Mobile
 
+**Cập nhật 2026-09-21:** [Báo cáo cuối luồng payment intents: 53/53 bước UI PASS](./payment-intents/2026-09-21T03-52-18-551Z/HV03-US03-test.md). [Provenance và 53 ảnh có annotation](./payment-intents/2026-09-21T03-52-18-551Z/results.json). Nội dung bên dưới giữ nguyên làm lịch sử kiểm thử ngày 2026-09-18.
+
 - **User Story:** `HV03-US03`
 - **Epic / Menu:** HV03 · Gói của tôi
 - **Vai trò thực hiện (Primary Role):** Hội viên (HV)

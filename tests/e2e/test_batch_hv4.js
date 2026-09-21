@@ -1,6 +1,6 @@
-const E2ETestRunner = require('e:/Desktop/Paradise Gym-v2/tests/e2e/runner');
+const E2ETestRunner = require('./runner');
 const path = require('path');
-const { Pool } = require('e:/Desktop/Paradise Gym-v2/backend/node_modules/pg');
+const { Pool } = require('../../backend/node_modules/pg');
 
 async function setupDatabaseForHV4() {
   const pool = new Pool({ connectionString: 'postgresql://postgres:postgres@localhost:5435/paradise_gym' });

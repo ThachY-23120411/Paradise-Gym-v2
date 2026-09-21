@@ -1,7 +1,7 @@
 /**
  * PARADISE GYM - MOBILE PT APP (TAB 3: anti-3-PT)
  * MAIN APP CONTROLLER & COORDINATOR
- * Manages: 4-Tab Bottom Nav, Session State, Header & Notifications, Toast System
+ * Manages: 5-Tab Bottom Nav, Session State, Header & Notifications, Toast System
  */
 
 (function (window, $) {
@@ -84,15 +84,16 @@
       setInterval(updateClock, 10000);
     }
 
-    // Switch between the 4 primary tabs
+    // Switch between the primary tabs.
     switchTab(tabKey) {
       if (!this.currentUser) return;
       if (tabKey === 'notifications') { this.openNotificationSheet(); return; }
       this.currentTab = tabKey;
+      let loading;
 
       // Update bottom nav active state
-      $('#bottomNav .nav-item').removeClass('active');
-      $(`#bottomNav .nav-item[data-tab="${tabKey}"]`).addClass('active');
+      $('#bottomNav .nav-item').removeClass('active').removeAttr('aria-current');
+      $(`#bottomNav .nav-item[data-tab="${tabKey}"]`).addClass('active').attr('aria-current', 'page');
 
       // Update main content views
       $('.view-section').removeClass('active');
@@ -101,24 +102,28 @@
         targetView.addClass('active');
       }
 
+      if (tabKey === 'commissions' && window.ParadisePTOverview) {
+        loading = window.ParadisePTOverview.refreshCommissions();
+      }
+
       // Refresh overview data if switching to overview
       if (tabKey === 'overview' && window.ParadisePTOverview) {
-        window.ParadisePTOverview.refresh();
+        loading = window.ParadisePTOverview.refresh();
       }
 
       // Refresh schedule data if switching to schedule (PT01)
       if (tabKey === 'schedule' && window.ParadisePTSchedule && typeof window.ParadisePTSchedule.refresh === 'function') {
-        window.ParadisePTSchedule.refresh();
+        loading = window.ParadisePTSchedule.refresh();
       }
 
       // Refresh clients data if switching to members (PT02)
       if (tabKey === 'members' && window.ParadisePTClients && typeof window.ParadisePTClients.refresh === 'function') {
-        window.ParadisePTClients.refresh();
+        loading = window.ParadisePTClients.refresh();
       }
 
       // Refresh profile data if switching to profile (PT04)
       if (tabKey === 'profile' && window.ptProfile && typeof window.ptProfile.loadProfile === 'function') {
-        window.ptProfile.loadProfile();
+        loading = window.ptProfile.loadProfile();
       }
 
       // Cuộn lên đầu view khi chuyển tab
@@ -126,6 +131,7 @@
 
       // Header cố định toàn cục thuộc layout - Giữ nguyên "Xin chào HLV...", Chi nhánh và Mã PT
       this.refreshPersistentHeader();
+      return loading;
     }
 
     // Header layout cố định cho toàn bộ menu (PT01-PT06)
@@ -171,7 +177,7 @@
       }
     }
 
-    initSession(user, defaultTab = 'schedule') {
+    initSession(user, defaultTab = 'overview') {
       const role = user?.active_role || user?.role || (user?.roles?.includes('PT') ? 'PT' : (user?.roles?.includes('MEMBER') ? 'MEMBER' : null));
       if (role === 'MEMBER') {
         window.location.replace('/mobile/member/');
@@ -203,7 +209,7 @@
 
       $('#loginPassword, #loginOtpCode, #actNewPassword, #actConfirmPassword, #actOtpCode, .otp-box').val('');
 
-      // Show bottom nav and navigate to PT01 · Lịch (as per PT05-US01 & PT05-US02)
+      // PT05 opens the overview after establishing a full authenticated session.
       $('#bottomNav').show();
       this.switchTab(defaultTab);
     }

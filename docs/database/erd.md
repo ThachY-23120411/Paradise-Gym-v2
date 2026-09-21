@@ -108,6 +108,7 @@ erDiagram
     registrations ||--o{ access_logs : "grants_access_for"
     registrations ||--o{ package_freezes : "frozen_by"
     registrations ||--o{ package_transfers : "transferred_by"
+    registrations ||--o{ package_transfer_requests : "transfer_requested_by"
     registrations ||--o{ group_pt_members : "includes_members"
 
     pt_profiles ||--o{ pt_assignment_requests : "receives_request"
@@ -118,6 +119,8 @@ erDiagram
     member_profiles ||--o{ pt_bookings : "books_session"
     member_profiles ||--o{ community_class_registrations : "registers_class"
     member_profiles ||--o{ group_pt_members : "participates_in_group_pt"
+    member_profiles ||--o{ package_transfer_requests : "sent_transfers"
+    member_profiles ||--o{ package_transfer_requests : "received_transfers"
 
     community_classes ||--o{ community_class_registrations : "has_participants"
 
@@ -587,6 +590,19 @@ erDiagram
         text reason
         uuid approved_by FK
         timestamptz created_at
+    }
+
+    package_transfer_requests {
+        uuid id PK
+        uuid registration_id FK
+        uuid from_member_id FK
+        uuid to_member_id FK
+        varchar status
+        text reason
+        decimal transfer_fee
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz responded_at
     }
 
     holidays {
@@ -1421,6 +1437,25 @@ Cập nhật mô hình cơ sở dữ liệu đáp ứng 100% các yêu cầu t�
   * `reason TEXT NULL`: Ghi chú lý do chuyển nhượng
   * `approved_by_account_id UUID NOT NULL REFERENCES accounts(id)`: Nhân viên quầy xử lý
   * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+#### 2.8.1. `package_transfer_requests` (Yêu cầu chuyển nhượng gói tập giữa hội viên)
+- **Mục đích:** Quản lý quy trình yêu cầu chuyển nhượng gói tập trực tiếp giữa Hội viên A (bên chuyển nhượng) và Hội viên B (bên nhận chuyển nhượng) trên ứng dụng Mobile Hội viên (HV03).
+- **Ràng buộc nghiệp vụ:**
+  - Chỉ chuyển nhượng gói tập có trạng thái `ACTIVE` hoặc `SCHEDULED`, chưa hết hạn và không đang bị đóng băng (`is_frozen = FALSE`).
+  - Mỗi gói tập chỉ được phép có tối đa 1 yêu cầu ở trạng thái `PENDING` tại một thời điểm (được bảo vệ bằng Partial Unique Index `idx_pkg_transfer_req_reg_pending`).
+  - Trạng thái yêu cầu: `PENDING` (Chờ phản hồi), `ACCEPTED` (Đã chấp nhận chuyển nhượng), `REJECTED` (Đã từ chối), `CANCELLED` (Đã hủy / thu hồi yêu cầu).
+  - Khi Bên nhận (B) chấp thuận (`ACCEPTED`): hệ thống tự động cập nhật `registrations.member_id = to_member_id`, tạo bản ghi lịch sử `package_transfers` và đóng yêu cầu.
+- **Cột:**
+  * `id UUID PK DEFAULT gen_random_uuid()`
+  * `registration_id UUID NOT NULL REFERENCES registrations(id)`: Gói tập yêu cầu chuyển nhượng
+  * `from_member_id UUID NOT NULL REFERENCES member_profiles(id)`: Hội viên gửi yêu cầu chuyển nhượng
+  * `to_member_id UUID NOT NULL REFERENCES member_profiles(id)`: Hội viên nhận chuyển nhượng
+  * `status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED'))`: Trạng thái yêu cầu
+  * `reason TEXT NULL`: Ghi chú / lý do chuyển nhượng
+  * `transfer_fee DECIMAL(12,2) NOT NULL DEFAULT 0`: Phí chuyển nhượng (nếu có)
+  * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+  * `updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+  * `responded_at TIMESTAMPTZ NULL`: Thời điểm bên nhận phản hồi (Chấp nhận hoặc Từ chối)
 
 #### 2.9. `holidays` (Quản lý lịch ngày lễ)
 - **Mục đích:** Cấu hình các ngày nghỉ lễ toàn hệ thống hoặc theo chi nhánh; tự động chặn xếp lịch PT và thông báo cho hội viên.

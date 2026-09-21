@@ -2,6 +2,7 @@ const express=require('express');
 const bcrypt=require('bcryptjs');
 const {transaction}=require('../../db/postgres');
 const H=require('./http');
+const {registrationState}=require('./registrationState');
 const {pool,route,fail,text,phone,date,today,choice,integer,only,isStaff,role,globalAdmin,branch,selected,scope,row,activeBranch,audit,code,page,search}=H;
 const router=express.Router();
 const profileStatuses=['ACTIVE','INACTIVE','ARCHIVED'];
@@ -31,7 +32,10 @@ router.get('/members',route(async req=>{
 router.get('/members/:id',route(async req=>{
   const m=await row(pool,'member_profiles',req.params.id);await canMember(req,m);
   const branchInfo=await row(pool,'branches',m.home_branch_id);
-  const registrations=(await pool.query('SELECT * FROM registrations WHERE member_id=$1',[m.id])).rows;
+  const registrations=(await pool.query(`SELECT r.*,
+    EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id) is_paid,
+    EXISTS(SELECT 1 FROM package_freezes f WHERE f.registration_id=r.id AND f.status='SCHEDULED') has_scheduled_freeze
+    FROM registrations r WHERE r.member_id=$1`,[m.id])).rows.map(r=>registrationState(r));
   if(req.user.active_role==='PT') registrations.forEach(r=>{delete r.price_snapshot;});
   const consents=req.user.active_role==='PT'?[]:(await pool.query('SELECT DISTINCT ON(consent_type) consent_type,is_granted,policy_version,created_at,revoked_at FROM member_consents WHERE member_id=$1 ORDER BY consent_type,created_at DESC',[m.id])).rows;
   const logs=req.user.active_role==='PT'?[]:(await pool.query(`SELECT l.id,l.direction,l.status,l.check_in_time,l.access_method,l.denial_reason,l.manual_reason,b.branch_name FROM access_logs l JOIN branches b ON b.id=l.branch_id WHERE l.member_id=$1 AND ($2::uuid[] IS NULL OR l.branch_id=ANY($2)) ORDER BY l.check_in_time DESC LIMIT 20`,[m.id,isStaff(req)?scope(req):null])).rows;
