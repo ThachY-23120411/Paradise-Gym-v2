@@ -188,6 +188,21 @@
           </div>
         </div>
 
+        <!-- 5) Lớp học cộng đồng -->
+        <div class="pt-kpi-card card-purple card-fullwidth" id="cardKpiCommunity" title="Xem lớp học cộng đồng">
+          <div class="pt-kpi-card-header">
+            <span class="pt-kpi-label">Lớp học cộng đồng</span>
+            <div class="pt-kpi-icon-wrap icon-purple">
+              <i class="fa-solid fa-users-rectangle"></i>
+            </div>
+          </div>
+          <div class="pt-kpi-number" id="kpiCommunityClasses">--</div>
+          <div class="pt-kpi-footer">
+            <span class="pt-kpi-pill pill-purple">Phụ trách</span>
+            <i class="fa-solid fa-chevron-right pt-kpi-arrow"></i>
+          </div>
+        </div>
+
       </div>
 
       <!-- Thẻ Thù lao & Hoa hồng tháng (PT06-US02) -->
@@ -196,12 +211,16 @@
           <i class="fa-solid fa-file-invoice-dollar"></i> Thù lao & hoa hồng
         </div>
         <div class="pt-comm-card-main">
-          <div class="pt-comm-card-left">
-            <span class="pt-comm-card-title">Hoa hồng ước tính tháng này</span>
+          <div class="pt-comm-card-left" style="flex: 1; min-width: 0;">
+            <span class="pt-comm-card-title">Tổng thu nhập ước tính tháng này</span>
             <div class="pt-comm-card-amount" id="overviewCommAmount">-- <small>VNĐ</small></div>
-            <div class="pt-comm-card-sub" id="overviewCommStatus"><span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #996217; font-size: 12px; padding: 2px 8px; border-radius: 999px;">Chờ chi trả</span></div>
+            <div class="pt-comm-card-breakdown" style="margin-top: 6px; font-size: 11.5px; color: #78350f; display: flex; flex-direction: column; gap: 2px;">
+              <div>Hoa hồng gói PT/COMBO: <strong id="overviewPtCommAmount">--</strong></div>
+              <div>Thù lao lớp cộng đồng: <strong id="overviewCommunityCompAmount">--</strong></div>
+            </div>
+            <div class="pt-comm-card-sub" id="overviewCommStatus" style="margin-top: 6px;"><span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #996217; font-size: 12px; padding: 2px 8px; border-radius: 999px;">Chờ chi trả</span></div>
           </div>
-          <div class="pt-comm-card-right">
+          <div class="pt-comm-card-right" style="flex-shrink: 0; text-align: right;">
             <div class="pt-comm-btn-circle">
               <i class="fa-solid fa-arrow-right"></i>
             </div>
@@ -244,8 +263,8 @@
               <i class="fa-solid fa-file-invoice-dollar"></i>
             </div>
             <div class="pt-quick-btn-text">
-              <strong>Bảng kê hoa hồng tháng</strong>
-              <small>Chi tiết thù lao buổi dạy & trạng thái chi trả</small>
+              <strong>Bảng kê thu nhập tháng</strong>
+              <small>Chi tiết hoa hồng PT & thù lao lớp cộng đồng</small>
             </div>
             <i class="fa-solid fa-chevron-right pt-quick-btn-arrow"></i>
           </button>
@@ -363,6 +382,36 @@
       .on('click', '#cardPtCommissions, #btnQuickCommissions', function () {
         openCommissionModal();
       });
+
+    // 7. Chuyển đổi Sub-tab trong Menu Thu nhập
+    $(document).off('click', '.pt-income-subtab-btn').on('click', '.pt-income-subtab-btn', function () {
+      const subtab = $(this).data('subtab');
+      $('.pt-income-subtab-btn').removeClass('active').css({ background: 'transparent', color: 'var(--text-muted)', fontWeight: '600' });
+      $(this).addClass('active').css({ background: 'var(--primary)', color: '#FFFFFF', fontWeight: '700' });
+      $('.pt-income-subtab-content').hide();
+      $(`#subtab-${subtab.replace(/_/g, '-')}`).show();
+    });
+
+    // 7.1. Chạm thẻ chuyển sang tab con từ Bảng tóm tắt nguồn thu nhập
+    $(document).off('click', '.pt-income-source-card').on('click', '.pt-income-source-card', function () {
+      const targetSubtab = $(this).data('target-subtab');
+      if (targetSubtab) {
+        $(`.pt-income-subtab-btn[data-subtab="${targetSubtab}"]`).trigger('click');
+      }
+    });
+
+    // 7.2. Chạm thẻ KPI Lớp học cộng đồng trên Tổng quan -> chuyển sang Menu Thu nhập & mở tab Thù lao lớp CĐ
+    $(document).off('click', '#cardKpiCommunity').on('click', '#cardKpiCommunity', function () {
+      openCommissionModal();
+      $('.pt-income-subtab-btn[data-subtab="community_comp"]').trigger('click');
+    });
+
+    // 7.3. Chạm vào card lớp CĐ hoặc nút Xem danh sách học viên
+    $(document).off('click', '.pt-comm-class-card, .btn-comm-view-members').on('click', '.pt-comm-class-card, .btn-comm-view-members', function (e) {
+      e.stopPropagation();
+      const classId = $(this).data('class-id');
+      openCommunityClassModal(classId);
+    });
 
     // 8. Chuyển đổi kỳ thù lao (Chips: Tháng này / Tháng trước / Tháng khác)
     $(document).off('click', '.pt-comm-chip').on('click', '.pt-comm-chip', function () {
@@ -506,6 +555,7 @@
     animateCount('kpiUpcomingBookings', data.upcomingBookings || 0);
     animateCount('kpiAwaitingConfirmation', data.awaitingConfirmation || 0);
     animateCount('kpiPendingAssignments', data.pendingAssignments || 0);
+    animateCount('kpiCommunityClasses', data.communityClasses || 0);
   }
 
   /**
@@ -565,56 +615,79 @@
     OverviewState.hasError = false;
     hideErrorBanner();
     $('.pt-kpi-number').text('--');
-    $('#overviewCommAmount, #overviewCommRate').text('--');
+    $('#overviewCommAmount, #overviewPtCommAmount, #overviewCommunityCompAmount, #overviewCommRate').text('--');
     $('#overviewCommStatus').text('Đang tải');
     try {
-      const [res, bookings] = await Promise.all([
+      const [res, bookings, classesRes] = await Promise.all([
         apiClient.mobile.ptStatistics(period),
-        apiClient.pt.listBookings()
+        apiClient.pt.listBookings(),
+        apiClient.request('/community-classes?instructor_id=' + ptId)
       ]);
       if (version !== statsRequest || window.ptApp?.currentUser?.pt_profile_id !== ptId || OverviewState.currentPeriod !== selected) return;
       const m = res.data.metrics;
+      const allCommunityClasses = classesRes.data || classesRes || [];
+      const periodClasses = (Array.isArray(allCommunityClasses) ? allCommunityClasses : []).filter(c => {
+        const d = (c.class_date || '').split('T')[0];
+        return d >= res.data.start_date && d <= res.data.end_date;
+      });
+
       OverviewState.kpiData[selected] = {
         assignedMembers: m.active_students, completedSessions: m.completed_sessions,
         upcomingBookings: m.upcoming_sessions, awaitingConfirmation: m.awaiting_confirmation,
-        pendingAssignments: m.pending_requests
+        pendingAssignments: m.pending_requests,
+        communityClasses: periodClasses.length
       };
       OverviewState.rawBookings = (bookings.data || []).filter(b => b.pt_id === ptId && b.booking_date >= res.data.start_date && b.booking_date <= res.data.end_date);
       updateKpiNumbers(OverviewState.kpiData[selected]);
 
-      // PT06-US02: Nạp nhanh thù lao hoa hồng tháng này hiển thị lên Overview Card
+      // PT06-US02: Nạp thù lao hoa hồng và lớp cộng đồng tháng này hiển thị lên Overview Hero Card
       try {
         const curDate = new Date();
         const curMonth = curDate.getMonth() + 1;
         const curYear = curDate.getFullYear();
+        const curMonthStr = `${curYear}-${String(curMonth).padStart(2, '0')}`;
         const commRes = await apiClient.pt.getMyCommissions({ month: curMonth, year: curYear });
         if (version !== statsRequest || window.ptApp?.currentUser?.pt_profile_id !== ptId || OverviewState.currentPeriod !== selected) return;
         const commSummary = commRes.data?.summary || commRes.summary;
         if (!commSummary) throw new Error('Missing commission summary');
-        if (commSummary) {
-          const amt = formatVnd(commSummary.total_commission_amount || 0);
-          $('#overviewCommAmount').html(`${amt} <small>VNĐ</small>`);
-          $('#overviewCommRate').text(`${commSummary.commission_percentage || 0}% hoa hồng`);
-          const stMap = {
-            PENDING: { label: 'Chờ chi trả', bg: 'rgba(245, 158, 11, 0.2)', color: '#996217' },
-            APPROVED: { label: 'Chờ chi trả', bg: 'rgba(59, 130, 246, 0.2)', color: '#286aa4' },
-            PAID: { label: 'Đã chi trả', bg: 'rgba(16, 185, 129, 0.2)', color: '#237b58' }
-          };
-          const curSt = stMap[commSummary.status] || stMap.PENDING;
-          $('#overviewCommStatus').html(`<span class="badge" style="background: ${curSt.bg}; color: ${curSt.color}; font-size: 12px; padding: 2px 8px; border-radius: 999px;">${curSt.label}</span>`);
-        }
+
+        // Tính thù lao lớp cộng đồng trong tháng này
+        const curMonthClasses = (Array.isArray(allCommunityClasses) ? allCommunityClasses : []).filter(c => {
+          const d = (c.class_date || '').slice(0, 7);
+          return d === curMonthStr;
+        });
+        const communityComp = curMonthClasses.reduce((sum, c) => {
+          const comp = Number(c.total_compensation || ((Number(c.base_price) || 0) + (Number(c.bonus_amount) || 0)));
+          return sum + comp;
+        }, 0);
+
+        const ptCommAmount = Number(commSummary.total_commission_amount || 0);
+        const totalIncome = ptCommAmount + communityComp;
+
+        $('#overviewCommAmount').html(`${formatVnd(totalIncome)} <small>VNĐ</small>`);
+        $('#overviewPtCommAmount').text(formatVnd(ptCommAmount) + ' đ');
+        $('#overviewCommunityCompAmount').text(formatVnd(communityComp) + ' đ');
+        $('#overviewCommRate').text(`${commSummary.commission_percentage || 0}% hoa hồng`);
+        const stMap = {
+          PENDING: { label: 'Chờ chi trả', bg: 'rgba(245, 158, 11, 0.2)', color: '#996217' },
+          APPROVED: { label: 'Chờ chi trả', bg: 'rgba(59, 130, 246, 0.2)', color: '#286aa4' },
+          PENDING_CONFIRMATION: { label: 'Chờ bạn xác nhận', bg: 'rgba(2, 132, 199, 0.2)', color: '#0284c7' },
+          PAID: { label: 'Đã chi trả', bg: 'rgba(16, 185, 129, 0.2)', color: '#237b58' }
+        };
+        const curSt = stMap[commSummary.status] || stMap.PENDING;
+        $('#overviewCommStatus').html(`<span class="badge" style="background: ${curSt.bg}; color: ${curSt.color}; font-size: 12px; padding: 2px 8px; border-radius: 999px;">${curSt.label}</span>`);
       } catch (cErr) {
         if (version !== statsRequest) return;
-        $('#overviewCommAmount, #overviewCommRate').text('--');
+        $('#overviewCommAmount, #overviewPtCommAmount, #overviewCommunityCompAmount, #overviewCommRate').text('--');
         $('#overviewCommStatus').text('Không thể tải');
         console.warn('Could not fetch commission summary for overview:', cErr);
       }
     } catch (err) {
       if (version !== statsRequest || window.ptApp?.currentUser?.pt_profile_id !== ptId || OverviewState.currentPeriod !== selected) return;
-      $('#overviewCommAmount, #overviewCommRate').text('--');
+      $('#overviewCommAmount, #overviewPtCommAmount, #overviewCommunityCompAmount, #overviewCommRate').text('--');
       $('#overviewCommStatus').text('Không thể tải');
       OverviewState.hasError = true;
-      $('#kpiAssignedMembers, #kpiCompletedSessions, #kpiUpcomingBookings, #kpiAwaitingConfirmation, #kpiPendingAssignments').text('--');
+      $('#kpiAssignedMembers, #kpiCompletedSessions, #kpiUpcomingBookings, #kpiAwaitingConfirmation, #kpiPendingAssignments, #kpiCommunityClasses').text('--');
       showErrorBanner('Không thể nạp dữ liệu thống kê, vui lòng kiểm tra kết nối mạng');
     } finally { if (version === statsRequest) OverviewState.isLoading = false; }
   }
@@ -669,21 +742,46 @@
     const version = ++commissionRequest;
     $('#commReconciliationError').hide().empty();
     $('#commTotalAmount, #commRate, #commSessionsCount, #commBaseRevenue, #commListSub').text('--');
-    $('#commStatusBadge').text('Đang tải');
+    $('#commCommunityTotalComp, #commCommunityBasePrice, #commCommunityBonusAmount, #commCommunityClassesCount, #commCommunitySlots, #commCommunityAvgComp, #commCommunityListSub').text('--');
+    $('#summaryTotalIncomeAmount, #summaryPtCommAmount, #summaryCommunityCompAmount, #summaryTotalSessionsCount').text('--');
+    $('#summaryPtCommSub, #summaryPtCommVal, #summaryCommunityCompSub, #summaryCommunityCompVal').text('--');
+    $('#commStatusBadge, #summaryIncomeStatusBadge').text('Đang tải');
     $('#commPaidDateWrap').hide();
+    $('#commConfirmationBox').hide();
     const $list = $('#commSessionsList');
+    const $commList = $('#commCommunityCompList');
     $list.html(`
       <div style="text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 12px;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; margin-bottom: 8px;"></i>
         <div>Đang nạp bảng kê hoa hồng tháng ${month}/${year}...</div>
       </div>
     `);
+    $commList.html(`
+      <div style="text-align: center; padding: 24px 10px; color: var(--text-muted); font-size: 12px;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; margin-bottom: 8px; color: #7c3aed;"></i>
+        <div>Đang nạp thù lao lớp cộng đồng tháng ${month}/${year}...</div>
+      </div>
+    `);
 
     try {
-      const res = await apiClient.pt.getMyCommissions({ month, year });
+      const ptId = window.ptApp?.currentUser?.pt_profile_id;
+      const [res, classesRes] = await Promise.all([
+        apiClient.pt.getMyCommissions({ month, year }),
+        ptId ? apiClient.request(`/community-classes?instructor_id=${ptId}`) : Promise.resolve({ data: [] })
+      ]);
       if (version !== commissionRequest) return;
       const summary = res.data?.summary || res.summary;
       const sessions = res.data?.sessions || res.sessions;
+      const allCommunityClasses = Array.isArray(classesRes?.data) ? classesRes.data : (Array.isArray(classesRes) ? classesRes : []);
+
+      // -------------------------------------------------------------
+      // 1. XỬ LÝ SUBTAB 2: GÓI PT / COMBO (HOA HỒNG)
+      // -------------------------------------------------------------
+      let totalComm = 0;
+      let rate = 0;
+      let sessionsCount = 0;
+      let baseRev = 0;
+      let status = 'PENDING';
 
       if (!summary) {
         $('#commTotalAmount').text('--');
@@ -696,97 +794,240 @@
             <p>Chưa nhận được bảng kê hoa hồng. Vui lòng thử lại hoặc liên hệ QTV.</p>
           </div>
         `);
-        return;
+      } else {
+        totalComm = Number(summary.total_commission_amount) || 0;
+        rate = Number(summary.commission_percentage) || 0;
+        sessionsCount = summary.total_pt_sessions_taught || 0;
+        baseRev = Number(summary.pt_revenue_share) || 0;
+        status = summary.status || 'PENDING';
+
+        $('#commTotalAmount').html(`${formatVnd(totalComm)} <small style="font-size: 14px; color: #996217;">VNĐ</small>`);
+        $('#commRate').text(`${rate}%`);
+        $('#commSessionsCount').text(`${sessionsCount} buổi`);
+        $('#commBaseRevenue').text(`${formatVnd(baseRev)} đ`);
+
+        const statusMap = {
+          PENDING: { label: 'Chờ chi trả', bg: 'rgba(245, 158, 11, 0.2)', color: '#996217' },
+          APPROVED: { label: 'Chờ chi trả', bg: 'rgba(59, 130, 246, 0.2)', color: '#286aa4' },
+          PENDING_CONFIRMATION: { label: 'Chờ bạn xác nhận', bg: 'rgba(2, 132, 199, 0.2)', color: '#0284c7' },
+          PAID: { label: 'Đã chi trả', bg: 'rgba(16, 185, 129, 0.2)', color: '#237b58' }
+        };
+        const st = statusMap[status] || statusMap.PENDING;
+        $('#commStatusBadge').text(st.label).css({ background: st.bg, color: st.color });
+
+        const items = Array.isArray(sessions) ? sessions : [];
+        if (status === 'PAID' && (res.data?.details_snapshot_available ?? res.details_snapshot_available) === false) {
+          $('#commListSub').text('Chưa có bản chốt chi tiết');
+          $list.html('<p class="pt-empty-desc">Bảng kê này đã chi trả trước khi hệ thống lưu chi tiết từng buổi. Số tổng đã chốt được giữ nguyên; không có bản chốt chi tiết để đối chiếu.</p>');
+        } else {
+          $('#commListSub').text(`${items.length} ca tập`);
+          const sum = key => items.reduce((total, item) => total + Number(item[key]), 0);
+          if (items.length !== Number(sessionsCount) || !Number.isFinite(sum('session_pt_value')) || !Number.isFinite(sum('session_commission')) || Math.abs(sum('session_pt_value') - baseRev) > 0.011 || Math.abs(sum('session_commission') - totalComm) > 0.011) {
+            $('#commReconciliationError').text('Chưa đối soát được: số tổng và chi tiết không khớp. Vui lòng làm mới hoặc liên hệ QTV.').show();
+          }
+
+          if (items.length === 0) {
+            $list.html(`
+              <div style="text-align: center; padding: 28px 12px; color: var(--text-muted); font-size: 12px;">
+                <i class="fa-solid fa-calendar-xmark" style="font-size: 28px; margin-bottom: 8px; opacity: 0.5;"></i>
+                <p style="margin: 0;">Bạn chưa có buổi dạy hoàn thành nào trong tháng này. Hãy tiếp tục cố gắng!</p>
+              </div>
+            `);
+          } else {
+            let rowsHtml = '';
+            items.forEach((s) => {
+              const dateStr = s.booking_date ? new Date(s.booking_date).toLocaleDateString('vi-VN') : '--';
+              const timeStr = (s.start_time && s.end_time) ? `${s.start_time.slice(0, 5)} - ${s.end_time.slice(0, 5)}` : '';
+              const sessionVal = formatVnd(s.session_pt_value);
+              const sessionComm = formatVnd(s.session_commission);
+
+              // Nhãn phân loại gói PT
+              const pkgName = s.package_name_snapshot || s.package_name || '';
+              const isCombo = /combo/i.test(pkgName);
+              const isGroup = /nhóm|group|1-nhiều/i.test(pkgName);
+              const pkgBadge = isCombo 
+                ? '<span class="badge" style="background:#e0e7ff;color:#4338ca;font-size:10.5px;padding:1px 6px;margin-right:4px;">Combo PT</span>'
+                : isGroup
+                  ? '<span class="badge" style="background:#fef3c7;color:#b45309;font-size:10.5px;padding:1px 6px;margin-right:4px;">PT Nhóm</span>'
+                  : '<span class="badge" style="background:#ecfdf5;color:#047857;font-size:10.5px;padding:1px 6px;margin-right:4px;">PT 1:1</span>';
+
+              rowsHtml += `
+                <div class="pt-comm-session-item" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+                      <i class="fa-regular fa-clock" style="color: var(--primary);"></i>
+                      <span>${timeStr} • ${dateStr}</span>
+                      <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #237b58; font-size: 12px; padding: 1px 6px;">Buổi #${s.session_number ?? '--'}</span>
+                    </div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      ${escapeHtml(s.member_name || 'Hội viên')} <small style="color: var(--text-muted); font-weight: 400;">(${escapeHtml(s.member_code || '--')})</small>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-sub); margin-top: 2px; display: flex; align-items: center;">
+                      ${pkgBadge} <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(pkgName || 'Gói tập PT')}</span>
+                    </div>
+                  </div>
+                  <div style="text-align: right; flex-shrink: 0;">
+                    <div style="font-size: 13.5px; font-weight: 800; color: #237b58;">
+                      +${sessionComm} đ
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                      Giá trị: ${sessionVal} đ
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+            $list.html(rowsHtml);
+          }
+        }
       }
 
-      const totalComm = Number(summary.total_commission_amount) || 0;
-      const rate = Number(summary.commission_percentage) || 0;
-      const sessionsCount = summary.total_pt_sessions_taught || 0;
-      const baseRev = Number(summary.pt_revenue_share) || 0;
-      const status = summary.status || 'PENDING';
+      // -------------------------------------------------------------
+      // 2. XỬ LÝ SUBTAB 2: THÙ LAO LỚP CỘNG ĐỒNG (THEO KỲ THÁNG)
+      // -------------------------------------------------------------
+      const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+      const monthClasses = allCommunityClasses.filter(c => (c.class_date || '').slice(0, 7) === monthStr);
+      const commTotalComp = monthClasses.reduce((sum, c) => sum + Number(c.total_compensation || ((Number(c.base_price)||0) + (Number(c.bonus_amount)||0))), 0);
+      const commBasePrice = monthClasses.reduce((sum, c) => sum + Number(c.base_price || 0), 0);
+      const commBonus = monthClasses.reduce((sum, c) => sum + Number(c.bonus_amount || 0), 0);
+      const commClassesCount = monthClasses.length;
+      const commSlots = monthClasses.reduce((sum, c) => sum + Number(c.enrolled_slots || 0), 0);
+      const commAvg = commClassesCount > 0 ? Math.round(commTotalComp / commClassesCount) : 0;
 
-      $('#commTotalAmount').html(`${formatVnd(totalComm)} <small style="font-size: 14px; color: #996217;">VNĐ</small>`);
-      $('#commRate').text(`${rate}%`);
-      $('#commSessionsCount').text(`${sessionsCount} buổi`);
-      $('#commBaseRevenue').text(`${formatVnd(baseRev)} đ`);
+      $('#commCommunityTotalComp').html(`${formatVnd(commTotalComp)} <small style="font-size: 14px; color: #7c3aed;">VNĐ</small>`);
+      $('#commCommunityBasePrice').text(formatVnd(commBasePrice) + ' đ');
+      $('#commCommunityBonusAmount').text(formatVnd(commBonus) + ' đ');
+      $('#commCommunityClassesCount').text(`${commClassesCount} ca`);
+      $('#commCommunitySlots').text(`${commSlots}`);
+      $('#commCommunityAvgComp').text(formatVnd(commAvg) + ' đ');
+      $('#commCommunityListSub').text(`${commClassesCount} ca dạy`);
 
-      const statusMap = {
+      if (monthClasses.length === 0) {
+        $commList.html(`
+          <div style="text-align: center; padding: 28px 12px; color: var(--text-muted); font-size: 12px;">
+            <i class="fa-solid fa-users-slash" style="font-size: 28px; margin-bottom: 8px; opacity: 0.5; color: #7c3aed;"></i>
+            <p style="margin: 0;">Không có lớp cộng đồng nào được phân công trong tháng ${month}/${year}.</p>
+          </div>
+        `);
+      } else {
+        let compRowsHtml = '';
+        monthClasses.forEach(c => {
+          const comp = Number(c.total_compensation || ((Number(c.base_price)||0) + (Number(c.bonus_amount)||0)));
+          const dateStr = c.class_date ? new Date(c.class_date).toLocaleDateString('vi-VN') : '--';
+          const timeStr = (c.start_time && c.end_time) ? `${c.start_time.slice(0, 5)} - ${c.end_time.slice(0, 5)}` : '';
+
+          compRowsHtml += `
+            <div class="pt-comm-session-item" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px;">
+                  <i class="fa-regular fa-clock" style="color: #7c3aed;"></i>
+                  <span>${timeStr} • ${dateStr}</span>
+                  <span class="badge" style="background: rgba(124, 58, 237, 0.12); color: #7c3aed; font-size: 11px; padding: 1px 6px;">${c.discipline_name || 'Lớp CĐ'}</span>
+                </div>
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  ${escapeHtml(c.title)}
+                </div>
+                <div style="font-size: 12px; color: var(--text-sub); margin-top: 2px;">
+                  Sĩ số: <strong style="color:#7c3aed;">${c.enrolled_slots || 0}/${c.max_slots || 0} HV</strong> · Cơ bản: ${formatVnd(c.base_price || 0)} đ + Thưởng: ${formatVnd(c.bonus_amount || 0)} đ
+                </div>
+              </div>
+              <div style="text-align: right; flex-shrink: 0;">
+                <div style="font-size: 13.5px; font-weight: 800; color: #7c3aed;">
+                  +${formatVnd(comp)} đ
+                </div>
+                <button type="button" class="btn-comm-view-members" data-class-id="${c.id}" style="margin-top: 4px; border: 1px solid #7c3aed; background: rgba(124, 58, 237, 0.08); color: #7c3aed; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; cursor: pointer;">
+                  Xem học viên
+                </button>
+              </div>
+            </div>
+          `;
+        });
+        $commList.html(compRowsHtml);
+      }
+
+      // -------------------------------------------------------------
+      // 3. XỬ LÝ SUBTAB 1: TỔNG HỢP THU NHẬP & XÁC NHẬN CHI TRẢ GỘP
+      // -------------------------------------------------------------
+      const totalCombinedIncome = totalComm + commTotalComp;
+      const totalSessionsAll = Number(sessionsCount) + commClassesCount;
+
+      $('#summaryTotalIncomeAmount').html(`${formatVnd(totalCombinedIncome)} <small style="font-size: 15px; color: var(--primary);">VNĐ</small>`);
+      $('#summaryPtCommAmount').text(`+${formatVnd(totalComm)} đ`);
+      $('#summaryCommunityCompAmount').text(`+${formatVnd(commTotalComp)} đ`);
+      $('#summaryTotalSessionsCount').text(`${totalSessionsAll} ca`);
+
+      // Cập nhật 2 thẻ nguồn thu nhập
+      $('#summaryPtCommSub').text(`${sessionsCount} ca tập đã hoàn thành · Tỷ lệ ${rate}%`);
+      $('#summaryPtCommVal').text(`+${formatVnd(totalComm)} đ`);
+      $('#summaryCommunityCompSub').text(`${commClassesCount} ca dạy · ${commSlots} lượt HV`);
+      $('#summaryCommunityCompVal').text(`+${formatVnd(commTotalComp)} đ`);
+
+      // Cập nhật Badge trạng thái tổng thu nhập
+      const incomeStatusMap = {
         PENDING: { label: 'Chờ chi trả', bg: 'rgba(245, 158, 11, 0.2)', color: '#996217' },
         APPROVED: { label: 'Chờ chi trả', bg: 'rgba(59, 130, 246, 0.2)', color: '#286aa4' },
+        PENDING_CONFIRMATION: { label: 'Chờ bạn xác nhận', bg: 'rgba(2, 132, 199, 0.2)', color: '#0284c7' },
         PAID: { label: 'Đã chi trả', bg: 'rgba(16, 185, 129, 0.2)', color: '#237b58' }
       };
-      const st = statusMap[status] || statusMap.PENDING;
-      $('#commStatusBadge').text(st.label).css({ background: st.bg, color: st.color });
+      const incomeSt = incomeStatusMap[status] || incomeStatusMap.PENDING;
+      $('#summaryIncomeStatusBadge').text(incomeSt.label).css({ background: incomeSt.bg, color: incomeSt.color });
 
-      if (status === 'PAID' && summary.paid_at) {
-        const pd = new Date(summary.paid_at);
-        $('#commPaidDate').text(pd.toLocaleDateString('vi-VN') + ' ' + pd.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+      // Trạng thái đã nhận tiền
+      if (status === 'PAID' && summary) {
         $('#commPaidDateWrap').show();
+        const paidAt = summary.pt_confirmed_at || summary.paid_at;
+        const paidDateFormatted = paidAt ? new Date(paidAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Đã nhận đủ';
+        $('#commPaidDate').text(paidDateFormatted);
       } else {
         $('#commPaidDateWrap').hide();
       }
 
-      const items = Array.isArray(sessions) ? sessions : [];
-      if (status === 'PAID' && (res.data?.details_snapshot_available ?? res.details_snapshot_available) === false) {
-        $('#commListSub').text('Chưa có bản chốt chi tiết');
-        $list.html('<p class="pt-empty-desc">Bảng kê này đã chi trả trước khi hệ thống lưu chi tiết từng buổi. Số tổng đã chốt được giữ nguyên; không có bản chốt chi tiết để đối chiếu.</p>');
-        return;
+      // Khối xác nhận chi trả 2 chiều gộp cho cả 2 khoản (Chống chối nhận tiền)
+      if (status === 'PENDING_CONFIRMATION' && summary) {
+        $('#commConfirmationBox').show();
+        $('#commConfirmationAmount').text(`${formatVnd(totalCombinedIncome)} đ`);
+        const methodStr = summary.payment_method === 'BANK_TRANSFER' ? 'Chuyển khoản VietQR' : 'Tiền mặt tại quầy';
+        $('#commConfirmationMethod').text(methodStr);
+
+        $('#btnPtConfirmCommission').off('click').on('click', async function () {
+          const $btn = $(this);
+          if ($btn.prop('disabled')) return;
+          $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Đang xác nhận...');
+
+          try {
+            await apiClient.pt.confirmCommissionReceipt(summary.id);
+            if (typeof DevExpress !== 'undefined' && DevExpress.ui && DevExpress.ui.notify) {
+              DevExpress.ui.notify({
+                message: 'Đã xác nhận nhận đủ tiền thu nhập tháng ' + month + '/' + year,
+                type: 'success',
+                displayTime: 3000
+              });
+            } else {
+              alert('Đã xác nhận nhận đủ tiền thu nhập tháng ' + month + '/' + year);
+            }
+            await loadCommissionDetails(month, year);
+            if (window.ptApp?.fetchOverviewData) {
+              window.ptApp.fetchOverviewData();
+            }
+          } catch (confirmErr) {
+            console.error('Error confirming commission receipt:', confirmErr);
+            const msg = confirmErr.data?.message || confirmErr.message || 'Không thể xác nhận nhận tiền. Vui lòng thử lại.';
+            if (typeof DevExpress !== 'undefined' && DevExpress.ui && DevExpress.ui.notify) {
+              DevExpress.ui.notify({ message: msg, type: 'error', displayTime: 4000 });
+            } else {
+              alert(msg);
+            }
+            $btn.prop('disabled', false).html('<i class="fa-solid fa-check-double"></i> Xác nhận đã nhận tiền');
+          }
+        });
+      } else {
+        $('#commConfirmationBox').hide();
       }
-      $('#commListSub').text(`${items.length} ca tập`);
-      const sum = key => items.reduce((total, item) => total + Number(item[key]), 0);
-      if (items.length !== Number(sessionsCount) || !Number.isFinite(sum('session_pt_value')) || !Number.isFinite(sum('session_commission')) || Math.abs(sum('session_pt_value') - baseRev) > 0.011 || Math.abs(sum('session_commission') - totalComm) > 0.011) {
-        $('#commReconciliationError').text('Chưa đối soát được: số tổng và chi tiết không khớp. Vui lòng làm mới hoặc liên hệ QTV.').show();
-      }
 
-      if (items.length === 0) {
-        $list.html(`
-          <div style="text-align: center; padding: 28px 12px; color: var(--text-muted); font-size: 12px;">
-            <i class="fa-solid fa-calendar-xmark" style="font-size: 28px; margin-bottom: 8px; opacity: 0.5;"></i>
-            <p style="margin: 0;">Bạn chưa có buổi dạy hoàn thành nào trong tháng này. Hãy tiếp tục cố gắng!</p>
-          </div>
-        `);
-        return;
-      }
-
-      let rowsHtml = '';
-      items.forEach((s, idx) => {
-        const dateStr = s.booking_date ? new Date(s.booking_date).toLocaleDateString('vi-VN') : '--';
-        const timeStr = (s.start_time && s.end_time) ? `${s.start_time.slice(0, 5)} - ${s.end_time.slice(0, 5)}` : '';
-        const sessionVal = formatVnd(s.session_pt_value);
-        const sessionComm = formatVnd(s.session_commission);
-
-        rowsHtml += `
-          <div class="pt-comm-session-item" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-            <div style="flex: 1; min-width: 0;">
-              <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px;">
-                <i class="fa-regular fa-clock" style="color: var(--primary);"></i>
-                <span>${timeStr} • ${dateStr}</span>
-                <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #237b58; font-size: 12px; padding: 1px 6px;">Buổi #${s.session_number ?? '--'}</span>
-              </div>
-              <div style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                ${escapeHtml(s.member_name || 'Hội viên')} <small style="color: var(--text-muted); font-weight: 400;">(${escapeHtml(s.member_code || '--')})</small>
-              </div>
-              <div style="font-size: 12px; color: var(--text-sub); margin-top: 1px;">
-                ${escapeHtml(s.package_name_snapshot || 'Gói tập PT')}
-              </div>
-            </div>
-            <div style="text-align: right; flex-shrink: 0;">
-              <div style="font-size: 13.5px; font-weight: 800; color: #237b58;">
-                +${sessionComm} đ
-              </div>
-              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
-                Giá trị: ${sessionVal} đ
-              </div>
-            </div>
-          </div>
-        `;
-      });
-
-      $list.html(rowsHtml);
     } catch (err) {
       if (version !== commissionRequest) return;
       const missingConfig = err.data?.code === 'BRANCH_DEFAULT_COMMISSION_NOT_CONFIGURED';
-      $('#commStatusBadge').text(missingConfig ? 'Chưa có cấu hình' : 'Không thể tải');
+      $('#commStatusBadge, #summaryIncomeStatusBadge').text(missingConfig ? 'Chưa có cấu hình' : 'Không thể tải');
       console.error('Error loading commission details:', err);
       $list.html(`
         <div style="text-align: center; padding: 24px 12px; color: #c43d40; font-size: 12px;">
@@ -794,7 +1035,143 @@
           <p>${missingConfig ? 'Chưa có cấu hình tỷ lệ hoa hồng từ quản lý. Vui lòng liên hệ QTV.' : 'Không thể tải bảng kê. Vui lòng bấm Làm mới để thử lại.'}</p>
         </div>
       `);
+      $commList.html(`
+        <div style="text-align: center; padding: 20px; color: #c43d40; font-size: 12px;">
+          Không thể tải dữ liệu thù lao lớp cộng đồng.
+        </div>
+      `);
     }
+  }
+
+  /**
+   * Modal xem chi tiết lớp cộng đồng và danh sách hội viên đăng ký (DevExtreme dxPopup)
+   */
+  let communityClassPopupInstance = null;
+
+  async function openCommunityClassModal(classId) {
+    if (!classId) return;
+    if (communityClassPopupInstance) {
+      communityClassPopupInstance.dispose();
+      communityClassPopupInstance = null;
+    }
+
+    const $host = $('<div id="ptClassMembersPopupHost">').appendTo('body');
+    communityClassPopupInstance = $host.dxPopup({
+      title: 'Thông tin lớp học & Danh sách hội viên',
+      width: () => Math.min(390, window.innerWidth - 20),
+      height: 'auto',
+      maxHeight: '88vh',
+      shadingColor: 'rgba(0, 0, 0, 0.65)',
+      showCloseButton: true,
+      dragEnabled: false,
+      hideOnOutsideClick: true,
+      contentTemplate: function (contentElement) {
+        contentElement.html(`
+          <div style="text-align: center; padding: 24px; color: var(--text-muted);">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 8px; color: #7c3aed;"></i>
+            <div>Đang tải thông tin lớp và danh sách hội viên...</div>
+          </div>
+        `);
+
+        apiClient.request(`/community-classes/${encodeURIComponent(classId)}/members`).then(res => {
+          const payload = res.data || res;
+          const cls = payload.class || {};
+          const members = payload.members || [];
+          const comp = Number(cls.total_compensation || ((Number(cls.base_price) || 0) + (Number(cls.bonus_amount) || 0)));
+
+          let membersHtml = '';
+          if (members.length === 0) {
+            membersHtml = `
+              <div style="text-align: center; padding: 20px 8px; color: var(--text-muted); font-size: 12px; background: var(--bg-surface); border-radius: 6px;">
+                <i class="fa-solid fa-user-xmark" style="font-size: 20px; margin-bottom: 6px; opacity: 0.5;"></i>
+                <div>Chưa có hội viên nào đăng ký lớp học này.</div>
+              </div>
+            `;
+          } else {
+            membersHtml = members.map((m, idx) => `
+              <div style="display: flex; align-items: center; padding: 8px 10px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 6px; font-size: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(124, 58, 237, 0.15); color: #7c3aed; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 11px;">
+                    ${idx + 1}
+                  </div>
+                  <div>
+                    <div style="font-weight: 700; color: var(--text-main); font-size: 12.5px;">${escapeHtml(m.full_name)}</div>
+                    <div style="color: var(--text-muted); font-size: 11px;">${escapeHtml(m.member_code || 'HV')} · ${escapeHtml(m.phone || '')}</div>
+                  </div>
+                </div>
+              </div>
+            `).join('');
+          }
+
+          contentElement.html(`
+            <div class="pt-class-members-modal-body" style="padding: 2px 0;">
+              <!-- Thông tin lớp học -->
+              <div style="background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%); color: #fff; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: #d8b4fe; margin-bottom: 4px;">
+                  <i class="fa-solid fa-users"></i> Lớp tập cộng đồng
+                </div>
+                <div style="font-size: 16px; font-weight: 800; margin-bottom: 6px;">
+                  ${escapeHtml(cls.title || 'Lớp cộng đồng')}
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; color: #e9d5ff;">
+                  <div><i class="fa-regular fa-calendar"></i> ${cls.class_date ? new Date(cls.class_date).toLocaleDateString('vi-VN') : '--'}</div>
+                  <div><i class="fa-regular fa-clock"></i> ${(cls.start_time || '').slice(0, 5)} - ${(cls.end_time || '').slice(0, 5)}</div>
+                  <div><i class="fa-solid fa-user-group"></i> Sĩ số: <strong>${members.length}/${cls.max_slots || 30} HV</strong></div>
+                  <div><i class="fa-solid fa-hand-holding-dollar"></i> Thù lao: <strong style="color: #fef08a;">${formatVnd(comp)} đ</strong></div>
+                </div>
+              </div>
+
+              <!-- Danh sách hội viên -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="font-size: 12.5px; color: var(--text-main);">
+                  <i class="fa-solid fa-users-viewfinder"></i> Danh sách học viên (${members.length})
+                </strong>
+                <span style="font-size: 11px; color: var(--text-muted);">Sắp xếp theo thứ tự đăng ký</span>
+              </div>
+              <div style="max-height: 260px; overflow-y: auto; padding-right: 2px;">
+                ${membersHtml}
+              </div>
+            </div>
+          `);
+        }).catch(err => {
+          contentElement.html(`
+            <div style="text-align: center; padding: 24px; color: #c43d40; font-size: 12px;">
+              <i class="fa-solid fa-circle-exclamation" style="font-size: 24px; margin-bottom: 6px;"></i>
+              <div>Không thể tải thông tin lớp: ${escapeHtml(err.message || 'Lỗi mạng')}</div>
+            </div>
+          `);
+        });
+
+        return contentElement;
+      },
+      toolbarItems: [
+        {
+          widget: 'dxButton',
+          toolbar: 'bottom',
+          location: 'after',
+          options: {
+            text: 'Đóng',
+            type: 'normal',
+            stylingMode: 'outlined',
+            onClick: () => communityClassPopupInstance?.hide()
+          }
+        }
+      ],
+      onHidden: function () {
+        if (communityClassPopupInstance) {
+          communityClassPopupInstance.dispose();
+          communityClassPopupInstance = null;
+        }
+        $host.remove();
+      }
+    }).dxPopup('instance');
+
+    communityClassPopupInstance.show();
+  }
+
+  // Đăng ký toàn cục để Schedule module cũng có thể mở popup
+  if (typeof window !== 'undefined') {
+    window.openPTCommunityClassModal = openCommunityClassModal;
   }
 
   /**

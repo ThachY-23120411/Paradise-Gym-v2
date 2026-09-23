@@ -176,6 +176,12 @@ A task is complete only when all affected artifacts are consistent.
 
 ## 5. Quy Tắc Dữ Liệu & Seed Database (Cấm Tuyệt Đối Mock Data Hardcoded Trên Frontend)
 
+> [!CAUTION]
+> **BẮT BUỘC ÁP DỤNG SKILL `.agents/skills/db-seed-integrity/SKILL.md` TRƯỚC VÀ SAU KHI SEED DỮ LIỆU:**
+> - Toàn hệ thống Paradise Gym **CHỈ CÓ ĐÚNG 2 HUẤN LUYỆN VIÊN (PT)**: PT001 Nguyễn Văn Thể (Chi nhánh Quận 1) và PT002 Lê Văn Hùng (Chi nhánh Bình Thạnh). CẤM TUYỆT ĐỐI BỊA ĐẶT THÊM HLV HOẶC TẠO TÊN HLV ẢO ("HLV Quỳnh Trâm", "HLV Lyn Lyn", "HLV Raymond", "HLV Joy", "HLV Đặng Minh Tuấn", "HLV Trần Thị Mai",...).
+> - HLV thuộc chi nhánh nào thì 100% chỉ dạy lớp tại chi nhánh đó. Lịch dạy PT 1:1 và Lớp cộng đồng không được trùng giờ.
+> - Sau khi seed dữ liệu, bắt buộc phải chạy 5 câu lệnh SQL kiểm tra trong mục 3 của skill `db-seed-integrity`.
+
 - **Cấm Tuyệt Đối Hardcode Dữ Liệu Ở Frontend (Web & Mobile):**
   + Tuyệt đối **KHÔNG ĐƯỢC** khai báo các mảng, đối tượng dữ liệu mẫu tĩnh (hardcoded mock data / static arrays / mock accounts / mock packages / mock bookings,...) bên trong bất kỳ file JavaScript/HTML nào của Frontend (`frontend/web/`, `frontend/mobile/member/`, `frontend/mobile/pt/`).
   + Không được dùng `localStorage` lưu trữ data mẫu mặc định để tự ý render khi không có backend/database.

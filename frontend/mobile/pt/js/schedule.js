@@ -333,7 +333,8 @@
     isLoading: false,
 
     // Danh sách lịch tập (tải động 100% từ Database PostgreSQL qua Backend REST API)
-    bookings: []
+    bookings: [],
+    communityClasses: []
   };
 
   /**
@@ -548,8 +549,9 @@
 
       // Kiểm tra có lịch không để hiện chấm status
       const bookingsOnDate = ScheduleState.bookings.filter(b => b.date === dateStr);
+      const classesOnDate = (ScheduleState.communityClasses || []).filter(c => (c.class_date || '').slice(0, 10) === dateStr);
       let dotHtml = '';
-      if (bookingsOnDate.length > 0) {
+      if (bookingsOnDate.length > 0 || classesOnDate.length > 0) {
         const hasAwaiting = bookingsOnDate.some(b => b.status === 'AWAITING_CONFIRMATION');
         const hasUpcoming = bookingsOnDate.some(b => b.status === 'UPCOMING');
         const hasDone = bookingsOnDate.some(b => b.status === 'DONE');
@@ -558,6 +560,8 @@
           dotHtml = '<span class="pt-date-dot dot-amber" title="Có ca chờ xác nhận"></span>';
         } else if (hasUpcoming) {
           dotHtml = '<span class="pt-date-dot dot-blue" title="Có ca sắp dạy"></span>';
+        } else if (classesOnDate.length > 0) {
+          dotHtml = '<span class="pt-date-dot" style="background: #7c3aed;" title="Có lớp cộng đồng"></span>';
         } else if (hasDone) {
           dotHtml = '<span class="pt-date-dot dot-emerald" title="Có ca đã hoàn thành"></span>';
         }
@@ -617,8 +621,9 @@
         const dayNum = d.getDate();
 
         const bookingsOnDate = ScheduleState.bookings.filter(b => b.date === dateStr);
+        const classesOnDate = (ScheduleState.communityClasses || []).filter(c => (c.class_date || '').slice(0, 10) === dateStr);
         let dotHtml = '';
-        if (bookingsOnDate.length > 0) {
+        if (bookingsOnDate.length > 0 || classesOnDate.length > 0) {
           const hasAwaiting = bookingsOnDate.some(b => b.status === 'AWAITING_CONFIRMATION');
           const hasUpcoming = bookingsOnDate.some(b => b.status === 'UPCOMING');
           const hasDone = bookingsOnDate.some(b => b.status === 'DONE');
@@ -627,6 +632,8 @@
             dotHtml = '<span class="pt-grid-dot dot-amber" title="Có ca chờ xác nhận"></span>';
           } else if (hasUpcoming) {
             dotHtml = '<span class="pt-grid-dot dot-blue" title="Có ca sắp dạy"></span>';
+          } else if (classesOnDate.length > 0) {
+            dotHtml = '<span class="pt-grid-dot" style="background: #7c3aed;" title="Có lớp cộng đồng"></span>';
           } else if (hasDone) {
             dotHtml = '<span class="pt-grid-dot dot-emerald" title="Có ca đã hoàn thành"></span>';
           }
@@ -740,12 +747,19 @@
 
     const dayBookings = ScheduleState.bookings.filter(b => b.date === ScheduleState.selectedDateStr)
       .sort((a, b) => a.startTime.localeCompare(b.startTime) || a.endTime.localeCompare(b.endTime));
-    $('#slotsCounterBadge').text(`${dayBookings.length} buổi`);
+    const dayClasses = (ScheduleState.communityClasses || []).filter(c => (c.class_date || '').slice(0, 10) === ScheduleState.selectedDateStr)
+      .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+
+    const badgeParts = [];
+    if (dayBookings.length > 0) badgeParts.push(`${dayBookings.length} ca PT`);
+    if (dayClasses.length > 0) badgeParts.push(`${dayClasses.length} lớp CĐ`);
+    if (badgeParts.length === 0) badgeParts.push('0 buổi');
+    $('#slotsCounterBadge').text(badgeParts.join(' · '));
 
     let html = '';
 
-    // PT01-US01 Exception Flow: PT chưa được phân công học viên nào
-    if (dayBookings.length === 0) {
+    // PT01-US01 Exception Flow: Không có ca tập hay lớp học nào
+    if (dayBookings.length === 0 && dayClasses.length === 0) {
       html += `
         <div class="pt-empty-schedule-banner">
           <i class="fa-solid fa-circle-info"></i>
@@ -753,6 +767,44 @@
         </div>
       `;
     }
+
+    // Render các lớp học cộng đồng trong ngày theo mockup Card tím Image 4
+    dayClasses.forEach(c => {
+      const comp = Number(c.total_compensation || ((Number(c.base_price) || 0) + (Number(c.bonus_amount) || 0)));
+      const timeStr = (c.start_time && c.end_time) ? `${c.start_time.slice(0, 5)} - ${c.end_time.slice(0, 5)}` : '';
+      const dateParts = (c.class_date || '').split('-');
+      const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : (c.class_date || '');
+
+      html += `
+        <div class="pt-comm-class-card pt-schedule-community-card" data-class-id="${c.id}" role="button" tabindex="0"
+             style="background: linear-gradient(135deg, #3b0764 0%, #581c87 100%); color: #fff; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(88, 28, 135, 0.25); cursor: pointer; transition: transform 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #d8b4fe;">
+              <i class="fa-solid fa-users"></i> LỚP CỘNG ĐỒNG · ${formattedDate}
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="background: rgba(255, 255, 255, 0.2); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                ${c.enrolled_slots || 0}/${c.max_slots || 0} HV
+              </span>
+              <button type="button" class="btn-schedule-view-community-members" data-class-id="${c.id}" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; border-radius: 4px; font-size: 11px; padding: 3px 8px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <i class="fa-solid fa-list-ul"></i> Xem danh sách hội viên
+              </button>
+            </div>
+          </div>
+          <div style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px;">
+            ${escapeHtml(c.title)}
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #e9d5ff;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i class="fa-regular fa-clock"></i> ${timeStr} · ${escapeHtml(c.branch_name || 'Paradise Gym')}
+            </div>
+            <div style="font-size: 14px; font-weight: 700; color: #fef08a;">
+              ${Number(comp).toLocaleString('vi-VN')} đ
+            </div>
+          </div>
+        </div>
+      `;
+    });
 
     dayBookings.forEach(booking => {
       const slot = { start: booking.startTime, label: escapeHtml(booking.slot) };
@@ -966,6 +1018,15 @@
       e.preventDefault();
       executeConfirmSession();
     });
+
+    // 6. Mở Popup thông tin lớp cộng đồng & danh sách học viên
+    $(document).off('click', '.pt-schedule-community-card, .btn-schedule-view-community-members').on('click', '.pt-schedule-community-card, .btn-schedule-view-community-members', function (e) {
+      e.stopPropagation();
+      const classId = $(this).data('class-id');
+      if (classId && typeof window.openPTCommunityClassModal === 'function') {
+        window.openPTCommunityClassModal(classId);
+      }
+    });
   }
 
   let confirmPopupInstance = null;
@@ -1154,10 +1215,20 @@
     renderSlots();
 
     try {
-      const results = await Promise.allSettled([apiClient.pt.listBookings({ pt_id: currentPtId }), ownTrainer(currentPtId)]);
+      const results = await Promise.allSettled([
+        apiClient.pt.listBookings({ pt_id: currentPtId }),
+        ownTrainer(currentPtId),
+        apiClient.request('/community-classes?instructor_id=' + encodeURIComponent(currentPtId))
+      ]);
       if (sequence !== syncSequence || window.ptApp?.currentUser?.pt_profile_id !== currentPtId) return;
       if (results[1].status === 'fulfilled') { trainerProfile = results[1].value; showWorkHours(); }
       else { trainerProfile = null; $('#ptWorkHours').text('Không tải được giờ làm việc'); }
+      if (results[2].status === 'fulfilled') {
+        const commData = results[2].value?.data || results[2].value;
+        ScheduleState.communityClasses = Array.isArray(commData) ? commData : [];
+      } else {
+        ScheduleState.communityClasses = [];
+      }
       if (results[0].status === 'rejected') throw results[0].reason;
       const res = results[0].value;
       apiRows(res);
@@ -2041,7 +2112,7 @@
 
   return {
     init,
-    reset: () => { syncSequence++; trainerProfile = null; bookingPopup?.hide(); ScheduleState.bookings = []; ScheduleState.hasError = false; ScheduleState.isLoading = false; closeConfirmModal(); renderSlots(); },
+    reset: () => { syncSequence++; trainerProfile = null; bookingPopup?.hide(); ScheduleState.bookings = []; ScheduleState.communityClasses = []; ScheduleState.hasError = false; ScheduleState.isLoading = false; closeConfirmModal(); renderSlots(); },
     openBookingModal: openBookingPopup,
     openBookingFromNotification: async (referenceId, shouldOpenResult) => {
       if (!ScheduleState.bookings.some(b => b.id === referenceId)) await syncWithBackend();

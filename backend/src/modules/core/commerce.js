@@ -135,19 +135,56 @@ async function createRegistration(req) {
   });
 }
 router.post('/registrations',route(createRegistration));router.post('/registrations/:id/renew',route(createRegistration));
-router.post('/registrations/:id/assign-pt',route(async req=>{
-  role(req,'QTV','RECEPTIONIST');return transaction(async db=>{
-    const r=await row(db,'registrations',req.params.id,true);await registrationAccess(req,r);
-    if(!r.total_pt_sessions_snapshot||r.assigned_pt_id||!['ACTIVE','SCHEDULED'].includes(effective(r)))fail(409,'Registration cannot be assigned');
-    const p=await row(db,'pt_profiles',req.body.pt_id,true);if(p.branch_id!==r.sold_branch_id||p.status!=='ACTIVE')fail(409,'Trainer must be active at the registration branch');
-    await activeBranch(db,r.sold_branch_id);
-    const updated=(await db.query('UPDATE registrations SET assigned_pt_id=$2,updated_at=NOW() WHERE id=$1 RETURNING *',[r.id,p.id])).rows[0];
-    await db.query("UPDATE pt_assignment_requests SET status='REJECTED',responded_at=NOW(),response_note='Assigned by staff' WHERE registration_id=$1 AND status='PENDING'",[r.id]);
-    const m=await row(db,'member_profiles',r.member_id),b=await row(db,'branches',r.sold_branch_id);
-    await emit(db,{event:'PT_REQUEST_ACCEPTED',branchId:b.id,referenceId:r.id,referenceType:'REGISTRATION',accounts:[m.account_id,p.account_id],variables:{member_name:m.full_name,pt_name:p.full_name,package_name:r.package_name_snapshot,branch_name:b.branch_name}});
-    await audit(db,req,'registrations',r.id,'PT_ASSIGNED',r,updated,b.id,text(req.body.note,'note',255,false));return updated;
+const assignPtHandler = async req => {
+  role(req, 'QTV', 'RECEPTIONIST');
+  return transaction(async db => {
+    const r = await row(db, 'registrations', req.params.id, true);
+    await registrationAccess(req, r);
+    if (!r.total_pt_sessions_snapshot || !['ACTIVE', 'SCHEDULED', 'FROZEN'].includes(effective(r))) {
+      fail(409, 'Gói đăng ký không đủ điều kiện gán HLV phụ trách');
+    }
+    const isReassign = !!r.assigned_pt_id;
+    if (isReassign && r.assigned_pt_id === req.body.pt_id) {
+      fail(400, 'Gói đăng ký hiện đã được phân công cho HLV này rồi');
+    }
+    const p = await row(db, 'pt_profiles', req.body.pt_id, true);
+    if (r.sold_branch_id && p.branch_id && p.branch_id !== r.sold_branch_id) {
+      fail(409, 'HLV phải thuộc chi nhánh của gói đăng ký');
+    }
+    if (p.status !== 'ACTIVE') {
+      fail(409, 'HLV phải ở trạng thái đang hoạt động (ACTIVE)');
+    }
+    await activeBranch(db, r.sold_branch_id);
+    const updated = (await db.query('UPDATE registrations SET assigned_pt_id=$2, updated_at=NOW() WHERE id=$1 RETURNING *', [r.id, p.id])).rows[0];
+    await db.query("UPDATE pt_assignment_requests SET status='REJECTED', responded_at=NOW(), response_note='Assigned by staff' WHERE registration_id=$1 AND status='PENDING'", [r.id]);
+    const m = await row(db, 'member_profiles', r.member_id);
+    const b = await row(db, 'branches', r.sold_branch_id);
+    const accountsToNotify = [m.account_id, p.account_id];
+    if (isReassign && r.assigned_pt_id) {
+      const oldPt = await db.query('SELECT account_id FROM pt_profiles WHERE id=$1', [r.assigned_pt_id]);
+      if (oldPt.rows[0]?.account_id) accountsToNotify.push(oldPt.rows[0].account_id);
+    }
+    await emit(db, {
+      event: isReassign ? 'PT_REASSIGNED' : 'PT_REQUEST_ACCEPTED',
+      branchId: b.id,
+      referenceId: r.id,
+      referenceType: 'REGISTRATION',
+      accounts: accountsToNotify,
+      variables: {
+        member_name: m.full_name,
+        pt_name: p.full_name,
+        package_name: r.package_name_snapshot,
+        branch_name: b.branch_name
+      }
+    });
+    const auditAction = isReassign ? 'PT_REASSIGNED' : 'PT_ASSIGNED';
+    await audit(db, req, 'registrations', r.id, auditAction, r, updated, b.id, text(req.body.note, 'note', 255, false));
+    return updated;
   });
-}));
+};
+
+router.post('/registrations/:id/assign-pt', route(assignPtHandler));
+router.post('/registrations/:id/reassign-pt', route(assignPtHandler));
 
 // POST /registrations/:id/freeze - Đóng băng gói tập (QTV / Lễ tân / Hội viên)
 router.post('/registrations/:id/freeze', route(async req => {
@@ -288,6 +325,8 @@ router.post('/registrations/:id/transfer', route(async req => {
     const fee = Number(req.body.transfer_fee || 0);
     const reason = text(req.body.reason || 'Chuyển nhượng quyền sử dụng gói tại quầy', 'reason', 255);
 
+    const fromMember = await row(db, 'member_profiles', r.member_id);
+
     const transferRecord = (await db.query(`
       INSERT INTO package_transfers (registration_id, from_member_id, to_member_id, transfer_fee, reason, approved_by_account_id)
       VALUES ($1, $2, $3, $4, $5, $6)
@@ -299,6 +338,38 @@ router.post('/registrations/:id/transfer', route(async req => {
     `, [r.id, toMemberId])).rows[0];
 
     await audit(db, req, 'registrations', r.id, 'PACKAGE_TRANSFERRED', r, updated, r.sold_branch_id, reason);
+
+    if (fromMember?.account_id) {
+      await db.query(
+        `INSERT INTO notifications (account_id, title, body, reference_type, reference_id, branch_id, event_type)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          fromMember.account_id,
+          'Chuyển nhượng gói tập thành công',
+          `Gói tập ${r.package_name_snapshot || ''} (${r.reg_code}) của bạn đã được chuyển nhượng thành công cho ${toMember.full_name} tại quầy tiếp đón.`,
+          'PACKAGE_TRANSFER',
+          transferRecord.id,
+          r.sold_branch_id,
+          'PACKAGE_TRANSFERRED'
+        ]
+      );
+    }
+    if (toMember?.account_id) {
+      await db.query(
+        `INSERT INTO notifications (account_id, title, body, reference_type, reference_id, branch_id, event_type)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          toMember.account_id,
+          'Nhận chuyển nhượng gói tập thành công',
+          `Bạn đã nhận chuyển nhượng gói tập ${r.package_name_snapshot || ''} (${r.reg_code}) từ ${fromMember.full_name} tại quầy tiếp đón.`,
+          'PACKAGE_TRANSFER',
+          transferRecord.id,
+          r.sold_branch_id,
+          'PACKAGE_TRANSFERRED'
+        ]
+      );
+    }
+
     return { registration: updated, transfer: transferRecord };
   });
 }));
@@ -598,15 +669,15 @@ function settlementAuthority(req){
   if(!isStaff(req))fail(403,'Payment confirmation requires authorized staff','PAYMENT_CONFIRMATION_FORBIDDEN');
   financial(req);
 }
-const paymentStatus=p=>p.status==='PENDING'&&p.payment_method==='BANK_TRANSFER'&&new Date(p.expires_at||new Date(p.created_at).getTime()+900000)<new Date()?'EXPIRED':p.status;
+const paymentStatus=p=>p.confirmed_at?'COMPLETED':(p.status==='PENDING'&&p.payment_method==='BANK_TRANSFER'&&new Date(p.expires_at||new Date(p.created_at).getTime()+900000)<new Date()?'EXPIRED':(p.status||'COMPLETED'));
 async function listPayments(req,db=pool) {
   if(isStaff(req))financial(req);else role(req,'MEMBER');
   const from = req.query.date_from || req.query.from_date || (req.query.date_to || req.query.to_date ? null : req.query.date) || null;
   const to = req.query.date_to || req.query.to_date || (req.query.date_from || req.query.from_date ? null : req.query.date) || null;
   if (from) date(from); if (to) date(to);
-  const list=(await db.query(`SELECT p.*,r.reg_code,r.reg_code registration_code,r.package_name_snapshot,m.full_name member_name,m.member_code,m.phone member_phone,b.branch_name,
+  const list=(await db.query(`SELECT p.*, 'COMPLETED'::varchar as status, r.reg_code,r.reg_code registration_code,r.package_name_snapshot,m.full_name member_name,m.member_code,m.phone member_phone,b.branch_name,
     COALESCE(a.full_name,a.login_phone) collected_by_name,rc.receipt_code FROM payments p JOIN registrations r ON r.id=p.registration_id JOIN member_profiles m ON m.id=p.member_id JOIN branches b ON b.id=p.branch_id LEFT JOIN accounts a ON a.id=p.collected_by LEFT JOIN receipts rc ON rc.payment_id=p.id
-    WHERE ($1::uuid[] IS NULL OR p.branch_id=ANY($1)) AND ($2 OR p.member_id=$3) AND ($4::date IS NULL OR (COALESCE(p.confirmed_at,p.created_at) AT TIME ZONE b.timezone)::date >=$4) AND ($5::date IS NULL OR (COALESCE(p.confirmed_at,p.created_at) AT TIME ZONE b.timezone)::date <=$5) ORDER BY p.created_at DESC`,[isStaff(req)?scope(req):null,isStaff(req),req.user.member_profile_id,from||null,to||null])).rows.map(p=>({...p,status:paymentStatus(p)}));
+    WHERE ($1::uuid[] IS NULL OR p.branch_id=ANY($1)) AND ($2 OR p.member_id=$3) AND ($4::date IS NULL OR (COALESCE(p.confirmed_at,p.created_at) AT TIME ZONE b.timezone)::date >=$4) AND ($5::date IS NULL OR (COALESCE(p.confirmed_at,p.created_at) AT TIME ZONE b.timezone)::date <=$5) ORDER BY p.created_at DESC`,[isStaff(req)?scope(req):null,isStaff(req),req.user.member_profile_id,from||null,to||null])).rows.map(p=>({...p,status:p.status||paymentStatus(p)||'COMPLETED'}));
   return search(list,req.query,['payment_code','reg_code','member_name','member_phone','receipt_code']).filter(p=>(!req.query.payment_method||p.payment_method===req.query.payment_method.replace('BANK_TRANSFER_VIETQR','BANK_TRANSFER'))&&(!req.query.member_id||p.member_id===req.query.member_id));
 }
 router.get('/payments',route(async req=>page(await listPayments(req),req.query)));
@@ -628,7 +699,12 @@ async function invoice(req,db) {
 
   if (req.body.discount_code) {
     const dCode = String(req.body.discount_code).trim().toUpperCase();
-    const d = (await db.query('SELECT * FROM discounts WHERE code = $1', [dCode])).rows[0];
+    const d = (await db.query(`
+      SELECT d.*, p.package_name as applicable_package_name
+      FROM discounts d
+      LEFT JOIN packages p ON p.id = d.applicable_package_id
+      WHERE d.code = $1
+    `, [dCode])).rows[0];
     if (!d) fail(404, 'Mã giảm giá không tồn tại', 'DISCOUNT_NOT_FOUND');
     if (!d.is_active) fail(400, 'Mã giảm giá đang bị tạm khóa', 'DISCOUNT_INACTIVE');
     if (d.start_date > today()) fail(400, 'Mã giảm giá chưa đến ngày hiệu lực', 'DISCOUNT_NOT_STARTED');
@@ -636,6 +712,9 @@ async function invoice(req,db) {
     if (d.usage_limit != null && d.used_count >= d.usage_limit && (!existing || existing.discount_id !== d.id)) fail(400, 'Mã giảm giá đã hết lượt sử dụng', 'DISCOUNT_LIMIT');
     if (d.branch_id && d.branch_id !== r.sold_branch_id) fail(400, 'Mã giảm giá không áp dụng cho chi nhánh này', 'DISCOUNT_BRANCH_MISMATCH');
     if (Array.isArray(d.branch_ids) && d.branch_ids.length > 0 && !d.branch_ids.includes(r.sold_branch_id)) fail(400, 'Mã giảm giá không áp dụng cho chi nhánh này', 'DISCOUNT_BRANCH_MISMATCH');
+    if (d.applicable_package_id && d.applicable_package_id !== r.package_id) {
+      fail(400, `Mã khuyến mãi này chỉ áp dụng cho gói tập: ${d.applicable_package_name || 'được chỉ định'}`, 'DISCOUNT_PACKAGE_MISMATCH');
+    }
     if (payableAmount < Number(d.min_order_value)) fail(400, 'Giá trị đơn hàng chưa đạt điều kiện tối thiểu của mã giảm giá', 'DISCOUNT_MIN_ORDER');
 
     discountId = d.id;
@@ -644,8 +723,11 @@ async function invoice(req,db) {
       if (d.max_discount_amount && discountAmount > Number(d.max_discount_amount)) {
         discountAmount = Number(d.max_discount_amount);
       }
-    } else {
+    } else if (d.discount_type === 'FIXED_AMOUNT') {
       discountAmount = Math.min(payableAmount, Number(d.discount_value));
+    } else {
+      // Bonus session/day/combo has 0 monetary discount
+      discountAmount = 0;
     }
     payableAmount = Math.max(0, payableAmount - discountAmount);
 
@@ -706,8 +788,29 @@ async function confirm(req,db,paymentId) {
   if(reference)await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',[`bank-reference:${reference}`]);
   if(reference&&(await db.query("SELECT 1 FROM payments WHERE transaction_ref=$1 AND id<>$2",[reference,p.id])).rowCount)fail(409,'Bank transaction reference already used');
   const saved=(await db.query("UPDATE payments SET status='COMPLETED',transaction_ref=$2,collected_by=$3,confirmed_at=NOW(),updated_at=NOW(),note=COALESCE($4,note) WHERE id=$1 RETURNING *",[p.id,reference,req.user.account_id,text(req.body.note,'note',255,false)])).rows[0];
-  const status=r.end_date&&r.end_date<today()?'EXPIRED':r.start_date>today()?'SCHEDULED':'ACTIVE';
-  const reg=(await db.query('UPDATE registrations SET status=$2,updated_at=NOW() WHERE id=$1 RETURNING *',[r.id,status])).rows[0];
+  let bonusDays = 0, bonusPt = 0;
+  if (p.discount_id) {
+    const disc = (await db.query('SELECT bonus_days, bonus_pt_sessions FROM discounts WHERE id = $1', [p.discount_id])).rows[0];
+    if (disc) {
+      bonusDays = Number(disc.bonus_days || 0);
+      bonusPt = Number(disc.bonus_pt_sessions || 0);
+    }
+  }
+  const reg=(await db.query(`
+    UPDATE registrations
+    SET status = CASE
+          WHEN (CASE WHEN $2::int > 0 AND end_date IS NOT NULL THEN (end_date + ($2::int * INTERVAL '1 day'))::date ELSE end_date END) < CURRENT_DATE THEN 'EXPIRED'
+          WHEN start_date > CURRENT_DATE THEN 'SCHEDULED'
+          ELSE 'ACTIVE'
+        END,
+        end_date = CASE WHEN $2::int > 0 AND end_date IS NOT NULL THEN (end_date + ($2::int * INTERVAL '1 day'))::date ELSE end_date END,
+        duration_days_snapshot = CASE WHEN $2::int > 0 AND duration_days_snapshot IS NOT NULL THEN duration_days_snapshot + $2::int ELSE duration_days_snapshot END,
+        remaining_pt_sessions = CASE WHEN $3::int > 0 THEN COALESCE(remaining_pt_sessions, 0) + $3::int ELSE remaining_pt_sessions END,
+        total_pt_sessions_snapshot = CASE WHEN $3::int > 0 THEN COALESCE(total_pt_sessions_snapshot, 0) + $3::int ELSE total_pt_sessions_snapshot END,
+        updated_at = NOW()
+    WHERE id = $1
+    RETURNING *
+  `, [r.id, bonusDays, bonusPt])).rows[0];
   const m=await row(db,'member_profiles',r.member_id),b=await row(db,'branches',p.branch_id);
   const receipt=(await db.query('INSERT INTO receipts(payment_id,receipt_code,amount,payer_name,payer_phone,issued_by,note) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *',[p.id,await code(db,'receipts','receipt_code','PT'),p.amount,m.full_name,m.phone,req.user.account_id,saved.note])).rows[0];
   await audit(db,req,'payments',p.id,'PAYMENT_CONFIRMED',p,{...saved,manual_confirmation:req.body.manual_confirmation===true,provider_verified:false},p.branch_id,reference);
@@ -800,8 +903,29 @@ router.post('/payments/:id/simulate-transfer',route(req=>transaction(async db=>{
   const reference=text(req.body.transaction_ref,'transaction_ref',100,false)||`MB-SIM-${Date.now()}`;
   const note=text(req.body.note,'note',255,false)||'Thanh toán VietQR Napas 247 (Mô phỏng thử nghiệm)';
   const saved=(await db.query("UPDATE payments SET status='COMPLETED',transaction_ref=$2,collected_by=$3,confirmed_at=NOW(),updated_at=NOW(),note=COALESCE(note,$4) WHERE id=$1 RETURNING *",[p.id,reference,collectorId,note])).rows[0];
-  const status=r.end_date&&r.end_date<today()?'EXPIRED':r.start_date>today()?'SCHEDULED':'ACTIVE';
-  const reg=(await db.query('UPDATE registrations SET status=$2,updated_at=NOW() WHERE id=$1 RETURNING *',[r.id,status])).rows[0];
+  let bonusDays = 0, bonusPt = 0;
+  if (p.discount_id) {
+    const disc = (await db.query('SELECT bonus_days, bonus_pt_sessions FROM discounts WHERE id = $1', [p.discount_id])).rows[0];
+    if (disc) {
+      bonusDays = Number(disc.bonus_days || 0);
+      bonusPt = Number(disc.bonus_pt_sessions || 0);
+    }
+  }
+  const reg=(await db.query(`
+    UPDATE registrations
+    SET status = CASE
+          WHEN (CASE WHEN $2::int > 0 AND end_date IS NOT NULL THEN (end_date + ($2::int * INTERVAL '1 day'))::date ELSE end_date END) < CURRENT_DATE THEN 'EXPIRED'
+          WHEN start_date > CURRENT_DATE THEN 'SCHEDULED'
+          ELSE 'ACTIVE'
+        END,
+        end_date = CASE WHEN $2::int > 0 AND end_date IS NOT NULL THEN (end_date + ($2::int * INTERVAL '1 day'))::date ELSE end_date END,
+        duration_days_snapshot = CASE WHEN $2::int > 0 AND duration_days_snapshot IS NOT NULL THEN duration_days_snapshot + $2::int ELSE duration_days_snapshot END,
+        remaining_pt_sessions = CASE WHEN $3::int > 0 THEN COALESCE(remaining_pt_sessions, 0) + $3::int ELSE remaining_pt_sessions END,
+        total_pt_sessions_snapshot = CASE WHEN $3::int > 0 THEN COALESCE(total_pt_sessions_snapshot, 0) + $3::int ELSE total_pt_sessions_snapshot END,
+        updated_at = NOW()
+    WHERE id = $1
+    RETURNING *
+  `, [r.id, bonusDays, bonusPt])).rows[0];
   const m=await row(db,'member_profiles',r.member_id),b=await row(db,'branches',p.branch_id);
   const receipt=(await db.query('INSERT INTO receipts(payment_id,receipt_code,amount,payer_name,payer_phone,issued_by,note) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *',[p.id,await code(db,'receipts','receipt_code','PT'),p.amount,m.full_name,m.phone,collectorId,saved.note])).rows[0];
   await audit(db,req,'payments',p.id,'PAYMENT_CONFIRMED',p,{...saved,simulated_transfer:true,provider_verified:true},p.branch_id,reference);

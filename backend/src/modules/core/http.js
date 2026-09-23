@@ -44,6 +44,10 @@ function scope(req) {
   const header=req.headers['x-branch-id'], query=req.query.branch_id;
   if(header && query && header!==query) fail(403,'Conflicting branch scope','FORBIDDEN');
   const id=query||header;
+  if(id === 'ALL') {
+    if(!req.user.is_all_branches) fail(403, 'Branch outside authorized scope','FORBIDDEN');
+    return null;
+  }
   return id ? [branch(req,id)] : req.user.is_all_branches ? null : req.user.branch_ids;
 }
 async function row(db, table, id, lock = false) {

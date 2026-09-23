@@ -54,6 +54,7 @@ window.DashboardModule = (function () {
         {
           label: 'Gói sắp hết hạn',
           value: careSummary.expiring_soon_4days ?? 0,
+          amount: `<span class="metric-amount-label">Dự thu:</span> <strong class="metric-amount-val">${W.money(careSummary.expiring_projected_revenue || 0)}</strong>`,
           caption: (careSummary.expiring_soon_4days ?? 0) > 0 ? 'Cần liên hệ nhắc gia hạn gấp' : 'Không có gói cận hạn',
           icon: 'triangle-exclamation',
           tone: (careSummary.expiring_soon_4days ?? 0) > 0 ? 'danger' : 'amber',
@@ -62,6 +63,7 @@ window.DashboardModule = (function () {
         {
           label: 'Chờ nhắc gia hạn (14 ngày qua)',
           value: careSummary.pending_renewals ?? 0,
+          amount: `<span class="metric-amount-label">Dự thu:</span> <strong class="metric-amount-val">${W.money(careSummary.pending_renewals_projected_revenue || 0)}</strong>`,
           caption: 'Gói hết hạn chưa gia hạn lại',
           icon: 'hourglass-half',
           tone: 'amber',
@@ -70,6 +72,7 @@ window.DashboardModule = (function () {
         {
           label: 'Đăng ký mới hôm nay',
           value: careSummary.new_registrations_today ?? 0,
+          amount: `<span class="metric-amount-label">Tổng tiền:</span> <strong class="metric-amount-val">${W.money(careSummary.new_registrations_today_amount || 0)}</strong>`,
           caption: 'Hợp đồng tạo trong ngày',
           icon: 'file-signature',
           tone: 'blue',

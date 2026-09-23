@@ -16,9 +16,9 @@
 1. QTV truy cập menu **W14 · Chăm sóc & thông báo**.
 2. SYS nạp dữ liệu chăm sóc khách hàng tại chi nhánh theo 4 khối nghiệp vụ chính hiển thị qua Hàng 4 Thẻ KPI và 4 Tab tác nghiệp tương ứng 1-1:
    - **Thẻ 1 / Tab 1 — Sinh nhật hôm nay:** Đếm số hội viên có ngày sinh nhật trong ngày. Danh sách hiển thị: Họ tên, SĐT, Gói đang tập, ngày sinh nhật; kèm nút **`Chúc mừng`** (gửi thông báo in-app) và nút **`Gọi`** (mở popup ghi nhận CSKH).
-   - **Thẻ 2 / Tab 2 — Nhắc sắp hết hạn (<= 4 ngày hoặc <= 3 buổi):** Đếm số gói tập còn <= 4 ngày hoặc <= 3 buổi theo quyền lợi áp dụng. Danh sách hiển thị: Mã HĐ, Họ tên, tên gói, ngày hết hạn nếu có, số ngày hoặc số buổi còn lại theo quyền lợi; kèm nút **`Nhắc hạn`** (gửi thông báo in-app) và nút **`Gia hạn`** (mở điều hướng W04 gia hạn nhanh).
-   - **Thẻ 3 / Tab 3 — Chờ nhắc gia hạn (14 ngày qua):** Đếm số gói tập đã hết hạn trong 14 ngày gần nhất chưa mua tiếp (giai đoạn vàng Win-back / Retention). Danh sách hiển thị: Mã HĐ, Họ tên, gói đã tập, ngày hết hạn, số ngày quá hạn; kèm nút **`Tái ký gói`** và nút **`Gọi`**.
-   - **Thẻ 4 / Tab 4 — Đăng ký mới hôm nay:** Đếm số hợp đồng phát sinh trong ngày. Danh sách hiển thị: Mã ĐK, Họ tên, gói đăng ký, giá trị gói, trạng thái thanh toán, nhân viên tạo và nút **`Xem`** chi tiết.
+   - **Thẻ 2 / Tab 2 — Nhắc sắp hết hạn (<= 4 ngày hoặc <= 3 buổi):** Đếm số gói tập còn <= 4 ngày hoặc <= 3 buổi theo quyền lợi áp dụng kèm số tiền dự tính sẽ thu về sau khi gia hạn toàn bộ các gói đó (`Dự thu: [Tiền] ₫`). Danh sách hiển thị: Mã HĐ, Họ tên, tên gói, dự thu gia hạn, ngày hết hạn nếu có, số ngày hoặc số buổi còn lại theo quyền lợi; kèm nút **`Nhắc hạn`** (gửi thông báo in-app) và nút **`Gia hạn`** (mở điều hướng W04 gia hạn nhanh).
+   - **Thẻ 3 / Tab 3 — Chờ nhắc gia hạn (14 ngày qua):** Đếm số gói tập đã hết hạn trong 14 ngày gần nhất chưa mua tiếp (giai đoạn vàng Win-back / Retention) kèm số tiền dự tính thu về sau khi tái ký toàn bộ các gói này (`Dự thu: [Tiền] ₫`). Danh sách hiển thị: Mã HĐ, Họ tên, gói đã tập, dự thu tái ký, ngày hết hạn, số ngày quá hạn; kèm nút **`Tái ký gói`** và nút **`Gọi`**.
+   - **Thẻ 4 / Tab 4 — Đăng ký mới hôm nay:** Đếm số hợp đồng phát sinh trong ngày kèm tổng giá trị các hợp đồng ký mới hôm nay (`Tổng tiền: [Tiền] ₫`). Danh sách hiển thị: Mã ĐK, Họ tên, gói đăng ký, giá trị gói, trạng thái thanh toán, nhân viên tạo và nút **`Xem`** chi tiết.
 3. QTV click vào bất kỳ Thẻ KPI nào trên đầu; hệ thống tự động kích hoạt chuyển sang Tab danh sách tác nghiệp tương ứng.
 4. QTV click nút **`Gọi`** tại dòng hội viên cần chăm sóc để mở modal ghi nhận kết quả chăm sóc:
    - Chọn Hình thức tương tác (`Gọi điện thoại`, `Nhắn tin Zalo / SMS`, `Gặp trao đổi trực tiếp tại quầy`).
@@ -30,10 +30,13 @@
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Thẻ KPI Sinh nhật hôm nay | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số lượng hội viên sinh nhật trong ngày; click chuyển sang Tab Sinh nhật |
-| Thẻ KPI Sắp hết hạn (<= 4 ngày hoặc <= 3 buổi) | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói cận hạn; click chuyển sang Tab Sắp hết hạn |
-| Thẻ KPI Chờ nhắc gia hạn (14 ngày qua) | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói hết hạn 1-14 ngày chưa mua tiếp; click chuyển sang Tab Chờ nhắc gia hạn |
-| Thẻ KPI Đăng ký mới hôm nay | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số hợp đồng đăng ký mới trong ngày; click chuyển sang Tab Đăng ký mới |
+| Thẻ KPI Sắp hết hạn (<= 4 ngày hoặc <= 3 buổi) | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói cận hạn kèm số tiền dự thu gia hạn toàn bộ các gói; click chuyển sang Tab Sắp hết hạn |
+| Thẻ KPI Chờ nhắc gia hạn (14 ngày qua) | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số gói hết hạn 1-14 ngày chưa mua tiếp kèm số tiền dự thu tái ký; click chuyển sang Tab Chờ nhắc gia hạn |
+| Thẻ KPI Đăng ký mới hôm nay | `Metric Card` | `READONLY` | required | `DYNAMIC` | Số hợp đồng đăng ký mới trong ngày kèm tổng giá trị các hợp đồng; click chuyển sang Tab Đăng ký mới |
 | Thanh điều hướng Tab | `Tab Bar (dxTabs)` | `USER-INPUT` | required | `TRIGGER` | 4 tab tác nghiệp: Sinh nhật, Sắp hết hạn, Chờ nhắc gia hạn, Đăng ký mới |
+| Cột Dự thu gia hạn (Tab Sắp hết hạn) | `DataGrid Column` | `READONLY` | required | `DYNAMIC` | Hiển thị giá trị gói dự tính thu về khi gia hạn (`price_snapshot`) |
+| Cột Dự thu tái ký (Tab Chờ nhắc gia hạn) | `DataGrid Column` | `READONLY` | required | `DYNAMIC` | Hiển thị giá trị gói dự tính thu về khi tái ký hợp đồng (`price_snapshot`) |
+| Cột Giá trị gói (Tab Đăng ký mới) | `DataGrid Column` | `READONLY` | required | `DYNAMIC` | Hiển thị tổng giá trị của hợp đồng đăng ký mới (`price_snapshot`) |
 | Nút Chúc mừng / Nhắc hạn | `Action Button` | `USER-INPUT` | optional | `Không` | Bấm gửi thông báo in-app tự động cho hội viên |
 | Nút Gọi / Ghi nhận CSKH | `Action Button` | `USER-INPUT` | optional | `Không` | Mở modal ghi nhận nhật ký tương tác CSKH |
 | Nút Gia hạn / Tái ký gói | `Action Button` | `USER-INPUT` | optional | `Không` | Điều hướng sang phân hệ Đăng ký & Gia hạn (W04) |

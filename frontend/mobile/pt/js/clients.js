@@ -26,7 +26,7 @@
   const readRows = res => Array.isArray(res?.data) ? res.data : (res?.data?.items || []);
   // State cục bộ của module Clients (PT02)
   const ClientsState = {
-    currentTab: 'members', // 'members' (Học viên phụ trách) | 'packages' (Gói đang phụ trách) | 'requests'
+    currentTab: 'members', // 'members' (Học viên phụ trách) | 'packages' (Gói đang phụ trách) | 'community_classes' (Lớp tập CĐ phụ trách)
     searchQuery: '',
     selectedClientId: null,
     selectedMemberId: null,
@@ -34,9 +34,10 @@
     isLoading: false,
     hasError: false,
 
-    // Dữ liệu hợp đồng gói tập phụ trách (tải động 100% từ Database PostgreSQL)
+    // Dữ liệu hợp đồng gói tập phụ trách & Lớp cộng đồng (tải động 100% từ Database PostgreSQL)
     clients: [],
-    assignmentRequests: []
+    assignmentRequests: [],
+    communityClasses: []
   };
 
   /**
@@ -146,6 +147,14 @@
   }
 
   /**
+   * Helper định dạng số tiền VNĐ
+   */
+  function formatVnd(val) {
+    const n = Math.round(Number(val) || 0);
+    return n.toLocaleString('vi-VN');
+  }
+
+  /**
    * Tải danh sách học viên phụ trách từ Backend Database PostgreSQL
    */
   async function fetchClientsData() {
@@ -158,12 +167,13 @@
 
       const currentPtId = window.ptApp.currentUser.pt_profile_id;
 
-      // 1. Fetch Registrations, Bookings, Assignment Requests & Members từ PostgreSQL
-      const [regsRes, bookingsRes, requestsRes, membersRes] = await Promise.all([
+      // 1. Fetch Registrations, Bookings, Assignment Requests, Members & Community Classes từ PostgreSQL
+      const [regsRes, bookingsRes, requestsRes, membersRes, classesRes] = await Promise.all([
         window.apiClient.registrations?.list(),
         window.apiClient.pt?.listBookings(currentPtId ? { pt_id: currentPtId } : {}),
         window.apiClient.pt?.listAssignmentRequests?.(currentPtId ? { pt_id: currentPtId } : {}),
-        window.apiClient.members?.list({limit:1000})
+        window.apiClient.members?.list({limit:1000}),
+        currentPtId ? window.apiClient.request(`/community-classes?instructor_id=${currentPtId}`) : Promise.resolve({ data: [] })
       ]);
 
       if (window.ptApp?.currentUser?.pt_profile_id !== currentPtId) return;
@@ -171,6 +181,8 @@
       const bookings = readRows(bookingsRes);
       const rawRequests = readRows(requestsRes);
       const membersList = readRows(membersRes);
+      const rawClasses = readRows(classesRes);
+      ClientsState.communityClasses = Array.isArray(rawClasses) ? rawClasses : (Array.isArray(classesRes?.data) ? classesRes.data : (Array.isArray(classesRes) ? classesRes : []));
 
       // Filter các đăng ký có buổi PT thuộc quyền phụ trách của PT hiện tại
       const ptRegs = regs.filter(r => {
@@ -295,7 +307,11 @@
     const uniqueMembers = getUniqueAssignedMembers();
     const membersCount = uniqueMembers.length;
     const packagesCount = ClientsState.clients.length;
-    const requestsCount = ClientsState.assignmentRequests ? ClientsState.assignmentRequests.length : 0;
+    const communityClassesCount = ClientsState.communityClasses.length;
+
+    const searchPlaceholder = ClientsState.currentTab === 'members'
+      ? 'Tìm học viên được phân công...'
+      : (ClientsState.currentTab === 'packages' ? 'Tìm gói tập, học viên phụ trách...' : 'Tìm lớp tập cộng đồng phụ trách...');
 
     containerEl.innerHTML = `
       <div class="pt-clients-module">
@@ -307,7 +323,7 @@
               type="text" 
               id="ptClientsSearchInput" 
               class="pt-search-input" 
-              placeholder="${ClientsState.currentTab === 'members' ? 'Tìm học viên được phân công...' : (ClientsState.currentTab === 'packages' ? 'Tìm gói tập, học viên phụ trách...' : 'Tìm yêu cầu phụ trách...')}" 
+              placeholder="${searchPlaceholder}" 
               value="${escapeHtml(ClientsState.searchQuery)}"
               autocomplete="off"
             />
@@ -317,7 +333,7 @@
           </div>
         </div>
 
-        <!-- Bộ chuyển phân loại 3 tab: Học viên phụ trách, Gói đang phụ trách & Yêu cầu phụ trách -->
+        <!-- Bộ chuyển phân loại 3 tab: Học viên phụ trách, Gói đang phụ trách & Lớp tập CĐ phụ trách -->
         <div class="pt-clients-tabs">
           <button type="button" class="pt-tab-btn ${ClientsState.currentTab === 'members' ? 'active' : ''}" data-tab="members" id="tabBtnMembers">
             <span>Học viên phụ trách</span>
@@ -327,9 +343,9 @@
             <span>Gói đang phụ trách</span>
             <span class="pt-tab-count" id="packagesCountBadge">(${packagesCount})</span>
           </button>
-          <button type="button" class="pt-tab-btn ${ClientsState.currentTab === 'requests' ? 'active' : ''}" data-tab="requests" id="tabBtnRequests">
-            <span>Yêu cầu phụ trách</span>
-            <span class="pt-tab-count" id="requestsCountBadge">(${requestsCount})</span>
+          <button type="button" class="pt-tab-btn ${ClientsState.currentTab === 'community_classes' ? 'active' : ''}" data-tab="community_classes" id="tabBtnCommunityClasses">
+            <span>Lớp tập CĐ phụ trách</span>
+            <span class="pt-tab-count" id="communityClassesCountBadge">(${communityClassesCount})</span>
           </button>
           <!-- Nút tương thích ngược cho test automation cũ -->
           <button type="button" id="tabBtnAssigned" style="display:none;" data-tab="packages"></button>
@@ -896,13 +912,148 @@
   }
 
   /**
+   * Lọc danh sách lớp học cộng đồng theo từ khóa tìm kiếm
+   */
+  function getFilteredCommunityClasses() {
+    let list = ClientsState.communityClasses || [];
+    const q = ClientsState.searchQuery.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(c => {
+      const title = (c.title || '').toLowerCase();
+      const disc = (c.discipline_name || '').toLowerCase();
+      const branch = (c.branch_name || '').toLowerCase();
+      const date = (c.class_date || '').toLowerCase();
+      return title.includes(q) || disc.includes(q) || branch.includes(q) || date.includes(q);
+    });
+  }
+
+  /**
+   * Render danh sách lớp tập cộng đồng do HLV phụ trách (Tab 3: Lớp tập CĐ phụ trách)
+   */
+  function renderAssignedCommunityClassesList() {
+    const list = getFilteredCommunityClasses();
+
+    if (list.length === 0) {
+      if (ClientsState.searchQuery) {
+        return `
+          <div class="pt-empty-state">
+            <div class="pt-empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <div class="pt-empty-title">Không tìm thấy lớp học nào</div>
+            <div class="pt-empty-desc">Không có lớp cộng đồng nào khớp với từ khóa "${escapeHtml(ClientsState.searchQuery)}".</div>
+          </div>
+        `;
+      }
+      return `
+        <div class="pt-empty-state">
+          <div class="pt-empty-icon"><i class="fa-solid fa-users-slash"></i></div>
+          <div class="pt-empty-title">Chưa có lớp cộng đồng nào</div>
+          <div class="pt-empty-desc">Bạn chưa được phân công phụ trách lớp tập cộng đồng nào.</div>
+        </div>
+      `;
+    }
+
+    // Sắp xếp ngày giảm dần để xem lớp gần nhất trước
+    const sorted = [...list].sort((a, b) => (b.class_date || '').localeCompare(a.class_date || '') || (b.start_time || '').localeCompare(a.start_time || ''));
+
+    let html = `
+      <div style="padding: 10px 16px 6px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">
+          <i class="fa-solid fa-users"></i> ${list.length} lớp tập cộng đồng
+        </span>
+        <span style="font-size: 11.5px; color: var(--text-muted);">
+          Chạm vào lớp để xem hội viên
+        </span>
+      </div>
+      <div class="pt-community-classes-list" style="display: flex; flex-direction: column; gap: 10px; padding: 0 16px 24px;">
+    `;
+
+    sorted.forEach(c => {
+      const comp = Number(c.total_compensation || ((Number(c.base_price) || 0) + (Number(c.bonus_amount) || 0)));
+      const dateParts = (c.class_date || '').split('-');
+      const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : (c.class_date || '');
+      const timeStr = (c.start_time && c.end_time) ? `${c.start_time.slice(0, 5)} - ${c.end_time.slice(0, 5)}` : '';
+      const enrolled = Number(c.enrolled_slots) || 0;
+      const maxSlots = Number(c.max_slots) || 0;
+      const pct = maxSlots > 0 ? Math.min(100, Math.round((enrolled / maxSlots) * 100)) : 0;
+
+      // Status badge
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const isPast = c.class_date < todayStr;
+      const isToday = c.class_date === todayStr;
+      const statusBadge = isToday
+        ? '<span class="badge" style="background: rgba(35, 123, 88, 0.15); color: #237b58; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 700;">Hôm nay</span>'
+        : isPast
+          ? '<span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #64748b; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">Đã diễn ra</span>'
+          : '<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #2563eb; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">Sắp diễn ra</span>';
+
+      html += `
+        <div class="pt-community-class-card" data-class-id="${c.id}" role="button" tabindex="0"
+             style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span class="badge" style="background: rgba(124, 58, 237, 0.12); color: #7c3aed; font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 4px;">
+                <i class="fa-solid fa-medal" style="font-size: 10px; margin-right: 2px;"></i> ${escapeHtml(c.discipline_name || 'Lớp CĐ')}
+              </span>
+              ${statusBadge}
+            </div>
+            <div style="font-size: 13.5px; font-weight: 800; color: #7c3aed;">
+              +${formatVnd(comp)} đ
+            </div>
+          </div>
+
+          <div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; line-height: 1.3;">
+            ${escapeHtml(c.title)}
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i class="fa-regular fa-clock" style="color: var(--primary); width: 14px;"></i>
+              <span>${timeStr} · <strong>${formattedDate}</strong></span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-location-dot" style="color: var(--text-muted); width: 14px;"></i>
+              <span>${escapeHtml(c.branch_name || 'Paradise Gym')}</span>
+            </div>
+          </div>
+
+          <!-- Sĩ số học viên & Progress bar -->
+          <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 5px;">
+              <span style="color: var(--text-muted);"><i class="fa-solid fa-users"></i> Sĩ số đăng ký</span>
+              <span style="font-weight: 700; color: #7c3aed;">${enrolled} / ${maxSlots} HV (${pct}%)</span>
+            </div>
+            <div style="height: 5px; background: rgba(0,0,0,0.06); border-radius: 3px; overflow: hidden;">
+              <div style="height: 100%; width: ${pct}%; background: linear-gradient(90deg, #7c3aed, #a855f7); border-radius: 3px;"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+            <div style="font-size: 11.5px; color: var(--text-muted);">
+              Cơ bản: ${formatVnd(c.base_price || 0)} đ + Thưởng: ${formatVnd(c.bonus_amount || 0)} đ
+            </div>
+            <button type="button" class="btn-view-community-class-detail" data-class-id="${c.id}"
+                    style="background: rgba(124, 58, 237, 0.08); border: 1px solid #7c3aed; color: #7c3aed; border-radius: 6px; font-size: 11.5px; font-weight: 700; padding: 4px 10px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+              <i class="fa-solid fa-list-ul"></i> Xem danh sách hội viên
+            </button>
+          </div>
+
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+    return html;
+  }
+
+  /**
    * Sinh mã HTML danh sách nội dung theo Tab đang kích hoạt
    */
   function renderContentListHtml() {
     if (ClientsState.hasError) {
       return '<div class="pt-empty-state">Không thể tải danh sách. <button type="button" class="btn btn-secondary" id="btnRetryClients" title="Thử lại"><i class="fa-solid fa-rotate-right"></i> Thử lại</button></div>';
     }
-    if (ClientsState.isLoading && ClientsState.clients.length === 0 && ClientsState.assignmentRequests.length === 0) {
+    if (ClientsState.isLoading && ClientsState.clients.length === 0 && ClientsState.communityClasses.length === 0) {
       return `
         <div class="pt-empty-state">
           <div class="pt-empty-icon" style="color: var(--primary, #237b58);">
@@ -915,10 +1066,10 @@
 
     if (ClientsState.currentTab === 'members') {
       return renderAssignedMembersList();
-    } else if (ClientsState.currentTab === 'packages' || ClientsState.currentTab === 'assigned') {
-      return renderAssignedPackagesList();
+    } else if (ClientsState.currentTab === 'community_classes') {
+      return renderAssignedCommunityClassesList();
     } else {
-      return renderAssignmentRequestsList();
+      return renderAssignedPackagesList();
     }
   }
 
@@ -938,6 +1089,7 @@
     const uniqueMembers = getUniqueAssignedMembers();
     const membersCount = uniqueMembers.length;
     const packagesCount = ClientsState.clients.length;
+    const communityClassesCount = ClientsState.communityClasses.length;
 
     const membersBadge = document.getElementById('membersCountBadge');
     if (membersBadge) {
@@ -953,11 +1105,9 @@
       packagesBadge.textContent = `(${packagesCount})`;
     }
 
-    const requestsCount = ClientsState.assignmentRequests ? ClientsState.assignmentRequests.length : 0;
-    const reqBadge = document.getElementById('requestsCountBadge');
-    if (reqBadge) {
-      reqBadge.textContent = `(${requestsCount})`;
-      reqBadge.style.display = 'inline';
+    const communityBadge = document.getElementById('communityClassesCountBadge');
+    if (communityBadge) {
+      communityBadge.textContent = `(${communityClassesCount})`;
     }
 
     // Cập nhật tab bar badge của ứng dụng tổng thể nếu có
@@ -977,22 +1127,24 @@
    */
   function switchTab(tabKey) {
     if (tabKey === 'assigned') tabKey = 'packages';
-    if (tabKey !== 'members' && tabKey !== 'packages' && tabKey !== 'requests') return;
+    if (tabKey !== 'members' && tabKey !== 'packages' && tabKey !== 'community_classes') return;
     ClientsState.currentTab = tabKey;
     
     const tabMembers = document.getElementById('tabBtnMembers');
     const tabPackages = document.getElementById('tabBtnPackages');
     const tabAssigned = document.getElementById('tabBtnAssigned');
-    const tabRequests = document.getElementById('tabBtnRequests');
+    const tabCommunity = document.getElementById('tabBtnCommunityClasses');
 
     if (tabMembers) tabMembers.classList.toggle('active', tabKey === 'members');
     if (tabPackages) tabPackages.classList.toggle('active', tabKey === 'packages');
     if (tabAssigned) tabAssigned.classList.toggle('active', tabKey === 'packages');
-    if (tabRequests) tabRequests.classList.toggle('active', tabKey === 'requests');
+    if (tabCommunity) tabCommunity.classList.toggle('active', tabKey === 'community_classes');
 
     const searchInput = document.getElementById('ptClientsSearchInput');
     if (searchInput) {
-      searchInput.placeholder = tabKey === 'members' ? 'Tìm học viên được phân công...' : 'Tìm gói tập, học viên phụ trách...';
+      searchInput.placeholder = tabKey === 'members'
+        ? 'Tìm học viên được phân công...'
+        : (tabKey === 'packages' ? 'Tìm gói tập, học viên phụ trách...' : 'Tìm lớp tập cộng đồng phụ trách...');
     }
 
     renderContentList();
@@ -1008,7 +1160,7 @@
     const tabMembers = containerEl.querySelector('#tabBtnMembers');
     const tabPackages = containerEl.querySelector('#tabBtnPackages');
     const tabAssigned = containerEl.querySelector('#tabBtnAssigned');
-    const tabRequests = containerEl.querySelector('#tabBtnRequests');
+    const tabCommunity = containerEl.querySelector('#tabBtnCommunityClasses');
 
     if (tabMembers) {
       tabMembers.addEventListener('click', () => switchTab('members'));
@@ -1019,9 +1171,19 @@
     if (tabAssigned) {
       tabAssigned.addEventListener('click', () => switchTab('packages'));
     }
-    if (tabRequests) {
-      tabRequests.addEventListener('click', () => switchTab('requests'));
+    if (tabCommunity) {
+      tabCommunity.addEventListener('click', () => switchTab('community_classes'));
     }
+
+    // 1.1. Click xem chi tiết lớp cộng đồng & danh sách hội viên
+    $(containerEl).off('click', '.pt-community-class-card, .btn-view-community-class-detail')
+      .on('click', '.pt-community-class-card, .btn-view-community-class-detail', function (e) {
+        e.stopPropagation();
+        const classId = $(this).data('class-id');
+        if (classId && typeof window.openPTCommunityClassModal === 'function') {
+          window.openPTCommunityClassModal(classId);
+        }
+      });
 
     // 2. Tìm kiếm realtime
     const searchInput = containerEl.querySelector('#ptClientsSearchInput');
@@ -1956,6 +2118,7 @@
     reset: () => { 
       ClientsState.clients = []; 
       ClientsState.assignmentRequests = []; 
+      ClientsState.communityClasses = [];
       ClientsState.hasError = false; 
       ClientsState.isLoading = false; 
       closeClientDetail(); 
@@ -1972,6 +2135,7 @@
     getPendingRequestsCount: () => 0,
     getClientsCount: () => new Set(ClientsState.clients.map(c => c.memberId)).size,
     getPackagesCount: () => ClientsState.clients.length,
+    getCommunityClassesCount: () => ClientsState.communityClasses.length,
     getState: () => ClientsState
   };
 });

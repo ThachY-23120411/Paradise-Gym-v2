@@ -45,13 +45,26 @@ window.DiscountsModule = (function () {
           }
         },
         {
-          dataField: 'title', caption: 'Tên chương trình', minWidth: 200,
+          dataField: 'title', caption: 'Tên chương trình', minWidth: 180,
           cellTemplate: (el, cell) => {
             $('<strong>').css({ color: '#26332e', fontSize: '13px' }).text(cell.value).appendTo(el);
           }
         },
         {
-          caption: 'Chi nhánh áp dụng', width: 190,
+          caption: 'Gói áp dụng', width: 170,
+          cellTemplate: (el, cell) => {
+            const r = cell.data;
+            if (r.applicable_package_name) {
+              $('<span style="font-weight:600;color:#185740;">')
+                .text(r.applicable_package_name)
+                .appendTo(el);
+            } else {
+              $('<span style="color:#748078;">').text('Tất cả gói tập').appendTo(el);
+            }
+          }
+        },
+        {
+          caption: 'Chi nhánh áp dụng', width: 180,
           cellTemplate: (el, cell) => {
             const r = cell.data;
             const names = (r.branch_names && r.branch_names.length) ? r.branch_names : (r.branch_name ? [r.branch_name] : []);
@@ -72,18 +85,26 @@ window.DiscountsModule = (function () {
           }
         },
         {
-          caption: 'Mức giảm', width: 110, alignment: 'right',
+          caption: 'Mức giảm / Khuyến mãi', minWidth: 140, alignment: 'right',
           cellTemplate: (el, cell) => {
             const r = cell.data;
             if (r.discount_type === 'PERCENT') {
               $('<span style="font-weight:600;color:#253e30;">').text(`Giảm ${r.discount_value}%`).appendTo(el);
-            } else {
+            } else if (r.discount_type === 'FIXED_AMOUNT') {
               $('<span style="font-weight:600;color:#253e30;">').text(`Giảm ${W().money(r.discount_value)}`).appendTo(el);
+            } else if (r.discount_type === 'SESSION') {
+              $('<span style="font-weight:600;color:#237b58;">').text(`Tặng ${r.bonus_pt_sessions} buổi`).appendTo(el);
+            } else if (r.discount_type === 'DAY') {
+              $('<span style="font-weight:600;color:#237b58;">').text(`Tặng ${r.bonus_days} ngày`).appendTo(el);
+            } else if (r.discount_type === 'BOTH') {
+              $('<span style="font-weight:600;color:#237b58;">').text(`Tặng ${r.bonus_days} ngày + ${r.bonus_pt_sessions} buổi PT`).appendTo(el);
+            } else {
+              $('<span style="color:#8b978f;">').text('--').appendTo(el);
             }
           }
         },
         {
-          caption: 'Giảm tối đa', width: 120, alignment: 'right',
+          caption: 'Giảm tối đa', width: 110, alignment: 'right',
           cellTemplate: (el, cell) => {
             const r = cell.data;
             if (r.discount_type === 'PERCENT' && r.max_discount_amount) {
@@ -94,7 +115,7 @@ window.DiscountsModule = (function () {
           }
         },
         {
-          caption: 'Đơn tối thiểu', width: 120, alignment: 'right',
+          caption: 'Đơn tối thiểu', width: 110, alignment: 'right',
           cellTemplate: (el, cell) => {
             const r = cell.data;
             if (r.min_order_value && Number(r.min_order_value) > 0) {
@@ -145,11 +166,17 @@ window.DiscountsModule = (function () {
 
   async function openDiscountModal() {
     let branches = [];
+    let packages = [];
     try {
-      const bRes = await api().request('/branches', { headers: { 'x-branch-id': 'ALL' } });
+      const [bRes, pRes] = await Promise.all([
+        api().request('/branches', { headers: { 'x-branch-id': 'ALL' } }),
+        api().request('/packages', { headers: { 'x-branch-id': 'ALL' } })
+      ]);
       branches = W().rows(bRes);
+      packages = W().rows(pRes);
     } catch (e) {
       branches = [];
+      packages = [];
     }
 
     const allBranchIds = branches.map(b => b.id);
@@ -165,14 +192,40 @@ window.DiscountsModule = (function () {
       initialBranches = ['ALL', ...allBranchIds];
     }
 
+    function getPackageOptions(selectedBranchIds) {
+      const isAll = !selectedBranchIds || selectedBranchIds.includes('ALL') || selectedBranchIds.length === 0 || selectedBranchIds.length === allBranchIds.length;
+      const filtered = isAll ? packages : packages.filter(p => {
+        const pB = p.branch_ids || [];
+        return selectedBranchIds.some(bid => pB.includes(bid));
+      });
+
+      return [
+        { id: null, text: 'Tất cả gói tập (Không giới hạn)', package_type: null },
+        ...filtered.map(p => {
+          let typeLabel = 'Theo ngày';
+          if (p.package_type === 'PT_SESSION') typeLabel = 'Buổi PT';
+          else if (p.package_type === 'GYM_SESSION') typeLabel = 'Buổi Gym';
+          else if (p.package_type === 'COMBO') typeLabel = 'Gói Combo';
+          return {
+            id: p.id,
+            text: `${p.package_name} [${typeLabel}] - ${W().money(p.price)}`,
+            package_type: p.package_type
+          };
+        })
+      ];
+    }
+
     const dialog = W().popup('Tạo mã voucher / khuyến mãi mới', content => {
       const formDiv = $('<div>').appendTo(content);
       const data = {
         branch_ids: initialBranches,
+        applicable_package_id: null,
         code: '',
         title: '',
         discount_type: 'PERCENT',
         discount_value: 10,
+        bonus_days: null,
+        bonus_pt_sessions: null,
         min_order_value: 0,
         max_discount_amount: null,
         start_date: new Date().toISOString().slice(0, 10),
@@ -181,7 +234,108 @@ window.DiscountsModule = (function () {
         is_active: true
       };
 
-      const form = formDiv.dxForm({
+      let formInstance = null;
+
+      function updatePromotionTypeState(pkgId, preferredType) {
+        if (!formInstance) return;
+        const pkg = packages.find(p => p.id === pkgId);
+        const pkgType = pkg ? pkg.package_type : null;
+
+        let availableTypes = [];
+        let nextType = preferredType || data.discount_type;
+        let isReadOnly = false;
+
+        if (pkgType === 'PT_SESSION' || pkgType === 'GYM_SESSION') {
+          // TH1: Gói theo buổi
+          availableTypes = [
+            { id: 'PERCENT', text: 'Giảm theo tỷ lệ phần trăm (%)' },
+            { id: 'FIXED_AMOUNT', text: 'Giảm số tiền cố định (VNĐ)' },
+            { id: 'SESSION', text: 'Tặng số buổi tập (Buổi)' }
+          ];
+          if (!['PERCENT', 'FIXED_AMOUNT', 'SESSION'].includes(nextType)) {
+            nextType = 'SESSION';
+          }
+        } else if (pkgType === 'GYM_TIME') {
+          // TH2: Gói theo ngày
+          availableTypes = [
+            { id: 'PERCENT', text: 'Giảm theo tỷ lệ phần trăm (%)' },
+            { id: 'FIXED_AMOUNT', text: 'Giảm số tiền cố định (VNĐ)' },
+            { id: 'DAY', text: 'Tặng thời gian tập (Ngày)' }
+          ];
+          if (!['PERCENT', 'FIXED_AMOUNT', 'DAY'].includes(nextType)) {
+            nextType = 'DAY';
+          }
+        } else if (pkgType === 'COMBO') {
+          // TH3: Gói Combo -> Hỗ trợ %, VNĐ và Khuyến mãi theo buổi và ngày
+          availableTypes = [
+            { id: 'PERCENT', text: 'Giảm theo tỷ lệ phần trăm (%)' },
+            { id: 'FIXED_AMOUNT', text: 'Giảm số tiền cố định (VNĐ)' },
+            { id: 'BOTH', text: 'Khuyến mãi theo buổi và ngày' }
+          ];
+          if (!['PERCENT', 'FIXED_AMOUNT', 'BOTH'].includes(nextType)) {
+            nextType = 'PERCENT';
+          }
+          isReadOnly = false;
+        } else {
+          // TH0: Tất cả gói
+          availableTypes = [
+            { id: 'PERCENT', text: 'Giảm theo tỷ lệ phần trăm (%)' },
+            { id: 'FIXED_AMOUNT', text: 'Giảm số tiền cố định (VNĐ)' }
+          ];
+          if (!['PERCENT', 'FIXED_AMOUNT'].includes(nextType)) {
+            nextType = 'PERCENT';
+          }
+        }
+
+        const curEditorOptions = formInstance.itemOption('discount_type').editorOptions || {};
+        formInstance.itemOption('discount_type', 'editorOptions', {
+          ...curEditorOptions,
+          items: availableTypes,
+          readOnly: isReadOnly
+        });
+
+        const selectBox = formInstance.getEditor('discount_type');
+        if (selectBox) {
+          selectBox.option('items', availableTypes);
+          selectBox.option('value', nextType);
+          selectBox.option('readOnly', isReadOnly);
+        }
+        data.discount_type = nextType;
+        formInstance.updateData('discount_type', nextType);
+        const edType = formInstance.getEditor('discount_type');
+        if (edType) {
+          edType.option('readOnly', isReadOnly);
+          edType.option('value', nextType);
+        }
+
+        const isPercent = nextType === 'PERCENT';
+        const isFixed = nextType === 'FIXED_AMOUNT';
+        const isSession = nextType === 'SESSION';
+        const isDay = nextType === 'DAY';
+        const isBoth = nextType === 'BOTH';
+
+        formInstance.itemOption('discount_value', 'visible', isPercent || isFixed);
+        formInstance.itemOption('discount_value', 'label', {
+          text: isPercent ? 'Giá trị giảm (%)' : 'Giá trị giảm (VNĐ)'
+        });
+
+        formInstance.itemOption('max_discount_amount', 'visible', isPercent);
+        if (!isPercent) {
+          formInstance.updateData('max_discount_amount', null);
+        }
+
+        formInstance.itemOption('bonus_days', 'visible', isDay || isBoth);
+        formInstance.itemOption('bonus_days', 'label', {
+          text: isBoth ? 'Số ngày gym khuyến mãi' : 'Số ngày khuyến mãi'
+        });
+
+        formInstance.itemOption('bonus_pt_sessions', 'visible', isSession || isBoth);
+        formInstance.itemOption('bonus_pt_sessions', 'label', {
+          text: isBoth ? 'Số buổi PT khuyến mãi' : 'Số buổi khuyến mãi'
+        });
+      }
+
+      formInstance = formDiv.dxForm({
         formData: data,
         labelLocation: 'top',
         showColonAfterLabel: false,
@@ -209,19 +363,14 @@ window.DiscountsModule = (function () {
 
                 e.component._isSyncing = true;
                 try {
-                  // 1. Nếu người dùng vừa tick chọn "Tất cả" (ALL) -> tự động tick tất cả chi nhánh
                   if (selectedSet.has('ALL') && !prevSet.has('ALL')) {
                     e.component.option('value', ['ALL', ...allBranchIds]);
                     return;
                   }
-
-                  // 2. Nếu người dùng vừa bỏ tick "Tất cả" (ALL) -> bỏ chọn tất cả
                   if (!selectedSet.has('ALL') && prevSet.has('ALL')) {
                     e.component.option('value', []);
                     return;
                   }
-
-                  // 3. Xử lý khi người dùng chọn/bỏ chọn từng chi nhánh
                   const realCount = allBranchIds.filter(id => selectedSet.has(id)).length;
                   if (realCount === allBranchIds.length) {
                     if (!selectedSet.has('ALL')) {
@@ -234,6 +383,18 @@ window.DiscountsModule = (function () {
                   }
                 } finally {
                   e.component._isSyncing = false;
+                  // Update packages available
+                  const currentVals = e.component.option('value') || [];
+                  const pkgEditor = formInstance ? formInstance.getEditor('applicable_package_id') : null;
+                  if (pkgEditor) {
+                    const newPkgItems = getPackageOptions(currentVals);
+                    pkgEditor.option('items', newPkgItems);
+                    const curPkgId = pkgEditor.option('value');
+                    if (curPkgId && !newPkgItems.some(item => item.id === curPkgId)) {
+                      pkgEditor.option('value', null);
+                      updatePromotionTypeState(null);
+                    }
+                  }
                 }
               }
             },
@@ -246,6 +407,22 @@ window.DiscountsModule = (function () {
             ]
           },
           {
+            dataField: 'applicable_package_id', label: { text: 'Gói tập áp dụng' },
+            editorType: 'dxSelectBox',
+            colSpan: 2,
+            editorOptions: {
+              items: getPackageOptions(initialBranches),
+              valueExpr: 'id', displayExpr: 'text',
+              searchEnabled: true,
+              showClearButton: true,
+              placeholder: 'Tất cả gói tập (hoặc chọn gói cụ thể)...',
+              onValueChanged: function (e) {
+                data.applicable_package_id = e.value || null;
+                updatePromotionTypeState(e.value);
+              }
+            }
+          },
+          {
             dataField: 'code', label: { text: 'Mã khuyến mãi (Code)' },
             editorType: 'dxTextBox', editorOptions: { placeholder: 'VÍ DỤ: SUMMER2026, VIP10...' },
             validationRules: [{ type: 'required', message: 'Vui lòng nhập mã code' }]
@@ -256,7 +433,7 @@ window.DiscountsModule = (function () {
             validationRules: [{ type: 'required', message: 'Vui lòng nhập tên chương trình' }]
           },
           {
-            dataField: 'discount_type', label: { text: 'Hình thức giảm' },
+            dataField: 'discount_type', label: { text: 'Hình thức khuyến mãi' },
             editorType: 'dxSelectBox',
             editorOptions: {
               items: [
@@ -265,25 +442,56 @@ window.DiscountsModule = (function () {
               ],
               valueExpr: 'id', displayExpr: 'text',
               onValueChanged: e => {
+                if (!e.value) return;
+                data.discount_type = e.value;
                 const isPercent = e.value === 'PERCENT';
-                form.itemOption('max_discount_amount', 'visible', isPercent);
-                form.itemOption('discount_value', 'label', {
+                const isFixed = e.value === 'FIXED_AMOUNT';
+                const isSession = e.value === 'SESSION';
+                const isDay = e.value === 'DAY';
+                const isBoth = e.value === 'BOTH';
+
+                formInstance.itemOption('discount_value', 'visible', isPercent || isFixed);
+                formInstance.itemOption('discount_value', 'label', {
                   text: isPercent ? 'Giá trị giảm (%)' : 'Giá trị giảm (VNĐ)'
                 });
+
+                formInstance.itemOption('max_discount_amount', 'visible', isPercent);
                 if (!isPercent) {
-                  form.updateData('max_discount_amount', null);
-                  data.max_discount_amount = null;
+                  formInstance.updateData('max_discount_amount', null);
                 }
+
+                formInstance.itemOption('bonus_days', 'visible', isDay || isBoth);
+                formInstance.itemOption('bonus_days', 'label', {
+                  text: isBoth ? 'Số ngày gym khuyến mãi' : 'Số ngày khuyến mãi'
+                });
+
+                formInstance.itemOption('bonus_pt_sessions', 'visible', isSession || isBoth);
+                formInstance.itemOption('bonus_pt_sessions', 'label', {
+                  text: isBoth ? 'Số buổi PT khuyến mãi' : 'Số buổi khuyến mãi'
+                });
               }
             },
-            validationRules: [{ type: 'required', message: 'Chọn hình thức giảm' }]
+            validationRules: [{ type: 'required', message: 'Chọn hình thức khuyến mãi' }]
           },
           {
             dataField: 'discount_value', name: 'discount_value',
-            label: { text: data.discount_type === 'PERCENT' ? 'Giá trị giảm (%)' : 'Giá trị giảm (VNĐ)' },
+            label: { text: 'Giá trị giảm (%)' },
             editorType: 'dxNumberBox',
-            editorOptions: { min: 1, format: '#,##0' },
-            validationRules: [{ type: 'required', message: 'Nhập giá trị giảm' }]
+            editorOptions: { min: 1, format: '#,##0' }
+          },
+          {
+            dataField: 'bonus_days', name: 'bonus_days',
+            label: { text: 'Số ngày khuyến mãi' },
+            visible: false,
+            editorType: 'dxNumberBox',
+            editorOptions: { min: 1, format: '#,##0' }
+          },
+          {
+            dataField: 'bonus_pt_sessions', name: 'bonus_pt_sessions',
+            label: { text: 'Số buổi khuyến mãi' },
+            visible: false,
+            editorType: 'dxNumberBox',
+            editorOptions: { min: 1, format: '#,##0' }
           },
           {
             dataField: 'min_order_value', label: { text: 'Đơn hàng tối thiểu (VNĐ)' },
@@ -292,7 +500,7 @@ window.DiscountsModule = (function () {
           {
             dataField: 'max_discount_amount', name: 'max_discount_amount',
             label: { text: 'Giảm tối đa (VNĐ)' },
-            visible: data.discount_type === 'PERCENT',
+            visible: true,
             editorType: 'dxNumberBox', editorOptions: { min: 0, format: '#,##0' }
           },
           {
@@ -317,12 +525,31 @@ window.DiscountsModule = (function () {
         $('<div>').dxButton({
           text: 'Tạo mã voucher', type: 'default', stylingMode: 'contained', icon: 'save',
           onClick: async () => {
-            if (!form.validate().isValid) return;
-            const currentData = form.option('formData') || data;
-            const isPercent = currentData.discount_type === 'PERCENT';
-            if (isPercent && Number(currentData.discount_value) > 100) {
-              return DevExpress.ui.notify('Tỷ lệ giảm phần trăm không được vượt quá 100%', 'error', 3000);
+            if (!formInstance.validate().isValid) return;
+            const currentData = formInstance.option('formData') || data;
+            const dType = currentData.discount_type;
+            const pkgId = currentData.applicable_package_id || null;
+
+            if (dType === 'PERCENT') {
+              const val = Number(currentData.discount_value);
+              if (!val || val <= 0) return DevExpress.ui.notify('Vui lòng nhập giá trị giảm phần trăm', 'error', 3000);
+              if (val > 100) return DevExpress.ui.notify('Tỷ lệ giảm phần trăm không được vượt quá 100%', 'error', 3000);
+            } else if (dType === 'FIXED_AMOUNT') {
+              const val = Number(currentData.discount_value);
+              if (!val || val <= 0) return DevExpress.ui.notify('Vui lòng nhập số tiền giảm cố định', 'error', 3000);
+            } else if (dType === 'SESSION') {
+              const bonusPt = parseInt(currentData.bonus_pt_sessions, 10);
+              if (!bonusPt || bonusPt <= 0) return DevExpress.ui.notify('Vui lòng nhập số buổi khuyến mãi', 'error', 3000);
+            } else if (dType === 'DAY') {
+              const bonusD = parseInt(currentData.bonus_days, 10);
+              if (!bonusD || bonusD <= 0) return DevExpress.ui.notify('Vui lòng nhập số ngày khuyến mãi', 'error', 3000);
+            } else if (dType === 'BOTH') {
+              const bonusD = parseInt(currentData.bonus_days, 10);
+              const bonusPt = parseInt(currentData.bonus_pt_sessions, 10);
+              if (!bonusD || bonusD <= 0) return DevExpress.ui.notify('Vui lòng nhập số ngày gym khuyến mãi', 'error', 3000);
+              if (!bonusPt || bonusPt <= 0) return DevExpress.ui.notify('Vui lòng nhập số buổi PT khuyến mãi', 'error', 3000);
             }
+
             const selectedIds = (currentData.branch_ids || []).filter(id => id !== 'ALL');
             const isAll = (currentData.branch_ids || []).includes('ALL') || selectedIds.length === 0 || selectedIds.length === allBranchIds.length;
             const branchId = isAll ? null : (selectedIds.length === 1 ? selectedIds[0] : null);
@@ -332,11 +559,21 @@ window.DiscountsModule = (function () {
               await api().request('/discounts', {
                 method: 'POST',
                 body: {
-                  ...currentData,
                   branch_id: branchId,
                   branch_ids: branchIds,
+                  applicable_package_id: pkgId,
                   code: String(currentData.code || '').toUpperCase().replace(/\s+/g, ''),
-                  max_discount_amount: isPercent ? (Number(currentData.max_discount_amount) || null) : null
+                  title: currentData.title,
+                  discount_type: dType,
+                  discount_value: ['PERCENT', 'FIXED_AMOUNT'].includes(dType) ? Number(currentData.discount_value) : 0,
+                  bonus_pt_sessions: ['SESSION', 'BOTH'].includes(dType) ? parseInt(currentData.bonus_pt_sessions, 10) : null,
+                  bonus_days: ['DAY', 'BOTH'].includes(dType) ? parseInt(currentData.bonus_days, 10) : null,
+                  min_order_value: Number(currentData.min_order_value || 0),
+                  max_discount_amount: dType === 'PERCENT' ? (Number(currentData.max_discount_amount) || null) : null,
+                  start_date: currentData.start_date,
+                  end_date: currentData.end_date,
+                  usage_limit: currentData.usage_limit ? parseInt(currentData.usage_limit, 10) : null,
+                  is_active: currentData.is_active !== false
                 }
               });
               DevExpress.ui.notify('Đã tạo mã khuyến mãi thành công!', 'success', 2500);

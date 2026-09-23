@@ -10,6 +10,7 @@ window.ParadiseApp = (function () {
     { id: 'access-gate', code: 'W07', text: 'Ra vào & check-in', icon: 'arrow-right-to-bracket', module: 'CheckinModule', method: 'render' },
     { id: 'customer-care', code: 'W14', text: 'Chăm sóc khách hàng', icon: 'cake-candles', module: 'CustomerCareModule', method: 'render' },
     { id: 'payments', code: 'W08', text: 'Thu tiền & thanh toán', icon: 'wallet', module: 'SalesModule', method: 'renderPayments', group: 'KINH DOANH' },
+    { id: 'revenue-handovers', code: 'W18', text: 'Bàn giao & tất toán doanh thu', icon: 'money-bill-transfer', module: 'RevenueHandoversModule', method: 'render', admin: true, permission: 'view_financial' },
     { id: 'commissions', code: 'W15', text: 'Hoa hồng PT', icon: 'hand-holding-dollar', module: 'CommissionsModule', method: 'render', admin: true },
     { id: 'discounts', code: 'W17', text: 'Voucher & khuyến mãi', icon: 'ticket', module: 'DiscountsModule', method: 'render', admin: true },
     { id: 'notifications', code: 'W09', text: 'Thông báo', icon: 'bell', module: 'SystemModule', method: 'renderNotifications' },

@@ -13,19 +13,51 @@ async function main() {
   const branchId = '11111111-1111-1111-1111-111111111111'; // Paradise Gym Quận 1
   const adminAccountId = '99999999-9999-9999-9999-999999999991'; // Admin QTV
 
-  // 1. Nguyễn Văn Thể (PT001) - Tháng 9/2026: Chuyển sang PENDING để hiển thị nút [ Chi trả ] trực tiếp
-  const r1 = await pool.query(`
-    UPDATE pt_commissions
-    SET status = 'PENDING',
-        paid_at = NULL,
-        payout_method = 'BANK_TRANSFER',
-        payout_ref = NULL,
-        payout_note = NULL,
-        paid_by_account_id = NULL
-    WHERE pt_id = $1 AND month = 9 AND year = 2026
-    RETURNING id, status, total_pt_sessions_taught, total_commission_amount;
-  `, [ptId]);
-  console.log('✅ Nguyễn Văn Thể (PT001) - Tháng 9/2026 -> PENDING (Hiện trực tiếp nút [ Chi trả ]):', r1.rows);
+  try {
+    await pool.query('ALTER TABLE pt_commissions DISABLE TRIGGER trg_guard_pt_commission_snapshot');
+
+    // 1. Nguyễn Văn Thể (PT001) - Tháng 9/2026: Chuyển sang PENDING (chưa chi trả) để test quy trình chi trả
+    await pool.query(`
+      UPDATE registrations
+      SET pt_price_snapshot = 4800000.00
+      WHERE id = '88880001-0000-0000-0000-000000000008';
+    `);
+
+    await pool.query(`
+      UPDATE pt_bookings
+      SET status = 'COMPLETED',
+          pt_confirmed_at = '2026-09-19 18:00:00+07',
+          member_confirmed_at = '2026-09-19 18:05:00+07',
+          is_deducted = TRUE,
+          workout_notes = 'Buổi 3: Luyện tập cơ lõi và lưng xô',
+          fitness_assessment = 'Học viên nắm tốt kỹ thuật động tác'
+      WHERE id = '85a3da5f-6d7b-481d-876b-b6155e76ce3e';
+    `);
+
+    await pool.query(`
+      UPDATE registrations
+      SET used_pt_sessions = 3, remaining_pt_sessions = 9
+      WHERE id = '88880001-0000-0000-0000-000000000008';
+    `);
+
+    const r1 = await pool.query(`
+      UPDATE pt_commissions
+      SET status = 'PENDING',
+          total_pt_sessions_taught = 8,
+          pt_revenue_share = 3075000.00,
+          commission_percentage = 25.00,
+          total_commission_amount = 768750.00,
+          paid_at = NULL,
+          payout_method = 'BANK_TRANSFER',
+          payout_ref = NULL,
+          payout_note = NULL,
+          paid_by_account_id = NULL,
+          details_snapshot = NULL,
+          pt_confirmed_at = NULL
+      WHERE pt_id = $1 AND month = 9 AND year = 2026
+      RETURNING id, status, total_pt_sessions_taught, pt_revenue_share, total_commission_amount;
+    `, [ptId]);
+    console.log('✅ Nguyễn Văn Thể (PT001) - Tháng 9/2026 -> PENDING (Chưa chi trả, hiện trực tiếp nút [ Chi trả ]):', r1.rows);
 
   // 2. Phạm Quốc Bảo (PT005) - Tháng 9/2026: PENDING (0 buổi dạy)
   const r2 = await pool.query(`
@@ -79,14 +111,11 @@ async function main() {
   await pool.query(`
     INSERT INTO payments (
       id, registration_id, member_id, branch_id, payment_code,
-      payment_method, amount, status, collected_by, confirmed_at, created_at
+      payment_method, amount, collected_by, confirmed_at, created_at
     ) VALUES (
       $1, $2, $3, $4, 'PAY-2026-08-01',
-      'BANK_TRANSFER', 6500000.00, 'COMPLETED', $5, '2026-08-01 08:30:00+07', '2026-08-01 08:30:00+07'
-    ) ON CONFLICT (id) DO UPDATE SET
-      amount = EXCLUDED.amount,
-      status = 'COMPLETED',
-      confirmed_at = EXCLUDED.confirmed_at;
+      'BANK_TRANSFER', 6500000.00, $5, '2026-08-01 08:30:00+07', '2026-08-01 08:30:00+07'
+    ) ON CONFLICT (id) DO NOTHING;
   `, [payAugId, regId, memberId, branchId, adminAccountId]);
 
   await pool.query(`
@@ -172,14 +201,11 @@ async function main() {
   await pool.query(`
     INSERT INTO payments (
       id, registration_id, member_id, branch_id, payment_code,
-      payment_method, amount, status, collected_by, confirmed_at, created_at
+      payment_method, amount, collected_by, confirmed_at, created_at
     ) VALUES (
       $1, $2, $3, $4, 'PAY-2026-07-01',
-      'CASH', 4800000.00, 'COMPLETED', $5, '2026-07-01 08:30:00+07', '2026-07-01 08:30:00+07'
-    ) ON CONFLICT (id) DO UPDATE SET
-      amount = EXCLUDED.amount,
-      status = 'COMPLETED',
-      confirmed_at = EXCLUDED.confirmed_at;
+      'CASH', 4800000.00, $5, '2026-07-01 08:30:00+07', '2026-07-01 08:30:00+07'
+    ) ON CONFLICT (id) DO NOTHING;
   `, [payJulyId, regJulyId, memberId, branchId, adminAccountId]);
 
   await pool.query(`
@@ -238,8 +264,15 @@ async function main() {
   `, [ptId, adminAccountId]);
   console.log('✅ Đã cập nhật hợp đồng và 6 buổi tập COMPLETED cho Tháng 7/2026 (Khớp 100% doanh số 2.400.000đ & hoa hồng 600.000đ)');
 
-  await pool.end();
-  console.log('🎉 Hoàn tất cập nhật dữ liệu mẫu hoa hồng!');
+    console.log('🎉 Hoàn tất cập nhật dữ liệu mẫu hoa hồng!');
+  } finally {
+    try {
+      await pool.query('ALTER TABLE pt_commissions ENABLE TRIGGER trg_guard_pt_commission_snapshot');
+    } catch (e) {
+      console.error('Lỗi khi bật lại trigger:', e.message);
+    }
+    await pool.end();
+  }
 }
 
 main().catch(err => {

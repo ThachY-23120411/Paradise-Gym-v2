@@ -33,21 +33,25 @@ window.CommissionsModule = (function () {
     if (!records.length) {
       return DevExpress.ui.notify('Không có dữ liệu để xuất file.', 'warning', 2500);
     }
-    const headers = ['Kỳ tháng', 'Huấn luyện viên', 'Mã HLV', 'Chi nhánh', 'Số buổi dạy', 'Doanh số quy đổi', 'Tỷ lệ %', 'Tiền hoa hồng', 'Hình thức chi trả', 'Mã giao dịch / Phiếu chi', 'Thời gian chi trả', 'Người thực hiện'];
-    const rows = records.map(r => [
-      `Tháng ${r.month}/${r.year}`,
-      `"${(r.pt_name || '').replace(/"/g, '""')}"`,
-      `"${r.pt_code || ''}"`,
-      `"${(r.branch_name || '').replace(/"/g, '""')}"`,
-      r.total_pt_sessions_taught || 0,
-      r.pt_revenue_share || 0,
-      `${r.commission_percentage}%`,
-      r.total_commission_amount || 0,
-      r.payout_method === 'CASH' ? 'Tiền mặt tại quầy' : 'Chuyển khoản VietQR',
-      `"${(r.payout_ref || '').replace(/"/g, '""')}"`,
-      formatDateTime(r.paid_at),
-      `"${(r.paid_by_name || '').replace(/"/g, '""')}"`
-    ]);
+    const headers = ['Kỳ tháng', 'Huấn luyện viên', 'Mã HLV', 'Chi nhánh', 'Số buổi dạy', 'Doanh số quy đổi', 'Tỷ lệ %', 'Tiền hoa hồng', 'Hình thức chi trả', 'Trạng thái', 'Mã giao dịch / Phiếu chi', 'Thời gian chi trả', 'Người thực hiện'];
+    const rows = records.map(r => {
+      const statusLabel = r.status === 'PAID' ? 'Đã chi trả' : (r.status === 'PENDING_CONFIRMATION' ? 'Chờ PT xác nhận' : (r.status || ''));
+      return [
+        `Tháng ${r.month}/${r.year}`,
+        `"${(r.pt_name || '').replace(/"/g, '""')}"`,
+        `"${r.pt_code || ''}"`,
+        `"${(r.branch_name || '').replace(/"/g, '""')}"`,
+        r.total_pt_sessions_taught || 0,
+        r.pt_revenue_share || 0,
+        `${r.commission_percentage}%`,
+        r.total_commission_amount || 0,
+        r.payout_method === 'CASH' ? 'Tiền mặt tại quầy' : 'Chuyển khoản VietQR',
+        `"${statusLabel}"`,
+        `"${(r.payout_ref || '').replace(/"/g, '""')}"`,
+        formatDateTime(r.paid_at),
+        `"${(r.paid_by_name || '').replace(/"/g, '""')}"`
+      ];
+    });
 
     const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -60,6 +64,45 @@ window.CommissionsModule = (function () {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     DevExpress.ui.notify('Đã xuất file lịch sử chi trả thành công!', 'success', 3000);
+  }
+
+  function exportPtSessions(records = [], month, year, ptName = 'Tat_ca_HLV') {
+    if (!records.length) {
+      return DevExpress.ui.notify('Không có dữ liệu để xuất file.', 'warning', 2500);
+    }
+    const headers = ['STT', 'Kỳ tháng', 'Ngày tập', 'Khung giờ', 'Huấn luyện viên', 'Mã HLV', 'Chi nhánh', 'Học viên', 'Mã HV', 'Số điện thoại', 'Gói tập', 'Mã hợp đồng', 'Buổi số', 'Tổng số buổi', 'Doanh số buổi quy đổi', 'Tỷ lệ hoa hồng (%)', 'Tiền hoa hồng buổi', 'Trạng thái'];
+    const rows = records.map((r, i) => [
+      i + 1,
+      `Tháng ${month}/${year}`,
+      r.booking_date ? new Date(r.booking_date).toLocaleDateString('vi-VN') : '',
+      `"${String(r.start_time || '').slice(0, 5)} - ${String(r.end_time || '').slice(0, 5)}"`,
+      `"${(r.pt_name || '').replace(/"/g, '""')}"`,
+      `"${r.pt_code || ''}"`,
+      `"${(r.branch_name || '').replace(/"/g, '""')}"`,
+      `"${(r.member_name || '').replace(/"/g, '""')}"`,
+      `"${r.member_code || ''}"`,
+      `"${r.member_phone || ''}"`,
+      `"${(r.package_name_snapshot || '').replace(/"/g, '""')}"`,
+      `"${r.reg_code || ''}"`,
+      r.session_number || 1,
+      r.total_pt_sessions_snapshot || '',
+      r.session_pt_value || 0,
+      `${r.commission_percentage || 0}%`,
+      r.session_commission || 0,
+      'Đã hoàn thành'
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Doanh_thu_goi_PT_COMBO_T${month}_${year}_${ptName.replace(/[^a-zA-Z0-9_]/g, '_')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    DevExpress.ui.notify('Đã xuất file doanh thu gói PT/COMBO thành công!', 'success', 3000);
   }
 
   async function render(containerId, context = {}) {
@@ -79,12 +122,14 @@ window.CommissionsModule = (function () {
     // Tab Navigation (Phong cách Administrative Forest Clean: sạch sẽ, không icon emoji)
     const tabContainer = $('<div class="commissions-tabs" style="margin-bottom: 16px;">').appendTo(target);
     const tabs = [
-      { id: 'monthly', text: 'Bảng kê hoa hồng tháng' },
+      { id: 'monthly', text: 'Bảng kê thu nhập tháng' },
+      { id: 'pt_packages', text: 'Doanh thu gói PT/COMBO' },
+      { id: 'community', text: 'Thù lao lớp cộng đồng' },
       { id: 'history', text: 'Lịch sử chi trả' },
       { id: 'configs', text: 'Cấu hình tỷ lệ hoa hồng' }
     ];
 
-    const tabIndices = { monthly: 0, history: 1, configs: 2 };
+    const tabIndices = { monthly: 0, pt_packages: 1, community: 2, history: 3, configs: 4 };
 
     $('<div>').appendTo(tabContainer).dxTabs({
       dataSource: tabs,
@@ -103,6 +148,10 @@ window.CommissionsModule = (function () {
     container.empty();
     if (currentTab === 'monthly') {
       await renderMonthlyTab(container, version);
+    } else if (currentTab === 'pt_packages') {
+      await renderPtPackagesRevenueTab(container, version);
+    } else if (currentTab === 'community') {
+      await renderCommunityTab(container, version);
     } else if (currentTab === 'history') {
       await renderHistoryTab(container, version);
     } else {
@@ -147,86 +196,144 @@ window.CommissionsModule = (function () {
     async function reloadGrid() {
       W().loading(gridContainer);
       try {
-        const res = await api().request(`/commissions/monthly?month=${selectedMonth}&year=${selectedYear}`);
+        const startDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
+        const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+        const endDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+        const [resComm, resClasses] = await Promise.all([
+          api().request(`/commissions/monthly?month=${selectedMonth}&year=${selectedYear}`),
+          api().request(`/community-classes?date_from=${startDate}&date_to=${endDate}`)
+        ]);
+
         if (version !== revision) return;
         gridContainer.empty();
         summaryBox.empty();
 
-        const data = res.data || [];
-        const totalPayout = data.reduce((sum, item) => sum + Number(item.total_commission_amount || 0), 0);
-        const totalSessions = data.reduce((sum, item) => sum + Number(item.total_pt_sessions_taught || 0), 0);
+        const data = resComm.data || [];
+        const rawClasses = Array.isArray(resClasses) ? resClasses : (resClasses.data || []);
+
+        // Tổng hợp lớp cộng đồng theo HLV
+        const commByPt = {};
+        rawClasses.forEach(c => {
+          const ptId = c.instructor_id;
+          if (!ptId) return;
+          if (!commByPt[ptId]) {
+            commByPt[ptId] = { count: 0, comp: 0, slots: 0, items: [] };
+          }
+          commByPt[ptId].count++;
+          commByPt[ptId].comp += Number(c.total_compensation || 0);
+          commByPt[ptId].slots += Number(c.enrolled_slots || 0);
+          commByPt[ptId].items.push(c);
+        });
+
+        // Bổ sung dữ liệu lớp cộng đồng vào bảng kê tháng
+        data.forEach(item => {
+          const commInfo = commByPt[item.pt_id] || { count: 0, comp: 0, slots: 0, items: [] };
+          item.community_classes_count = commInfo.count;
+          item.community_compensation = commInfo.comp;
+          item.community_slots = commInfo.slots;
+          item.community_items = commInfo.items;
+          item.total_monthly_income = Number(item.total_commission_amount || 0) + commInfo.comp;
+        });
+
+        const totalPtCommission = data.reduce((sum, item) => sum + Number(item.total_commission_amount || 0), 0);
+        const totalCommPayout = data.reduce((sum, item) => sum + Number(item.community_compensation || 0), 0);
+        const totalCombinedPayout = totalPtCommission + totalCommPayout;
+        const totalPtSessions = data.reduce((sum, item) => sum + Number(item.total_pt_sessions_taught || 0), 0);
+        const totalCommSessions = data.reduce((sum, item) => sum + Number(item.community_classes_count || 0), 0);
         const totalRevenue = data.reduce((sum, item) => sum + Number(item.pt_revenue_share || 0), 0);
-        const totalPaid = data.filter(item => item.status === 'PAID').reduce((sum, item) => sum + Number(item.total_commission_amount || 0), 0);
-        const totalUnpaid = Math.max(0, totalPayout - totalPaid);
-        const paidCount = data.filter(item => item.status === 'PAID' && Number(item.total_commission_amount || 0) > 0).length;
-        const payableCount = data.filter(item => Number(item.total_commission_amount || 0) > 0).length;
+        const totalPaid = data.filter(item => item.status === 'PAID').reduce((sum, item) => sum + Number(item.total_monthly_income || item.total_commission_amount || 0), 0);
+        const totalUnpaid = Math.max(0, totalCombinedPayout - totalPaid);
+        const paidCount = data.filter(item => item.status === 'PAID' && Number(item.total_monthly_income || item.total_commission_amount || 0) > 0).length;
+        const payableCount = data.filter(item => Number(item.total_monthly_income || item.total_commission_amount || 0) > 0).length;
 
         function updateKpis() {
           summaryBox.empty();
           const selected = selectedPtRecordId ? data.find(item => item.id === selectedPtRecordId) : null;
-          const statusMap = { PENDING: 'Chờ chi trả', APPROVED: 'Chờ chi trả', PAID: 'Đã chi trả' };
+          const statusMap = {
+            PENDING: 'Chờ chi trả',
+            APPROVED: 'Chờ chi trả',
+            PENDING_CONFIRMATION: 'Chờ PT xác nhận',
+            PAID: 'Đã chi trả'
+          };
 
           const kpis = selected ? [
             {
-              label: 'Buổi đã dạy của HLV',
-              value: selected.total_pt_sessions_taught,
-              caption: `HLV: ${selected.pt_name} (${selected.pt_code || ''}) · Click dòng để bỏ chọn`,
+              label: 'Tổng buổi dạy của HLV',
+              value: (selected.total_pt_sessions_taught || 0) + (selected.community_classes_count || 0),
+              caption: `HLV: ${selected.pt_name} · Dạy PT (1:1, nhóm, combo): ${selected.total_pt_sessions_taught || 0} · Lớp CĐ: ${selected.community_classes_count || 0}`,
               icon: 'dumbbell',
               tone: 'blue'
             },
             {
-              label: 'Doanh số dạy của HLV',
+              label: 'Doanh số dịch vụ PT',
               value: W().money(selected.pt_revenue_share),
-              caption: 'Doanh số dịch vụ hoàn thành',
+              caption: `Gói PT 1:1, nhóm & combo · Tỷ lệ hoa hồng: ${selected.commission_percentage}%`,
               icon: 'chart-line',
               tone: 'amber'
             },
             {
-              label: 'Tiền hoa hồng của HLV',
+              label: 'Hoa hồng dạy PT',
               value: W().money(selected.total_commission_amount),
-              caption: `Tỷ lệ: ${selected.commission_percentage}%`,
-              icon: 'money-bill-wave',
-              tone: 'green'
+              caption: `Hưởng theo tỷ lệ hoa hồng ${selected.commission_percentage}% của HLV`,
+              icon: 'coins',
+              tone: 'coral'
             },
             {
-              label: 'Trạng thái chi trả',
-              value: statusMap[selected.status] || selected.status,
+              label: 'Thù lao lớp cộng đồng',
+              value: W().money(selected.community_compensation || 0),
+              caption: `Định mức bộ môn + thưởng sĩ số (${selected.community_classes_count || 0} ca)`,
+              icon: 'users',
+              tone: 'teal'
+            },
+            {
+              label: 'Tổng thu nhập của HLV',
+              value: W().money(selected.total_monthly_income),
               caption: selected.status === 'PAID'
                 ? (selected.paid_at ? `Đã chi trả ngày ${formatDateTime(selected.paid_at)}` : 'Đã thanh toán thù lao')
-                : (Number(selected.total_commission_amount) > 0 ? `Cần chi trả: ${W().money(selected.total_commission_amount)}` : 'Không phát sinh chi trả'),
-              icon: selected.status === 'PAID' ? 'check-circle' : 'clock',
-              tone: selected.status === 'PAID' ? 'teal' : (selected.status === 'APPROVED' ? 'orange' : 'neutral')
+                : (selected.status === 'PENDING_CONFIRMATION'
+                    ? 'Đang chờ PT bấm xác nhận trên app'
+                    : (Number(selected.total_monthly_income) > 0 ? `Cần chi trả: ${W().money(selected.total_monthly_income)}` : 'Không phát sinh chi trả')),
+              icon: selected.status === 'PAID' ? 'check-circle' : 'money-bill-wave',
+              tone: selected.status === 'PAID' ? 'teal' : (selected.status === 'PENDING_CONFIRMATION' ? 'blue' : (Number(selected.total_monthly_income) > 0 ? 'green' : 'neutral'))
             }
           ] : [
             {
               label: 'Tổng số buổi dạy',
-              value: totalSessions,
-              caption: `Toàn bộ HLV (tháng ${selectedMonth}/${selectedYear}) · ${data.length} HLV`,
+              value: totalPtSessions + totalCommSessions,
+              caption: `Dạy PT (1:1, nhóm, combo): ${totalPtSessions} buổi · Lớp CĐ: ${totalCommSessions} ca`,
               icon: 'dumbbell',
               tone: 'blue'
             },
             {
-              label: 'Tổng doanh số dạy PT',
+              label: 'Doanh số dịch vụ PT',
               value: W().money(totalRevenue),
-              caption: 'Giá trị dịch vụ hoàn thành trong tháng',
+              caption: 'Doanh số hoàn thành từ các gói PT 1:1, nhóm & combo',
               icon: 'chart-line',
               tone: 'amber'
             },
             {
-              label: 'Tổng tiền hoa hồng tháng',
-              value: W().money(totalPayout),
-              caption: totalRevenue > 0 ? `Chi phí hoa hồng (${((totalPayout / totalRevenue) * 100).toFixed(1)}% doanh số)` : 'Thực nhận tháng ' + selectedMonth + '/' + selectedYear,
-              icon: 'money-bill-wave',
-              tone: 'green'
+              label: 'Hoa hồng dạy PT',
+              value: W().money(totalPtCommission),
+              caption: `Tổng hoa hồng dạy PT (${data.length} HLV)`,
+              icon: 'coins',
+              tone: 'coral'
             },
             {
-              label: 'Tiến độ chi trả',
-              value: W().money(totalPaid),
-              caption: totalPayout > 0
+              label: 'Thù lao lớp cộng đồng',
+              value: W().money(totalCommPayout),
+              caption: `Định mức bộ môn + thưởng sĩ số (${totalCommSessions} ca)`,
+              icon: 'users',
+              tone: 'teal'
+            },
+            {
+              label: 'Tổng thu nhập tháng',
+              value: W().money(totalCombinedPayout),
+              caption: totalCombinedPayout > 0
                 ? `Đã chi: ${W().money(totalPaid)} (${payableCount ? Math.round((paidCount / payableCount) * 100) : 0}%) · Chờ chi: ${W().money(totalUnpaid)}`
                 : 'Chưa phát sinh khoản cần chi',
-              icon: 'check-circle',
-              tone: totalUnpaid > 0 ? 'orange' : 'teal'
+              icon: 'money-bill-wave',
+              tone: 'green'
             }
           ];
 
@@ -241,7 +348,7 @@ window.CommissionsModule = (function () {
 
         const gridInstance = W().grid(gridContainer, data, [
           {
-            caption: 'Huấn luyện viên', minWidth: 200,
+            caption: 'Huấn luyện viên', minWidth: 180,
             cellTemplate: (el, cell) => {
               const r = cell.data;
               $('<div>')
@@ -250,36 +357,83 @@ window.CommissionsModule = (function () {
                 .appendTo(el);
             }
           },
-          { dataField: 'branch_name', caption: 'Chi nhánh', minWidth: 130 },
-          { dataField: 'total_pt_sessions_taught', caption: 'Buổi đã dạy', width: 110, alignment: 'center' },
-          { dataField: 'pt_revenue_share', caption: 'Doanh số quy đổi', width: 140, alignment: 'right', calculateCellValue: r => W().money(r.pt_revenue_share) },
-          { dataField: 'commission_percentage', caption: 'Tỷ lệ %', width: 90, alignment: 'center', calculateCellValue: r => `${r.commission_percentage}%` },
+          { dataField: 'branch_name', caption: 'Chi nhánh', minWidth: 120 },
           {
-            dataField: 'total_commission_amount', caption: 'Tiền hoa hồng', width: 140, alignment: 'right',
-            cellTemplate: (el, cell) => $('<strong>').css('color', '#237b58').text(W().money(cell.value)).appendTo(el)
+            caption: 'Dạy kèm PT', width: 145, alignment: 'right',
+            cellTemplate: (el, cell) => {
+              const r = cell.data;
+              $('<div>')
+                .append($('<strong>').text(`${r.total_pt_sessions_taught || 0} buổi`))
+                .append($('<small style="display:block;color:#748078;">').text(`Doanh số: ${W().money(r.pt_revenue_share)}`))
+                .append($('<small style="display:block;color:#94a3b8;font-size:10.5px;">').text('1:1 · nhóm · combo'))
+                .appendTo(el);
+            }
           },
           {
-            dataField: 'status', caption: 'Trạng thái', width: 140,
+            caption: 'Hoa hồng PT', width: 130, alignment: 'right',
             cellTemplate: (el, cell) => {
-              const map = { PENDING: ['Chờ chi trả', 'warning'], APPROVED: ['Chờ chi trả', 'warning'], PAID: ['Đã chi trả', 'success'] };
+              const r = cell.data;
+              $('<div>')
+                .append($('<strong style="color:#237b58;">').text(W().money(r.total_commission_amount)))
+                .append($('<small style="display:block;color:#748078;">').text(`Tỷ lệ: ${r.commission_percentage}%`))
+                .appendTo(el);
+            }
+          },
+          {
+            caption: 'Lớp cộng đồng', width: 120, alignment: 'center',
+            cellTemplate: (el, cell) => {
+              const r = cell.data;
+              $('<div>')
+                .append($('<strong style="color:#7c3aed;">').text(`${r.community_classes_count || 0} lớp`))
+                .append($('<small style="display:block;color:#748078;">').text(`${r.community_slots || 0} học viên`))
+                .appendTo(el);
+            }
+          },
+          {
+            caption: 'Thù lao lớp CĐ', width: 130, alignment: 'right',
+            cellTemplate: (el, cell) => {
+              const r = cell.data;
+              $('<strong>').css({ color: '#7c3aed', fontSize: '13.5px' }).text(W().money(r.community_compensation || 0)).appendTo(el);
+            }
+          },
+          {
+            caption: 'Tổng thu nhập tháng', width: 155, alignment: 'right',
+            cellTemplate: (el, cell) => {
+              const r = cell.data;
+              $('<strong>').css({ color: '#237b58', fontSize: '14.5px', fontVariantNumeric: 'tabular-nums' }).text(W().money(r.total_monthly_income)).appendTo(el);
+            }
+          },
+          {
+            dataField: 'status', caption: 'Trạng thái', width: 130,
+            cellTemplate: (el, cell) => {
+              const map = {
+                PENDING: ['Chờ chi trả', 'warning'],
+                APPROVED: ['Chờ chi trả', 'warning'],
+                PENDING_CONFIRMATION: ['Chờ PT xác nhận', 'info'],
+                PAID: ['Đã chi trả', 'success']
+              };
               const [label, tone] = map[cell.value] || [cell.value, 'neutral'];
               el.append(W().badge(label, tone));
             }
           },
           {
-            caption: 'Thao tác', width: 180, fixed: true, fixedPosition: 'right',
+            caption: 'Thao tác', width: 175, fixed: true, fixedPosition: 'right',
             cellTemplate: (el, cell) => {
               const r = cell.data;
-              const box = $('<div style="display:flex;gap:6px;">').appendTo(el);
+              const box = $('<div style="display:flex;gap:6px;align-items:center;">').appendTo(el);
               box.on('click', e => e.stopPropagation());
 
-              W().button(box, 'Chi tiết', null, () => openCommissionDetails(r.id));
+              W().button(box, 'Chi tiết', null, () => openCommissionDetails(r.id, r));
 
-              if (r.status !== 'PAID') {
-                // Có số liệu hoa hồng > 0đ: hiển thị trực tiếp nút Chi trả
-                if (Number(r.total_commission_amount || 0) > 0) {
+              if (r.status === 'PENDING' || r.status === 'APPROVED') {
+                // Có thu nhập tháng > 0đ: hiển thị trực tiếp nút Chi trả
+                if (Number(r.total_monthly_income || r.total_commission_amount || 0) > 0) {
                   W().button(box, 'Chi trả', 'money', () => openPayoutModal(r, reloadGrid), true);
                 }
+              } else if (r.status === 'PENDING_CONFIRMATION') {
+                $('<span class="status-badge badge-info" style="font-size:11px;padding:3px 7px;">')
+                  .text('Chờ PT duyệt')
+                  .appendTo(box);
               }
             }
           }
@@ -310,6 +464,549 @@ window.CommissionsModule = (function () {
     await reloadGrid();
   }
 
+  async function renderPtPackagesRevenueTab(container, version) {
+    container.empty();
+
+    let ptMonth = selectedMonth;
+    let ptYear = selectedYear;
+    let selectedPtId = 'ALL';
+    let cachedCommissions = [];
+    let allSessions = [];
+
+    // 1. Toolbar Filter Bar
+    const toolbar = $('<div class="filter-bar" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">').appendTo(container);
+
+    // Month SelectBox
+    $('<div>').css({ width: 130 }).appendTo(toolbar).dxSelectBox({
+      dataSource: Array.from({ length: 12 }, (_, i) => ({ id: i + 1, text: `Tháng ${i + 1}` })),
+      valueExpr: 'id', displayExpr: 'text', value: ptMonth,
+      label: 'Tháng', labelMode: 'floating',
+      onValueChanged: e => { ptMonth = e.value; loadData(); }
+    });
+
+    // Year NumberBox
+    $('<div>').css({ width: 100 }).appendTo(toolbar).dxNumberBox({
+      value: ptYear, min: 2025, max: 2030,
+      label: 'Năm', labelMode: 'floating',
+      onValueChanged: e => { ptYear = e.value; loadData(); }
+    });
+
+    // PT Trainer SelectBox (Dynamic dropdown)
+    let ptSelectBoxInstance = null;
+    const ptSelectBoxDiv = $('<div>').css({ minWidth: 260 }).appendTo(toolbar);
+    ptSelectBoxInstance = ptSelectBoxDiv.dxSelectBox({
+      dataSource: [{ id: 'ALL', text: 'Tất cả huấn luyện viên' }],
+      valueExpr: 'id', displayExpr: 'text', value: 'ALL',
+      label: 'Huấn luyện viên', labelMode: 'floating',
+      searchEnabled: true,
+      onValueChanged: e => {
+        selectedPtId = e.value;
+        renderDynamicContent();
+      }
+    }).dxSelectBox('instance');
+
+    // Button Refresh / Tải lại
+    W().button(toolbar, 'Tải lại', 'refresh', () => loadData()).option('hint', 'Tải lại dữ liệu doanh thu gói PT/Combo');
+
+    // Button Export CSV
+    W().button(toolbar, 'Xuất CSV', 'export', () => {
+      const filtered = getFilteredSessions();
+      if (!filtered.length) {
+        return DevExpress.ui.notify('Không có dữ liệu để xuất file.', 'warning', 2500);
+      }
+      const ptObj = selectedPtId !== 'ALL' ? cachedCommissions.find(c => c.pt_id === selectedPtId) : null;
+      exportPtSessions(filtered, ptMonth, ptYear, ptObj ? ptObj.pt_name : 'Tat_ca_HLV');
+    });
+
+    // 2. Summary KPI Box & Grid Container
+    const summaryBox = $('<div class="commissions-kpis" style="margin-bottom:20px;">').appendTo(container);
+    const gridContainer = $('<div>').appendTo(container);
+
+    function getFilteredSessions() {
+      if (selectedPtId === 'ALL') return allSessions;
+      return allSessions.filter(s => s.pt_id === selectedPtId);
+    }
+
+    function renderDynamicContent() {
+      summaryBox.empty();
+      gridContainer.empty();
+
+      const filtered = getFilteredSessions();
+      const selectedPtObj = selectedPtId !== 'ALL' ? cachedCommissions.find(c => c.pt_id === selectedPtId) : null;
+
+      const totalSessions = filtered.length;
+      const totalPtRevenue = filtered.reduce((sum, s) => sum + Number(s.session_pt_value || 0), 0);
+      const totalPtCommission = filtered.reduce((sum, s) => sum + Number(s.session_commission || 0), 0);
+      const uniquePackages = new Set(filtered.map(s => s.package_name_snapshot)).size;
+      const uniqueMembers = new Set(filtered.map(s => s.member_code)).size;
+
+      // 4 KPI Cards
+      const kpis = [
+        {
+          label: 'Tổng số buổi dạy',
+          value: totalSessions,
+          caption: selectedPtObj
+            ? `Kỳ: Tháng ${ptMonth}/${ptYear} · HLV: ${selectedPtObj.pt_name} (${selectedPtObj.pt_code})`
+            : `Kỳ: Tháng ${ptMonth}/${ptYear} · Tất cả HLV (${cachedCommissions.length} HLV) · 1:1, nhóm & combo`,
+          icon: 'dumbbell',
+          tone: 'blue'
+        },
+        {
+          label: 'Doanh số dịch vụ PT',
+          value: W().money(totalPtRevenue),
+          caption: selectedPtObj
+            ? `Doanh số hoàn thành của HLV: ${selectedPtObj.pt_name}`
+            : 'Doanh số quy đổi hoàn thành từ các gói PT 1:1, nhóm & combo',
+          icon: 'chart-line',
+          tone: 'amber'
+        },
+        {
+          label: 'Hoa hồng PT',
+          value: W().money(totalPtCommission),
+          caption: selectedPtObj
+            ? `Hoa hồng thực nhận theo tỷ lệ ${selectedPtObj.commission_percentage}% của HLV`
+            : `Tổng hoa hồng thực nhận của tất cả HLV (${cachedCommissions.length} HLV)`,
+          icon: 'coins',
+          tone: 'coral'
+        },
+        {
+          label: 'Gói tập phục vụ',
+          value: `${uniquePackages} gói`,
+          caption: `Đang giảng dạy cho ${uniqueMembers} học viên trong kỳ`,
+          icon: 'users',
+          tone: 'teal'
+        }
+      ];
+
+      W().metrics(summaryBox, kpis);
+
+      if (!filtered.length) {
+        return W().empty(gridContainer, `Không có buổi dạy PT/Combo nào trong tháng ${ptMonth}/${ptYear}${selectedPtObj ? ' của ' + selectedPtObj.pt_name : ''}.`, 'dumbbell');
+      }
+
+      // DataGrid (dgv)
+      W().grid(gridContainer, filtered, [
+        { caption: 'STT', width: 55, alignment: 'center', cellTemplate: (el, cell) => el.text(cell.rowIndex + 1) },
+        { dataField: 'booking_date', caption: 'Ngày tập', dataType: 'date', format: 'dd/MM/yyyy', width: 105, alignment: 'center' },
+        {
+          caption: 'Khung giờ', width: 110, alignment: 'center',
+          calculateCellValue: r => `${String(r.start_time || '').slice(0, 5)} - ${String(r.end_time || '').slice(0, 5)}`
+        },
+        {
+          caption: 'Huấn luyện viên', minWidth: 170,
+          cellTemplate: (el, cell) => {
+            const r = cell.data;
+            $('<div>')
+              .append($('<strong>').text(r.pt_name || '--'))
+              .append($('<small style="display:block;color:#748078;">').text(`${r.pt_code || ''} · ${r.branch_name || ''}`))
+              .appendTo(el);
+          }
+        },
+        {
+          caption: 'Học viên', minWidth: 170,
+          cellTemplate: (el, cell) => {
+            const r = cell.data;
+            $('<div>')
+              .append($('<strong>').text(r.member_name || '--'))
+              .append($('<small style="display:block;color:#748078;">').text(`${r.member_code || ''}${r.member_phone ? ' · ' + r.member_phone : ''}`))
+              .appendTo(el);
+          }
+        },
+        {
+          dataField: 'package_name_snapshot', caption: 'Gói tập', minWidth: 200
+        },
+        {
+          caption: 'Buổi số', width: 95, alignment: 'center',
+          calculateCellValue: r => `Buổi ${r.session_number || 1}/${r.total_pt_sessions_snapshot || '?'}`
+        },
+        {
+          dataField: 'session_pt_value', caption: 'Doanh số buổi', width: 130, alignment: 'right',
+          cellTemplate: (el, cell) => $('<strong>').css({ fontVariantNumeric: 'tabular-nums' }).text(W().money(cell.value)).appendTo(el)
+        },
+        {
+          dataField: 'commission_percentage', caption: 'Tỷ lệ %', width: 85, alignment: 'center',
+          cellTemplate: (el, cell) => el.text(`${cell.value || 0}%`)
+        },
+        {
+          dataField: 'session_commission', caption: 'Hoa hồng buổi', width: 140, alignment: 'right',
+          cellTemplate: (el, cell) => $('<strong>').css({ color: '#237b58', fontVariantNumeric: 'tabular-nums' }).text(W().money(cell.value)).appendTo(el)
+        },
+        {
+          dataField: 'status', caption: 'Trạng thái', width: 130, alignment: 'center',
+          cellTemplate: el => el.html(W().badge('Đã hoàn thành', 'success'))
+        }
+      ], {
+        columnAutoWidth: true,
+        paging: { pageSize: 15 },
+        pager: {
+          visible: true,
+          allowedPageSizes: [10, 15, 30, 50],
+          showPageSizeSelector: true,
+          showInfo: true,
+          showNavigationButtons: true
+        },
+        searchPanel: {
+          visible: true,
+          highlightCaseSensitive: false,
+          placeholder: 'Tìm kiếm học viên, HLV, gói tập...'
+        },
+        summary: {
+          totalItems: [
+            { column: 'booking_date', summaryType: 'count', displayFormat: 'Tổng: {0} buổi' },
+            { column: 'session_pt_value', summaryType: 'sum', valueFormat: '#,##0 đ', displayFormat: 'Tổng doanh số: {0}' },
+            { column: 'session_commission', summaryType: 'sum', valueFormat: '#,##0 đ', displayFormat: 'Tổng hoa hồng: {0}' }
+          ]
+        }
+      });
+    }
+
+    async function loadData() {
+      W().loading(gridContainer);
+      try {
+        let resComm = await api().request(`/commissions/monthly?month=${ptMonth}&year=${ptYear}`);
+        let commList = resComm.data || [];
+
+        // Nếu kỳ chưa được tính toán hoa hồng, tự động kích hoạt tính toán
+        if (!commList.length) {
+          try {
+            await api().request('/commissions/calculate', {
+              method: 'POST',
+              body: { month: ptMonth, year: ptYear, branch_id: api().getCurrentBranchId() }
+            });
+            resComm = await api().request(`/commissions/monthly?month=${ptMonth}&year=${ptYear}`);
+            commList = resComm.data || [];
+          } catch (_) {}
+        }
+
+        if (version !== revision) return;
+        cachedCommissions = commList;
+
+        // Cập nhật danh sách HLV vào dropdown
+        const ptOptions = [
+          { id: 'ALL', text: 'Tất cả huấn luyện viên' },
+          ...commList.map(c => ({ id: c.pt_id, text: `${c.pt_name} (${c.pt_code} - ${c.branch_name})` }))
+        ];
+        ptSelectBoxInstance.option('dataSource', ptOptions);
+        if (!ptOptions.some(o => o.id === selectedPtId)) {
+          selectedPtId = 'ALL';
+          ptSelectBoxInstance.option('value', 'ALL');
+        }
+
+        // Tải chi tiết các buổi dạy của tất cả HLV trong kỳ
+        const detailPromises = commList.map(c =>
+          api().request(`/commissions/${c.id}/details`).then(res => {
+            const sess = res.data?.sessions || [];
+            return sess.map(s => ({
+              ...s,
+              pt_id: c.pt_id,
+              pt_name: c.pt_name,
+              pt_code: c.pt_code,
+              pt_phone: c.pt_phone,
+              branch_name: c.branch_name,
+              commission_percentage: s.commission_percentage || c.commission_percentage
+            }));
+          }).catch(() => [])
+        );
+
+        const results = await Promise.all(detailPromises);
+        if (version !== revision) return;
+
+        allSessions = results.flat().sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date) || String(a.start_time).localeCompare(String(b.start_time)));
+
+        renderDynamicContent();
+      } catch (err) {
+        W().error(gridContainer, err, loadData);
+      }
+    }
+
+    await loadData();
+  }
+
+  function openCommunityClassMembersModal(classId, classTitle, enrolledSlots, maxSlots, instructorName, disciplineName) {
+    const dialog = W().popup(`Danh sách học viên: ${classTitle || 'Lớp cộng đồng'}`, content => {
+      const banner = $('<div style="background:linear-gradient(135deg,#2e1065 0%,#4c1d95 100%);color:#fff;border-radius:8px;padding:12px 16px;margin-bottom:14px;">').appendTo(content);
+      banner.html(`
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <span style="font-size:11px;font-weight:700;color:#ddd6fe;text-transform:uppercase;letter-spacing:0.5px;">LỚP HỌC CỘNG ĐỒNG · ${W().escape(disciplineName || 'BỘ MÔN NHÓM')}</span>
+            <h4 style="margin:3px 0 0;font-size:16px;font-weight:700;color:#fff;">${W().escape(classTitle || '--')}</h4>
+            <div style="margin-top:4px;font-size:12px;color:#c4b5fd;">HLV phụ trách: <strong>${W().escape(instructorName || '--')}</strong></div>
+          </div>
+          <span style="background:rgba(255,255,255,0.2);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;color:#fff;font-family:Manrope,monospace;">
+            ${enrolledSlots || 0}/${maxSlots || 40} HỌC VIÊN
+          </span>
+        </div>
+      `);
+
+      const gridDiv = $('<div>').appendTo(content);
+      W().loading(gridDiv);
+
+      api().request(`/community-classes/${encodeURIComponent(classId)}/members`).then(res => {
+        gridDiv.empty();
+        const data = res.data || res;
+        const members = data?.members || [];
+        if (!members.length) {
+          return W().empty(gridDiv, 'Chưa có học viên nào đăng ký tham gia lớp học này.', 'user-group');
+        }
+
+        W().grid(gridDiv, members, [
+          { caption: 'STT', width: 50, alignment: 'center', cellTemplate: (el, cell) => el.text(cell.rowIndex + 1) },
+          {
+            dataField: 'member_code', caption: 'Mã HV', width: 100, alignment: 'center',
+            cellTemplate: (el, cell) => $('<span class="status-badge badge-success" style="font-family:monospace;font-weight:700;">').text(cell.value || '--').appendTo(el)
+          },
+          {
+            dataField: 'full_name', caption: 'Họ và tên', minWidth: 150,
+            cellTemplate: (el, cell) => $('<strong>').text(cell.value || '--').appendTo(el)
+          },
+          { dataField: 'phone', caption: 'Số điện thoại', width: 120, alignment: 'center' },
+          { dataField: 'registration_date', caption: 'Thời điểm đăng ký', width: 150, alignment: 'center', calculateCellValue: r => formatDateTime(r.registration_date) },
+          {
+            dataField: 'status', caption: 'Trạng thái', width: 120, alignment: 'center',
+            cellTemplate: el => el.html(W().badge('Đã đăng ký', 'success'))
+          }
+        ], { columnAutoWidth: true, paging: { pageSize: 6 } });
+      }).catch(err => {
+        W().error(gridDiv, err);
+      });
+    }, { width: 750 });
+  }
+
+  async function renderCommunityTab(container, version) {
+    container.empty();
+
+    // 1. Toolbar Filter Bar
+    const filterBar = $('<div class="filter-bar" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">').appendTo(container);
+
+    let commMonth = selectedMonth;
+    let commYear = selectedYear;
+    let commBranch = api().getCurrentBranchId() || 'ALL';
+    let commPtId = 'ALL';
+
+    // Filter Month
+    $('<div>').css({ width: 130 }).appendTo(filterBar).dxSelectBox({
+      dataSource: Array.from({ length: 12 }, (_, i) => ({ id: i + 1, text: `Tháng ${i + 1}` })),
+      valueExpr: 'id', displayExpr: 'text', value: commMonth,
+      label: 'Tháng', labelMode: 'floating',
+      onValueChanged: e => { commMonth = e.value; loadCommunityGrid(); }
+    });
+
+    // Filter Year
+    $('<div>').css({ width: 100 }).appendTo(filterBar).dxNumberBox({
+      value: commYear, min: 2025, max: 2030,
+      label: 'Năm', labelMode: 'floating',
+      onValueChanged: e => { commYear = e.value; loadCommunityGrid(); }
+    });
+
+    // Filter Branch
+    let branchStore = [];
+    const branchBox = $('<div>').css({ width: 220 }).appendTo(filterBar).dxSelectBox({
+      dataSource: new DevExpress.data.CustomStore({
+        key: 'id', loadMode: 'raw',
+        load: async () => {
+          const b = await api().request('/branches');
+          branchStore = [{ id: 'ALL', branch_name: 'Toàn bộ chi nhánh' }, ...W().rows(b)];
+          return branchStore;
+        }
+      }),
+      valueExpr: 'id', displayExpr: 'branch_name', value: commBranch,
+      label: 'Chi nhánh', labelMode: 'floating',
+      onValueChanged: e => { commBranch = e.value; loadCommunityGrid(); }
+    }).dxSelectBox('instance');
+
+    // Filter Instructor
+    let ptStore = [];
+    const ptBox = $('<div>').css({ width: 240 }).appendTo(filterBar).dxSelectBox({
+      dataSource: new DevExpress.data.CustomStore({
+        key: 'id', loadMode: 'raw',
+        load: async () => {
+          const p = await api().request('/pt-bookings/trainers?status=ACTIVE');
+          ptStore = [{ id: 'ALL', full_name: 'Toàn bộ HLV' }, ...W().rows(p)];
+          return ptStore;
+        }
+      }),
+      valueExpr: 'id',
+      displayExpr: r => r.id === 'ALL' ? 'Toàn bộ HLV' : `${r.full_name || ''} (${r.pt_code || ''})`,
+      value: commPtId,
+      label: 'Huấn luyện viên', labelMode: 'floating',
+      onValueChanged: e => { commPtId = e.value; loadCommunityGrid(); }
+    }).dxSelectBox('instance');
+
+    // Button Refresh
+    W().button(filterBar, 'Tải lại', 'refresh', () => loadCommunityGrid()).option('hint', 'Tải lại dữ liệu thù lao lớp cộng đồng');
+
+    // 2. Metrics Container
+    const metricsContainer = $('<div class="commissions-kpis commissions-community-kpis" style="margin-bottom:20px;">').appendTo(container);
+
+    // 3. Grid Container
+    const gridContainer = $('<div>').appendTo(container);
+
+    async function loadCommunityGrid() {
+      W().loading(gridContainer);
+      metricsContainer.empty();
+
+      try {
+        const startDate = `${commYear}-${String(commMonth).padStart(2, '0')}-01`;
+        const lastDay = new Date(commYear, commMonth, 0).getDate();
+        const endDate = `${commYear}-${String(commMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+        const reqHeaders = {};
+        if (commBranch === 'ALL') {
+          reqHeaders['x-branch-id'] = 'ALL';
+        } else if (commBranch) {
+          reqHeaders['x-branch-id'] = commBranch;
+        }
+
+        const res = await api().request(`/community-classes?date_from=${startDate}&date_to=${endDate}`, { headers: reqHeaders });
+        if (version !== revision) return;
+        gridContainer.empty();
+
+        let rawClasses = Array.isArray(res) ? res : (res.data || []);
+        // Lọc theo chi nhánh nếu có
+        if (commBranch && commBranch !== 'ALL') {
+          rawClasses = rawClasses.filter(c => c.branch_id === commBranch);
+        }
+        // Lọc theo HLV nếu có
+        if (commPtId && commPtId !== 'ALL') {
+          rawClasses = rawClasses.filter(c => c.instructor_id === commPtId);
+        }
+
+        const totalClasses = rawClasses.length;
+        const totalCompensation = rawClasses.reduce((sum, c) => sum + Number(c.total_compensation || 0), 0);
+        const totalBasePrice = rawClasses.reduce((sum, c) => sum + Number(c.base_price || 0), 0);
+        const totalBonus = rawClasses.reduce((sum, c) => sum + Number(c.bonus_amount || 0), 0);
+        const totalSlots = rawClasses.reduce((sum, c) => sum + Number(c.enrolled_slots || 0), 0);
+        const avgComp = totalClasses > 0 ? Math.round(totalCompensation / totalClasses) : 0;
+
+        // Render KPI Metrics (Administrative Forest Clean - 6 Cards cân đối)
+        W().metrics(metricsContainer, [
+          {
+            label: 'Tổng số buổi lớp CĐ',
+            value: `${totalClasses} buổi`,
+            caption: `Tháng ${commMonth}/${commYear} · Đã tổ chức`,
+            icon: 'users',
+            tone: 'blue'
+          },
+          {
+            label: 'Tổng thù lao lớp CĐ',
+            value: W().money(totalCompensation),
+            caption: 'Định mức bộ môn + thưởng sĩ số',
+            icon: 'money-bill-wave',
+            tone: 'green'
+          },
+          {
+            label: 'Tổng thù lao cơ bản',
+            value: W().money(totalBasePrice),
+            caption: 'Định mức theo giá sàn bộ môn',
+            icon: 'wallet',
+            tone: 'purple'
+          },
+          {
+            label: 'Tổng thưởng',
+            value: W().money(totalBonus),
+            caption: 'Thưởng thêm khích lệ HLV',
+            icon: 'award',
+            tone: 'coral'
+          },
+          {
+            label: 'Tổng lượt học viên',
+            value: `${totalSlots} lượt`,
+            caption: totalClasses > 0 ? `Bình quân ${(totalSlots / totalClasses).toFixed(1)} HV / lớp` : 'Chưa có lượt tham gia',
+            icon: 'user-group',
+            tone: 'amber'
+          },
+          {
+            label: 'Thù lao bình quân / buổi',
+            value: W().money(avgComp),
+            caption: 'Mức chi phí thù lao bình quân mỗi ca',
+            icon: 'coins',
+            tone: 'teal'
+          }
+        ]);
+
+        if (!rawClasses.length) {
+          return W().empty(gridContainer, `Không có buổi tập cộng đồng nào trong tháng ${commMonth}/${commYear} phù hợp với bộ lọc.`, 'users');
+        }
+
+        // Render DataGrid
+        W().grid(gridContainer, rawClasses, [
+          { caption: 'STT', width: 50, alignment: 'center', cellTemplate: (el, cell) => el.text(cell.rowIndex + 1) },
+          {
+            caption: 'Ngày & Giờ', width: 150,
+            cellTemplate: (el, cell) => {
+              const r = cell.data;
+              const dStr = r.class_date ? new Date(r.class_date).toLocaleDateString('vi-VN') : '--';
+              const tStr = `${String(r.start_time || '').slice(0, 5)} - ${String(r.end_time || '').slice(0, 5)}`;
+              $('<div>')
+                .append($('<strong>').text(dStr))
+                .append($('<small style="display:block;color:#748078;">').text(tStr))
+                .appendTo(el);
+            }
+          },
+          {
+            caption: 'Lớp học & Bộ môn', minWidth: 180,
+            cellTemplate: (el, cell) => {
+              const r = cell.data;
+              $('<div>')
+                .append($('<strong style="color:#1e293b;">').text(r.title || '--'))
+                .append($('<small style="display:block;color:#7c3aed;font-weight:600;">').text(r.discipline_name || 'Bộ môn nhóm'))
+                .appendTo(el);
+            }
+          },
+          {
+            caption: 'Huấn luyện viên', minWidth: 160,
+            cellTemplate: (el, cell) => {
+              const r = cell.data;
+              $('<div>')
+                .append($('<strong>').text(r.instructor_name || '--'))
+                .append($('<small style="display:block;color:#748078;">').text(r.pt_code ? `${r.pt_code}${r.instructor_phone ? ' · ' + r.instructor_phone : ''}` : ''))
+                .appendTo(el);
+            }
+          },
+          { dataField: 'branch_name', caption: 'Chi nhánh', minWidth: 140 },
+          {
+            caption: 'Sĩ số', width: 110, alignment: 'center',
+            cellTemplate: (el, cell) => {
+              const r = cell.data;
+              const enrolled = Number(r.enrolled_slots || 0);
+              const max = Number(r.max_slots || 40);
+              $('<span class="status-badge badge-info" style="font-family:Manrope,monospace;font-weight:600;">')
+                .text(`${enrolled}/${max} HV`)
+                .appendTo(el);
+            }
+          },
+          {
+            dataField: 'base_price', caption: 'Thù lao cơ bản', width: 120, alignment: 'right',
+            calculateCellValue: r => W().money(r.base_price)
+          },
+          {
+            dataField: 'bonus_amount', caption: 'Thưởng sĩ số', width: 110, alignment: 'right',
+            calculateCellValue: r => W().money(r.bonus_amount)
+          },
+          {
+            dataField: 'total_compensation', caption: 'Tổng thù lao', width: 130, alignment: 'right',
+            cellTemplate: (el, cell) => $('<strong>').css({ color: '#237b58', fontSize: '14px' }).text(W().money(cell.value)).appendTo(el)
+          },
+          {
+            caption: 'Thao tác', width: 120, fixed: true, fixedPosition: 'right', alignment: 'center',
+            cellTemplate: (el, cell) => {
+              const r = cell.data;
+              const btn = W().button(el, 'Học viên', 'fa-solid fa-list-check', () => {
+                openCommunityClassMembersModal(r.id, r.title, r.enrolled_slots, r.max_slots, r.instructor_name, r.discipline_name);
+              });
+              btn.option('hint', 'Xem danh sách hội viên đã đăng ký');
+            }
+          }
+        ], { columnAutoWidth: true, paging: { pageSize: 12 } });
+
+      } catch (err) {
+        W().error(gridContainer, err, loadCommunityGrid);
+      }
+    }
+
+    await loadCommunityGrid();
+  }
+
   async function renderHistoryTab(container, version) {
     const headerRow = $('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">').appendTo(container);
     $('<h3>').css({ margin: 0, fontSize: '18px', fontWeight: '700' }).text('Lịch sử chi trả hoa hồng PT').appendTo(headerRow);
@@ -320,7 +1017,7 @@ window.CommissionsModule = (function () {
     const filterBar = $('<div class="filter-bar" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:0 0 12px 0;">').appendTo(container);
 
     // Metrics Row
-    const metricsContainer = $('<div style="margin-bottom:20px;">').appendTo(container);
+    const metricsContainer = $('<div class="commissions-history-kpis" style="margin-bottom:20px;">').appendTo(container);
 
     // DataGrid Container
     const gridContainer = $('<div>').appendTo(container);
@@ -329,6 +1026,7 @@ window.CommissionsModule = (function () {
     let selectedPeriodMonth = 'ALL';
     let selectedPeriodYear = 2026;
     let selectedMethod = 'ALL';
+    let selectedStatus = 'ALL';
     let historyRecords = [];
 
     // 1. Ô tìm kiếm
@@ -388,6 +1086,22 @@ window.CommissionsModule = (function () {
       }
     });
 
+    // 5. Lọc trạng thái chi trả
+    $('<div>').css({ width: 180 }).appendTo(filterBar).dxSelectBox({
+      dataSource: [
+        { id: 'ALL', text: 'Tất cả trạng thái' },
+        { id: 'PAID', text: 'Đã chi trả' },
+        { id: 'PENDING_CONFIRMATION', text: 'Chờ PT xác nhận' }
+      ],
+      valueExpr: 'id',
+      displayExpr: 'text',
+      value: 'ALL',
+      onValueChanged: e => {
+        selectedStatus = e.value;
+        loadHistory();
+      }
+    });
+
     // Header actions
     W().button(headerActions, 'Làm mới', 'refresh', () => loadHistory());
     W().button(headerActions, 'Xuất file', 'export', () => exportHistory(historyRecords));
@@ -396,14 +1110,65 @@ window.CommissionsModule = (function () {
       metricsContainer.empty();
       const totalCount = records.length;
       const totalPaidAmount = records.reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
-      const bankAmount = records.filter(r => r.payout_method === 'BANK_TRANSFER').reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
-      const cashAmount = records.filter(r => r.payout_method === 'CASH').reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
+      const paidCount = records.filter(r => r.status === 'PAID').length;
+      const pendingCount = records.filter(r => r.status === 'PENDING_CONFIRMATION').length;
+
+      const paidTotalAmount = records.filter(r => r.status === 'PAID').reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
+      const pendingTotalAmount = records.filter(r => r.status === 'PENDING_CONFIRMATION').reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
+
+      const bankRecords = records.filter(r => r.payout_method === 'BANK_TRANSFER');
+      const bankAmount = bankRecords.reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
+      const paidBankAmount = bankRecords.filter(r => r.status === 'PAID').reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
+      const pendingBankAmount = bankRecords.filter(r => r.status === 'PENDING_CONFIRMATION').reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
+
+      const cashRecords = records.filter(r => r.payout_method === 'CASH');
+      const cashAmount = cashRecords.reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
+      const paidCashAmount = cashRecords.filter(r => r.status === 'PAID').reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
+      const pendingCashAmount = cashRecords.filter(r => r.status === 'PENDING_CONFIRMATION').reduce((acc, r) => acc + Number(r.total_commission_amount || 0), 0);
 
       W().metrics(metricsContainer, [
-        { label: 'Tổng lượt đã chi trả', value: `${totalCount} lượt`, caption: 'Đã quyết toán thành công', tone: 'green' },
-        { label: 'Tổng tiền đã giải ngân', value: W().money(totalPaidAmount), caption: 'Hoa hồng thực tế đã chi', tone: 'blue' },
-        { label: 'Chi qua VietQR / Ngân hàng', value: W().money(bankAmount), caption: `${records.filter(r => r.payout_method === 'BANK_TRANSFER').length} giao dịch`, tone: 'teal' },
-        { label: 'Chi tiền mặt tại quầy', value: W().money(cashAmount), caption: `${records.filter(r => r.payout_method === 'CASH').length} phiếu chi`, tone: 'amber' }
+        {
+          label: 'Tổng lượt chi trả',
+          value: `${totalCount} lượt`,
+          caption: pendingCount > 0 ? `${paidCount} đã thành công · ${pendingCount} chờ xác nhận` : `${paidCount} đã thành công (100%)`,
+          tone: pendingCount > 0 ? 'teal' : 'green',
+          icon: 'receipt'
+        },
+        {
+          label: 'Tổng tiền chi trả',
+          value: W().money(totalPaidAmount),
+          caption: `Đã thành công: ${W().money(paidTotalAmount)} · Chờ xác nhận: ${W().money(pendingTotalAmount)}`,
+          tone: 'blue',
+          icon: 'money-bill-wave'
+        },
+        {
+          label: 'Tổng thanh toán thành công',
+          value: W().money(paidTotalAmount),
+          caption: `VietQR: ${W().money(paidBankAmount)} · Tiền mặt: ${W().money(paidCashAmount)}`,
+          tone: 'green',
+          icon: 'circle-check'
+        },
+        {
+          label: 'Tổng chờ xác nhận',
+          value: W().money(pendingTotalAmount),
+          caption: `VietQR: ${W().money(pendingBankAmount)} · Tiền mặt: ${W().money(pendingCashAmount)}`,
+          tone: 'amber',
+          icon: 'clock'
+        },
+        {
+          label: 'Chi qua VietQR / Ngân hàng',
+          value: W().money(bankAmount),
+          caption: `Đã thành công: ${W().money(paidBankAmount)} · Chờ xác nhận: ${W().money(pendingBankAmount)}`,
+          tone: 'teal',
+          icon: 'qrcode'
+        },
+        {
+          label: 'Chi tiền mặt tại quầy',
+          value: W().money(cashAmount),
+          caption: `Đã thành công: ${W().money(paidCashAmount)} · Chờ xác nhận: ${W().money(pendingCashAmount)}`,
+          tone: 'coral',
+          icon: 'hand-holding-dollar'
+        }
       ]);
     }
 
@@ -414,6 +1179,7 @@ window.CommissionsModule = (function () {
         if (selectedPeriodMonth && selectedPeriodMonth !== 'ALL') url += `&month=${selectedPeriodMonth}`;
         if (selectedPeriodYear) url += `&year=${selectedPeriodYear}`;
         if (selectedMethod !== 'ALL') url += `&payout_method=${selectedMethod}`;
+        if (selectedStatus && selectedStatus !== 'ALL') url += `&status=${selectedStatus}`;
 
         const res = await api().request(url);
         if (version !== revision) return;
@@ -443,14 +1209,26 @@ window.CommissionsModule = (function () {
           { dataField: 'pt_revenue_share', caption: 'Doanh số quy đổi', width: 130, alignment: 'right', customizeText: e => W().money(e.value) },
           { dataField: 'commission_percentage', caption: 'Tỷ lệ', width: 80, alignment: 'center', customizeText: e => `${e.value}%` },
           {
-            dataField: 'total_commission_amount', caption: 'Tiền đã chi trả', width: 140, alignment: 'right',
+            dataField: 'total_commission_amount', caption: 'Tiền hoa hồng', width: 140, alignment: 'right',
             cellTemplate: (el, cell) => $('<strong>').css({ color: '#237b58', fontSize: '14px' }).text(W().money(cell.value)).appendTo(el)
           },
           {
-            dataField: 'payout_method', caption: 'Hình thức', width: 140, alignment: 'center',
+            dataField: 'payout_method', caption: 'Hình thức', width: 130, alignment: 'center',
             cellTemplate: (el, cell) => {
               const isBank = cell.value === 'BANK_TRANSFER';
               el.html(W().badge(isBank ? 'Chuyển khoản' : 'Tiền mặt', isBank ? 'info' : 'neutral'));
+            }
+          },
+          {
+            dataField: 'status', caption: 'Trạng thái', width: 150, alignment: 'center',
+            cellTemplate: (el, cell) => {
+              if (cell.value === 'PAID') {
+                el.html(W().badge('Đã chi trả', 'success'));
+              } else if (cell.value === 'PENDING_CONFIRMATION') {
+                el.html(W().badge('Chờ PT xác nhận', 'info'));
+              } else {
+                el.html(W().badge(cell.value || '-', 'neutral'));
+              }
             }
           },
           {
@@ -925,7 +1703,9 @@ window.CommissionsModule = (function () {
   }
 
   function openPayoutModal(record, onDone) {
-    const amount = Number(record.total_commission_amount || 0);
+    const ptCommAmount = Number(record.total_commission_amount || 0);
+    const commClassPayout = Number(record.community_compensation || 0);
+    const amount = Number(record.total_monthly_income || (ptCommAmount + commClassPayout));
     let doSubmit = null;
     let popupInstance = null;
 
@@ -945,9 +1725,10 @@ window.CommissionsModule = (function () {
         location: 'after',
         toolbar: 'bottom',
         options: {
-          text: 'Xác nhận chi trả',
+          text: 'Xác nhận đã chi trả',
           type: 'default',
           stylingMode: 'contained',
+          icon: 'check',
           onClick: async () => {
             if (doSubmit) await doSubmit();
           }
@@ -955,7 +1736,7 @@ window.CommissionsModule = (function () {
       }
     ];
 
-    popupInstance = W().popup('Xác nhận chi trả hoa hồng PT', content => {
+    popupInstance = W().popup('Xác nhận chi trả thu nhập & hoa hồng PT', content => {
       // 1. Thẻ tóm tắt thông tin thanh toán (Phong cách Administrative Forest Clean tối giản, phẳng)
       const summaryBox = $('<div style="background:#fafbfa;border:1px solid var(--border-color);border-radius:4px;padding:10px 14px;margin-bottom:14px;">').appendTo(content);
       summaryBox.html(`
@@ -969,10 +1750,10 @@ window.CommissionsModule = (function () {
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid #edf1ee;font-size:12px;color:var(--text-main);">
           <div>
-            Số buổi: <strong>${record.total_pt_sessions_taught}</strong> · Doanh số: <strong>${W().money(record.pt_revenue_share)}</strong> · Tỷ lệ: <strong>${record.commission_percentage}%</strong>
+            PT 1:1: <strong>${record.total_pt_sessions_taught || 0} buổi (${W().money(ptCommAmount)})</strong> · Lớp CĐ: <strong>${record.community_classes_count || 0} lớp (${W().money(commClassPayout)})</strong>
           </div>
           <div>
-            Số tiền chi trả: <strong style="font-size:14px;color:var(--primary);font-variant-numeric:tabular-nums;">${W().money(amount)}</strong>
+            Tổng chi trả: <strong style="font-size:15px;color:var(--primary);font-variant-numeric:tabular-nums;">${W().money(amount)}</strong>
           </div>
         </div>
       `);
@@ -994,10 +1775,8 @@ window.CommissionsModule = (function () {
         bank_name: defaultBank,
         bank_account_no: defaultAccount,
         bank_account_name: defaultName,
-        payout_ref: '',
-        cash_receipt_no: '',
         payout_date: new Date(),
-        payout_note: `Chi trả hoa hồng tháng ${record.month}/${record.year} cho HLV ${record.pt_name}`
+        payout_note: `Chi trả thu nhập tháng ${record.month}/${record.year} cho HLV ${record.pt_name}`
       };
 
       function updateQr() {
@@ -1039,7 +1818,6 @@ window.CommissionsModule = (function () {
                 selectedMethod = e.value;
                 const isBank = e.value === 'BANK_TRANSFER';
                 form.itemOption('bank_group', 'visible', isBank);
-                form.itemOption('cash_group', 'visible', !isBank);
                 if (isBank) {
                   qrCol.show();
                   updateQr();
@@ -1073,27 +1851,9 @@ window.CommissionsModule = (function () {
               {
                 dataField: 'bank_account_name',
                 label: { text: 'Tên chủ tài khoản' },
+                colSpan: 2,
                 editorType: 'dxTextBox',
                 editorOptions: { placeholder: 'Tên chủ tài khoản', onValueChanged: updateQr }
-              },
-              {
-                dataField: 'payout_ref',
-                label: { text: 'Mã giao dịch ngân hàng (tùy chọn)' },
-                editorType: 'dxTextBox',
-                editorOptions: { placeholder: 'VD: FT2609... (để trống nếu không cần)' }
-              }
-            ]
-          },
-          {
-            itemType: 'group',
-            name: 'cash_group',
-            visible: false,
-            items: [
-              {
-                dataField: 'cash_receipt_no',
-                label: { text: 'Số phiếu chi (tùy chọn)' },
-                editorType: 'dxTextBox',
-                editorOptions: { placeholder: 'VD: PC-09-001 (để trống nếu không lập phiếu)' }
               }
             ]
           },
@@ -1122,15 +1882,13 @@ window.CommissionsModule = (function () {
         errorsBox.empty();
 
         const isBank = vals.payout_method === 'BANK_TRANSFER';
-        const refCode = isBank ? vals.payout_ref : vals.cash_receipt_no;
 
         try {
           await api().request(`/commissions/${record.id}/status`, {
             method: 'PUT',
             body: {
-              status: 'PAID',
+              status: 'PENDING_CONFIRMATION',
               payout_method: vals.payout_method,
-              payout_ref: (refCode || '').trim() || null,
               payout_note: (vals.payout_note || '').trim() || null,
               bank_name: isBank ? (vals.bank_name || '').trim() : null,
               bank_account_no: isBank ? (vals.bank_account_no || '').trim() : null,
@@ -1138,7 +1896,7 @@ window.CommissionsModule = (function () {
             }
           });
 
-          DevExpress.ui.notify(`Đã xác nhận chi trả ${W().money(amount)} cho HLV ${record.pt_name}!`, 'success', 3000);
+          DevExpress.ui.notify(`Đã phát lệnh chi trả ${W().money(amount)}. Đang chờ HLV ${record.pt_name} xác nhận trên App!`, 'success', 3500);
           popupInstance.hide();
           if (onDone) await onDone();
         } catch (err) {
@@ -1149,20 +1907,38 @@ window.CommissionsModule = (function () {
     }, { width: 680, maxHeight: '85vh', toolbarItems });
   }
 
-  async function openCommissionDetails(id) {
-    const dialog = W().popup('Chi tiết buổi dạy & hoa hồng', content => {
+  async function openCommissionDetails(id, commRecord = null) {
+    const dialog = W().popup('Chi tiết buổi dạy & thu nhập HLV', content => {
       W().loading(content);
-      api().request(`/commissions/${id}/details`).then(res => {
+      api().request(`/commissions/${id}/details`).then(async res => {
         content.empty();
         const data = res.data || {};
-        const comm = data.commission || {};
+        const comm = data.commission || commRecord || {};
         const sessions = data.sessions || [];
 
+        // Nạp thêm danh sách lớp cộng đồng của HLV trong cùng kỳ tháng
+        let commClasses = [];
+        try {
+          const startDate = `${comm.year}-${String(comm.month).padStart(2, '0')}-01`;
+          const lastDay = new Date(comm.year, comm.month, 0).getDate();
+          const endDate = `${comm.year}-${String(comm.month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+          const resCls = await api().request(`/community-classes?instructor_id=${comm.pt_id}&date_from=${startDate}&date_to=${endDate}`);
+          const rawCls = Array.isArray(resCls) ? resCls : (resCls.data || []);
+          commClasses = rawCls.filter(c => c.instructor_id === comm.pt_id);
+        } catch (_) {}
+
+        const ptCommAmount = Number(comm.total_commission_amount || 0);
+        const commClassPayout = commClasses.reduce((sum, c) => sum + Number(c.total_compensation || 0), 0);
+        const totalIncome = ptCommAmount + commClassPayout;
+
         const isPaid = comm.status === 'PAID';
+        const isPendingConfirmation = comm.status === 'PENDING_CONFIRMATION';
         const isApproved = comm.status === 'APPROVED';
         const statusBadge = isPaid
           ? W().badge('Đã chi trả', 'success')
-          : (isApproved ? W().badge('Đã duyệt', 'info') : W().badge('Chờ duyệt', 'warning'));
+          : (isPendingConfirmation
+              ? W().badge('Chờ PT xác nhận', 'info')
+              : (isApproved ? W().badge('Đã duyệt', 'info') : W().badge('Chờ chi trả', 'warning')));
 
         $('<div style="margin-bottom:16px;padding:14px 16px;background:#f8fbf9;border-radius:8px;border:1px solid #dfe6e2;">')
           .html(`
@@ -1172,47 +1948,112 @@ window.CommissionsModule = (function () {
                 <span style="font-size:13px;color:#748078;margin-left:6px;">(${W().escape(comm.pt_code || '')})</span>
               </div>
               <div style="display:flex;gap:8px;align-items:center;">
-                <span style="color:#237b58;font-weight:700;font-size:14px;">Tỷ lệ: ${comm.commission_percentage}%</span>
+                <span style="color:#237b58;font-weight:700;font-size:14px;">Tỷ lệ hoa hồng PT: ${comm.commission_percentage}%</span>
                 ${statusBadge}
               </div>
             </div>
-            <div style="margin-top:8px;display:flex;gap:20px;color:#444;font-size:13px;">
-              <span>Số buổi dạy: <strong>${comm.total_pt_sessions_taught != null ? comm.total_pt_sessions_taught : sessions.length} buổi</strong></span>
-              <span>Doanh số quy đổi: <strong>${W().money(comm.pt_revenue_share)}</strong></span>
-              <span>Tiền hoa hồng: <strong style="color:#237b58;font-size:15px;">${W().money(comm.total_commission_amount)}</strong></span>
+            <div style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;padding:10px 12px;background:#fff;border-radius:6px;border:1px solid #edf1ee;font-size:13px;">
+              <div>
+                <span style="color:#64748b;font-size:11.5px;display:block;">HOA HỒNG DẠY KÈM PT (1:1, NHÓM, COMBO)</span>
+                <strong>${comm.total_pt_sessions_taught != null ? comm.total_pt_sessions_taught : sessions.length} buổi</strong> · <span style="color:#237b58;font-weight:700;">${W().money(ptCommAmount)}</span>
+              </div>
+              <div>
+                <span style="color:#64748b;font-size:11.5px;display:block;">THÙ LAO LỚP CỘNG ĐỒNG</span>
+                <strong>${commClasses.length} lớp</strong> · <span style="color:#7c3aed;font-weight:700;">${W().money(commClassPayout)}</span>
+              </div>
+              <div>
+                <span style="color:#64748b;font-size:11.5px;display:block;">TỔNG THU NHẬP THỰC NHẬN</span>
+                <strong style="color:#237b58;font-size:16px;font-variant-numeric:tabular-nums;">${W().money(totalIncome)}</strong>
+              </div>
             </div>
-            ${isPaid ? `
+            ${(isPaid || isPendingConfirmation) ? `
               <div style="margin-top:10px;padding:10px 14px;background:#fafbfa;border-radius:4px;border:1px solid var(--border-color);font-size:12px;display:flex;flex-wrap:wrap;gap:16px;color:var(--text-main);">
-                <span>Thời gian chi trả: <strong>${formatDateTime(comm.paid_at)}</strong></span>
-                <span>Hình thức: <strong>${comm.payout_method === 'CASH' ? 'Tiền mặt tại quầy' : 'Chuyển khoản ngân hàng'}</strong></span>
-                ${comm.payout_ref ? `<span>Mã GD / Số phiếu chi: <strong>${W().escape(comm.payout_ref)}</strong></span>` : ''}
-                ${comm.paid_by_name ? `<span>Người thực hiện: <strong>${W().escape(comm.paid_by_name)}</strong></span>` : ''}
+                <span>Thời gian phát lệnh: <strong>${formatDateTime(comm.paid_at)}</strong></span>
+                <span>Hình thức: <strong>${comm.payout_method === 'CASH' ? 'Tiền mặt tại quầy' : 'Chuyển khoản VietQR'}</strong></span>
+                ${comm.paid_by_name ? `<span>Người phát lệnh: <strong>${W().escape(comm.paid_by_name)}</strong></span>` : ''}
+                ${comm.pt_confirmed_at ? `<span style="color:#237b58;">PT xác nhận nhận tiền: <strong>${formatDateTime(comm.pt_confirmed_at)}</strong></span>` : '<span style="color:#0284c7;"><em>Chờ HLV bấm xác nhận trên app</em></span>'}
                 ${comm.payout_note ? `<span style="width:100%;color:var(--text-muted);border-top:1px solid #edf1ee;padding-top:6px;margin-top:2px;">Ghi chú: ${W().escape(comm.payout_note)}</span>` : ''}
               </div>
             ` : ''}
           `).appendTo(content);
 
-        const gridBox = $('<div>').appendTo(content);
-        if (!sessions.length) {
-          return W().empty(gridBox, 'Chưa có dữ liệu danh sách buổi dạy chi tiết cho kỳ này.', 'calendar-xmark');
+        // Sub Tabs inside Details Modal
+        const subTabContainer = $('<div class="commission-details-tabs">').appendTo(content);
+        const subTabs = [
+          { id: 'pt', text: `Dạy kèm PT (1:1, nhóm, combo) (${sessions.length})` },
+          { id: 'comm', text: `Lớp dạy cộng đồng (${commClasses.length})` }
+        ];
+
+        let currentSubTab = 'pt';
+        const subContentArea = $('<div style="margin-top:12px;">').appendTo(content);
+
+        subTabContainer.dxTabs({
+          dataSource: subTabs,
+          selectedIndex: 0,
+          onSelectionChanged: e => {
+            currentSubTab = e.addedItems[0]?.id || 'pt';
+            renderSubContent();
+          },
+          onItemClick: e => {
+            currentSubTab = e.itemData.id;
+            renderSubContent();
+          }
+        });
+
+        function renderSubContent() {
+          subContentArea.empty();
+          if (currentSubTab === 'pt') {
+            if (!sessions.length) {
+              return W().empty(subContentArea, 'Không có buổi dạy kèm PT nào trong kỳ này.', 'dumbbell');
+            }
+            W().grid(subContentArea, sessions, [
+              { dataField: 'booking_date', caption: 'Ngày tập', dataType: 'date', format: 'dd/MM/yyyy', width: 100 },
+              { caption: 'Giờ', width: 100, calculateCellValue: r => `${String(r.start_time).slice(0, 5)} - ${String(r.end_time).slice(0, 5)}` },
+              { dataField: 'member_name', caption: 'Học viên', minWidth: 140 },
+              { dataField: 'package_name_snapshot', caption: 'Gói tập', minWidth: 160 },
+              { dataField: 'session_number', caption: 'Buổi số', width: 75, alignment: 'center' },
+              { dataField: 'session_pt_value', caption: 'Giá trị buổi', width: 110, alignment: 'right', calculateCellValue: r => W().money(r.session_pt_value) },
+              {
+                dataField: 'session_commission', caption: 'Hoa hồng buổi', width: 120, alignment: 'right',
+                cellTemplate: (el, cell) => $('<strong>').css('color', '#237b58').text(W().money(cell.value)).appendTo(el)
+              }
+            ], { columnAutoWidth: true, paging: { pageSize: 6 } });
+          } else {
+            if (!commClasses.length) {
+              return W().empty(subContentArea, 'Không có ca dạy lớp cộng đồng nào trong kỳ này.', 'users');
+            }
+            W().grid(subContentArea, commClasses, [
+              { dataField: 'class_date', caption: 'Ngày dạy', dataType: 'date', format: 'dd/MM/yyyy', width: 100 },
+              { caption: 'Giờ', width: 100, calculateCellValue: r => `${String(r.start_time).slice(0, 5)} - ${String(r.end_time).slice(0, 5)}` },
+              { dataField: 'title', caption: 'Tên lớp học', minWidth: 150 },
+              { dataField: 'discipline_name', caption: 'Bộ môn', width: 100 },
+              {
+                caption: 'Sĩ số', width: 90, alignment: 'center',
+                cellTemplate: (el, cell) => $('<span class="status-badge badge-info" style="font-family:monospace;">').text(`${cell.data.enrolled_slots || 0}/${cell.data.max_slots || 40}`).appendTo(el)
+              },
+              { dataField: 'base_price', caption: 'Định mức', width: 100, alignment: 'right', calculateCellValue: r => W().money(r.base_price) },
+              { dataField: 'bonus_amount', caption: 'Thưởng', width: 90, alignment: 'right', calculateCellValue: r => W().money(r.bonus_amount) },
+              {
+                dataField: 'total_compensation', caption: 'Tổng thù lao', width: 120, alignment: 'right',
+                cellTemplate: (el, cell) => $('<strong>').css({ color: '#7c3aed' }).text(W().money(cell.value)).appendTo(el)
+              },
+              {
+                caption: '', width: 80, alignment: 'center',
+                cellTemplate: (el, cell) => {
+                  W().button(el, '', 'fa-solid fa-list-check', () => {
+                    openCommunityClassMembersModal(cell.data.id, cell.data.title, cell.data.enrolled_slots, cell.data.max_slots, comm.pt_name, cell.data.discipline_name);
+                  }).option('hint', 'Xem danh sách học viên');
+                }
+              }
+            ], { columnAutoWidth: true, paging: { pageSize: 6 } });
+          }
         }
 
-        W().grid(gridBox, sessions, [
-          { dataField: 'booking_date', caption: 'Ngày tập', dataType: 'date', format: 'dd/MM/yyyy', width: 100 },
-          { caption: 'Giờ', width: 100, calculateCellValue: r => `${String(r.start_time).slice(0, 5)} - ${String(r.end_time).slice(0, 5)}` },
-          { dataField: 'member_name', caption: 'Học viên', minWidth: 150 },
-          { dataField: 'package_name_snapshot', caption: 'Gói tập', minWidth: 140 },
-          { dataField: 'session_number', caption: 'Buổi số', width: 80, alignment: 'center' },
-          { dataField: 'session_pt_value', caption: 'Giá trị buổi', width: 120, alignment: 'right', calculateCellValue: r => W().money(r.session_pt_value) },
-          {
-            dataField: 'session_commission', caption: 'Hoa hồng buổi', width: 130, alignment: 'right',
-            cellTemplate: (el, cell) => $('<strong>').css('color', '#237b58').text(W().money(cell.value)).appendTo(el)
-          }
-        ], { columnAutoWidth: true, paging: { pageSize: 8 } });
+        renderSubContent();
       }).catch(err => {
         W().error(content, err);
       });
-    }, { width: 800 });
+    }, { width: 860 });
   }
 
   function destroy() { revision++; view = null; }

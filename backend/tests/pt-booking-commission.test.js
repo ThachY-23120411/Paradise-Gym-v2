@@ -200,7 +200,7 @@ test('PAID summary is preserved even when current sessions differ', async () => 
   assert(!h.calls.some(c => c.sql.includes('pt_commission_config_history')));
 });
 
-for (const active_role of ['MEMBER', 'PT', 'RECEPTIONIST']) for (const endpoint of ['/commissions/monthly', '/commissions/payout-history']) test(`${active_role} cannot read staff commission list ${endpoint}`, async () => {
+for (const active_role of ['MEMBER', 'PT']) for (const endpoint of ['/commissions/monthly', '/commissions/payout-history']) test(`${active_role} cannot read staff commission list ${endpoint}`, async () => {
   const h = harness();
   await assert.rejects(h.request('commissions', 'get', endpoint, {}, { active_role }), e => e.status === 403);
   assert.equal(h.calls.length, 0);

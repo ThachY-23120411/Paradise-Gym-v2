@@ -119,3 +119,11 @@ Mỗi Epic có một thư mục riêng; các User Story của Epic được đ�
 ## Boundary
 
 QTV thao tác trên Web theo role, branch scope và permission được cấp; không có Mobile canonical.
+
+## QTV-W18 · Bàn giao & tất toán doanh thu
+
+- [QTV-W18-US01 - Xem và đối chiếu nguồn thu chưa bàn giao](<QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US01-Xem và đối chiếu nguồn thu chưa bàn giao.md>)
+- [QTV-W18-US02 - Xác nhận bàn giao doanh thu](<QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US02-Xác nhận bàn giao doanh thu.md>)
+- [QTV-W18-US03 - Tra cứu lịch sử bàn giao](<QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US03-Tra cứu lịch sử bàn giao.md>)
+
+W18 bổ sung 3 US vào tổng cơ sở 51 ở trên, thành 54 theo chỉ mục đã công bố. Cả ba yêu cầu QTV + quyền tài chính; tạo mới tại một chi nhánh cụ thể. Không sửa lại phạm vi US cũ trong lần bổ sung này.

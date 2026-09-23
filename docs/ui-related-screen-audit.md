@@ -19,6 +19,20 @@ Ngày 20/09/2026. Phạm vi audit tài liệu PT; không phải báo cáo runtim
 | Tổng quan | PT06 | PT06-US01 | Đúng 4 KPI + Đặt lịch nhanh; không pending-assignment KPI |
 | Hoa hồng (`view-commissions`) | PT06 | PT06-US02 | Tab riêng; own readonly; đổi kỳ/làm mới qua API; PENDING Chờ chi trả; tổng khớp chi tiết; PAID khóa lịch sử |
 
+## QTV W02 - Popup hội viên (22/09/2026)
+
+Mapping: `frontend/web/js/modules/members.js`, popup QTV-only -> [QTV-W02-US04](<user-stories/qtv/QTV-W02-Hội viên & khách hàng/QTV-W02-US04-Xem danh sách hội viên.md>), Epic W02, Product Spec 4.1. LT giữ popup cũ; admin CRUD ngoài popup không đổi.
+
+| Khu vực popup | Mobile đối chiếu | Phạm vi projection |
+| --- | --- | --- |
+| Trang chủ | home | Gói ACTIVE đã trả tiền, lời mời nhận PENDING, lịch PT tương lai theo giờ chi nhánh |
+| Lịch tập: PT / Lớp cộng đồng | schedule | Lịch của owner hoặc snapshot participant; xác nhận kép/kết quả, lớp đã đăng ký; không đặt/xác nhận hộ |
+| Gói của tôi: Gói đã đăng ký / Lời mời nhóm | packages | Owned + ACCEPTED group, display_status, quyền lợi gói/PT phụ trách/chi nhánh sử dụng; lời mời nhận/gửi chỉ đọc |
+| Thanh toán: Đã thanh toán / Chờ thanh toán | payments | Có quyền tài chính; tải đủ ledger confirmed_at, lọc phương thức/ngày, phiếu thu inline; đăng ký chờ tách riêng |
+| Tài khoản | account | Profile whitelist, không địa chỉ/lịch sử cổng/sinh trắc/mật khẩu/thiết bị/phiên/cài đặt cá nhân |
+
+Bộ lọc có nhãn, tự áp dụng và giữ trong lần mở popup. FROZEN = Đang đóng băng; SCHEDULED = Chưa đến ngày hiệu lực. Status badge trong grid không đổi dữ liệu hay điều kiện lọc. Không coi đây là toàn bộ self-service Mobile: Mobile hiện còn lọc payment theo COMPLETED trái ledger confirmed_at (Noether phát hiện), chưa được sửa trong scope này. [Audit và giới hạn kiểm chứng](reports/tab1-web-admin/2026-09-22-member-popup-walkthrough.md).
+
 ## Điều hướng dùng chung
 Chỉ đặc tả ở cấp ứng dụng: footer gồm 5 mục Tổng quan (PT06-US01), Lịch (PT01), Học viên (PT02), Hoa hồng (PT06-US02), Tài khoản (PT04); nền xanh lá đồng bộ Header. Chuông mở PT03. PT05 ngoài footer. Không thêm layout dùng chung vào bảng field từng màn hình.
 
@@ -42,3 +56,17 @@ Chỉ đặc tả ở cấp ứng dụng: footer gồm 5 mục Tổng quan (PT06
 | Thẻ học viên PT | PT02 | PT02-US01 | reg.is_expiring / reg.display_status từ API; reg.status ACTIVE giữ nguyên; bỏ tính 7 ngày cục bộ |
 
 Tài liệu nghiệp vụ, không phải xác nhận E2E/runtime. Kỳ đăng ký gốc đã hết khi thanh toán còn chờ quyết định PAY-OQ-01; không tự dời ngày. Schema/ERD, backend và UI do các owner tương ứng thực hiện.
+
+## W18 - Bàn giao & tất toán doanh thu
+
+Ngày 21/09/2026. Route `revenue-handovers`, module `frontend/web/js/modules/revenueHandovers.js`; QTV + `view_financial`. Chỉ bổ sung mapping W18. Đã đối chiếu tên control và luồng với code; không phải báo cáo E2E hay audit toàn bộ layout.
+
+| Màn hình / flow | Epic | User Story | Quy tắc đồng bộ |
+| --- | --- | --- | --- |
+| Chưa bàn giao; Tổng hợp theo nơi nhận tiền; Giao dịch chưa bàn giao | QTV-W18 | [US01](<user-stories/qtv/QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US01-Xem và đối chiếu nguồn thu chưa bàn giao.md>) | Chi nhánh cụ thể, confirmed_at theo múi giờ chi nhánh; metrics Tổng tiền/Giao dịch/Chưa xác định; search/pager không thay tập preview |
+| Popup Tài khoản nhận tiền | QTV-W18 | US01 | Danh mục API lưu bền; form BIN ngân hàng/Số tài khoản/Tên tài khoản và Thêm tài khoản; ALL chỉ đọc |
+| Dropdown Tài khoản nhận tiền trên dòng chuyển khoản | QTV-W18 | US01 | QTV kiểm chứng rồi chọn; allocation chỉ trong preview, lưu vào batch khi xác nhận; không popup gán hoặc lưu assignment riêng |
+| Popup Xác nhận bàn giao doanh thu | QTV-W18 | [US02](<user-stories/qtv/QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US02-Xác nhận bàn giao doanh thu.md>) | Chỉ tổng hợp + checkbox Xác nhận đã bàn giao đầy đủ + Ghi chú tối đa 1000; preview_token chống stale; replay cùng token trả batch gốc |
+| Lịch sử bàn giao; biểu tượng Xem bàn giao; popup Chi tiết bàn giao | QTV-W18 | [US03](<user-stories/qtv/QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US03-Tra cứu lịch sử bàn giao.md>) | handover_code; kỳ lọc theo ngày batch; snapshot bất biến; không sửa/xóa/mở lại, không tính lại dữ liệu sống |
+
+Legacy chưa rõ tài khoản nhận tiếp tục bị chặn; registry không đổi cấu hình VietQR hay tự thu nhận tài khoản cho payment. Backend/ERD và E2E do worker chính/phụ trách thực hiện; giới hạn đối chiếu timezone/layout xem [báo cáo tài liệu](reports/tab1-web-admin/2026-09-21-revenue-handover-docs.md).

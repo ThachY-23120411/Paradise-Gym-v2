@@ -7,15 +7,31 @@ const router=express.Router();
 async function accessLogs(req,db=pool) {
   role(req,'QTV','RECEPTIONIST');const day=req.query.date?date(req.query.date):req.history?null:today();
   const from=req.query.date_from?date(req.query.date_from):day,to=req.query.date_to?date(req.query.date_to):day;
-  return (await db.query(`SELECT l.*,m.full_name member_name,m.member_code,m.phone member_phone,r.package_name_snapshot,r.package_name_snapshot package_name,r.end_date registration_end_date,
+  return (await db.query(`SELECT l.*,
+    COALESCE(m.full_name, pt.full_name) member_name,
+    COALESCE(m.member_code, pt.pt_code) member_code,
+    COALESCE(m.phone, pt.phone) member_phone,
+    pt.full_name pt_name, pt.pt_code,
+    r.package_name_snapshot,r.package_name_snapshot package_name,r.end_date registration_end_date,
     CASE WHEN r.id IS NOT NULL THEN to_jsonb(r)||jsonb_build_object(
       'is_paid',EXISTS(SELECT 1 FROM payments p WHERE p.registration_id=r.id),
       'has_scheduled_freeze',EXISTS(SELECT 1 FROM package_freezes f WHERE f.registration_id=r.id AND f.status='SCHEDULED')) END expiry_context,
     COALESCE(l.device_code_snapshot,d.device_code,'Quầy lễ tân') device_code,COALESCE(l.device_code_snapshot,d.device_name,'Quầy lễ tân') scan_point,
     COALESCE(a.full_name,a.login_phone,'Hệ thống') actor_name,COALESCE(a.full_name,a.login_phone,'Hệ thống') performed_by_name,
     l.access_method source,l.check_in_time event_time,COALESCE(l.denial_reason,l.manual_reason) reason,b.branch_name
-    FROM access_logs l JOIN member_profiles m ON m.id=l.member_id JOIN branches b ON b.id=l.branch_id LEFT JOIN registrations r ON r.id=l.registration_id LEFT JOIN devices d ON d.id=l.device_id LEFT JOIN accounts a ON a.id=l.manual_recorded_by
-    WHERE ($1::uuid[] IS NULL OR l.branch_id=ANY($1)) AND ($2::date IS NULL OR (l.check_in_time AT TIME ZONE b.timezone)::date>=$2) AND ($3::date IS NULL OR (l.check_in_time AT TIME ZONE b.timezone)::date<=$3) AND ($4::uuid IS NULL OR l.member_id=$4) ORDER BY l.check_in_time DESC,l.recorded_at DESC LIMIT 1000`,[scope(req),from,to,req.query.member_id||null])).rows.map(({expiry_context,...log})=>({...log,is_expiring:isExpiring(expiry_context)}));
+    FROM access_logs l
+    LEFT JOIN member_profiles m ON m.id=l.member_id
+    LEFT JOIN pt_profiles pt ON pt.id=l.pt_id
+    JOIN branches b ON b.id=l.branch_id
+    LEFT JOIN registrations r ON r.id=l.registration_id
+    LEFT JOIN devices d ON d.id=l.device_id
+    LEFT JOIN accounts a ON a.id=l.manual_recorded_by
+    WHERE ($1::uuid[] IS NULL OR l.branch_id=ANY($1))
+      AND ($2::date IS NULL OR (l.check_in_time AT TIME ZONE b.timezone)::date>=$2)
+      AND ($3::date IS NULL OR (l.check_in_time AT TIME ZONE b.timezone)::date<=$3)
+      AND ($4::uuid IS NULL OR l.member_id=$4)
+      AND ($5::uuid IS NULL OR l.pt_id=$5)
+    ORDER BY l.check_in_time DESC,l.recorded_at DESC LIMIT 1000`,[scope(req),from,to,req.query.member_id||null,req.query.pt_id||null])).rows.map(({expiry_context,...log})=>({...log,is_expiring:isExpiring(expiry_context)}));
 }
 router.get('/access-gate/today-logs',route(req=>accessLogs(req)));
 router.get('/access-gate/logs',route(req=>{req.history=true;return accessLogs(req);}));
@@ -287,20 +303,210 @@ router.get('/dashboard',route(async req=>{
   const dailyReq={user:req.user,headers:req.headers,query:{...req.query,date:day}};
   return {metrics,tasks:{...tasks,pending_registrations:metrics.pending_registrations},access_logs:await accessLogs(dailyReq),bookings:(await bookingList(dailyReq)).filter(b=>b.status!=='CANCELLED')};
 }));
-router.get('/reports',route(async req=>{
-  role(req,'QTV');financial(req);
-  const period=choice(req.query.period||'month',['month','quarter','year'],'period'),now=today(),year=Number(req.query.year||now.slice(0,4)),month=Number(req.query.month||now.slice(5,7)),quarter=Number(req.query.quarter||Math.ceil(month/3));
-  if(!Number.isInteger(year)||year<2000||year>2200||!Number.isInteger(month)||month<1||month>12||!Number.isInteger(quarter)||quarter<1||quarter>4)fail(400,'Invalid reporting period');
-  const firstMonth=period==='year'?1:period==='quarter'?(quarter-1)*3+1:month,months=period==='year'?12:period==='quarter'?3:1;
-  const start=`${year}-${String(firstMonth).padStart(2,'0')}-01`,endExclusive=new Date(Date.UTC(year,firstMonth-1+months,1)).toISOString().slice(0,10),last=addDays(endExclusive,-1),end=period==='month'&&now>=start&&now<=last?now:last;
-  const ids=scope(req),bucket=period==='month'?'YYYY-MM-DD':'YYYY-MM';
-  const revenue=(await pool.query(`SELECT to_char(p.confirmed_at AT TIME ZONE b.timezone,$4) period,COUNT(*)::int packages_sold,SUM(p.amount) cash_received,
-    COUNT(*) FILTER(WHERE r.package_type_snapshot LIKE 'GYM%')::int gym,COUNT(*) FILTER(WHERE r.package_type_snapshot LIKE 'PT%')::int pt,COUNT(*) FILTER(WHERE r.package_type_snapshot='COMBO')::int combo
-    FROM payments p JOIN registrations r ON r.id=p.registration_id JOIN branches b ON b.id=p.branch_id WHERE ($1::uuid[] IS NULL OR p.branch_id=ANY($1)) AND (p.confirmed_at AT TIME ZONE b.timezone)::date BETWEEN $2 AND $3 GROUP BY 1 ORDER BY 1`,[ids,start,end,bucket])).rows.map(r=>({...r,service_breakdown:`Gym: ${r.gym} | PT: ${r.pt} | Combo: ${r.combo}`,service_counts:{gym:r.gym,pt:r.pt,combo:r.combo}}));
-  const metrics={cash_received:revenue.reduce((a,r)=>a+r.cash_received,0),packages_sold:revenue.reduce((a,r)=>a+r.packages_sold,0)};
-  metrics.package_value=Number((await pool.query("SELECT COALESCE(SUM(price_snapshot),0) value FROM registrations WHERE status<>'CANCELLED' AND ($1::uuid[] IS NULL OR sold_branch_id=ANY($1)) AND (created_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3",[ids,start,end])).rows[0].value);
-  metrics.completed_pt=Number((await pool.query("SELECT COUNT(*) FROM pt_bookings WHERE status='COMPLETED' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND booking_date BETWEEN $2 AND $3",[ids,start,end])).rows[0].count);
-  const distribution = (await pool.query(`SELECT r.package_name_snapshot package_name, COALESCE(r.package_type_snapshot, 'GYM') package_type, COUNT(*)::int count, COALESCE(SUM(p.amount), 0) revenue FROM payments p JOIN registrations r ON r.id=p.registration_id WHERE ($1::uuid[] IS NULL OR p.branch_id=ANY($1)) AND (p.confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3 GROUP BY 1, 2 ORDER BY 3 DESC`, [ids, start, end])).rows.map(r => ({ ...r, percentage: metrics.packages_sold ? Math.round(r.count / metrics.packages_sold * 10000) / 100 : 0 }));
+router.get('/reports', route(async req => {
+  role(req, 'QTV'); financial(req);
+  const period = choice(req.query.period || 'month', ['month', 'quarter', 'year'], 'period'),
+        now = today(),
+        year = Number(req.query.year || now.slice(0, 4)),
+        month = Number(req.query.month || now.slice(5, 7)),
+        quarter = Number(req.query.quarter || Math.ceil(month / 3));
+  if (!Number.isInteger(year) || year < 2000 || year > 2200 || !Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(quarter) || quarter < 1 || quarter > 4) fail(400, 'Invalid reporting period');
+  const firstMonth = period === 'year' ? 1 : period === 'quarter' ? (quarter - 1) * 3 + 1 : month,
+        months = period === 'year' ? 12 : period === 'quarter' ? 3 : 1;
+  const start = `${year}-${String(firstMonth).padStart(2, '0')}-01`,
+        endExclusive = new Date(Date.UTC(year, firstMonth - 1 + months, 1)).toISOString().slice(0, 10),
+        last = addDays(endExclusive, -1),
+        end = period === 'month' && now >= start && now <= last ? now : last;
+  const ids = scope(req), bucket = period === 'month' ? 'YYYY-MM-DD' : 'YYYY-MM';
+
+  // 1. Doanh thu theo timeline
+  const revenue = (await pool.query(`
+    SELECT to_char(p.confirmed_at AT TIME ZONE b.timezone, $4) period,
+           COUNT(*)::int packages_sold,
+           SUM(p.amount) cash_received,
+           COALESCE(SUM(COALESCE(p.discount_amount, 0)), 0) voucher_discount,
+           COALESCE(SUM(p.amount + COALESCE(p.discount_amount, 0)), 0) gross_package_revenue,
+           COUNT(*) FILTER(WHERE r.package_type_snapshot LIKE 'GYM%')::int gym,
+           COUNT(*) FILTER(WHERE r.package_type_snapshot LIKE 'PT%')::int pt,
+           COUNT(*) FILTER(WHERE r.package_type_snapshot = 'COMBO')::int combo,
+           COALESCE(SUM(p.amount) FILTER(WHERE r.package_type_snapshot LIKE 'GYM%'), 0) gym_revenue,
+           COALESCE(SUM(p.amount) FILTER(WHERE r.package_type_snapshot LIKE 'PT%'), 0) pt_revenue,
+           COALESCE(SUM(p.amount) FILTER(WHERE r.package_type_snapshot = 'COMBO'), 0) combo_revenue
+    FROM payments p 
+    JOIN registrations r ON r.id = p.registration_id 
+    JOIN branches b ON b.id = p.branch_id 
+    WHERE ($1::uuid[] IS NULL OR p.branch_id = ANY($1)) 
+      AND (p.confirmed_at AT TIME ZONE b.timezone)::date BETWEEN $2 AND $3 
+    GROUP BY 1 ORDER BY 1
+  `, [ids, start, end, bucket])).rows.map(r => ({
+    ...r,
+    service_breakdown: `Gym: ${r.gym} | PT: ${r.pt} | Combo: ${r.combo}`,
+    service_counts: { gym: r.gym, pt: r.pt, combo: r.combo },
+    service_revenues: { gym: Number(r.gym_revenue), pt: Number(r.pt_revenue), combo: Number(r.combo_revenue) }
+  }));
+
+  const metrics = {
+    cash_received: revenue.reduce((a, r) => a + Number(r.cash_received || 0), 0),
+    voucher_discount: revenue.reduce((a, r) => a + Number(r.voucher_discount || 0), 0),
+    gross_package_revenue: revenue.reduce((a, r) => a + Number(r.gross_package_revenue || 0), 0),
+    packages_sold: revenue.reduce((a, r) => a + Number(r.packages_sold || 0), 0)
+  };
+  metrics.package_value = Number((await pool.query("SELECT COALESCE(SUM(price_snapshot),0) value FROM registrations WHERE status<>'CANCELLED' AND ($1::uuid[] IS NULL OR sold_branch_id=ANY($1)) AND (created_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3", [ids, start, end])).rows[0].value);
+  metrics.completed_pt = Number((await pool.query("SELECT COUNT(*) FROM pt_bookings WHERE status='COMPLETED' AND ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND booking_date BETWEEN $2 AND $3", [ids, start, end])).rows[0].count);
+
+  // 2. Chi phí hoa hồng PT trong kỳ
+  const ptCostRes = await pool.query(`
+    SELECT COALESCE(SUM(c.total_commission_amount), 0) AS pt_commission_cost,
+           COUNT(c.id)::int AS pt_commission_count
+    FROM pt_commissions c
+    JOIN pt_profiles pt ON pt.id = c.pt_id
+    WHERE ($1::uuid[] IS NULL OR pt.branch_id = ANY($1))
+      AND c.year = $2
+      AND c.month BETWEEN $3 AND $4
+  `, [ids, year, firstMonth, firstMonth + months - 1]);
+
+  const pt_commission_list = (await pool.query(`
+    SELECT pt.id AS pt_id, pt.full_name AS pt_name, pt.pt_code, pt.phone,
+           b.branch_name,
+           c.month, c.year, c.total_pt_sessions_taught, c.pt_revenue_share, c.commission_percentage,
+           c.total_commission_amount, c.status, c.payout_method, c.paid_at
+    FROM pt_commissions c
+    JOIN pt_profiles pt ON pt.id = c.pt_id
+    JOIN branches b ON b.id = pt.branch_id
+    WHERE ($1::uuid[] IS NULL OR pt.branch_id = ANY($1))
+      AND c.year = $2
+      AND c.month BETWEEN $3 AND $4
+    ORDER BY c.total_commission_amount DESC
+  `, [ids, year, firstMonth, firstMonth + months - 1])).rows;
+
+  // 3. Chi phí thù lao giáo viên lớp cộng đồng trong kỳ
+  const classCostRes = await pool.query(`
+    SELECT COALESCE(SUM(COALESCE(c.base_price, 0) + COALESCE(c.bonus_amount, 0)), 0) AS community_class_cost,
+           COALESCE(SUM(COALESCE(c.base_price, 0)), 0) AS total_base_price,
+           COALESCE(SUM(COALESCE(c.bonus_amount, 0)), 0) AS total_bonus_amount,
+           COUNT(c.id)::int AS class_count
+    FROM community_classes c
+    WHERE ($1::uuid[] IS NULL OR c.branch_id = ANY($1))
+      AND c.class_date BETWEEN $2 AND $3
+      AND c.status <> 'CANCELLED'
+  `, [ids, start, end]);
+
+  const community_class_list = (await pool.query(`
+    SELECT c.id, c.title, c.instructor_name, c.class_date, c.start_time, c.end_time,
+           d.name AS discipline_name,
+           c.base_price, c.bonus_amount,
+           (COALESCE(c.base_price, 0) + COALESCE(c.bonus_amount, 0)) AS total_compensation,
+           c.enrolled_slots,
+           b.branch_name
+    FROM community_classes c
+    JOIN branches b ON b.id = c.branch_id
+    LEFT JOIN class_disciplines d ON d.id = c.discipline_id
+    WHERE ($1::uuid[] IS NULL OR c.branch_id = ANY($1))
+      AND c.class_date BETWEEN $2 AND $3
+      AND c.status <> 'CANCELLED'
+    ORDER BY c.class_date DESC, c.start_time DESC
+  `, [ids, start, end])).rows;
+
+  // Chi phí lớp cộng đồng theo timeline
+  const classTimeline = (await pool.query(`
+    SELECT to_char(c.class_date, $4) period,
+           SUM(COALESCE(c.base_price, 0) + COALESCE(c.bonus_amount, 0)) class_cost,
+           COUNT(*)::int class_count
+    FROM community_classes c
+    WHERE ($1::uuid[] IS NULL OR c.branch_id = ANY($1))
+      AND c.class_date BETWEEN $2 AND $3
+      AND c.status <> 'CANCELLED'
+    GROUP BY 1 ORDER BY 1
+  `, [ids, start, end, bucket])).rows;
+
+  // Hoa hồng PT theo timeline
+  let ptTimeline = [];
+  if (period === 'month') {
+    ptTimeline = (await pool.query(`
+      SELECT to_char((c.paid_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date, 'YYYY-MM-DD') period,
+             SUM(c.total_commission_amount) pt_cost
+      FROM pt_commissions c
+      JOIN pt_profiles pt ON pt.id = c.pt_id
+      WHERE ($1::uuid[] IS NULL OR pt.branch_id = ANY($1))
+        AND c.year = $2 AND c.month = $3
+        AND c.paid_at IS NOT NULL
+        AND (c.paid_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $4 AND $5
+      GROUP BY 1 ORDER BY 1
+    `, [ids, year, month, start, end])).rows;
+  } else {
+    ptTimeline = (await pool.query(`
+      SELECT to_char(make_date(c.year, c.month, 1), 'YYYY-MM') period,
+             SUM(c.total_commission_amount) pt_cost
+      FROM pt_commissions c
+      JOIN pt_profiles pt ON pt.id = c.pt_id
+      WHERE ($1::uuid[] IS NULL OR pt.branch_id = ANY($1))
+        AND c.year = $2
+        AND c.month BETWEEN $3 AND $4
+      GROUP BY 1 ORDER BY 1
+    `, [ids, year, firstMonth, firstMonth + months - 1])).rows;
+  }
+
+  // 4. Tổng hợp Chi phí & Lợi nhuận
+  const pt_commission_cost = Number(ptCostRes.rows[0].pt_commission_cost || 0);
+  const community_class_cost = Number(classCostRes.rows[0].community_class_cost || 0);
+  const voucher_discount = Number(metrics.voucher_discount || 0);
+  const total_expense = pt_commission_cost + community_class_cost + voucher_discount;
+  const net_profit = metrics.cash_received - (pt_commission_cost + community_class_cost);
+  const profit_margin = metrics.cash_received > 0 ? Math.round((net_profit / metrics.cash_received) * 10000) / 100 : 0;
+
+  metrics.pt_commission_cost = pt_commission_cost;
+  metrics.community_class_cost = community_class_cost;
+  metrics.voucher_discount = voucher_discount;
+  metrics.total_expense = total_expense;
+  metrics.net_profit = net_profit;
+  metrics.profit_margin = profit_margin;
+  metrics.community_class_count = Number(classCostRes.rows[0].class_count || 0);
+
+  // 5. Tỷ trọng đóng góp 3 loại dịch vụ (Gym, PT, Combo)
+  const service_type_distribution = (await pool.query(`
+    SELECT 
+      CASE 
+        WHEN r.package_type_snapshot = 'COMBO' THEN 'COMBO'
+        WHEN r.package_type_snapshot LIKE 'PT%' THEN 'PT'
+        ELSE 'GYM'
+      END AS service_type,
+      COUNT(*)::int AS count,
+      COALESCE(SUM(p.amount), 0) AS revenue
+    FROM payments p
+    JOIN registrations r ON r.id = p.registration_id
+    WHERE ($1::uuid[] IS NULL OR p.branch_id = ANY($1))
+      AND (p.confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3
+    GROUP BY 1
+    ORDER BY 3 DESC
+  `, [ids, start, end])).rows.map(r => {
+    const totalRev = metrics.cash_received || 1;
+    const totalSold = metrics.packages_sold || 1;
+    const typeNames = { GYM: 'Gói Gym', PT: 'Gói PT', COMBO: 'Combo VIP' };
+    return {
+      ...r,
+      type_name: typeNames[r.service_type] || r.service_type,
+      revenue_percentage: Math.round((Number(r.revenue) / totalRev) * 10000) / 100,
+      count_percentage: Math.round((Number(r.count) / totalSold) * 10000) / 100
+    };
+  });
+
+  // 6. Cơ cấu từng gói tập (chi tiết)
+  const distribution = (await pool.query(`
+    SELECT r.package_name_snapshot package_name, 
+           COALESCE(r.package_type_snapshot, 'GYM') package_type, 
+           COUNT(*)::int count, 
+           COALESCE(SUM(p.amount), 0) revenue 
+    FROM payments p 
+    JOIN registrations r ON r.id = p.registration_id 
+    WHERE ($1::uuid[] IS NULL OR p.branch_id = ANY($1)) 
+      AND (p.confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date BETWEEN $2 AND $3 
+    GROUP BY 1, 2 ORDER BY 3 DESC
+  `, [ids, start, end])).rows.map(r => ({
+    ...r,
+    percentage: metrics.packages_sold ? Math.round(r.count / metrics.packages_sold * 10000) / 100 : 0
+  }));
+
+  // 7. Hiệu suất Đào tạo PT
   const pt_performance = (await pool.query(`
     SELECT pt.id, pt.full_name AS pt_name, pt.pt_code, pt.phone,
            COUNT(b.id)::int AS completed_sessions,
@@ -314,12 +520,60 @@ router.get('/reports',route(async req=>{
     GROUP BY pt.id, pt.full_name, pt.pt_code, pt.phone
     ORDER BY completed_sessions DESC, pt.full_name ASC
   `, [ids, start, end])).rows;
+
+  // 8. So sánh 3 kỳ gần nhất (có Doanh thu, Chi phí, Lợi nhuận)
   const comparison = [];
   for (let i = 2; i >= 0; i--) {
-    const a = new Date(Date.UTC(year, firstMonth - 1 - i * months, 1)).toISOString().slice(0, 10), z = new Date(Date.UTC(year, firstMonth - 1 + (1 - i) * months, 1)).toISOString().slice(0, 10);
-    const value = (await pool.query("SELECT COALESCE(SUM(amount),0) cash_received FROM payments WHERE ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date >= $2 AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date < $3", [ids, a, z])).rows[0].cash_received;
-    comparison.push({ period: period === 'year' ? a.slice(0, 4) : period === 'quarter' ? `${a.slice(0, 4)} Q${Math.ceil(Number(a.slice(5, 7)) / 3)}` : a.slice(0, 7), cash_received: value });
+    const a = new Date(Date.UTC(year, firstMonth - 1 - i * months, 1)).toISOString().slice(0, 10),
+          z = new Date(Date.UTC(year, firstMonth - 1 + (1 - i) * months, 1)).toISOString().slice(0, 10);
+    const revVal = Number((await pool.query("SELECT COALESCE(SUM(amount),0) cash_received FROM payments WHERE ($1::uuid[] IS NULL OR branch_id=ANY($1)) AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date >= $2 AND (confirmed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date < $3", [ids, a, z])).rows[0].cash_received);
+
+    const compStartMonth = Number(a.slice(5, 7));
+    const compEndMonth = Number(addDays(z, -1).slice(5, 7));
+    const compYear = Number(a.slice(0, 4));
+
+    const compPtCost = Number((await pool.query(`
+      SELECT COALESCE(SUM(c.total_commission_amount), 0) cost
+      FROM pt_commissions c
+      JOIN pt_profiles pt ON pt.id = c.pt_id
+      WHERE ($1::uuid[] IS NULL OR pt.branch_id = ANY($1))
+        AND c.year = $2 AND c.month BETWEEN $3 AND $4
+    `, [ids, compYear, compStartMonth, compEndMonth])).rows[0].cost);
+
+    const compClassCost = Number((await pool.query(`
+      SELECT COALESCE(SUM(COALESCE(base_price, 0) + COALESCE(bonus_amount, 0)), 0) cost
+      FROM community_classes
+      WHERE ($1::uuid[] IS NULL OR branch_id = ANY($1))
+        AND class_date >= $2 AND class_date < $3
+        AND status <> 'CANCELLED'
+    `, [ids, a, z])).rows[0].cost);
+
+    const compExpense = compPtCost + compClassCost;
+    const compProfit = revVal - compExpense;
+
+    comparison.push({
+      period: period === 'year' ? a.slice(0, 4) : period === 'quarter' ? `${a.slice(0, 4)} Q${Math.ceil(Number(a.slice(5, 7)) / 3)}` : a.slice(0, 7),
+      cash_received: revVal,
+      pt_commission_cost: compPtCost,
+      community_class_cost: compClassCost,
+      total_expense: compExpense,
+      net_profit: compProfit
+    });
   }
-  return { metrics, revenue, comparison, distribution, pt_performance, start_date: start, end_date: end };
+
+  return {
+    metrics,
+    revenue,
+    comparison,
+    distribution,
+    service_type_distribution,
+    pt_performance,
+    pt_commission_list,
+    community_class_list,
+    class_timeline: classTimeline,
+    pt_timeline: ptTimeline,
+    start_date: start,
+    end_date: end
+  };
 }));
 module.exports={router,accessLogs,branchStats};

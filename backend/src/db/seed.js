@@ -95,6 +95,7 @@ async function runSeed() {
     console.log(`⏳ Executing Boss Feedback Seed Data: ${bossSeedPath}`);
     await client.query(fs.readFileSync(bossSeedPath, 'utf8'));
     await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '014_successful_payment_ledger.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, 'migrations', '017_revenue_handovers.sql'), 'utf8'));
 
     await repairPlaceholderPasswords(client);
     console.log('✅ Seed SQL executed successfully.');

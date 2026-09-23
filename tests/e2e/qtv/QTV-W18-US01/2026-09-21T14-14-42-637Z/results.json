@@ -1,0 +1,411 @@
+{
+  "id": "QTV-W18-US01",
+  "database": "paradise_handover_test_28436_1790000081150",
+  "migrations": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4a1ed6fc35f89ed4ed22dd40ba0d342df40674a1c0644cf6c12148403cccaba8"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    },
+    {
+      "file": "014_successful_payment_ledger.sql",
+      "sha256": "3c16e83463bb97a594ca06ce3c0079710c4d78b64da2f5544f2f6697bb2a1a14"
+    },
+    {
+      "file": "015_package_transfer_requests.sql",
+      "sha256": "0eee2466ba855dd35c340d1af96fd22b274f90ac905ae7413d56d4f0895bcbd3"
+    },
+    {
+      "file": "016_community_class_disciplines_and_bonus.sql",
+      "sha256": "895e6a68f3133e31325bc8f047fc9fbc2901fd21ba62006c18e4019e1609c934"
+    },
+    {
+      "file": "017_revenue_handovers.sql",
+      "sha256": "5382a774bdfed4b4e09a36062534145c3c6c2c0a7efb330156a574346c6b6385"
+    }
+  ],
+  "sourceHashes": {
+    "frontend/web/js/modules/revenueHandovers.js": "55d1ed7d2aa7bc1ad4f7ee55bc38907410562ed5031ee3f1a6f8a9e3347e9ed1",
+    "frontend/web/js/app.js": "a148689e5179fa3aa13bb8909089722bfc522e8304d808b1a5bad7219f8f807b",
+    "frontend/web/index.html": "99ba69bc930717ce32d99e15057cf3c16b1fe19efc54cd23ec3ca86a13759a71",
+    "backend/src/modules/core/revenueHandovers.js": "684fe07f0777a59a46aeac6ece497e2ddcfc21f42d09c3ffd977317456061f57"
+  },
+  "network": [
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers/preview",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers/preview",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers/preview",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers/preview",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers/preview",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers/preview",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers/preview",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers/preview",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-bank-accounts",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/revenue-handovers/preview",
+      "destination": "http://127.0.0.1:62467"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/revenue-handovers",
+      "destination": "http://127.0.0.1:62467"
+    }
+  ],
+  "errors": [],
+  "dir": "E:\\Desktop\\para\\tests\\e2e\\qtv\\QTV-W18-US01\\2026-09-21T14-14-42-637Z",
+  "steps": [
+    {
+      "name": "pending-unresolved",
+      "action": "Open W18 for branch A",
+      "expected": "US01 / BR03-BR05: eligible payments and unresolved transfers; confirm disabled",
+      "section": "source",
+      "status": "PASS",
+      "actual": "Bàn giao & tất toán doanh thu\n\nTài khoản nhận tiền\nXác nhận bàn giao\nChưa bàn giao\nLịch sử bàn giao\nTừ ngày\nĐến ngày\nTổng tiền\n21.000.000 ₫\nGiao dịch\n3\nChưa xác định\n2\nTổng hợp theo nơi nhận tiền\nTiền mặt / tài khoản / chưa xác định\tGiao dịch\tSố tiền\nTiền mặt\t1\t9.000.000 ₫\nChưa xác định tài khoản\t2\t12.000.000 ₫\nĐang tải...\nGiao dịch chưa bàn giao\nMã thanh toán\tPhiếu thu\tNgày thu\tKhách hàng\tHợp đồng\tSố tiền\tPhương thức\tTài khoản nhận tiền\nPAY-BG1\tPT-BG1\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG1\t9.000.000 ₫\t Tiền mặt\tTiền mặt\nPAY-BG2\tPT-BG2\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG2\t5.000.000 ₫\t Chuyển khoản\t\nTài khoản nhận tiền\n\nPAY-BG3\tPT-BG3\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG3\t7.000.000 ₫\t Chuyển khoản\t\nTài khoản nhận tiền\n153050\nTrang 1 của 1 (3 mục)1\nĐang tải...",
+      "image": "source-01-pending-unresolved.png"
+    },
+    {
+      "name": "single-bank-popup",
+      "action": "Double-click receiving-account registry",
+      "expected": "Exactly one popup and one form",
+      "section": "source",
+      "status": "PASS",
+      "actual": "\t\t\n153050\nTrang 1 của 1 (-1 mục)1\nĐang tải...\nBIN ngân hàng *\nSố tài khoản *\nTên tài khoản *\nĐóng\nThêm tài khoản",
+      "image": "source-02-single-bank-popup.png"
+    },
+    {
+      "name": "required-bank-fields",
+      "action": "Submit blank account",
+      "expected": "US01: all three contract fields are required",
+      "section": "source",
+      "status": "PASS",
+      "actual": "BIN ngân hàng\tSố tài khoản\tTên tài khoản\n\t\t\nKhông có dữ liệu phù hợp\n153050\nTrang 1 của 1 (0 mục)1\nBIN ngân hàng *\nSố tài khoản *\nTên tài khoản *\nĐóng\nThêm tài khoản",
+      "image": "source-03-required-bank-fields.png"
+    },
+    {
+      "name": "short-bin-input",
+      "action": "Enter BIN 123",
+      "expected": "Contract requires six digits",
+      "section": "source",
+      "status": "PASS",
+      "actual": "123",
+      "image": "source-04-short-bin-input.png"
+    },
+    {
+      "name": "invalid-account-input",
+      "action": "Enter account ABC",
+      "expected": "Contract permits only 1-30 digits",
+      "section": "source",
+      "status": "PASS",
+      "actual": "ABC",
+      "image": "source-05-invalid-account-input.png"
+    },
+    {
+      "name": "account-name-input",
+      "action": "Enter holder name",
+      "expected": "Entered name visible before submit",
+      "section": "source",
+      "status": "PASS",
+      "actual": "W18 UI VERIFIED",
+      "image": "source-06-account-name-input.png"
+    },
+    {
+      "name": "bank-format-errors",
+      "action": "Submit malformed BIN/account",
+      "expected": "Validation blocks both invalid fields",
+      "section": "source",
+      "status": "PASS",
+      "actual": "BIN ngân hàng\tSố tài khoản\tTên tài khoản\n\t\t\nKhông có dữ liệu phù hợp\n153050\nTrang 1 của 1 (0 mục)1\nBIN ngân hàng *\nSố tài khoản *\nTên tài khoản *\nĐóng\nThêm tài khoản",
+      "image": "source-07-bank-format-errors.png"
+    },
+    {
+      "name": "valid-bin-input",
+      "action": "Enter six-digit BIN",
+      "expected": "BIN retained as text",
+      "section": "source",
+      "status": "PASS",
+      "actual": "970422",
+      "image": "source-08-valid-bin-input.png"
+    },
+    {
+      "name": "leading-zero-account",
+      "action": "Enter 000123456789",
+      "expected": "Leading zeroes preserved",
+      "section": "source",
+      "status": "PASS",
+      "actual": "000123456789",
+      "image": "source-09-leading-zero-account.png"
+    },
+    {
+      "name": "account-created",
+      "action": "Save receiving account through real API",
+      "expected": "US01 AF02: persistent registry row appears; original payments remain unresolved",
+      "section": "source",
+      "status": "PASS",
+      "actual": "BIN ngân hàng\tSố tài khoản\tTên tài khoản\n970422\t000123456789\tW18 UI VERIFIED\n153050\nTrang 1 của 1 (1 mục)1\nBIN ngân hàng *\nSố tài khoản *\nTên tài khoản *\nĐóng\nThêm tài khoản",
+      "image": "source-10-account-created.png"
+    },
+    {
+      "name": "second-account-field-0",
+      "action": "Enter second account field: 970436",
+      "expected": "New form values visible before submit",
+      "section": "source",
+      "status": "PASS",
+      "actual": "970436",
+      "image": "source-11-second-account-field-0.png"
+    },
+    {
+      "name": "second-account-field-1",
+      "action": "Enter second account field: 000987654321",
+      "expected": "New form values visible before submit",
+      "section": "source",
+      "status": "PASS",
+      "actual": "000987654321",
+      "image": "source-12-second-account-field-1.png"
+    },
+    {
+      "name": "second-account-field-2",
+      "action": "Enter second account field: W18 SECOND BANK",
+      "expected": "New form values visible before submit",
+      "section": "source",
+      "status": "PASS",
+      "actual": "W18 SECOND BANK",
+      "image": "source-13-second-account-field-2.png"
+    },
+    {
+      "name": "second-account-created",
+      "action": "Save second account through real UI",
+      "expected": "Registry has two distinct accounts, reset form does not resubmit first values",
+      "section": "source",
+      "status": "PASS",
+      "actual": "BIN ngân hàng\tSố tài khoản\tTên tài khoản\n970422\t000123456789\tW18 UI VERIFIED\n970436\t000987654321\tW18 SECOND BANK\n153050\nTrang 1 của 1 (2 mục)1\nBIN ngân hàng *\nSố tài khoản *\nTên tài khoản *\nĐóng\nThêm tài khoản",
+      "image": "source-14-second-account-created.png"
+    },
+    {
+      "name": "registry-closed",
+      "action": "Close receiving-account registry",
+      "expected": "No visible popup remains",
+      "section": "source",
+      "status": "PASS",
+      "actual": "Bàn giao & tất toán doanh thu\n\nTài khoản nhận tiền\nXác nhận bàn giao\nChưa bàn giao\nLịch sử bàn giao\nTừ ngày\nĐến ngày\nTổng tiền\n21.000.000 ₫\nGiao dịch\n3\nChưa xác định\n2\nTổng hợp theo nơi nhận tiền\nTiền mặt / tài khoản / chưa xác định\tGiao dịch\tSố tiền\nTiền mặt\t1\t9.000.000 ₫\nChưa xác định tài khoản\t2\t12.000.000 ₫\nGiao dịch chưa bàn giao\nMã thanh toán\tPhiếu thu\tNgày thu\tKhách hàng\tHợp đồng\tSố tiền\tPhương thức\tTài khoản nhận tiền\nPAY-BG1\tPT-BG1\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG1\t9.000.000 ₫\t Tiền mặt\tTiền mặt\nPAY-BG2\tPT-BG2\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG2\t5.000.000 ₫\t Chuyển khoản\t\nTài khoản nhận tiền\n\nPAY-BG3\tPT-BG3\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG3\t7.000.000 ₫\t Chuyển khoản\t\nTài khoản nhận tiền\n153050\nTrang 1 của 1 (3 mục)1",
+      "image": "source-15-registry-closed.png"
+    },
+    {
+      "name": "bank-options-0",
+      "action": "Open receiving-account dropdown",
+      "expected": "User contract: only real API registry options",
+      "section": "source",
+      "status": "PASS",
+      "actual": "970422 · 000123456789 · W18 UI VERIFIED",
+      "image": "source-16-bank-options-0.png"
+    },
+    {
+      "name": "allocate-bank-0",
+      "action": "Select verified bank account",
+      "expected": "User contract: re-preview after allocation; updated group from API",
+      "section": "source",
+      "status": "PASS",
+      "actual": "Bàn giao & tất toán doanh thu\n\nTài khoản nhận tiền\nXác nhận bàn giao\nChưa bàn giao\nLịch sử bàn giao\nTừ ngày\nĐến ngày\nTổng tiền\n21.000.000 ₫\nGiao dịch\n3\nChưa xác định\n1\nTổng hợp theo nơi nhận tiền\nTiền mặt / tài khoản / chưa xác định\tGiao dịch\tSố tiền\nTiền mặt\t1\t9.000.000 ₫\n970422 · 000123456789 · W18 UI VERIFIED\t1\t5.000.000 ₫\nChưa xác định tài khoản\t1\t7.000.000 ₫\nĐang tải...\nGiao dịch chưa bàn giao\nMã thanh toán\tPhiếu thu\tNgày thu\tKhách hàng\tHợp đồng\tSố tiền\tPhương thức\tTài khoản nhận tiền\nPAY-BG1\tPT-BG1\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG1\t9.000.000 ₫\t Tiền mặt\tTiền mặt\nPAY-BG2\tPT-BG2\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG2\t5.000.000 ₫\t Chuyển khoản\t\nTài khoản nhận tiền\n\nPAY-BG3\tPT-BG3\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG3\t7.000.000 ₫\t Chuyển khoản\t\nTài khoản nhận tiền\n153050\nTrang 1 của 1 (3 mục)1\nĐang tải...",
+      "image": "source-17-allocate-bank-0.png"
+    },
+    {
+      "name": "bank-options-1",
+      "action": "Open receiving-account dropdown",
+      "expected": "User contract: only real API registry options",
+      "section": "source",
+      "status": "PASS",
+      "actual": "970436 · 000987654321 · W18 SECOND BANK",
+      "image": "source-18-bank-options-1.png"
+    },
+    {
+      "name": "allocate-bank-1",
+      "action": "Select verified bank account",
+      "expected": "User contract: re-preview after allocation; updated group from API",
+      "section": "source",
+      "status": "PASS",
+      "actual": "Bàn giao & tất toán doanh thu\n\nTài khoản nhận tiền\nXác nhận bàn giao\nChưa bàn giao\nLịch sử bàn giao\nTừ ngày\nĐến ngày\nTổng tiền\n21.000.000 ₫\nGiao dịch\n3\nChưa xác định\n0\nTổng hợp theo nơi nhận tiền\nTiền mặt / tài khoản / chưa xác định\tGiao dịch\tSố tiền\nTiền mặt\t1\t9.000.000 ₫\n970422 · 000123456789 · W18 UI VERIFIED\t1\t5.000.000 ₫\n970436 · 000987654321 · W18 SECOND BANK\t1\t7.000.000 ₫\nĐang tải...\nGiao dịch chưa bàn giao\nMã thanh toán\tPhiếu thu\tNgày thu\tKhách hàng\tHợp đồng\tSố tiền\tPhương thức\tTài khoản nhận tiền\nPAY-BG1\tPT-BG1\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG1\t9.000.000 ₫\t Tiền mặt\tTiền mặt\nPAY-BG2\tPT-BG2\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG2\t5.000.000 ₫\t Chuyển khoản\t\nTài khoản nhận tiền\n\nPAY-BG3\tPT-BG3\t21:14:42 21/9/2026\tHandover Member\nHV-BG · 0909211805\n\tDK-BG3\t7.000.000 ₫\t Chuyển khoản\t\nTài khoản nhận tiền\n153050\nTrang 1 của 1 (3 mục)1\nĐang tải...",
+      "image": "source-19-allocate-bank-1.png"
+    },
+    {
+      "name": "three-source-groups",
+      "action": "Inspect re-preview summary",
+      "expected": "User contract: CASH 9m, bank A 5m, bank B 7m",
+      "section": "state",
+      "status": "PASS",
+      "actual": [
+        "Tiền mặt19.000.000 ₫",
+        "970422 · 000123456789 · W18 UI VERIFIED15.000.000 ₫",
+        "970436 · 000987654321 · W18 SECOND BANK17.000.000 ₫"
+      ],
+      "image": "state-20-three-source-groups.png"
+    }
+  ],
+  "issues": []
+}

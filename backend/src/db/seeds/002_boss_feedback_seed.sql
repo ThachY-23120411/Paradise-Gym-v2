@@ -82,16 +82,6 @@ UPDATE pt_profiles SET
     face_enrolled = TRUE
 WHERE pt_code = 'PT002';
 
-UPDATE pt_profiles SET
-    avatar_url = 'https://images.unsplash.com/photo-1583468982228-33f1350265e9?w=300&auto=format&fit=crop&q=80',
-    face_enrolled = TRUE
-WHERE pt_code = 'PT003';
-
-UPDATE pt_profiles SET
-    avatar_url = 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=300&auto=format&fit=crop&q=80',
-    face_enrolled = TRUE
-WHERE pt_code = 'PT004';
-
 UPDATE member_profiles SET
     avatar_url = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
     qr_code = 'QR-HV001-0987654321',

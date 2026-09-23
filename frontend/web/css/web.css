@@ -89,7 +89,19 @@ h3 { font-size: 15px; font-weight: 600; }
 .filter-bar, .toolbar-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 15px 0; }
 .filter-bar .dx-textbox { min-width: 220px; }
 .metrics-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 16px; margin-bottom: 25px; }
-.metric-card { background: #fff; border: 1px solid #e1e8e3; border-radius: 6px; padding: 19px 20px 17px; min-width: 0; }
+.metric-card { background: #fff; border: 1px solid #e1e8e3; border-radius: 6px; padding: 19px 20px 17px; min-width: 0; display: flex; flex-direction: column; }
+.metric-card .metric-caption { margin-top: auto; }
+.metric-amount-row { display: inline-flex; align-items: center; gap: 5px; margin: 2px 0 6px; padding: 3px 8px; border-radius: 4px; font-size: 11.5px; line-height: 1.4; font-variant-numeric: tabular-nums; background: #f4f7f5; color: #4b5d52; width: fit-content; max-width: 100%; }
+.metric-amount-label { font-size: 10.5px; color: #6d7c72; font-weight: 500; }
+.metric-amount-val { font-size: 12.5px; font-weight: 700; color: var(--primary, #237b58); }
+.metric-amber .metric-amount-row { background: #fff8eb; }
+.metric-amber .metric-amount-val { color: #b87514; }
+.metric-danger .metric-amount-row { background: #ffeded; }
+.metric-danger .metric-amount-val { color: #c94c4c; }
+.metric-blue .metric-amount-row { background: #eff6ff; }
+.metric-blue .metric-amount-val { color: #2563eb; }
+.metric-coral .metric-amount-row { background: #fdf0eb; }
+.metric-coral .metric-amount-val { color: #c16a57; }
 .metric-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 11px; color: #6d7c72; }
 .metric-label i { width: 31px; height: 31px; display: grid; place-items: center; color: #237b58; background: #eef6f0; border-radius: 6px; font-size: 14px; flex-shrink: 0; }
 .metric-value { display: block; margin: 10px 0 5px; font-size: 27px; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: #253d30; line-height: 1.3; }
@@ -204,10 +216,11 @@ h3 { font-size: 15px; font-weight: 600; }
 .dx-scheduler-work-space { font-size: 11px; }
 .dx-scheduler-appointment { background: #1e40af; border-radius: 6px; overflow: hidden; }
 .dx-scheduler-header { background: white; border-color: var(--border-color); }
-.dx-scheduler-cell-sizes-vertical { height: 52px !important; }
-.dx-scheduler-date-table-cell { height: 52px !important; }
+.dx-scheduler-cell-sizes-vertical { height: 28px !important; min-height: 28px !important; }
+.dx-scheduler-date-table-cell { height: 28px !important; min-height: 28px !important; }
 .dx-scheduler-time-panel-cell {
-  height: 52px !important;
+  height: 28px !important;
+  min-height: 28px !important;
   vertical-align: top !important;
   padding: 0 !important;
   position: relative !important;
@@ -219,23 +232,14 @@ h3 { font-size: 15px; font-weight: 600; }
 .pt-time-panel-label {
   position: absolute;
   top: 0;
+  bottom: 0;
   left: 4px;
   right: 4px;
-  transform: translateY(-50%);
   display: flex;
   align-items: center;
   z-index: 2;
   pointer-events: none;
   line-height: 1;
-}
-.pt-time-panel-label.is-first-cell {
-  top: 4px;
-  transform: none;
-}
-.pt-time-panel-label.is-last-cell {
-  top: auto;
-  bottom: 0;
-  transform: translateY(50%);
 }
 
 /* PT Scheduler Appointment Cards per Specification (QTV-W06-US01 & LT-W06-US01) */
@@ -263,6 +267,42 @@ h3 { font-size: 15px; font-weight: 600; }
 .dx-scheduler-appointment.pt-appointment-no_show {
   background: #991b1b !important;
   border-left: 5px solid #f87171 !important;
+}
+.dx-scheduler-appointment.pt-appointment-community {
+  background: linear-gradient(135deg, #2e1065 0%, #4c1d95 100%) !important;
+  border-left: 5px solid #a78bfa !important;
+  box-shadow: 0 2px 8px rgba(76, 29, 149, 0.4) !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+}
+.pt-community-card-body {
+  border: none !important;
+  border-left: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.pt-btn-community-members {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  color: #ffffff !important;
+  border-radius: 4px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: 'Be Vietnam Pro', Manrope, sans-serif;
+  line-height: 1.2;
+}
+.pt-btn-community-members:hover {
+  background: rgba(255, 255, 255, 0.32);
+  border-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
 }
 
 /* Base Appointment Container */
@@ -532,6 +572,36 @@ h3 { font-size: 15px; font-weight: 600; }
 /* ==========================================================================
    PT Scheduler Dynamic Duration & Drag-and-Drop Draft Card
    ========================================================================== */
+.dx-scheduler-appointment .dx-resizable-handle,
+.dx-scheduler-appointment .dx-resizable-handle-top,
+.dx-scheduler-appointment .dx-resizable-handle-bottom,
+.dx-scheduler-appointment-resize-handle-top,
+.dx-scheduler-appointment-resize-handle-bottom {
+  cursor: ns-resize !important;
+  z-index: 50 !important;
+}
+
+.dx-scheduler-appointment .dx-resizable-handle-top,
+.dx-scheduler-appointment-resize-handle-top {
+  top: 0 !important;
+  height: 12px !important;
+  cursor: ns-resize !important;
+}
+
+.dx-scheduler-appointment .dx-resizable-handle-bottom,
+.dx-scheduler-appointment-resize-handle-bottom {
+  bottom: 0 !important;
+  height: 12px !important;
+  cursor: ns-resize !important;
+}
+
+.dx-scheduler-appointment .dx-resizable-handle-top:hover,
+.dx-scheduler-appointment-resize-handle-top:hover,
+.dx-scheduler-appointment .dx-resizable-handle-bottom:hover,
+.dx-scheduler-appointment-resize-handle-bottom:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
 .pt-draft-appointment {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(5, 150, 105, 0.12) 100%) !important;
   border: 2px dashed #059669 !important;
@@ -539,7 +609,12 @@ h3 { font-size: 15px; font-weight: 600; }
   box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3) !important;
   cursor: grab !important;
   overflow: hidden;
+  position: relative !important;
   animation: draft-card-pulse 2.5s infinite ease-in-out;
+}
+.pt-draft-appointment .dx-resizable-handle-top:hover,
+.pt-draft-appointment .dx-resizable-handle-bottom:hover {
+  background: rgba(16, 185, 129, 0.35) !important;
 }
 .pt-draft-appointment:active {
   cursor: grabbing !important;
@@ -625,44 +700,7 @@ h3 { font-size: 15px; font-weight: 600; }
 }
 
 .pt-floating-draft-bar {
-  position: sticky;
-  bottom: 14px;
-  margin: 14px auto 0;
-  max-width: 780px;
-  background: #ffffff;
-  border: 1px solid #10b981;
-  border-radius: 10px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  padding: 10px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  z-index: 50;
-  animation: slide-up 0.3s ease-out;
-}
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.pt-floating-draft-bar .info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  color: #1e293b;
-}
-.pt-floating-draft-bar .hint {
-  font-size: 12px;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.pt-floating-draft-bar .actions {
-  display: flex;
-  gap: 8px;
+  display: none !important;
 }
 
 /* W16 Community classes action buttons anti-truncation */
@@ -719,4 +757,865 @@ h3 { font-size: 15px; font-weight: 600; }
 .dx-form-group-with-caption > .dx-form-group-content {
   padding-top: 4px;
 }
+
+/* ==========================================================================
+   COMMUNITY CLASSES WEEKLY TIMETABLE MATRIX (W16 - GroupX Timetable Grid)
+   ========================================================================== */
+.community-controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  background: #ffffff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #dfe6e2);
+}
+.community-controls-left,
+.community-controls-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.community-week-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-dark, #185740);
+  margin: 0 4px;
+  white-space: nowrap;
+}
+
+.community-matrix-wrapper {
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #dfe6e2);
+  overflow-x: auto;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+.community-matrix-table {
+  width: 100%;
+  min-width: 1050px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+.community-matrix-table th,
+.community-matrix-table td {
+  box-sizing: border-box;
+}
+
+/* Header Cells */
+.community-header-time {
+  width: 130px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  padding: 12px 8px;
+  border-bottom: 2px solid #cbd5e1;
+  border-right: 2px solid #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.community-header-day {
+  background: #f8fafc;
+  text-align: center;
+  padding: 10px 8px;
+  border-bottom: 2px solid #cbd5e1;
+  border-right: 1px solid #e2e8f0;
+  transition: background 0.15s;
+}
+.community-header-day:last-child {
+  border-right: none;
+}
+.community-header-day .day-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.community-header-day .day-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 3px;
+}
+.community-header-day.is-today {
+  background: #eaf4ee !important;
+  border-bottom: 3px solid var(--primary, #237b58) !important;
+}
+.community-header-day.is-today .day-name {
+  color: var(--primary-dark, #185740) !important;
+}
+.community-header-day.is-today .day-date {
+  color: var(--primary, #237b58) !important;
+  font-weight: 700;
+}
+
+/* Row Time Column */
+.community-row-time {
+  width: 130px;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  text-align: center;
+  vertical-align: middle;
+  padding: 12px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 2px solid #cbd5e1;
+  white-space: nowrap;
+}
+.community-row-time .time-range {
+  display: block;
+  font-size: 12px;
+  color: #1e293b;
+  font-weight: 700;
+}
+.community-row-time .time-session-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+/* Matrix Cells */
+.community-matrix-cell {
+  vertical-align: top;
+  padding: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  min-height: 95px;
+  height: 100%;
+  position: relative;
+  background: #ffffff;
+  transition: background 0.15s;
+}
+.community-matrix-cell:last-child {
+  border-right: none;
+}
+.community-matrix-cell:hover {
+  background: #f8fafc;
+}
+.community-matrix-cell.is-today-col {
+  background: #fafdfb;
+}
+.community-matrix-cell.is-today-col:hover {
+  background: #f0f7f3;
+}
+
+/* Class Card */
+.community-class-card {
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin-bottom: 6px;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.community-class-card:last-child {
+  margin-bottom: 0;
+}
+.community-class-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 5;
+}
+
+/* Discipline Theming */
+.community-class-card.theme-dance {
+  background: #fefce8;
+  border: 1px solid #fef08a;
+  border-left: 4px solid #eab308;
+}
+.community-class-card.theme-dance .class-title {
+  color: #854d0e;
+}
+
+.community-class-card.theme-yoga {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-left: 4px solid #22c55e;
+}
+.community-class-card.theme-yoga .class-title {
+  color: #166534;
+}
+
+.community-class-card.theme-pump {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-left: 4px solid #f97316;
+}
+.community-class-card.theme-pump .class-title {
+  color: #9a3412;
+}
+
+.community-class-card.theme-dance-female {
+  background: #fdf2f8;
+  border: 1px solid #fbcfe8;
+  border-left: 4px solid #ec4899;
+}
+.community-class-card.theme-dance-female .class-title {
+  color: #9d174d;
+}
+
+.community-class-card.theme-boxing {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-left: 4px solid #0284c7;
+}
+.community-class-card.theme-boxing .class-title {
+  color: #075985;
+}
+
+.community-class-card.theme-default {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #64748b;
+}
+.community-class-card.theme-default .class-title {
+  color: #1e293b;
+}
+
+/* Card Content Details */
+.community-class-card .class-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 5px;
+}
+.community-class-card .class-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  opacity: 0.85;
+  display: inline-block;
+}
+.community-class-card .class-title {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  word-break: break-word;
+}
+.community-class-card .class-instructor {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.community-class-card .class-instructor i {
+  font-size: 11px;
+  opacity: 0.75;
+}
+.community-class-card .class-time-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.community-class-card .class-time-tag i {
+  font-size: 10.5px;
+  opacity: 0.75;
+}
+.community-class-card .class-capacity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #475569;
+  margin-top: 4px;
+}
+.community-class-card .class-progress-bar {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 3px;
+}
+.community-class-card .class-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+.community-class-card .badge-full {
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* Empty Cell Action */
+.community-cell-empty {
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.community-cell-empty .btn-quick-add {
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  background: var(--primary-light, #eaf4ee);
+  color: var(--primary, #237b58);
+  border: 1px dashed var(--primary, #237b58);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.community-matrix-cell:hover .btn-quick-add {
+  opacity: 1;
+  transform: scale(1);
+}
+.community-cell-empty .btn-quick-add:hover {
+  background: var(--primary, #237b58);
+  color: #ffffff;
+  border-style: solid;
+}
+
+/* Legend Bar */
+.community-legend-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid var(--border-color, #dfe6e2);
+  border-radius: 8px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: #475569;
+}
+.community-legend-title {
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.community-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+}
+.community-legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.community-legend-dot.dot-dance { background: #eab308; }
+.community-legend-dot.dot-yoga { background: #22c55e; }
+.community-legend-dot.dot-pump { background: #f97316; }
+.community-legend-dot.dot-dance-female { background: #ec4899; }
+.community-legend-dot.dot-boxing { background: #0284c7; }
+
+/* Daily View (Lưới ngày) */
+.community-daily-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.community-daily-slot-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color, #dfe6e2);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.community-daily-slot-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+
+/* ==========================================================================
+   W16 Community Classes Scheduler (dxScheduler Integration)
+   ========================================================================== */
+#communityScheduler {
+  background: #ffffff;
+  border-radius: 8px;
+}
+#communityScheduler .dx-scrollable-scrollbar {
+  opacity: 0.85 !important;
+  visibility: visible !important;
+  width: 10px !important;
+  background: #f1f5f3 !important;
+  border-radius: 5px !important;
+}
+#communityScheduler .dx-scrollable-scrollbar .dx-scrollable-scroll {
+  background: #237b58 !important;
+  opacity: 0.8 !important;
+  border-radius: 5px !important;
+  width: 8px !important;
+  margin: 0 auto !important;
+}
+#communityScheduler .dx-scrollable-scrollbar .dx-scrollable-scroll:hover,
+#communityScheduler .dx-scrollable-scrollbar .dx-scrollable-scroll.dx-state-active {
+  background: #185740 !important;
+  opacity: 1 !important;
+}
+#communityScheduler .dx-scheduler-appointment {
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+#communityScheduler .dx-scheduler-appointment:hover {
+  transform: translateY(-1px);
+  z-index: 10 !important;
+}
+.community-card-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5px 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+.community-card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+.community-card-time {
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+.community-card-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+}
+.btn-card-delete-mini {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 3px;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+.btn-card-delete-mini:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+.community-card-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 1px 0;
+  letter-spacing: 0.2px;
+}
+.community-card-instructor {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.community-card-branch {
+  font-size: 10px;
+  font-weight: 600;
+  color: #065f46;
+  opacity: 0.95;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 3.5px;
+  margin: 1px 0 2px;
+}
+.community-card-branch i {
+  color: #059669;
+  font-size: 9.5px;
+  flex-shrink: 0;
+}
+.pt-draft-branch {
+  font-size: 10px;
+  font-weight: 600;
+  color: #047857;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 3.5px;
+  margin-top: 1px;
+}
+.pt-draft-branch i {
+  color: #059669;
+  font-size: 9px;
+  flex-shrink: 0;
+}
+.community-card-footer {
+  margin-top: 3px;
+}
+.community-card-slots-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+}
+.community-card-prog-bar {
+  height: 3.5px;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+.community-card-prog-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.community-draft-appointment {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(5, 150, 105, 0.12) 100%) !important;
+  border: 2px dashed #059669 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3) !important;
+  cursor: grab !important;
+  overflow: hidden;
+  position: relative !important;
+  animation: draft-card-pulse 2.5s infinite ease-in-out;
+}
+.community-draft-appointment:active {
+  cursor: grabbing !important;
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.45) !important;
+}
+
+/* ==========================================================================
+   DEVEXTREME SCHEDULER SCROLLBAR STYLES (W16 - Lớp tập cộng đồng)
+   ========================================================================== */
+#communityScheduler .dx-scrollable-scrollbar {
+  opacity: 0.85 !important;
+  visibility: visible !important;
+  width: 10px !important;
+  background: #f1f5f3 !important;
+  border-radius: 5px;
+}
+
+#communityScheduler .dx-scrollable-scroll {
+  background: #237b58 !important;
+  border-radius: 5px !important;
+  width: 10px !important;
+  opacity: 0.9 !important;
+}
+
+#communityScheduler .dx-scrollable-scroll:hover,
+#communityScheduler .dx-scrollable-scroll.dx-state-active {
+  background: #185740 !important;
+  opacity: 1 !important;
+}
+
+/* ==========================================================================
+   PROFILE MULTI-TAB MODAL STYLES (QTV Administrative Forest Clean)
+   ========================================================================== */
+.profile-modal-wrap {
+  display: flex;
+  min-height: 600px;
+  max-height: calc(94vh - 85px);
+  margin: -10px -16px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.profile-modal-sidebar {
+  width: 260px;
+  min-width: 260px;
+  flex-shrink: 0;
+  background: #fbfcfb;
+  border-right: 1px solid var(--border-color, #dfe6e2);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.profile-sidebar-hero {
+  background: #ffffff;
+  border: 1px solid var(--border-color, #dfe6e2);
+  border-radius: var(--radius-lg, 8px);
+  padding: 16px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(24, 54, 41, 0.04);
+}
+
+.profile-sidebar-hero h3 {
+  font-family: 'Manrope', var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-dark, #185740);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.profile-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.profile-sidebar-heading {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted, #748078);
+  letter-spacing: 0.6px;
+  padding: 4px 8px;
+  text-transform: uppercase;
+}
+
+.profile-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-md, 6px);
+  cursor: pointer;
+  color: #3f4f46;
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.profile-sidebar-item:hover {
+  background: #f0f5f2;
+  color: var(--primary-dark, #185740);
+}
+
+.profile-sidebar-item.is-active {
+  background: var(--primary-light, #eaf4ee);
+  color: var(--primary-dark, #185740);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--primary, #237b58);
+}
+
+.profile-sidebar-item.is-active i {
+  color: var(--primary, #237b58) !important;
+}
+
+.profile-sidebar-count {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: #e2e8e4;
+  color: #33443a;
+  font-weight: 600;
+  font-family: 'Manrope', monospace;
+  margin-left: auto;
+}
+
+.profile-sidebar-item.is-active .profile-sidebar-count {
+  background: var(--primary, #237b58);
+  color: #ffffff;
+}
+
+.profile-modal-main {
+  flex: 1;
+  min-width: 0;
+  padding: 22px 26px;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.profile-section-title {
+  font-family: 'Manrope', var(--font-body);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--primary-dark, #185740);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.profile-card-box {
+  background: #ffffff;
+  border: 1px solid var(--border-color, #dfe6e2);
+  border-radius: var(--radius-md, 6px);
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px 20px;
+  margin: 0;
+}
+
+.profile-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-info-item dt {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted, #748078);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.profile-info-item dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-main, #26332e);
+}
+
+.qtv-member-profile-popup .dx-popup-content > div {
+  max-height: none !important;
+  height: 100%;
+  overflow: hidden !important;
+}
+.qtv-member-profile {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  color: var(--text-main);
+  letter-spacing: 0;
+}
+.qtv-member-profile-sidebar {
+  padding: 12px 18px 12px 4px;
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+.qtv-member-profile-sidebar h2 { font-size: 18px; margin: 12px 0 8px; }
+.qtv-member-profile-sidebar p { margin: 8px 0; }
+.qtv-member-profile-avatar { width: 64px; height: 64px; object-fit: cover; border-radius: 50%; }
+.qtv-member-profile-sidebar nav { display: grid; gap: 4px; margin-top: 20px; }
+.qtv-member-profile-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 10px;
+  background: transparent;
+  color: var(--text-main);
+  border: 0;
+  border-radius: 4px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.qtv-member-profile-tab i { width: 20px; text-align: center; flex-shrink: 0; }
+.qtv-member-profile-tab.is-active { background: var(--primary-light); color: var(--primary-dark); font-weight: 600; }
+.qtv-member-profile-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.qtv-member-profile-main { min-width: 0; overflow: auto; padding: 4px 8px 20px 20px; }
+.qtv-member-profile-section { padding: 12px 0 20px; border-bottom: 1px solid var(--border-color); }
+.qtv-member-profile-section h3 { font-size: 16px; margin: 4px 0 16px; }
+.qtv-member-profile-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.qtv-member-profile-filters > div { width: 170px; max-width: 100%; }
+.qtv-member-profile-filters > div:first-child { flex: 1 1 190px; }
+.qtv-member-profile-filter-label { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+.qtv-member-profile-warning { color: var(--danger, #b42318); padding: 8px 0; }
+.qtv-member-profile .status-badge { box-sizing: border-box; max-width: 100%; white-space: normal; }
+.qtv-member-profile .status-badge > .status-dot { flex: 0 0 6px; }
+.qtv-member-profile .status-badge > span:not(.status-dot) { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .qtv-member-profile { grid-template-columns: minmax(0, 1fr); overflow-y: auto; }
+  .qtv-member-profile-sidebar { border-right: 0; border-bottom: 1px solid var(--border-color); overflow: visible; padding: 8px; }
+  .qtv-member-profile-sidebar nav { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; }
+  .qtv-member-profile-main { overflow: visible; padding: 12px 4px; }
+}
+
+/* W15: Quản lý hoa hồng PT - Thù lao lớp cộng đồng & Lịch sử chi trả KPIs (6 Cards layout cân đối) */
+.commissions-community-kpis .metrics-row,
+.commissions-history-kpis .metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 25px;
+}
+@media (min-width: 1700px) {
+  .commissions-community-kpis .metrics-row,
+  .commissions-history-kpis .metrics-row {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+@media (max-width: 992px) {
+  .commissions-community-kpis .metrics-row,
+  .commissions-history-kpis .metrics-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .commissions-community-kpis .metrics-row,
+  .commissions-history-kpis .metrics-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 

@@ -76,10 +76,10 @@
   }
   async function packages(root, sub, alive) {
     if (sub === "requests") sub = "invitations";
-    const active = ["sale", "invitations", "history", "transfers"].includes(sub) ? sub : "mine";
+    const active = ["sale", "invitations", "history"].includes(sub) ? sub : "mine";
     A.heading(
       root,
-      active === "history" ? "Lịch sử thanh toán" : (active === "invitations" ? "Lời mời vào Gói" : (active === "transfers" ? "Chuyển nhượng" : "Gói của tôi")),
+      active === "history" ? "Lịch sử thanh toán" : (active === "invitations" ? "Lời mời vào Gói" : "Gói của tôi"),
     );
     A.segments(
       root,
@@ -87,7 +87,6 @@
         ["mine", "Gói của tôi"],
         ["sale", "Mua gói"],
         ["invitations", "Lời mời vào Gói"],
-        ["transfers", "Chuyển nhượng"],
       ],
       active,
       (id) => A.navigate("packages", id),
@@ -98,7 +97,6 @@
     if (active === "sale") return sale(pane, alive);
     if (active === "invitations") return invitations(pane, alive);
     if (active === "history") return history(pane, alive);
-    if (active === "transfers") return transfers(pane, alive);
     const regs = await A.request("/registrations");
     if (!alive()) return;
     pane.replaceChildren();
@@ -206,18 +204,7 @@
         inviteBtn.onclick = () => openGroupInviteModal(r);
         row.append(inviteBtn);
       }
-      if (isFrozen && !isGroupMember) {
-        const unfreezeBtn = A.button("Mở đóng băng trước hạn", "sun", "secondary");
-        unfreezeBtn.onclick = () => openUnfreezeModal(r);
-        row.append(unfreezeBtn);
-      } else if (["ACTIVE", "SCHEDULED"].includes(r.status) && !isFrozen && !isGroupMember && isPaid) {
-        const freezeBtn = A.button("Đóng băng", "snowflake");
-        freezeBtn.onclick = () => openFreezeModal(r);
-        row.append(freezeBtn);
-        const transferBtn = A.button("Chuyển nhượng", "right-left");
-        transferBtn.onclick = () => openTransferModal(r);
-        row.append(transferBtn);
-      }
+
       if (r.status === "PENDING_PAYMENT") {
         const pay = A.button("Tiếp tục thanh toán", "qrcode", "primary");
         pay.onclick = () => openPayment(r);
@@ -319,14 +306,8 @@
               ${canViewRoadmap ? `
                 <button type="button" class="btn secondary" id="modalRoadmapBtn"><i class="fa-solid fa-route"></i> Xem lộ trình</button>
               ` : ''}
-              ${isFrozen && !r.is_group_member ? `
-                <button type="button" class="btn secondary" id="modalUnfreezeBtn"><i class="fa-solid fa-sun"></i> Mở đóng băng gói</button>
-              ` : ''}
               ${!isFrozen && isGroup && !r.is_group_member && (!groupData || groupData.available_slots > 0) ? `
                 <button type="button" class="btn dark" id="modalInviteMemberBtn"><i class="fa-solid fa-user-plus"></i> Mời bạn</button>
-              ` : ''}
-              ${!isFrozen && ["ACTIVE", "SCHEDULED"].includes(r.status) && !r.is_group_member && (r.is_paid || ["ACTIVE", "SCHEDULED"].includes(r.status)) ? `
-                <button type="button" class="btn secondary" id="modalFreezeBtn"><i class="fa-solid fa-snowflake"></i> Đóng băng gói</button>
               ` : ''}
               ${!isFrozen ? `
                 <button type="button" class="btn primary" id="renewPackageBtn"><i class="fa-solid fa-rotate-right"></i> Gia hạn gói</button>
@@ -358,22 +339,6 @@
           inviteBtn.onclick = () => {
             close();
             openGroupInviteModal(r);
-          };
-        }
-
-        const unfreezeBtn = root.querySelector("#modalUnfreezeBtn");
-        if (unfreezeBtn) {
-          unfreezeBtn.onclick = () => {
-            close();
-            openUnfreezeModal(r);
-          };
-        }
-
-        const freezeBtn = root.querySelector("#modalFreezeBtn");
-        if (freezeBtn) {
-          freezeBtn.onclick = () => {
-            close();
-            openFreezeModal(r);
           };
         }
 
@@ -1258,7 +1223,7 @@
     if (!alive()) return;
     if (!append) root.replaceChildren();
     const payments = records
-      .filter((p) => p.status === "COMPLETED")
+      .filter((p) => p.status === "COMPLETED" || p.confirmed_at)
       .sort((a, b) => new Date(b.confirmed_at) - new Date(a.confirmed_at));
     const list = document.createElement("div");
     list.className = "list";

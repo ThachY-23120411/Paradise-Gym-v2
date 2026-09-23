@@ -26,10 +26,8 @@ INSERT INTO accounts (id, login_phone, password_hash, status, is_two_factor_enab
 VALUES
     ('99999999-9999-9999-9999-999999999991', '0900000001', '$2a$10$w09Zk28J995BwDszmJ9u9uY7t6V3xX/rCkW6Qn85NqSg.d4fR3yve', 'ACTIVE', TRUE),  -- Admin QTV
     ('99999999-9999-9999-9999-999999999992', '0900000002', '$2a$10$w09Zk28J995BwDszmJ9u9uY7t6V3xX/rCkW6Qn85NqSg.d4fR3yve', 'ACTIVE', FALSE), -- Lễ tân Q1
-    ('99999999-9999-9999-9999-999999999993', '0900000004', '$2a$10$w09Zk28J995BwDszmJ9u9uY7t6V3xX/rCkW6Qn85NqSg.d4fR3yve', 'ACTIVE', FALSE), -- PT 2 (Vũ Hoàng Minh)
+    ('99999999-9999-9999-9999-999999999993', '0900000004', '$2a$10$w09Zk28J995BwDszmJ9u9uY7t6V3xX/rCkW6Qn85NqSg.d4fR3yve', 'ACTIVE', FALSE), -- PT 2 (Lê Văn Hùng)
     ('99999999-9999-9999-9999-999999999994', '0900000003', '$2a$10$w09Zk28J995BwDszmJ9u9uY7t6V3xX/rCkW6Qn85NqSg.d4fR3yve', 'ACTIVE', FALSE), -- PT 1 (Nguyễn Văn Thể)
-    ('99999999-9999-9999-9999-999999999995', '0900000005', '$2a$10$w09Zk28J995BwDszmJ9u9uY7t6V3xX/rCkW6Qn85NqSg.d4fR3yve', 'ACTIVE', FALSE), -- PT 3 (Đặng Minh Tuấn)
-    ('99999999-9999-9999-9999-999999999984', '0900000006', '$2a$10$w09Zk28J995BwDszmJ9u9uY7t6V3xX/rCkW6Qn85NqSg.d4fR3yve', 'ACTIVE', FALSE), -- PT 4 (Trần Thị Mai)
     ('99999999-9999-9999-9999-999999999996', '0987654321', '$2a$10$w09Zk28J995BwDszmJ9u9uY7t6V3xX/rCkW6Qn85NqSg.d4fR3yve', 'ACTIVE', FALSE), -- Member 1 (Lê Hoàng Nam)
     ('99999999-9999-9999-9999-999999999997', '0902345678', '$2a$10$w09Zk28J995BwDszmJ9u9uY7t6V3xX/rCkW6Qn85NqSg.d4fR3yve', 'ACTIVE', FALSE), -- Member 2 (Trần Thị Bình)
     ('99999999-9999-9999-9999-999999999998', '0934567890', '$2a$10$w09Zk28J995BwDszmJ9u9uY7t6V3xX/rCkW6Qn85NqSg.d4fR3yve', 'ACTIVE', FALSE), -- Member 3 (Phạm Quốc Bảo)
@@ -46,8 +44,6 @@ VALUES
     ('99999999-9999-9999-9999-999999999992', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'), -- Lễ tân Q1
     ('99999999-9999-9999-9999-999999999993', 'cccccccc-cccc-cccc-cccc-cccccccccccc'), -- PT 2
     ('99999999-9999-9999-9999-999999999994', 'cccccccc-cccc-cccc-cccc-cccccccccccc'), -- PT 1
-    ('99999999-9999-9999-9999-999999999995', 'cccccccc-cccc-cccc-cccc-cccccccccccc'), -- PT 3
-    ('99999999-9999-9999-9999-999999999984', 'cccccccc-cccc-cccc-cccc-cccccccccccc'), -- PT 4
     ('99999999-9999-9999-9999-999999999996', 'dddddddd-dddd-dddd-dddd-dddddddddddd'), -- Member 1
     ('99999999-9999-9999-9999-999999999997', 'dddddddd-dddd-dddd-dddd-dddddddddddd'), -- Member 2
     ('99999999-9999-9999-9999-999999999998', 'dddddddd-dddd-dddd-dddd-dddddddddddd'), -- Member 3
@@ -63,18 +59,14 @@ VALUES
     ('99999999-9999-9999-9999-999999999991', '11111111-1111-1111-1111-111111111111', TRUE),  -- QTV xem tất cả chi nhánh
     ('99999999-9999-9999-9999-999999999992', '11111111-1111-1111-1111-111111111111', FALSE), -- Lễ tân Q1
     ('99999999-9999-9999-9999-999999999993', '22222222-2222-2222-2222-222222222222', FALSE), -- PT 2 Lê Văn Hùng (Bình Thạnh)
-    ('99999999-9999-9999-9999-999999999994', '11111111-1111-1111-1111-111111111111', FALSE), -- PT 1 Nguyễn Văn Thể (Q1)
-    ('99999999-9999-9999-9999-999999999995', '22222222-2222-2222-2222-222222222222', FALSE), -- PT 3 Đặng Minh Tuấn (BT)
-    ('99999999-9999-9999-9999-999999999984', '22222222-2222-2222-2222-222222222222', FALSE)  -- PT 4 Trần Thị Mai (BT)
+    ('99999999-9999-9999-9999-999999999994', '11111111-1111-1111-1111-111111111111', FALSE)  -- PT 1 Nguyễn Văn Thể (Q1)
 ON CONFLICT DO NOTHING;
 
 -- 6. PT Profiles (Huấn luyện viên cá nhân)
 INSERT INTO pt_profiles (id, account_id, branch_id, pt_code, full_name, phone, email, gender, bio, specialties, status, work_start_time, work_end_time, work_days)
 VALUES
     ('50000000-0000-0000-0000-000000000001', '99999999-9999-9999-9999-999999999994', '11111111-1111-1111-1111-111111111111', 'PT001', 'Nguyễn Văn Thể', '0900000003', 'pt.the@paradisegym.vn', 'NAM', 'HLV 6 năm kinh nghiệm thể hình chuyên sâu, chứng chỉ NASM quốc tế', 'Tăng cơ, Giảm mỡ cấp tốc, Boxing', 'ACTIVE', '08:00:00', '18:00:00', 'ALL_WEEK'),
-    ('50000000-0000-0000-0000-000000000002', '99999999-9999-9999-9999-999999999993', '22222222-2222-2222-2222-222222222222', 'PT002', 'Lê Văn Hùng', '0900000004', 'pt.hung@paradisegym.vn', 'NAM', 'Cựu VĐV Thể hình, 5 năm kinh nghiệm huấn luyện Combo Gym & PT', 'Tăng cơ chuyên sâu, Siết mỡ, Thể hình', 'ACTIVE', '08:00:00', '18:00:00', 'ALL_WEEK'),
-    ('50000000-0000-0000-0000-000000000003', '99999999-9999-9999-9999-999999999995', '22222222-2222-2222-2222-222222222222', 'PT003', 'Đặng Minh Tuấn', '0900000005', 'pt.tuan@paradisegym.vn', 'NAM', 'Chuyên gia phục hồi chức năng và chỉnh tư thế cột sống, 6 năm kinh nghiệm', 'Thể hình thi đấu, Phục hồi chức năng', 'ACTIVE', '08:00:00', '18:00:00', 'ALL_WEEK'),
-    ('50000000-0000-0000-0000-000000000004', '99999999-9999-9999-9999-999999999984', '22222222-2222-2222-2222-222222222222', 'PT004', 'Trần Thị Mai', '0900000006', 'pt.mai@paradisegym.vn', 'NU', 'HLV nữ tận tâm, chuyên siết eo thon dáng đồng hồ cát, 3 năm kinh nghiệm', 'Giảm cân nữ, Pilates Mat, Dẻo dai', 'ACTIVE', '08:00:00', '18:00:00', 'ALL_WEEK')
+    ('50000000-0000-0000-0000-000000000002', '99999999-9999-9999-9999-999999999993', '22222222-2222-2222-2222-222222222222', 'PT002', 'Lê Văn Hùng', '0900000004', 'pt.hung@paradisegym.vn', 'NAM', 'Cựu VĐV Thể hình, 5 năm kinh nghiệm huấn luyện Combo Gym & PT', 'Tăng cơ chuyên sâu, Siết mỡ, Thể hình', 'ACTIVE', '08:00:00', '18:00:00', 'ALL_WEEK')
 ON CONFLICT (phone) DO NOTHING;
 
 -- 7. Member Profiles (Hồ sơ hội viên)

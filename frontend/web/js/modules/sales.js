@@ -232,7 +232,13 @@ window.SalesModule = (function () {
           const countText = c.data.max_group_members ? ` (${c.data.total_group_members || 1}/${c.data.max_group_members})` : '';
           button($actions, `Mời vào nhóm${countText}`, 'group', () => openGroupMembersModal(c.data.id, () => view.reload()));
         }
-        if (hasPT(c.data) && !c.data.assigned_pt_id && ['ACTIVE', 'SCHEDULED'].includes(c.data.status)) button($actions, 'Gán PT', 'user', () => openAssignment(c.data.id));
+        if (hasPT(c.data)) {
+          if (!c.data.assigned_pt_id && ['ACTIVE', 'SCHEDULED'].includes(c.data.status)) {
+            button($actions, 'Gán PT', 'user', () => openAssignment(c.data.id));
+          } else if (c.data.assigned_pt_id && ['ACTIVE', 'SCHEDULED', 'FROZEN'].includes(c.data.status)) {
+            button($actions, 'Gán lại PT', 'user', () => openAssignment(c.data.id));
+          }
+        }
         if (['ACTIVE', 'EXPIRED', 'EXPIRING', 'SCHEDULED', 'FROZEN'].includes(c.data.status)) button($actions, 'Gia hạn', 'repeat', () => openRegistrationModal({ renewalId: c.data.id }));
         if (c.data.status === 'PENDING_PAYMENT') {
           button($actions, 'Thu tiền', 'money', () => openPaymentModal(c.data.id), true);
@@ -372,34 +378,95 @@ window.SalesModule = (function () {
         const detail = dataOf(await api().registrations.getById(registrationId));
         const r = detail.registration || detail;
         if (!hasPT(r)) throw new Error('Đăng ký này không có quyền huấn luyện PT.');
-        if (r.assigned_pt_id) { refreshCurrent(); throw new Error('Gói đăng ký đã được gán HLV phụ trách.'); }
-        if (!['ACTIVE', 'SCHEDULED'].includes(r.status)) { refreshCurrent(); throw new Error('Gói đăng ký phải hoàn tất thanh toán 100% mới được gán HLV phụ trách.'); }
-        const [trainerRows, branches] = await Promise.all([allRows('/pt-bookings/trainers', { branch_id: r.sold_branch_id, status: 'ACTIVE' }), allRows('/branches')]);
+        if (!['ACTIVE', 'SCHEDULED', 'FROZEN'].includes(r.status)) {
+          refreshCurrent();
+          throw new Error('Gói đăng ký phải ở trạng thái hiệu lực hoặc đã thanh toán mới được gán HLV.');
+        }
+
+        const isReassign = !!r.assigned_pt_id;
+        dialog.instance.option('title', isReassign ? 'Gán lại PT phụ trách' : 'Gán PT phụ trách');
+
+        const [trainerRows, branches] = await Promise.all([
+          allRows('/pt-bookings/trainers', { branch_id: r.sold_branch_id, status: 'ACTIVE' }),
+          allRows('/branches')
+        ]);
         const trainers = trainerRows.filter(p => p.status === 'ACTIVE' && (!r.sold_branch_id || p.branch_id === r.sold_branch_id));
         if (dialog.closed) return;
         dialog.body.empty();
         const $error = $('<div>').hide().appendTo(dialog.body);
         const model = { pt_id: null, note: '' };
-        const form = $('<div>').appendTo(dialog.body).dxForm({ formData: model, labelLocation: 'top', showRequiredMark: true, items: [
-          readonly('Mã đăng ký', () => regCode(r)), readonly('Hội viên', () => [memberName(r), memberCode(r), memberPhone(r)].filter(Boolean).join(' · ')),
-          readonly('Gói đăng ký', () => packageName(r)), readonly('Chi nhánh', () => r.sold_branch_name || r.sold_branch?.branch_name || branches.find(b => b.id === r.sold_branch_id)?.branch_name),
-          field('pt_id', 'Huấn luyện viên phụ trách', 'dxSelectBox', { dataSource: trainers, valueExpr: 'id', displayExpr: p => p ? [p.full_name, p.pt_code, p.phone].filter(Boolean).join(' · ') : '', searchEnabled: true, searchExpr: ['full_name', 'phone', 'pt_code'], noDataText: 'Không tìm thấy HLV khả dụng tại chi nhánh' }, true),
-          field('note', 'Ghi chú phân công', 'dxTextArea', { maxLength: 255, height: 80 })
-        ] }).dxForm('instance');
+
+        const formItems = [
+          readonly('Mã đăng ký', () => regCode(r)),
+          readonly('Hội viên', () => [memberName(r), memberCode(r), memberPhone(r)].filter(Boolean).join(' · ')),
+          readonly('Gói đăng ký', () => packageName(r)),
+          readonly('Chi nhánh', () => r.sold_branch_name || r.sold_branch?.branch_name || branches.find(b => b.id === r.sold_branch_id)?.branch_name)
+        ];
+
+        if (isReassign) {
+          formItems.push(readonly('HLV phụ trách hiện tại', () => ptName(r)));
+        }
+
+        formItems.push(
+          field('pt_id', isReassign ? 'Chọn HLV phụ trách mới' : 'Huấn luyện viên phụ trách', 'dxSelectBox', {
+            dataSource: trainers,
+            valueExpr: 'id',
+            displayExpr: p => p ? [p.full_name, p.pt_code, p.phone].filter(Boolean).join(' · ') : '',
+            searchEnabled: true,
+            searchExpr: ['full_name', 'phone', 'pt_code'],
+            placeholder: isReassign ? 'Chọn HLV thay thế phụ trách gói...' : 'Chọn HLV phụ trách...',
+            noDataText: 'Không tìm thấy HLV khả dụng tại chi nhánh'
+          }, true),
+          field('note', isReassign ? 'Lý do gán lại / Ghi chú bàn giao' : 'Ghi chú phân công', 'dxTextArea', {
+            maxLength: 255,
+            height: 80,
+            placeholder: isReassign ? 'Ví dụ: HLV cũ quá tải, hội viên yêu cầu đổi PT...' : 'Ghi chú nguyện vọng hoặc lưu ý...'
+          })
+        );
+
+        const form = $('<div>').appendTo(dialog.body).dxForm({
+          formData: model,
+          labelLocation: 'top',
+          showRequiredMark: true,
+          items: formItems
+        }).dxForm('instance');
+
         let conflicted = false;
-        const submit = formActions(dialog, 'Xác nhận gán PT', async () => {
+        const submit = formActions(dialog, isReassign ? 'Xác nhận gán lại PT' : 'Xác nhận gán PT', async () => {
           if (conflicted || !form.validate().isValid) return;
+          if (isReassign && model.pt_id === r.assigned_pt_id) {
+            errorBlock($error, new Error('Vui lòng chọn một HLV khác với HLV phụ trách hiện tại'));
+            return;
+          }
           form.option('disabled', true);
           try {
-            await api().request(`/registrations/${idPath(r.id)}/assign-pt`, { method: 'POST', body: { pt_id: model.pt_id, note: model.note } });
-            notify('Đã gán PT phụ trách'); closeDialog(dialog); refreshCurrent(); if (onSaved) onSaved();
+            await api().request(`/registrations/${idPath(r.id)}/assign-pt`, {
+              method: 'POST',
+              body: { pt_id: model.pt_id, note: model.note }
+            });
+            notify(isReassign ? 'Đã gán lại PT phụ trách thành công!' : 'Đã gán PT phụ trách thành công!');
+            closeDialog(dialog);
+            refreshCurrent();
+            if (onSaved) onSaved();
           } catch (err) {
             errorBlock($error, err);
-            if (err.status === 409) { conflicted = true; dialog.blocked = true; refreshCurrent(); if (onSaved) onSaved(); }
-          } finally { if (!dialog.closed && !conflicted) form.option('disabled', false); }
+            if (err.status === 409) {
+              conflicted = true;
+              dialog.blocked = true;
+              refreshCurrent();
+              if (onSaved) onSaved();
+            }
+          } finally {
+            if (!dialog.closed && !conflicted) form.option('disabled', false);
+          }
         });
-        if (!trainers.length) { errorBlock($error, new Error('Không tìm thấy HLV khả dụng tại chi nhánh')); submit.option('disabled', true); }
-      } catch (err) { if (!dialog.closed) errorBlock(dialog.body, err, init); }
+        if (!trainers.length) {
+          errorBlock($error, new Error('Không tìm thấy HLV khả dụng tại chi nhánh'));
+          submit.option('disabled', true);
+        }
+      } catch (err) {
+        if (!dialog.closed) errorBlock(dialog.body, err, init);
+      }
     };
     await init();
   }
@@ -495,7 +562,11 @@ window.SalesModule = (function () {
             progress($rights, 'Đã tập / Tổng cấp (buổi)', r.used_pt_sessions, r.total_pt_sessions_snapshot ?? r.total_pt_sessions, '#d97706');
             info($rights, 'Buổi đang giữ chỗ', r.booked_pt_sessions);
             info($rights, 'HLV phụ trách', ptName(r));
-            if (!r.assigned_pt_id && ['ACTIVE', 'SCHEDULED'].includes(r.status)) button($rights, 'Gán PT phụ trách', 'user', () => openAssignment(r.id, load));
+            if (!r.assigned_pt_id && ['ACTIVE', 'SCHEDULED'].includes(r.status)) {
+              button($rights, 'Gán PT phụ trách', 'user', () => openAssignment(r.id, load));
+            } else if (r.assigned_pt_id && ['ACTIVE', 'SCHEDULED', 'FROZEN'].includes(r.status)) {
+              button($rights, 'Gán lại PT', 'user', () => openAssignment(r.id, load));
+            }
           }
         }
 

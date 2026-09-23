@@ -7,6 +7,14 @@ description: Kiểm thử hệ thống End-to-End theo từng User Story (US) b�
 
 ## Kinh nghiệm kiểm thử PT (2026-09-21)
 
+- Với popup quản trị đối chiếu Mobile của một hội viên, kiểm tra cùng member ID trong projection, từng tab và tài khoản Mobile đã xác thực; không gọi API tự phục vụ của QTV rồi coi đó là dữ liệu hội viên. Ghi riêng lỗi legacy ở role đối chiếu, không sao chép lỗi để tạo kết quả khớp giả (ví dụ Mobile lọc payment.status trong khi ledger chỉ có confirmed_at).
+- Khi nhiều tác nhân sửa UI đồng thời, chỉ chạy nghiệm thu sau marker chốt phiên bản và SHA256 của JavaScript/CSS khớp thực tế. Nếu source thay trong lúc chạy, giữ ảnh làm bằng chứng sơ bộ và chạy lại bản đã chốt; kiểm tra cả tab con, cột ngoài viewport và trạng thái dài sau thay đổi trình bày.
+
+- Với DevExtreme DataGrid trong popup, DOM có dòng dữ liệu chưa đủ để chụp PASS: chờ các load panel thực sự ẩn, kiểm tra vùng cần đối chiếu không bị che, cuộn ngang/dọc để chụp cột ngoài viewport. Đối chiếu ảnh sau chụp, không chỉ dựa vào innerText.
+- Kiểm thử bàn giao tài chính phải giữ cùng payment/receipt ID khi đối chiếu LT sau khi chốt; thử token xem trước cũ sau khi có khoản thu mới và kiểm tra snapshot không đổi khi tên hội viên hiện tại thay đổi. Không sửa tiền thật trên database dùng chung để tạo tình huống thử.
+- Fixture phải tách rõ member ID và phiên đăng nhập member. Khi ghi lỗi/báo cáo, loại access_token/refresh_token khỏi nội dung kể cả thông báo lỗi PostgreSQL vô tình chứa object phiên đăng nhập.
+- Với kỳ đối chiếu theo chi nhánh, kiểm thử trình duyệt khác timezone chi nhánh: ngày mặc định, DateBox sau thay đổi, ngày lịch trong bảng và timestamp trong snapshot. Không dùng Date parse chuỗi YYYY-MM-DD rồi hiển thị theo timezone trình duyệt vì có thể lùi một ngày.
+
 - Khi chụp native `<dialog>`, đặt overlay khoanh vùng trong dialog đang mở để không bị top layer che mất. Kiểm tra ảnh thực tế, không chỉ kiểm tra overlay tồn tại trong DOM.
 - Khi kiểm thử countdown bằng browser clock, cài clock trước khi ứng dụng tạo timer. Thay thời gian không được giả lập phản hồi API; vẫn đối chiếu hạn QR thật với backend và trạng thái đơn.
 - Chờ ảnh QR decode thành công trước khi xác nhận hiển thị; phân biệt lỗi tải ảnh với lỗi tạo yêu cầu thanh toán. Intent hết hạn không đồng nghĩa đơn đăng ký bị hủy, và intent không được xuất hiện trong lịch sử payment đã thu.

@@ -130,6 +130,7 @@ erDiagram
 
     devices ||--o{ access_logs : "records_entry"
     member_profiles ||--o{ access_logs : "checks_in"
+    pt_profiles ||--o{ access_logs : "checks_in"
 
     member_profiles ||--o{ member_consents : "grants_consents"
     member_profiles ||--o| biometric_face_data : "has_biometric"
@@ -396,6 +397,7 @@ erDiagram
     access_logs {
         uuid id PK
         uuid member_id FK
+        uuid pt_id FK
         uuid registration_id FK
         uuid device_id FK
         uuid branch_id FK
@@ -516,16 +518,21 @@ erDiagram
         varchar payout_ref
         text payout_note
         uuid paid_by_account_id FK
+        jsonb details_snapshot
+        timestamptz pt_confirmed_at
         timestamptz created_at
     }
 
     discounts {
         uuid id PK
         uuid branch_id FK
+        uuid applicable_package_id FK
         varchar code UK
         varchar title
         varchar discount_type
         decimal discount_value
+        int bonus_pt_sessions
+        int bonus_days
         decimal min_order_value
         decimal max_discount_amount
         date start_date
@@ -618,10 +625,13 @@ erDiagram
         uuid id PK
         uuid branch_id FK
         uuid_array branch_ids
+        uuid applicable_package_id FK
         varchar code
         varchar title
         varchar discount_type
         decimal discount_value
+        int bonus_pt_sessions
+        int bonus_days
         decimal min_order_value
         decimal max_discount_amount
         date start_date
@@ -633,6 +643,7 @@ erDiagram
     }
 
     branches ||--o{ discounts : "applies_to"
+    packages ||--o{ discounts : "applicable_to"
     discounts ||--o{ payments : "applied_to"
 ```
 
@@ -1001,7 +1012,8 @@ erDiagram
 | Tên trường | Kiểu dữ liệu | Ràng buộc | Giá trị mặc định | Mô tả & Nguồn nghiệp vụ |
 | :--- | :--- | :--- | :--- | :--- |
 | `id` | `UUID` | `PK, NOT NULL` | `gen_random_uuid()` | Khóa chính nhật ký ra vào |
-| `member_id` | `UUID` | `FK, NOT NULL` | | Hội viên check-in (`member_profiles(id)`) |
+| `member_id` | `UUID` | `FK, NULL` | | Hội viên check-in (`member_profiles(id)`). Ràng buộc `CHECK (member_id IS NOT NULL OR pt_id IS NOT NULL)` |
+| `pt_id` | `UUID` | `FK, NULL` | | Huấn luyện viên check-in/out (`pt_profiles(id)`). Ràng buộc `CHECK (member_id IS NOT NULL OR pt_id IS NOT NULL)` |
 | `registration_id` | `UUID` | `FK, NULL` | | Gói tập hợp lệ cấp quyền vào cửa (`registrations(id)`) |
 | `device_id` | `UUID` | `FK, NULL` | | Thiết bị ghi nhận sự kiện (`devices(id)`) |
 | `branch_id` | `UUID` | `FK, NOT NULL` | | Chi nhánh diễn ra lượt vào ra (`branches(id)`) |
@@ -1347,12 +1359,14 @@ Cập nhật mô hình cơ sở dữ liệu đáp ứng 100% các yêu cầu t�
   * `pt_revenue_share DECIMAL(12,2) NOT NULL DEFAULT 0`: Tổng giá trị doanh thu gói PT tương ứng với số buổi đã dạy
   * `commission_percentage DECIMAL(5,2) NOT NULL`: Tỷ lệ % hoa hồng áp dụng
   * `total_commission_amount DECIMAL(12,2) NOT NULL DEFAULT 0`: Tiền hoa hồng thực lĩnh
-  * `status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'PAID'))`: Trạng thái: `PENDING` (Chờ chi trả - hỗ trợ bấm [Chi trả] trực tiếp khi hoa hồng > 0đ), `PAID` (Đã chi trả)
-  * `paid_at TIMESTAMPTZ NULL`: Thời điểm hoàn tất giải ngân chi trả hoa hồng
-  * `payout_method VARCHAR(30) NOT NULL DEFAULT 'BANK_TRANSFER'`: Phương thức chi trả (`BANK_TRANSFER` chuyển khoản, `CASH` tiền mặt)
-  * `payout_ref VARCHAR(100) NULL`: Mã giao dịch ngân hàng hoặc số chứng từ / phiếu chi kế toán
+  * `status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'PENDING_CONFIRMATION', 'PAID'))`: Trạng thái: `PENDING` (Chờ chi trả), `APPROVED` (Đã duyệt), `PENDING_CONFIRMATION` (Chờ PT xác nhận đã nhận tiền trên app), `PAID` (Đã chi trả - lưu vết pháp lý vĩnh viễn)
+  * `paid_at TIMESTAMPTZ NULL`: Thời điểm hoàn tất lệnh chi trả hoa hồng
+  * `payout_method VARCHAR(30) NOT NULL DEFAULT 'BANK_TRANSFER'`: Phương thức chi trả (`BANK_TRANSFER` chuyển khoản VietQR, `CASH` tiền mặt tại quầy)
+  * `payout_ref VARCHAR(100) NULL`: Mã tham chiếu (tùy chọn / lịch sử; đã loại bỏ trường nhập Số phiếu chi và Mã giao dịch ngân hàng trên form theo cơ chế xác nhận 2 bên trên App)
   * `payout_note TEXT NULL`: Ghi chú nội dung chuyển khoản hoặc lý do điều chỉnh
-  * `paid_by_account_id UUID NULL REFERENCES accounts(id)`: Tài khoản Quản trị viên / Kế toán thực hiện lệnh chi trả
+  * `paid_by_account_id UUID NULL REFERENCES accounts(id)`: Tài khoản Quản trị viên / Lễ tân thực hiện lệnh chi trả
+  * `details_snapshot JSONB NULL`: Snapshot danh sách các buổi dạy cấu thành hoa hồng tại thời điểm chi trả (bảo vệ bất biến khi PAID)
+  * `pt_confirmed_at TIMESTAMPTZ NULL`: Thời điểm HLV PT bấm "Xác nhận đã nhận tiền" trên app Mobile PT (lưu vết pháp lý chống chối nhận tiền)
   * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
   * `UNIQUE(pt_id, month, year)`
 
@@ -1468,15 +1482,18 @@ Cập nhật mô hình cơ sở dữ liệu đáp ứng 100% các yêu cầu t�
   * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
 
 #### 2.10. `discounts` (Quản lý chương trình khuyến mãi & Mã giảm giá)
-- **Mục đích:** Quản lý danh mục voucher, mã giảm giá % hoặc số tiền mặt, cấu hình áp dụng theo một hoặc nhiều chi nhánh hoặc toàn chuỗi.
+- **Mục đích:** Quản lý danh mục voucher, mã giảm giá % hoặc số tiền mặt, hoặc quyền lợi tặng thêm thời gian tập / buổi tập; cấu hình áp dụng theo một hoặc nhiều chi nhánh hoặc toàn chuỗi, và ràng buộc theo gói tập cụ thể.
 - **Cột:**
   * `id UUID PK DEFAULT gen_random_uuid()`
   * `branch_id UUID NULL REFERENCES branches(id)`: Khóa ngoại chi nhánh duy nhất (tương thích ngược; NULL khi áp dụng toàn chuỗi hoặc đa chi nhánh)
   * `branch_ids UUID[] NULL`: Mảng danh sách các chi nhánh áp dụng (NULL: áp dụng toàn chuỗi; có phần tử: áp dụng đúng các chi nhánh được chọn)
+  * `applicable_package_id UUID NULL REFERENCES packages(id)`: Khóa ngoại trỏ đến gói tập áp dụng cụ thể (NULL: áp dụng cho tất cả gói tập trong chi nhánh)
   * `code VARCHAR(50) NOT NULL UNIQUE`: Mã code voucher viết hoa không dấu (ví dụ: `SUMMER2026`)
   * `title VARCHAR(200) NOT NULL`: Tên chương trình khuyến mãi
-  * `discount_type VARCHAR(20) NOT NULL CHECK (discount_type IN ('PERCENT', 'FIXED_AMOUNT'))`: Hình thức giảm (% hoặc tiền)
-  * `discount_value DECIMAL(12,2) NOT NULL`: Giá trị giảm (1-100 nếu %, hoặc số tiền > 0)
+  * `discount_type VARCHAR(20) NOT NULL CHECK (discount_type IN ('PERCENT', 'FIXED_AMOUNT', 'SESSION', 'DAY', 'BOTH'))`: Hình thức giảm giá hoặc quyền lợi tặng thêm (`PERCENT`: %; `FIXED_AMOUNT`: tiền mặt; `SESSION`: tặng buổi tập; `DAY`: tặng ngày tập; `BOTH`: tặng cả ngày và buổi)
+  * `discount_value DECIMAL(12,2) NOT NULL DEFAULT 0`: Giá trị giảm tiền (hoặc 0 khi là hình thức tặng buổi/ngày)
+  * `bonus_pt_sessions INTEGER NULL`: Số buổi PT tặng kèm (dành cho TH1: Buổi và TH3: Cả 2)
+  * `bonus_days INTEGER NULL`: Số ngày gym tặng kèm (dành cho TH2: Ngày và TH3: Cả 2)
   * `min_order_value DECIMAL(12,2) NOT NULL DEFAULT 0`: Giá trị đơn hàng tối thiểu để áp dụng mã
   * `max_discount_amount DECIMAL(12,2) NULL`: Mức giảm tối đa (VNĐ) khi giảm theo %
   * `start_date DATE NOT NULL`: Ngày bắt đầu hiệu lực
@@ -1486,7 +1503,6 @@ Cập nhật mô hình cơ sở dữ liệu đáp ứng 100% các yêu cầu t�
   * `is_active BOOLEAN NOT NULL DEFAULT TRUE`: Trạng thái bật/tắt của mã
   * `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
 
-
 ---
 
 ## PT Commission Payout Upgrade (Migration 009, 2026-09-20)
@@ -1495,4 +1511,34 @@ Nâng cấp cơ sở dữ liệu hỗ trợ quy trình chi trả hoa hồng PT m
 - **Tài khoản ngân hàng thụ hưởng (`pt_profiles`):** Bổ sung `bank_name`, `bank_account_no`, `bank_account_name` phục vụ quét mã VietQR và đối soát tài khoản nhận lương/thù lao.
 - **Chứng từ và kiểm toán chi trả (`pt_commissions`):** Bổ sung `payout_method` (`BANK_TRANSFER`, `CASH`), `payout_ref` (mã FT ngân hàng hoặc số phiếu chi tiền mặt), `payout_note` và `paid_by_account_id` (FK trỏ tới `accounts(id)` người thực hiện chi trả).
 - **Ràng buộc nghiệp vụ:** Nghiêm cấm chi trả khoản hoa hồng $\le 0$đ (chặn cả frontend và backend HTTP 400); tự động sinh thông báo in-app `COMMISSION_PAID` tới tài khoản PT sau khi xác nhận chi trả.
+
+---
+
+## PT Commission Two-Way App Confirmation (Migration 018, 2026-09-21)
+
+Nâng cấp quy trình chi trả hoa hồng PT sang cơ chế **Xác nhận 2 chiều trên App (Chống chối nhận tiền & Lưu vết pháp lý vĩnh viễn)**:
+- **Loại bỏ chứng từ giấy rắc rối:** Bỏ trường "Số phiếu chi" đối với thanh toán tiền mặt và bỏ trường "Mã giao dịch ngân hàng" đối với chuyển khoản VietQR trên form chi trả.
+- **Quy trình 2 bước trên hệ thống:**
+  1. **Lễ tân / QTV:** Thực hiện lệnh chi trả trên Web và phát thông báo "Xác nhận đã chi trả" $\rightarrow$ trạng thái chuyển sang `PENDING_CONFIRMATION` ("Chờ PT xác nhận"), đồng thời đóng băng chi tiết các buổi dạy vào `details_snapshot`.
+  2. **PT:** Mở ứng dụng Mobile Huấn luyện viên, xem chi tiết số tiền và phương thức, bấm "Xác nhận đã nhận tiền" $\rightarrow$ trạng thái chuyển sang `PAID` ("Đã chi trả").
+- **Lưu vết pháp lý bất biến (`pt_confirmed_at`):**
+  * Thêm cột `pt_confirmed_at TIMESTAMPTZ NULL` ghi nhận chính xác thời điểm PT bấm xác nhận đã nhận tiền.
+  * Cập nhật trigger `guard_pt_commission_snapshot` và constraint `ck_pt_commissions_details_snapshot` bảo vệ tính bất biến 100% của bản ghi `PAID`, ngăn chặn mọi hành vi chỉnh sửa hoặc xóa dữ liệu đã thanh toán.
+
+---
+
+## Voucher Package Constraints & Bonus Entitlements (Migration 019, 2026-09-21)
+
+Nâng cấp ràng buộc Voucher theo Gói tập cụ thể và mở rộng hình thức Khuyến mãi tặng Thời gian / Buổi tập (kích thích mua gói dài hạn và nâng cấp gói):
+- **Ràng buộc gói tập áp dụng (`applicable_package_id`):**
+  * Cho phép voucher gắn với 1 gói tập duy nhất (`packages(id)`). Khi đăng ký/thanh toán gói tập, hệ thống kiểm tra đối chiếu bắt buộc gói đăng ký phải khớp với gói quy định trên voucher (`PACKAGE_MISMATCH`).
+- **Hình thức khuyến mãi tặng Thời gian & Buổi tập (`discount_type`):**
+  * Mở rộng enum `discount_type`: bổ sung `SESSION` (tặng buổi tập), `DAY` (tặng thời gian ngày tập), và `BOTH` (tặng cả ngày gym và buổi PT cho gói Combo).
+  * `bonus_pt_sessions INTEGER NULL`: Số buổi PT tặng thêm. Khi kích hoạt đăng ký hoặc thanh toán thành công, tự động cộng dồn vào `remaining_pt_sessions` và `total_pt_sessions_snapshot`.
+  * `bonus_days INTEGER NULL`: Số ngày tập tặng thêm. Khi kích hoạt đăng ký hoặc thanh toán thành công, tự động cộng dồn vào ngày kết thúc `end_date` và `duration_days_snapshot`.
+- **Logic TRIGGER 3 trường hợp:**
+  1. TH1 (Gói theo buổi): Tùy chọn thêm "Buổi" (`SESSION`) $\rightarrow$ điền `bonus_pt_sessions`.
+  2. TH2 (Gói theo ngày): Tùy chọn thêm "Ngày" (`DAY`) $\rightarrow$ điền `bonus_days`.
+  3. TH3 (Gói Combo): Tự động chọn "Cả 2" (`BOTH`) + `readOnly: true`, hiển thị đồng thời cả 2 trường `bonus_days` và `bonus_pt_sessions`.
+
 

@@ -16,8 +16,7 @@
 - Mua mới tạo đăng ký chờ và yêu cầu QR trong payment_intents; QR hết hạn sau 15 phút, không tự hủy đăng ký sau 3 ngày. HV03-US01/US03 giữ Tiếp tục thanh toán và Hủy đăng ký có xác nhận bất kỳ lúc nào còn chờ.
 - Mô phỏng chuyển khoản được duyệt để kiểm thử; không cần IPN hiện tại. Tiền chuyển khoản thực tế được QTV/Lễ tân đối soát BANK_TRANSFER với transaction_ref bắt buộc, không chuyển thành CASH.
 - Chỉ khi thu đủ mới có payment không status và đúng một phiếu thu. Lịch sử của hội viên gồm cả thu tiền mặt tại quầy và chuyển khoản; không chứa QR chờ/hết hạn. Kỳ gốc đã hết khi thanh toán: PAY-OQ-01 còn mở, không tự dời ngày.
-- Sắp hết hạn: <= 4 ngày hoặc <= 3 buổi, Combo OR, dùng is_expiring/display_status API; status ACTIVE giữ nguyên.
-- Đóng băng chỉ khi đã trả đủ, hiện đang hiệu lực ACTIVE/Sắp hết hạn và đủ điều kiện bảo lưu. Không cho gói chưa thanh toán hoặc chưa đến ngày hiệu lực SCHEDULED, áp dụng cả staff/Hội viên.
+- Đóng băng và Chuyển nhượng gói tập: Bắt buộc thực hiện trực tiếp tại quầy Lễ tân (xác nhận 3 bên: Người chuyển nhượng, Người nhận nhượng và Lễ tân/Chủ phòng đối với chuyển nhượng) nhằm kiểm soát chặt chẽ danh tính hội viên và triệt tiêu giao dịch ngầm ngoài hệ thống. Hệ thống KHÔNG cho phép Hội viên tự do đóng băng hay chuyển nhượng trên App Mobile. Khi Lễ tân chuyển nhượng gói tại quầy, quyền sở hữu được chuyển giao tức thì và hệ thống gửi thông báo in-app đến cả 2 hội viên mà không phát sinh yêu cầu duyệt trung gian trên App.
 
 ## Thành phần giao diện (UI Components & Layout)
 

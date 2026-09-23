@@ -1,0 +1,104 @@
+PASS profile whitelist and intended subject
+PASS owned plus accepted only, once, sold-branch scoped
+PASS canonical expiry and confirmed payment only
+PASS received and sent real identities without mutation
+PASS persisted participants only and booking branch scope
+PASS community class branch scope
+PASS global authorized scope includes branch B
+PASS timezone follows actual home, booking and class branch
+PASS financial redaction across complete response
+PASS projection GETs leave all business data unchanged
+PASS authorization precedes profile and child queries
+PASS PT rejected before any query
+PASS missing participant table declares owner-only limitation
+[API] 42P01 relation "community_class_registrations" does not exist
+PASS query failure is an error, recovery succeeds
+{
+  "checks": 30,
+  "database": "paradise_handover_test_3672_1790017590964",
+  "source_sha256": "40735236dfc04bc941929be1f04a0e4ee04457d315b760468a6b67911ed661be",
+  "migrations": [
+    {
+      "file": "001_create_tables.sql",
+      "sha256": "4a1ed6fc35f89ed4ed22dd40ba0d342df40674a1c0644cf6c12148403cccaba8"
+    },
+    {
+      "file": "002_web_rebuild.sql",
+      "sha256": "f39aa437f8ce6856d3241702c22407854baf4b6d91aff1c483c9599f0703851b"
+    },
+    {
+      "file": "003_mobile_preferences.sql",
+      "sha256": "92038b110056f26abc8beea26fa5247808a8a9febd669954060498131e0b26bb"
+    },
+    {
+      "file": "004_device_sessions.sql",
+      "sha256": "7f23a3edf089b604d0eb49bb80e1565ee9e3726c08a88b299f9596c6e90e5430"
+    },
+    {
+      "file": "005_remove_pt_certificates.sql",
+      "sha256": "cb934d91691c5fc24e9964eff67bccdb6790b4fe36512b493b4d90ffab19e6fb"
+    },
+    {
+      "file": "006_boss_feedback_schema_upgrade.sql",
+      "sha256": "3edba573bce7f324b74fec8ce1385b5b856b17b6cad5e8450661889a0ac593fa"
+    },
+    {
+      "file": "007_commission_configs_uniqueness_and_history.sql",
+      "sha256": "5005a2e1c911135cf6fee01a7d346e997b2e4cb2a6be3aa593e44d9807f1751a"
+    },
+    {
+      "file": "008_branch_default_commission_rate.sql",
+      "sha256": "e89767dc4ab097431765af1ec32774fb2699cfc3c214e4a2ca07390cdf9245f2"
+    },
+    {
+      "file": "009_pt_commission_payout_details.sql",
+      "sha256": "6f2aad7bad61dcd87143f62cd155a618d1f5ce40079658e2a2a3150e0e292996"
+    },
+    {
+      "file": "010_scheduled_package_freezes.sql",
+      "sha256": "7c2ffda9813010f00d046fe7d51eda996432ee3a07f1cd27aed91005fbe2c806"
+    },
+    {
+      "file": "011_pt_bookings_no_overlap_indexes.sql",
+      "sha256": "6e18e896f62c5fca1c6c5c063e1ffb8f989569c71f9c45a43a3f2742501767db"
+    },
+    {
+      "file": "012_pt_commission_session_snapshot.sql",
+      "sha256": "06d38a0a6c9404219c5632f5f9528e30f668fdd887789fac99b2c770527de25a"
+    },
+    {
+      "file": "013_pt_booking_participants.sql",
+      "sha256": "2b145a95a7a1a36d7c1727d7f405e4145c567f72e01e6f101741eced9ae37ab2"
+    },
+    {
+      "file": "014_successful_payment_ledger.sql",
+      "sha256": "3c16e83463bb97a594ca06ce3c0079710c4d78b64da2f5544f2f6697bb2a1a14"
+    },
+    {
+      "file": "015_package_transfer_requests.sql",
+      "sha256": "0eee2466ba855dd35c340d1af96fd22b274f90ac905ae7413d56d4f0895bcbd3"
+    },
+    {
+      "file": "016_community_class_disciplines_and_bonus.sql",
+      "sha256": "895e6a68f3133e31325bc8f047fc9fbc2901fd21ba62006c18e4019e1609c934"
+    },
+    {
+      "file": "017_revenue_handovers.sql",
+      "sha256": "5382a774bdfed4b4e09a36062534145c3c6c2c0a7efb330156a574346c6b6385"
+    },
+    {
+      "file": "018_pt_commission_two_way_confirmation.sql",
+      "sha256": "93144df4808fdb612be498dfc19686f9bea6fb29060d75cce91a56965005f468"
+    },
+    {
+      "file": "019_voucher_package_and_bonus_entitlements.sql",
+      "sha256": "60dcb7b3def6e700ac0169d32b4bfd25e55efd6453126052e0304e3f89939b7f"
+    },
+    {
+      "file": "020_pt_access_logs.sql",
+      "sha256": "1ad2985cf6f727bb8a29e719d323d6ff37e18a671bea43c4d18d7efb66257a6c"
+    }
+  ],
+  "limitation": "No business data writes. Standard auth session heartbeat is permitted. No UI E2E claim."
+}
+Isolated database removed; test server and connections closed.

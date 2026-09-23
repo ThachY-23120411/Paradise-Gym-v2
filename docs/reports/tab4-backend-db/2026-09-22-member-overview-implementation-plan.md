@@ -1,0 +1,3 @@
+# W02 read-only member overview
+
+Implement the contract in brain-anti4/w02-member-overview/api_contracts.md for Einstein/main and Rawls. Read existing authorization, canonical registration state, and persisted relationships. Add only the new core module and server mount. Queries use bound parameters and explicit public columns after authorization, without commerce/mobile mutation helpers. Verify role/UUID/home-branch/row scope, confirmed payment projection, participant identity, financial redaction and read-only behavior with focused isolated tests. Record actual results and limitations in the companion walkthrough. No shared database seed/reset, schema change or existing behavior repair.

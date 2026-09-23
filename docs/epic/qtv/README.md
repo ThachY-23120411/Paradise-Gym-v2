@@ -31,3 +31,11 @@ Mỗi Epic dưới đây là một menu Web W01–W17. Các User Story trong Epi
 - User Story index: [`docs/user-stories/qtv/`](../../user-stories/qtv/README.md)
 - System flow index: [`docs/system-flow-specs/qtv/`](../../system-flow-specs/qtv/README.md)
 - Capability catalog dùng chung: [`docs/epics-menu-catalog.md`](../../epics-menu-catalog.md)
+
+## Bổ sung W18 (21/09/2026)
+
+| Epic | Menu Web | Phạm vi chính | User Stories |
+| --- | --- | --- | --- |
+| [QTV-W18](<QTV-W18-Bàn giao & tất toán doanh thu.md>) | W18 · Bàn giao & tất toán doanh thu | QTV + quyền tài chính; đối chiếu theo chi nhánh/kỳ, phân loại tài khoản trên preview, xác nhận và lịch sử snapshot bất biến | 3 |
+
+Bổ sung 1 Epic và 3 US vào chỉ mục trước W18 ở trên: 18 Epic, 54 US theo số tổng cơ sở đã công bố; không kiểm đếm lại hay chỉnh các mục cũ trong đợt cập nhật này. W18 là bàn giao nội bộ, không phải khóa sổ kế toán/thuế. [Kế hoạch và bàn giao](../../reports/tab1-web-admin/2026-09-21-revenue-handover-docs.md).

@@ -1,0 +1,30 @@
+{
+  "run": "2026-09-21T14-20-46-061Z",
+  "stories": [
+    {
+      "id": "QTV-W18-US01",
+      "steps": 20,
+      "uniqueScreenshots": 20,
+      "migrations": 17
+    },
+    {
+      "id": "QTV-W18-US02",
+      "steps": 13,
+      "uniqueScreenshots": 13,
+      "migrations": 17
+    },
+    {
+      "id": "QTV-W18-US03",
+      "steps": 11,
+      "uniqueScreenshots": 11,
+      "migrations": 17
+    }
+  ],
+  "sourceHashesMatch": true,
+  "databaseRemoved": true,
+  "backendStopped": true,
+  "apiOrigins": [
+    "http://127.0.0.1:55060"
+  ],
+  "limitations": "Desktop Chromium 1600x1050; executed scenarios only, not exhaustive new-document field parity, mobile, all date boundaries or network failures."
+}

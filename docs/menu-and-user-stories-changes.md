@@ -6,6 +6,21 @@ Tài liệu chi tiết xem tại: [`docs/reports/tab1-web-admin/menu-and-user-st
 
 ## Tóm Tắt Nhanh
 
+### Cập nhật 2026-09-22: QTV W02 popup hội viên
+
+- Đồng bộ US04, Epic W02, Product Spec 4.1 và mapping theo năm menu Mobile thực: Trang chủ, Lịch tập, Gói của tôi, Thanh toán, Tài khoản. Đây là projection QTV chỉ đọc, không sao chép quyền tự phục vụ; LT và CRUD quản trị hiện hữu giữ nguyên.
+- Nguồn overview-data whitelist, gói sở hữu/tham gia ACCEPTED, booking theo snapshot participant; không suy lịch nhóm từ membership hiện tại. Home chỉ ACTIVE đã thanh toán; status/display_status canonical, badge giữ nguyên nhãn và bộ lọc.
+- Ledger tải đủ trang, lọc phương thức/ngày, không trạng thái payment; chờ thanh toán riêng; freeze cuối có xem phiếu thu inline. Account không địa chỉ/lịch sử cổng/sinh trắc/phiên/mật khẩu. Không đổi schema hay business flow ghi dữ liệu.
+- [Báo cáo phạm vi, mapping Mobile và validation](reports/tab1-web-admin/2026-09-22-member-popup-walkthrough.md). Lỗi Mobile còn lọc COMPLETED được giữ là vấn đề riêng chưa giải quyết; không khẳng định parity 100% hay nghiệm thu E2E từ audit tài liệu.
+
+### Bổ sung 2026-09-21: QTV-W18 Bàn giao & tất toán doanh thu
+
+- Thêm [Epic QTV-W18](<epic/qtv/QTV-W18-Bàn giao & tất toán doanh thu.md>) và ba US: [US01 đối chiếu nguồn thu](<user-stories/qtv/QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US01-Xem và đối chiếu nguồn thu chưa bàn giao.md>), [US02 xác nhận](<user-stories/qtv/QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US02-Xác nhận bàn giao doanh thu.md>), [US03 lịch sử](<user-stories/qtv/QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US03-Tra cứu lịch sử bàn giao.md>).
+- Chỉ QTV + quyền tài chính; tạo mới theo chi nhánh cụ thể, kỳ tùy chọn dựa trên confirmed_at ở múi giờ chi nhánh. Nguồn thu có phiếu thu và chưa thuộc batch; payment luôn bất biến, không thêm trạng thái/mở khóa.
+- Registry ngân hàng lưu bền chỉ phục vụ W18; phân loại inline theo từng preview và chỉ lưu trong batch. Unknown/legacy chưa kiểm chứng tiếp tục bị chặn, không suy từ ENV/VietQR.
+- Xác nhận checkbox chủ động + ghi chú tối đa 1000, preview fingerprint chống stale/concurrent; replay cùng token trả batch gốc; một payment một batch. Snapshot bất biến, handover_code canonical, không sửa/xóa/mở lại; khoản ghi nhận muộn vào đợt sau dù kỳ chồng.
+- Đồng bộ chỉ các mục W18 mới trong Product Spec, QTV indexes, screen mapping và changelog này. [Kế hoạch, files và validation](reports/tab1-web-admin/2026-09-21-revenue-handover-docs.md). Đây là tài liệu bàn giao nội bộ, không phải khóa sổ kế toán/thuế và không thay thế nghiệm thu E2E.
+
 ### Cập nhật 2026-09-21: Thanh toán và vòng đời đăng ký
 
 Phần này cập nhật các nội dung tương ứng bên dưới; không tạo menu hoặc US mới.

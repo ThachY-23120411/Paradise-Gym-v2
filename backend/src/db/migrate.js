@@ -20,6 +20,22 @@ async function migrate() {
     await db.query(fs.readFileSync(path.join(__dirname, 'migrations/012_pt_commission_session_snapshot.sql'), 'utf8'));
     await db.query(fs.readFileSync(path.join(__dirname, 'migrations/013_pt_booking_participants.sql'), 'utf8'));
     await db.query(fs.readFileSync(path.join(__dirname, 'migrations/014_successful_payment_ledger.sql'), 'utf8'));
+    if (fs.existsSync(path.join(__dirname, 'migrations/015_package_transfer_requests.sql'))) {
+      await db.query(fs.readFileSync(path.join(__dirname, 'migrations/015_package_transfer_requests.sql'), 'utf8'));
+    }
+    if (fs.existsSync(path.join(__dirname, 'migrations/016_community_class_disciplines_and_bonus.sql'))) {
+      await db.query(fs.readFileSync(path.join(__dirname, 'migrations/016_community_class_disciplines_and_bonus.sql'), 'utf8'));
+    }
+    await db.query(fs.readFileSync(path.join(__dirname, 'migrations/017_revenue_handovers.sql'), 'utf8'));
+    if (fs.existsSync(path.join(__dirname, 'migrations/018_pt_commission_two_way_confirmation.sql'))) {
+      await db.query(fs.readFileSync(path.join(__dirname, 'migrations/018_pt_commission_two_way_confirmation.sql'), 'utf8'));
+    }
+    if (fs.existsSync(path.join(__dirname, 'migrations/019_voucher_package_and_bonus_entitlements.sql'))) {
+      await db.query(fs.readFileSync(path.join(__dirname, 'migrations/019_voucher_package_and_bonus_entitlements.sql'), 'utf8'));
+    }
+    if (fs.existsSync(path.join(__dirname, 'migrations/020_pt_access_logs.sql'))) {
+      await db.query(fs.readFileSync(path.join(__dirname, 'migrations/020_pt_access_logs.sql'), 'utf8'));
+    }
   });
 }
 if (require.main === module) migrate().then(() => console.log('Additive web migration applied; existing records preserved.')).catch(err => {

@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../..');
-const files = [
+const files = process.argv.length > 2 ? process.argv.slice(2) : [
   "docs/user-stories/hoi-vien/HV03-Gói của tôi/HV03-US01-Xem gói, quyền lợi và tiến độ sử dụng.md",
   "docs/user-stories/hoi-vien/HV03-Gói của tôi/HV03-US03-Mua gói và khởi tạo thanh toán Mobile.md",
   "docs/user-stories/hoi-vien/HV03-Gói của tôi/HV03-US06-Xem lịch sử thanh toán.md",
@@ -85,8 +85,8 @@ for (const duplicate of ['subgraph Clash["Boundary"]\nClash["Action"]', 'Clash["
   assert(result.issues.some(issue => issue.includes('duplicate subgraph/node ID Clash')));
 }
 const results = files.map(file => validateDiagram(fs.readFileSync(path.join(root, file), 'utf8'), file));
-assert.equal(files.length, 28);
-const errors = results.flatMap(r => r.diagrams === 1 ? r.issues : [...r.issues, r.context + ': expected exactly one diagram']);
+if (process.argv.length === 2) assert.equal(files.length, 28);
+const errors = results.flatMap(r => (process.argv.length > 2 ? r.diagrams >= 1 : r.diagrams === 1) ? r.issues : [...r.issues, r.context + ': missing or unexpected diagram count']);
 const count = results.reduce((a,r) => ({diagrams:a.diagrams+r.diagrams,nodes:a.nodes+r.nodes,edges:a.edges+r.edges}), {diagrams:0,nodes:0,edges:0});
 if (errors.length) {
   console.error(errors.join('\n'));

@@ -1,0 +1,3169 @@
+{
+  "mode": "final",
+  "sourceHash": "6e797b3b9e841cc9f05eef1dc8ae12f194eecec930bdfe2984e114b1d0ddf616",
+  "subject": {
+    "id": "40000000-0000-0000-0000-000000000001",
+    "member_code": "HV001"
+  },
+  "steps": [
+    {
+      "number": 1,
+      "section": "Source Action Verification",
+      "name": "open-members-list",
+      "expected": "QTV-W02-US04 Main Flow / Field-level specification / Exception Flows: readonly rows in branch scope",
+      "status": "PASS",
+      "image": "step-01-open-members-list.png",
+      "actual": {
+        "url": "/web/#members",
+        "popup": false,
+        "text": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n25 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV026\t\nBL\nTrần Bảo Long\n\t0988602943\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV025\t\nMD\nVõ Thị Mỹ Duyên\n\t0986161816\tmyduyen@paradise.test\tParadise Gym Bình Thạnh\tĐang hoạt động\t\n\t\nHV024\t\nBL\nTrần Bảo Long\n\t0988100759\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV023\t\nBL\nTrần Bảo Long\n\t0988449112\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV022\t\nBL\nTrần Bảo Long\n\t0988753060\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV021\t\nBL\nTrần Bảo Long\n\t0988661898\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV020\t\nBL\nTrần Bảo Long\n\t0988257329\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV019\t\nBL\nTrần Bảo Long\n\t0988653829\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV018\t\nBL\nTrần Bảo Long\n\t0988948468\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV017\t\nBL\nTrần Bảo Long\n\t0988751014\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV016\t\nBL\nTrần Bảo Long\n\t0988527951\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV015\t\nBL\nTrần Bảo Long\n\t0988982428\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV014\t\nBL\nTrần Bảo Long\n\t0988554901\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV013\t\nBL\nTrần Bảo Long\n\t0988964376\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV012\t\nBL\nTrần Bảo Long\n\t0988357902\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV011\t\nBL\nTrần Bảo Long\n\t0988438667\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV010\t\nBL\nTrần Bảo Long\n\t0912533091\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV009\t\nBL\nTrần Bảo Long\n\t0988811178\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV005\t\nVũ Minh Phúc\n\t0905678901\tphuc.vu@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV002\t\nTrần Thị Bình\n\t0902345678\tbinh.tran@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 2 (25 mục)12\nParadise Gym\nToàn bộ chi nhánh",
+        "fullText": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n25 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV026\t\nBL\nTrần Bảo Long\n\t0988602943\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV025\t\nMD\nVõ Thị Mỹ Duyên\n\t0986161816\tmyduyen@paradise.test\tParadise Gym Bình Thạnh\tĐang hoạt động\t\n\t\nHV024\t\nBL\nTrần Bảo Long\n\t0988100759\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV023\t\nBL\nTrần Bảo Long\n\t0988449112\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV022\t\nBL\nTrần Bảo Long\n\t0988753060\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV021\t\nBL\nTrần Bảo Long\n\t0988661898\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV020\t\nBL\nTrần Bảo Long\n\t0988257329\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV019\t\nBL\nTrần Bảo Long\n\t0988653829\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV018\t\nBL\nTrần Bảo Long\n\t0988948468\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV017\t\nBL\nTrần Bảo Long\n\t0988751014\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV016\t\nBL\nTrần Bảo Long\n\t0988527951\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV015\t\nBL\nTrần Bảo Long\n\t0988982428\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV014\t\nBL\nTrần Bảo Long\n\t0988554901\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV013\t\nBL\nTrần Bảo Long\n\t0988964376\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV012\t\nBL\nTrần Bảo Long\n\t0988357902\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV011\t\nBL\nTrần Bảo Long\n\t0988438667\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV010\t\nBL\nTrần Bảo Long\n\t0912533091\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV009\t\nBL\nTrần Bảo Long\n\t0988811178\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV005\t\nVũ Minh Phúc\n\t0905678901\tphuc.vu@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV002\t\nTrần Thị Bình\n\t0902345678\tbinh.tran@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 2 (25 mục)12\nParadise Gym\nToàn bộ chi nhánh",
+        "title": "",
+        "tabs": [],
+        "errors": [],
+        "loading": false,
+        "grids": [
+          {
+            "text": "Mã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV026\t\nBL\nTrần Bảo Long\n\t0988602943\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV025\t\nMD\nVõ Thị Mỹ Duyên\n\t0986161816\tmyduyen@paradise.test\tParadise Gym Bình Thạnh\tĐang hoạt động\t\n\t\nHV024\t\nBL\nTrần Bảo Long\n\t0988100759\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV023\t\nBL\nTrần Bảo Long\n\t0988449112\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV022\t\nBL\nTrần Bảo Long\n\t0988753060\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV021\t\nBL\nTrần Bảo Long\n\t0988661898\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV020\t\nBL\nTrần Bảo Long\n\t0988257329\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV019\t\nBL\nTrần Bảo Long\n\t0988653829\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV018\t\nBL\nTrần Bảo Long\n\t0988948468\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV017\t\nBL\nTrần Bảo Long\n\t0988751014\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV016\t\nBL\nTrần Bảo Long\n\t0988527951\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV015\t\nBL\nTrần Bảo Long\n\t0988982428\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV014\t\nBL\nTrần Bảo Long\n\t0988554901\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV013\t\nBL\nTrần Bảo Long\n\t0988964376\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV012\t\nBL\nTrần Bảo Long\n\t0988357902\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV011\t\nBL\nTrần Bảo Long\n\t0988438667\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV010\t\nBL\nTrần Bảo Long\n\t0912533091\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV009\t\nBL\nTrần Bảo Long\n\t0988811178\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV005\t\nVũ Minh Phúc\n\t0905678901\tphuc.vu@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV002\t\nTrần Thị Bình\n\t0902345678\tbinh.tran@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 2 (25 mục)12",
+            "records": [
+              {
+                "id": "07fedd34-b752-4a3a-84e2-3f71a983ae70",
+                "account_id": "687d26c5-2e6f-4a56-a59c-2d7e00adb41e",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV026",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988602943",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-18T01:56:16.622Z",
+                "updated_at": "2026-09-18T01:56:16.622Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "751e8f3a-20ab-4b8e-a282-4372e5a9ef27",
+                "account_id": "a1475ca0-06fb-446d-be6a-4c974bb023bb",
+                "home_branch_id": "22222222-2222-2222-2222-222222222222",
+                "member_code": "HV025",
+                "full_name": "Võ Thị Mỹ Duyên",
+                "phone": "0986161816",
+                "email": "myduyen@paradise.test",
+                "date_of_birth": null,
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": null,
+                "created_at": "2026-09-18T01:31:12.573Z",
+                "updated_at": "2026-09-18T01:31:12.573Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Bình Thạnh",
+                "has_active_package": false
+              },
+              {
+                "id": "77b085b5-6155-4b7c-8187-2e823aa24f2f",
+                "account_id": "39c09f61-2ebf-41aa-bccc-91523fb88080",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV024",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988100759",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-18T01:24:40.831Z",
+                "updated_at": "2026-09-18T01:24:40.831Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "004f135b-080f-4555-abdd-571403298fa7",
+                "account_id": "892197f3-3b3c-4586-a0fc-390f759ad795",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV023",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988449112",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-18T01:21:52.366Z",
+                "updated_at": "2026-09-18T01:21:52.366Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "038e8e97-8365-4dd1-9b97-82045756e77f",
+                "account_id": "a9ef3cdd-c694-40c5-953f-f5e03e8bac86",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV022",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988753060",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:52:31.894Z",
+                "updated_at": "2026-09-17T18:52:31.894Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": true
+              },
+              {
+                "id": "bf0a3875-2942-4a97-aa49-7e480bbecef6",
+                "account_id": "c1e4df9f-9ffe-4ffc-b7c0-c3efe7a01d95",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV021",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988661898",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:50:14.930Z",
+                "updated_at": "2026-09-17T18:50:14.930Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "d03a3f7a-28eb-417e-bddf-912b02a3d0ea",
+                "account_id": "0003e722-ab70-47ae-9ef6-261daf2b2b59",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV020",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988257329",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:47:37.370Z",
+                "updated_at": "2026-09-17T18:47:37.370Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "7b11bd03-dac8-4fe6-ac12-93f96006e5e4",
+                "account_id": "710d2438-ede8-464a-8275-4458c368973e",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV019",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988653829",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:45:56.245Z",
+                "updated_at": "2026-09-17T18:45:56.245Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "93ce5b58-57c8-4f00-a3c5-b277615c6d73",
+                "account_id": "c62bd33b-90d5-4177-a68e-c17ba88ae847",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV018",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988948468",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:43:42.241Z",
+                "updated_at": "2026-09-17T18:43:42.241Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "1c90f674-4161-43f4-8a9f-5dd91976a597",
+                "account_id": "9b85630c-6d6c-4927-94a8-58288fe8d9c5",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV017",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988751014",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:42:20.195Z",
+                "updated_at": "2026-09-17T18:42:20.195Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "f022b64f-3ef5-404d-a575-814f0d78c5c4",
+                "account_id": "a4eec27c-2ee4-416f-9775-1d48378258fc",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV016",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988527951",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:40:42.258Z",
+                "updated_at": "2026-09-17T18:40:42.258Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "d9941ef2-07a2-40ed-86f2-19d6c6184d97",
+                "account_id": "3050ae62-677b-4a23-a67c-096def218386",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV015",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988982428",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:39:25.012Z",
+                "updated_at": "2026-09-17T18:39:25.012Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "299a94b8-db8b-40fc-a0a4-ed5b385a48e5",
+                "account_id": "d28da0c9-fd98-4ed5-b9b8-81149324100f",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV014",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988554901",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:37:17.688Z",
+                "updated_at": "2026-09-17T18:37:17.688Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "35a95b94-9bbd-4c17-b7f1-8d3658ad6253",
+                "account_id": "4e9c4a28-803b-4758-a304-d35e32302169",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV013",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988964376",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:33:29.876Z",
+                "updated_at": "2026-09-17T18:33:29.876Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "47e60f84-7b9f-4f12-9a11-81b33e57929d",
+                "account_id": "7c032383-11dc-42af-8977-737e2f631ab4",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV012",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988357902",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:23:35.429Z",
+                "updated_at": "2026-09-17T18:23:35.429Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "d23fc3e9-98be-49fd-adf5-c3deb8ab6ce8",
+                "account_id": "0a648540-b7ea-4245-b582-c07a64980aaa",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV011",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988438667",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T17:53:57.692Z",
+                "updated_at": "2026-09-17T17:53:57.692Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "62bb3b4e-dc48-4319-90de-dcf7160fc76e",
+                "account_id": "4ec117ee-92e6-4623-adf0-c8de2a7ee24a",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV010",
+                "full_name": "Trần Bảo Long",
+                "phone": "0912533091",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T17:53:14.511Z",
+                "updated_at": "2026-09-17T17:53:14.511Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "3ba2c4a8-2d72-435f-a431-c06ff4de0bb0",
+                "account_id": "ac72f1be-4799-40e3-ac3f-07cdd47e86c8",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV009",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988811178",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": null,
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T17:52:43.484Z",
+                "updated_at": "2026-09-17T17:52:43.484Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "40000000-0000-0000-0000-000000000005",
+                "account_id": "99999999-9999-9999-9999-999999999990",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV005",
+                "full_name": "Vũ Minh Phúc",
+                "phone": "0905678901",
+                "email": "phuc.vu@gmail.com",
+                "date_of_birth": "1994-08-15",
+                "gender": "NAM",
+                "avatar_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80",
+                "status": "ACTIVE",
+                "created_by": null,
+                "created_at": "2026-09-17T05:29:03.343Z",
+                "updated_at": "2026-09-17T05:29:03.343Z",
+                "qr_code": "QR-HV005-0905678901",
+                "face_enrolled": true,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": true
+              },
+              {
+                "id": "40000000-0000-0000-0000-000000000002",
+                "account_id": "99999999-9999-9999-9999-999999999997",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV002",
+                "full_name": "Trần Thị Bình",
+                "phone": "0902345678",
+                "email": "binh.tran@gmail.com",
+                "date_of_birth": "1995-04-12",
+                "gender": "NU",
+                "avatar_url": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80",
+                "status": "ACTIVE",
+                "created_by": null,
+                "created_at": "2026-09-17T05:29:03.343Z",
+                "updated_at": "2026-09-17T05:29:03.343Z",
+                "qr_code": "QR-HV002-0902345678",
+                "face_enrolled": true,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": true
+              }
+            ]
+          }
+        ],
+        "inputs": [
+          {
+            "label": "Chi nhánh làm việc",
+            "value": "Toàn bộ chi nhánh"
+          },
+          {
+            "label": "Mã HV, họ tên, SĐT",
+            "value": ""
+          },
+          {
+            "label": "Lựa chọn...",
+            "value": "Tất cả trạng thái"
+          },
+          {
+            "label": "Lựa chọn...",
+            "value": "Tất cả trong phạm vi"
+          }
+        ],
+        "authenticatedMemberId": null,
+        "profile": null
+      }
+    },
+    {
+      "number": 2,
+      "section": "Source Action Verification",
+      "name": "initial-row-opens-popup",
+      "expected": "QTV-W02-US04 Main Flow 2-8, popup navigation field table and Business Rules; Product Spec W02: clicking first visible member row opens that member profile",
+      "status": "PASS",
+      "image": "step-02-initial-row-opens-popup.png",
+      "actual": {
+        "url": "/web/#members",
+        "popup": true,
+        "text": "HV026 - Trần Bảo Long\nTrần Bảo Long\n\nHV026\n\nĐang hoạt động\n\n0988602943\n\nParadise Gym Quận 1\n\nTrang chủ\nLịch tập\nGói của tôi\nThanh toán\nTài khoản\nGói đang hoạt động\nTìm kiếm\n \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\t\t\t\t\t\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1\nLời mời đang chờ\nTìm kiếm\nGói tập\tNgười mời\tTrạng thái\n\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1\nLịch PT sắp tới\nTìm kiếm\nNgày tập\tBắt đầu\tKết thúc\tHuấn luyện viên\tTrạng thái\tQuan hệ\tBuổi thứ\tPT xác nhận\tHội viên xác nhận\tNội dung buổi tập\tĐánh giá thể lực\n\t\t\t\t\t\t\t\t\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1",
+        "fullText": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n25 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV026\t\nBL\nTrần Bảo Long\n\t0988602943\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV025\t\nMD\nVõ Thị Mỹ Duyên\n\t0986161816\tmyduyen@paradise.test\tParadise Gym Bình Thạnh\tĐang hoạt động\t\n\t\nHV024\t\nBL\nTrần Bảo Long\n\t0988100759\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV023\t\nBL\nTrần Bảo Long\n\t0988449112\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV022\t\nBL\nTrần Bảo Long\n\t0988753060\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV021\t\nBL\nTrần Bảo Long\n\t0988661898\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV020\t\nBL\nTrần Bảo Long\n\t0988257329\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV019\t\nBL\nTrần Bảo Long\n\t0988653829\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV018\t\nBL\nTrần Bảo Long\n\t0988948468\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV017\t\nBL\nTrần Bảo Long\n\t0988751014\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV016\t\nBL\nTrần Bảo Long\n\t0988527951\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV015\t\nBL\nTrần Bảo Long\n\t0988982428\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV014\t\nBL\nTrần Bảo Long\n\t0988554901\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV013\t\nBL\nTrần Bảo Long\n\t0988964376\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV012\t\nBL\nTrần Bảo Long\n\t0988357902\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV011\t\nBL\nTrần Bảo Long\n\t0988438667\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV010\t\nBL\nTrần Bảo Long\n\t0912533091\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV009\t\nBL\nTrần Bảo Long\n\t0988811178\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV005\t\nVũ Minh Phúc\n\t0905678901\tphuc.vu@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV002\t\nTrần Thị Bình\n\t0902345678\tbinh.tran@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 2 (25 mục)12\nParadise Gym\nToàn bộ chi nhánh\nHV026 - Trần Bảo Long\nTrần Bảo Long\n\nHV026\n\nĐang hoạt động\n\n0988602943\n\nParadise Gym Quận 1\n\nTrang chủ\nLịch tập\nGói của tôi\nThanh toán\nTài khoản\nGói đang hoạt động\nTìm kiếm\n \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\t\t\t\t\t\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1\nLời mời đang chờ\nTìm kiếm\nGói tập\tNgười mời\tTrạng thái\n\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1\nLịch PT sắp tới\nTìm kiếm\nNgày tập\tBắt đầu\tKết thúc\tHuấn luyện viên\tTrạng thái\tQuan hệ\tBuổi thứ\tPT xác nhận\tHội viên xác nhận\tNội dung buổi tập\tĐánh giá thể lực\n\t\t\t\t\t\t\t\t\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1",
+        "title": "HV026 - Trần Bảo Long",
+        "tabs": [
+          {
+            "text": "Trang chủ",
+            "active": true
+          },
+          {
+            "text": "Lịch tập",
+            "active": false
+          },
+          {
+            "text": "Gói của tôi",
+            "active": false
+          },
+          {
+            "text": "Thanh toán",
+            "active": false
+          },
+          {
+            "text": "Tài khoản",
+            "active": false
+          }
+        ],
+        "errors": [],
+        "loading": false,
+        "grids": [
+          {
+            "text": " \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\t\t\t\t\t\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1",
+            "records": []
+          },
+          {
+            "text": "Gói tập\tNgười mời\tTrạng thái\n\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1",
+            "records": []
+          },
+          {
+            "text": "Ngày tập\tBắt đầu\tKết thúc\tHuấn luyện viên\tTrạng thái\tQuan hệ\tBuổi thứ\tPT xác nhận\tHội viên xác nhận\tNội dung buổi tập\tĐánh giá thể lực\n\t\t\t\t\t\t\t\t\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1",
+            "records": []
+          }
+        ],
+        "inputs": [
+          {
+            "label": "Tìm kiếm",
+            "value": ""
+          },
+          {
+            "label": "Tìm kiếm",
+            "value": ""
+          },
+          {
+            "label": "Tìm kiếm",
+            "value": ""
+          }
+        ],
+        "authenticatedMemberId": null,
+        "profile": null
+      }
+    },
+    {
+      "number": 3,
+      "section": "Source Action Verification",
+      "name": "close-initial-popup",
+      "expected": "Close returns to member list",
+      "status": "PASS",
+      "image": "step-03-close-initial-popup.png",
+      "actual": {
+        "url": "/web/#members",
+        "popup": false,
+        "text": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n25 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV026\t\nBL\nTrần Bảo Long\n\t0988602943\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV025\t\nMD\nVõ Thị Mỹ Duyên\n\t0986161816\tmyduyen@paradise.test\tParadise Gym Bình Thạnh\tĐang hoạt động\t\n\t\nHV024\t\nBL\nTrần Bảo Long\n\t0988100759\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV023\t\nBL\nTrần Bảo Long\n\t0988449112\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV022\t\nBL\nTrần Bảo Long\n\t0988753060\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV021\t\nBL\nTrần Bảo Long\n\t0988661898\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV020\t\nBL\nTrần Bảo Long\n\t0988257329\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV019\t\nBL\nTrần Bảo Long\n\t0988653829\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV018\t\nBL\nTrần Bảo Long\n\t0988948468\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV017\t\nBL\nTrần Bảo Long\n\t0988751014\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV016\t\nBL\nTrần Bảo Long\n\t0988527951\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV015\t\nBL\nTrần Bảo Long\n\t0988982428\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV014\t\nBL\nTrần Bảo Long\n\t0988554901\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV013\t\nBL\nTrần Bảo Long\n\t0988964376\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV012\t\nBL\nTrần Bảo Long\n\t0988357902\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV011\t\nBL\nTrần Bảo Long\n\t0988438667\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV010\t\nBL\nTrần Bảo Long\n\t0912533091\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV009\t\nBL\nTrần Bảo Long\n\t0988811178\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV005\t\nVũ Minh Phúc\n\t0905678901\tphuc.vu@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV002\t\nTrần Thị Bình\n\t0902345678\tbinh.tran@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 2 (25 mục)12\nParadise Gym\nToàn bộ chi nhánh",
+        "fullText": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n25 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV026\t\nBL\nTrần Bảo Long\n\t0988602943\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV025\t\nMD\nVõ Thị Mỹ Duyên\n\t0986161816\tmyduyen@paradise.test\tParadise Gym Bình Thạnh\tĐang hoạt động\t\n\t\nHV024\t\nBL\nTrần Bảo Long\n\t0988100759\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV023\t\nBL\nTrần Bảo Long\n\t0988449112\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV022\t\nBL\nTrần Bảo Long\n\t0988753060\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV021\t\nBL\nTrần Bảo Long\n\t0988661898\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV020\t\nBL\nTrần Bảo Long\n\t0988257329\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV019\t\nBL\nTrần Bảo Long\n\t0988653829\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV018\t\nBL\nTrần Bảo Long\n\t0988948468\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV017\t\nBL\nTrần Bảo Long\n\t0988751014\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV016\t\nBL\nTrần Bảo Long\n\t0988527951\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV015\t\nBL\nTrần Bảo Long\n\t0988982428\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV014\t\nBL\nTrần Bảo Long\n\t0988554901\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV013\t\nBL\nTrần Bảo Long\n\t0988964376\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV012\t\nBL\nTrần Bảo Long\n\t0988357902\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV011\t\nBL\nTrần Bảo Long\n\t0988438667\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV010\t\nBL\nTrần Bảo Long\n\t0912533091\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV009\t\nBL\nTrần Bảo Long\n\t0988811178\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV005\t\nVũ Minh Phúc\n\t0905678901\tphuc.vu@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV002\t\nTrần Thị Bình\n\t0902345678\tbinh.tran@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 2 (25 mục)12\nParadise Gym\nToàn bộ chi nhánh",
+        "title": "",
+        "tabs": [],
+        "errors": [],
+        "loading": false,
+        "grids": [
+          {
+            "text": "Mã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV026\t\nBL\nTrần Bảo Long\n\t0988602943\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV025\t\nMD\nVõ Thị Mỹ Duyên\n\t0986161816\tmyduyen@paradise.test\tParadise Gym Bình Thạnh\tĐang hoạt động\t\n\t\nHV024\t\nBL\nTrần Bảo Long\n\t0988100759\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV023\t\nBL\nTrần Bảo Long\n\t0988449112\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV022\t\nBL\nTrần Bảo Long\n\t0988753060\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV021\t\nBL\nTrần Bảo Long\n\t0988661898\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV020\t\nBL\nTrần Bảo Long\n\t0988257329\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV019\t\nBL\nTrần Bảo Long\n\t0988653829\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV018\t\nBL\nTrần Bảo Long\n\t0988948468\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV017\t\nBL\nTrần Bảo Long\n\t0988751014\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV016\t\nBL\nTrần Bảo Long\n\t0988527951\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV015\t\nBL\nTrần Bảo Long\n\t0988982428\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV014\t\nBL\nTrần Bảo Long\n\t0988554901\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV013\t\nBL\nTrần Bảo Long\n\t0988964376\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV012\t\nBL\nTrần Bảo Long\n\t0988357902\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV011\t\nBL\nTrần Bảo Long\n\t0988438667\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV010\t\nBL\nTrần Bảo Long\n\t0912533091\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV009\t\nBL\nTrần Bảo Long\n\t0988811178\tbaolong.tran@example.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV005\t\nVũ Minh Phúc\n\t0905678901\tphuc.vu@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\nHV002\t\nTrần Thị Bình\n\t0902345678\tbinh.tran@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 2 (25 mục)12",
+            "records": [
+              {
+                "id": "07fedd34-b752-4a3a-84e2-3f71a983ae70",
+                "account_id": "687d26c5-2e6f-4a56-a59c-2d7e00adb41e",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV026",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988602943",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-18T01:56:16.622Z",
+                "updated_at": "2026-09-18T01:56:16.622Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "751e8f3a-20ab-4b8e-a282-4372e5a9ef27",
+                "account_id": "a1475ca0-06fb-446d-be6a-4c974bb023bb",
+                "home_branch_id": "22222222-2222-2222-2222-222222222222",
+                "member_code": "HV025",
+                "full_name": "Võ Thị Mỹ Duyên",
+                "phone": "0986161816",
+                "email": "myduyen@paradise.test",
+                "date_of_birth": null,
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": null,
+                "created_at": "2026-09-18T01:31:12.573Z",
+                "updated_at": "2026-09-18T01:31:12.573Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Bình Thạnh",
+                "has_active_package": false
+              },
+              {
+                "id": "77b085b5-6155-4b7c-8187-2e823aa24f2f",
+                "account_id": "39c09f61-2ebf-41aa-bccc-91523fb88080",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV024",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988100759",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-18T01:24:40.831Z",
+                "updated_at": "2026-09-18T01:24:40.831Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "004f135b-080f-4555-abdd-571403298fa7",
+                "account_id": "892197f3-3b3c-4586-a0fc-390f759ad795",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV023",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988449112",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-18T01:21:52.366Z",
+                "updated_at": "2026-09-18T01:21:52.366Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "038e8e97-8365-4dd1-9b97-82045756e77f",
+                "account_id": "a9ef3cdd-c694-40c5-953f-f5e03e8bac86",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV022",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988753060",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:52:31.894Z",
+                "updated_at": "2026-09-17T18:52:31.894Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": true
+              },
+              {
+                "id": "bf0a3875-2942-4a97-aa49-7e480bbecef6",
+                "account_id": "c1e4df9f-9ffe-4ffc-b7c0-c3efe7a01d95",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV021",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988661898",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:50:14.930Z",
+                "updated_at": "2026-09-17T18:50:14.930Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "d03a3f7a-28eb-417e-bddf-912b02a3d0ea",
+                "account_id": "0003e722-ab70-47ae-9ef6-261daf2b2b59",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV020",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988257329",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:47:37.370Z",
+                "updated_at": "2026-09-17T18:47:37.370Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "7b11bd03-dac8-4fe6-ac12-93f96006e5e4",
+                "account_id": "710d2438-ede8-464a-8275-4458c368973e",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV019",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988653829",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:45:56.245Z",
+                "updated_at": "2026-09-17T18:45:56.245Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "93ce5b58-57c8-4f00-a3c5-b277615c6d73",
+                "account_id": "c62bd33b-90d5-4177-a68e-c17ba88ae847",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV018",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988948468",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:43:42.241Z",
+                "updated_at": "2026-09-17T18:43:42.241Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "1c90f674-4161-43f4-8a9f-5dd91976a597",
+                "account_id": "9b85630c-6d6c-4927-94a8-58288fe8d9c5",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV017",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988751014",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:42:20.195Z",
+                "updated_at": "2026-09-17T18:42:20.195Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "f022b64f-3ef5-404d-a575-814f0d78c5c4",
+                "account_id": "a4eec27c-2ee4-416f-9775-1d48378258fc",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV016",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988527951",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:40:42.258Z",
+                "updated_at": "2026-09-17T18:40:42.258Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "d9941ef2-07a2-40ed-86f2-19d6c6184d97",
+                "account_id": "3050ae62-677b-4a23-a67c-096def218386",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV015",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988982428",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:39:25.012Z",
+                "updated_at": "2026-09-17T18:39:25.012Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "299a94b8-db8b-40fc-a0a4-ed5b385a48e5",
+                "account_id": "d28da0c9-fd98-4ed5-b9b8-81149324100f",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV014",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988554901",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:37:17.688Z",
+                "updated_at": "2026-09-17T18:37:17.688Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "35a95b94-9bbd-4c17-b7f1-8d3658ad6253",
+                "account_id": "4e9c4a28-803b-4758-a304-d35e32302169",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV013",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988964376",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:33:29.876Z",
+                "updated_at": "2026-09-17T18:33:29.876Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "47e60f84-7b9f-4f12-9a11-81b33e57929d",
+                "account_id": "7c032383-11dc-42af-8977-737e2f631ab4",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV012",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988357902",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T18:23:35.429Z",
+                "updated_at": "2026-09-17T18:23:35.429Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "d23fc3e9-98be-49fd-adf5-c3deb8ab6ce8",
+                "account_id": "0a648540-b7ea-4245-b582-c07a64980aaa",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV011",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988438667",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T17:53:57.692Z",
+                "updated_at": "2026-09-17T17:53:57.692Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "62bb3b4e-dc48-4319-90de-dcf7160fc76e",
+                "account_id": "4ec117ee-92e6-4623-adf0-c8de2a7ee24a",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV010",
+                "full_name": "Trần Bảo Long",
+                "phone": "0912533091",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": "1995-05-15",
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T17:53:14.511Z",
+                "updated_at": "2026-09-17T17:53:14.511Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "3ba2c4a8-2d72-435f-a431-c06ff4de0bb0",
+                "account_id": "ac72f1be-4799-40e3-ac3f-07cdd47e86c8",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV009",
+                "full_name": "Trần Bảo Long",
+                "phone": "0988811178",
+                "email": "baolong.tran@example.com",
+                "date_of_birth": null,
+                "gender": null,
+                "avatar_url": null,
+                "status": "ACTIVE",
+                "created_by": "99999999-9999-9999-9999-999999999991",
+                "created_at": "2026-09-17T17:52:43.484Z",
+                "updated_at": "2026-09-17T17:52:43.484Z",
+                "qr_code": null,
+                "face_enrolled": false,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": false
+              },
+              {
+                "id": "40000000-0000-0000-0000-000000000005",
+                "account_id": "99999999-9999-9999-9999-999999999990",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV005",
+                "full_name": "Vũ Minh Phúc",
+                "phone": "0905678901",
+                "email": "phuc.vu@gmail.com",
+                "date_of_birth": "1994-08-15",
+                "gender": "NAM",
+                "avatar_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80",
+                "status": "ACTIVE",
+                "created_by": null,
+                "created_at": "2026-09-17T05:29:03.343Z",
+                "updated_at": "2026-09-17T05:29:03.343Z",
+                "qr_code": "QR-HV005-0905678901",
+                "face_enrolled": true,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": true
+              },
+              {
+                "id": "40000000-0000-0000-0000-000000000002",
+                "account_id": "99999999-9999-9999-9999-999999999997",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV002",
+                "full_name": "Trần Thị Bình",
+                "phone": "0902345678",
+                "email": "binh.tran@gmail.com",
+                "date_of_birth": "1995-04-12",
+                "gender": "NU",
+                "avatar_url": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80",
+                "status": "ACTIVE",
+                "created_by": null,
+                "created_at": "2026-09-17T05:29:03.343Z",
+                "updated_at": "2026-09-17T05:29:03.343Z",
+                "qr_code": "QR-HV002-0902345678",
+                "face_enrolled": true,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": true
+              }
+            ]
+          }
+        ],
+        "inputs": [
+          {
+            "label": "Chi nhánh làm việc",
+            "value": "Toàn bộ chi nhánh"
+          },
+          {
+            "label": "Mã HV, họ tên, SĐT",
+            "value": ""
+          },
+          {
+            "label": "Lựa chọn...",
+            "value": "Tất cả trạng thái"
+          },
+          {
+            "label": "Lựa chọn...",
+            "value": "Tất cả trong phạm vi"
+          }
+        ],
+        "authenticatedMemberId": null,
+        "profile": null
+      }
+    },
+    {
+      "number": 4,
+      "section": "Source Action Verification",
+      "name": "search-same-active-mobile-member",
+      "expected": "QTV-W02-US04 Main Flow / Field-level specification / Exception Flows: search exact phone and show matching row",
+      "status": "PASS",
+      "image": "step-04-search-same-active-mobile-member.png",
+      "actual": {
+        "url": "/web/#members",
+        "popup": false,
+        "text": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n1 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV001\t\nLê Hoàng Nam\n\t0987654321\tnam.lehoang.9173@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 1 (1 mục)1\nParadise Gym\nToàn bộ chi nhánh",
+        "fullText": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n1 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV001\t\nLê Hoàng Nam\n\t0987654321\tnam.lehoang.9173@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 1 (1 mục)1\nParadise Gym\nToàn bộ chi nhánh",
+        "title": "",
+        "tabs": [],
+        "errors": [],
+        "loading": false,
+        "grids": [
+          {
+            "text": "Mã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV001\t\nLê Hoàng Nam\n\t0987654321\tnam.lehoang.9173@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 1 (1 mục)1",
+            "records": [
+              {
+                "id": "40000000-0000-0000-0000-000000000001",
+                "account_id": "99999999-9999-9999-9999-999999999996",
+                "home_branch_id": "11111111-1111-1111-1111-111111111111",
+                "member_code": "HV001",
+                "full_name": "Lê Hoàng Nam",
+                "phone": "0987654321",
+                "email": "nam.lehoang.9173@gmail.com",
+                "date_of_birth": "1992-09-24",
+                "gender": null,
+                "avatar_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
+                "status": "ACTIVE",
+                "created_by": null,
+                "created_at": "2026-09-17T05:29:03.343Z",
+                "updated_at": "2026-09-18T02:07:20.215Z",
+                "qr_code": "QR-HV001-0987654321",
+                "face_enrolled": true,
+                "home_branch_name": "Paradise Gym Quận 1",
+                "has_active_package": true
+              }
+            ]
+          }
+        ],
+        "inputs": [
+          {
+            "label": "Chi nhánh làm việc",
+            "value": "Toàn bộ chi nhánh"
+          },
+          {
+            "label": "Mã HV, họ tên, SĐT",
+            "value": "0987654321"
+          },
+          {
+            "label": "Lựa chọn...",
+            "value": "Tất cả trạng thái"
+          },
+          {
+            "label": "Lựa chọn...",
+            "value": "Tất cả trong phạm vi"
+          }
+        ],
+        "authenticatedMemberId": null,
+        "profile": null
+      }
+    },
+    {
+      "number": 5,
+      "section": "Source Action Verification",
+      "name": "open-same-member-popup",
+      "expected": "QTV-W02-US04 Main Flow 2-8, popup navigation field table and Business Rules; Product Spec W02: same member identity; exactly five menu tabs",
+      "status": "PASS",
+      "image": "step-05-open-same-member-popup.png",
+      "actual": {
+        "url": "/web/#members",
+        "popup": true,
+        "text": "HV001 - Lê Hoàng Nam\nLê Hoàng Nam\n\nHV001\n\nĐang hoạt động\n\n0987654321\n\nParadise Gym Quận 1\n\nTrang chủ\nLịch tập\nGói của tôi\nThanh toán\nTài khoản\nGói đang hoạt động\nTìm kiếm\nTrạng thái\n \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK016\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK015\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK014\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK-2026-07-01\tGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\tChủ gói\tĐang hoạt động\t01/07/2026\t14/10/2026\tParadise Gym Quận 1\n\n\tDK009\tGói PT Cao Cấp 20 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n\n\tDK008\tGói PT 20 buổi theo nhóm\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n\n\tDK007\tGói PT Giảm Mỡ 12 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n\n\tDK002\tGói Combo VIP (Gym 30 buổi + PT 12 buổi)\tChủ gói\tĐang hoạt động\t17/09/2026\t23/12/2026\tParadise Gym Quận 1\n\n\tDK001\tGói Combo VIP (Gym 30 buổi + PT 12 buổi)\tChủ gói\tĐang hoạt động\t17/09/2026\t16/12/2026\tParadise Gym Quận 1\n\n\tDK-2026-09-007\tGói Gym Năng Động 3 Tháng\tChủ gói\tĐang hoạt động\t14/09/2026\t13/12/2026\tParadise Gym Quận 1\n102050\nTrang 1/2 · 11 bản ghi12\nLời mời đang chờ\nTìm kiếm\nGói tập\tNgười mời\tTrạng thái\n\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1\nLịch PT sắp tới\nTìm kiếm\nTrạng thái\nNgày tập\tBắt đầu\tKết thúc\tHuấn luyện viên\tTrạng thái\tQuan hệ\tBuổi thứ\tPT xác nhận\tHội viên xác nhận\tNội dung buổi tập\tĐánh giá thể lực\n22/09/2026\t09:00:00\t10:00:00\tNguyễn Văn Thể\tĐã đặt lịch\tNgười đặt lịch\t2\t-\t-\t \t \n102050\nTrang 1/1 · 1 bản ghi1",
+        "fullText": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n1 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV001\t\nLê Hoàng Nam\n\t0987654321\tnam.lehoang.9173@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 1 (1 mục)1\nParadise Gym\nToàn bộ chi nhánh\nHV001 - Lê Hoàng Nam\nLê Hoàng Nam\n\nHV001\n\nĐang hoạt động\n\n0987654321\n\nParadise Gym Quận 1\n\nTrang chủ\nLịch tập\nGói của tôi\nThanh toán\nTài khoản\nGói đang hoạt động\nTìm kiếm\nTrạng thái\n \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK016\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK015\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK014\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK-2026-07-01\tGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\tChủ gói\tĐang hoạt động\t01/07/2026\t14/10/2026\tParadise Gym Quận 1\n\n\tDK009\tGói PT Cao Cấp 20 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n\n\tDK008\tGói PT 20 buổi theo nhóm\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n\n\tDK007\tGói PT Giảm Mỡ 12 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n\n\tDK002\tGói Combo VIP (Gym 30 buổi + PT 12 buổi)\tChủ gói\tĐang hoạt động\t17/09/2026\t23/12/2026\tParadise Gym Quận 1\n\n\tDK001\tGói Combo VIP (Gym 30 buổi + PT 12 buổi)\tChủ gói\tĐang hoạt động\t17/09/2026\t16/12/2026\tParadise Gym Quận 1\n\n\tDK-2026-09-007\tGói Gym Năng Động 3 Tháng\tChủ gói\tĐang hoạt động\t14/09/2026\t13/12/2026\tParadise Gym Quận 1\n102050\nTrang 1/2 · 11 bản ghi12\nLời mời đang chờ\nTìm kiếm\nGói tập\tNgười mời\tTrạng thái\n\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1\nLịch PT sắp tới\nTìm kiếm\nTrạng thái\nNgày tập\tBắt đầu\tKết thúc\tHuấn luyện viên\tTrạng thái\tQuan hệ\tBuổi thứ\tPT xác nhận\tHội viên xác nhận\tNội dung buổi tập\tĐánh giá thể lực\n22/09/2026\t09:00:00\t10:00:00\tNguyễn Văn Thể\tĐã đặt lịch\tNgười đặt lịch\t2\t-\t-\t \t \n102050\nTrang 1/1 · 1 bản ghi1",
+        "title": "HV001 - Lê Hoàng Nam",
+        "tabs": [
+          {
+            "text": "Trang chủ",
+            "active": true
+          },
+          {
+            "text": "Lịch tập",
+            "active": false
+          },
+          {
+            "text": "Gói của tôi",
+            "active": false
+          },
+          {
+            "text": "Thanh toán",
+            "active": false
+          },
+          {
+            "text": "Tài khoản",
+            "active": false
+          }
+        ],
+        "errors": [],
+        "loading": false,
+        "grids": [
+          {
+            "text": " \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK016\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK015\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK014\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK-2026-07-01\tGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\tChủ gói\tĐang hoạt động\t01/07/2026\t14/10/2026\tParadise Gym Quận 1\n\n\tDK009\tGói PT Cao Cấp 20 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n\n\tDK008\tGói PT 20 buổi theo nhóm\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n\n\tDK007\tGói PT Giảm Mỡ 12 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n\n\tDK002\tGói Combo VIP (Gym 30 buổi + PT 12 buổi)\tChủ gói\tĐang hoạt động\t17/09/2026\t23/12/2026\tParadise Gym Quận 1\n\n\tDK001\tGói Combo VIP (Gym 30 buổi + PT 12 buổi)\tChủ gói\tĐang hoạt động\t17/09/2026\t16/12/2026\tParadise Gym Quận 1\n\n\tDK-2026-09-007\tGói Gym Năng Động 3 Tháng\tChủ gói\tĐang hoạt động\t14/09/2026\t13/12/2026\tParadise Gym Quận 1\n102050\nTrang 1/2 · 11 bản ghi12",
+            "records": [
+              {
+                "id": "3ca3178d-184f-4743-94a4-7c891f735e28",
+                "reg_code": "DK016",
+                "registration_code": "DK016",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "87dcce7e-8d7a-4d56-9f33-7408295ba7da",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "PT 30 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 30,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 28,
+                "booked_pt_sessions": 1,
+                "used_pt_sessions": 1,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL_1_1",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T09:06:24.899Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 120,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 1500000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 1500000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "c0b43a21-4897-40e7-ba74-19a0fbd13417",
+                "reg_code": "DK015",
+                "registration_code": "DK015",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "87dcce7e-8d7a-4d56-9f33-7408295ba7da",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "PT 30 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 30,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 30,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL_1_1",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T09:01:05.338Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 120,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 1500000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 1500000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "ef45fe57-c018-4b8f-bb8e-75a3fed0adab",
+                "reg_code": "DK014",
+                "registration_code": "DK014",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "87dcce7e-8d7a-4d56-9f33-7408295ba7da",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "PT 30 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 30,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 28,
+                "booked_pt_sessions": 2,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL_1_1",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T08:55:53.253Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 120,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 1500000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 1500000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "aaa0f898-4816-478a-b316-1cc027e33a96",
+                "reg_code": "DK-2026-07-01",
+                "registration_code": "DK-2026-07-01",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "30000000-0000-0000-0000-000000000004",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói PT Giảm Mỡ 12 buổi (Tháng 7/2026)",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-07-01",
+                "end_date": "2026-10-14",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 6,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 6,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-19T19:16:38.835Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 4800000,
+                "gym_price_snapshot": null,
+                "pt_price_snapshot": 4800000,
+                "combo_price_snapshot": null,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "fc3cc1a6-2b4b-40b9-bcc1-5241fe2986bc",
+                "reg_code": "DK009",
+                "registration_code": "DK009",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "30000000-0000-0000-0000-000000000004",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói PT Cao Cấp 20 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 20,
+                "start_date": "2026-09-19",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 19,
+                "booked_pt_sessions": 1,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-19T14:22:44.965Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 2000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 2000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "7ae56a76-4076-4de6-835b-7dc1485ba75a",
+                "reg_code": "DK008",
+                "registration_code": "DK008",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "16a26e72-9458-4272-b679-596f203208a8",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói PT 20 buổi theo nhóm",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 20,
+                "start_date": "2026-09-19",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 19,
+                "booked_pt_sessions": 1,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "GROUP_1_N",
+                "group_leader_member_id": "40000000-0000-0000-0000-000000000001",
+                "max_group_members_snapshot": 4,
+                "created_at": "2026-09-19T12:50:36.032Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 5000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 5000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "56019811-26bf-4e4d-aee0-4f201084eaf4",
+                "reg_code": "DK007",
+                "registration_code": "DK007",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "30000000-0000-0000-0000-000000000006",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói PT Giảm Mỡ 12 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-19",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-19T12:09:17.144Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 1000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 1000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "aaa0f898-4816-478a-b316-1cc027e33a98",
+                "reg_code": "DK002",
+                "registration_code": "DK002",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "55555555-5555-5555-5555-555555555554",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP (Gym 30 buổi + PT 12 buổi)",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": 30,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-17",
+                "end_date": "2026-12-23",
+                "remaining_gym_sessions": 30,
+                "remaining_pt_sessions": 7,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 5,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-17T14:33:11.102Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 6500000,
+                "gym_price_snapshot": 2000000,
+                "pt_price_snapshot": 4500000,
+                "combo_price_snapshot": 6500000,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "8e325df9-df7d-4f0f-a5c7-de2bd5e605f7",
+                "reg_code": "DK001",
+                "registration_code": "DK001",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "55555555-5555-5555-5555-555555555554",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP (Gym 30 buổi + PT 12 buổi)",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": 30,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-17",
+                "end_date": "2026-12-16",
+                "remaining_gym_sessions": 30,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-17T09:23:29.810Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 2000,
+                "gym_price_snapshot": 2000000,
+                "pt_price_snapshot": 4500000,
+                "combo_price_snapshot": 6500000,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "88880001-0000-0000-0000-000000000007",
+                "reg_code": "DK-2026-09-007",
+                "registration_code": "DK-2026-09-007",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "30000000-0000-0000-0000-000000000002",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Gym Năng Động 3 Tháng",
+                "package_type_snapshot": "GYM_TIME",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": null,
+                "start_date": "2026-09-14",
+                "end_date": "2026-12-13",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": null,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-14T11:15:00.000Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 3200000,
+                "gym_price_snapshot": null,
+                "pt_price_snapshot": null,
+                "combo_price_snapshot": null,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              }
+            ]
+          },
+          {
+            "text": "Gói tập\tNgười mời\tTrạng thái\n\t\t\nKhông có dữ liệu phù hợp\n102050\nTrang 1/1 · 0 bản ghi1",
+            "records": []
+          },
+          {
+            "text": "Ngày tập\tBắt đầu\tKết thúc\tHuấn luyện viên\tTrạng thái\tQuan hệ\tBuổi thứ\tPT xác nhận\tHội viên xác nhận\tNội dung buổi tập\tĐánh giá thể lực\n22/09/2026\t09:00:00\t10:00:00\tNguyễn Văn Thể\tĐã đặt lịch\tNgười đặt lịch\t2\t-\t-\t \t \n102050\nTrang 1/1 · 1 bản ghi1",
+            "records": [
+              {
+                "id": "79428410-d266-4f50-ab26-6400fd80862a",
+                "registration_id": "3ca3178d-184f-4743-94a4-7c891f735e28",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "pt_id": "50000000-0000-0000-0000-000000000001",
+                "branch_id": "11111111-1111-1111-1111-111111111111",
+                "session_number": 2,
+                "booking_date": "2026-09-22",
+                "start_time": "09:00:00",
+                "end_time": "10:00:00",
+                "status": "BOOKED",
+                "workout_notes": null,
+                "fitness_assessment": null,
+                "cancelled_by": null,
+                "cancel_reason": null,
+                "cancelled_at": null,
+                "pt_confirmed_at": null,
+                "member_confirmed_at": null,
+                "is_deducted": false,
+                "is_group_participant": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "pt_name": "Nguyễn Văn Thể",
+                "pt_code": "PT001",
+                "branch_name": "Paradise Gym Quận 1",
+                "branch_timezone": "Asia/Ho_Chi_Minh",
+                "reg_code": "DK016",
+                "package_name_snapshot": "PT 30 buổi"
+              }
+            ]
+          }
+        ],
+        "inputs": [
+          {
+            "label": "Tìm kiếm",
+            "value": ""
+          },
+          {
+            "label": "Trạng thái",
+            "value": ""
+          },
+          {
+            "label": "Tìm kiếm",
+            "value": ""
+          },
+          {
+            "label": "Tìm kiếm",
+            "value": ""
+          },
+          {
+            "label": "Trạng thái",
+            "value": ""
+          }
+        ],
+        "authenticatedMemberId": null,
+        "profile": null
+      }
+    },
+    {
+      "number": 6,
+      "section": "Source Action Verification",
+      "name": "open-packages-for-readonly-filter",
+      "expected": "QTV-W02-US04 Main Flow 2-8, popup navigation field table and Business Rules; Product Spec W02",
+      "status": "PASS",
+      "image": "step-06-open-packages-for-readonly-filter.png",
+      "actual": {
+        "url": "/web/#members",
+        "popup": true,
+        "text": "HV001 - Lê Hoàng Nam\nLê Hoàng Nam\n\nHV001\n\nĐang hoạt động\n\n0987654321\n\nParadise Gym Quận 1\n\nTrang chủ\nLịch tập\nGói của tôi\nThanh toán\nTài khoản\nGói đã đăng ký\nLời mời nhóm\nGói đã đăng ký\nTìm kiếm\nTrạng thái\nTừ ngày\nĐến ngày\n \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK017\tGói Combo VIP Paradise 129\tChủ gói\tChờ thanh toán\t21/09/2026\t20/12/2026\tParadise Gym Quận 1\n\n\tDK016\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK015\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK014\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK013\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK012\tGói PT Cao Cấp 20 buổi\tChủ gói\tChờ thanh toán\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK011\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK-2026-07-01\tGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\tChủ gói\tĐang hoạt động\t01/07/2026\t14/10/2026\tParadise Gym Quận 1\n\n\tDK010\tGói Combo VIP Paradise 963\tChủ gói\tĐã hủy\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK009\tGói PT Cao Cấp 20 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n102050\nTrang 1/2 · 19 bản ghi12",
+        "fullText": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n1 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV001\t\nLê Hoàng Nam\n\t0987654321\tnam.lehoang.9173@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 1 (1 mục)1\nParadise Gym\nToàn bộ chi nhánh\nHV001 - Lê Hoàng Nam\nLê Hoàng Nam\n\nHV001\n\nĐang hoạt động\n\n0987654321\n\nParadise Gym Quận 1\n\nTrang chủ\nLịch tập\nGói của tôi\nThanh toán\nTài khoản\nGói đã đăng ký\nLời mời nhóm\nGói đã đăng ký\nTìm kiếm\nTrạng thái\nTừ ngày\nĐến ngày\n \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK017\tGói Combo VIP Paradise 129\tChủ gói\tChờ thanh toán\t21/09/2026\t20/12/2026\tParadise Gym Quận 1\n\n\tDK016\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK015\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK014\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK013\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK012\tGói PT Cao Cấp 20 buổi\tChủ gói\tChờ thanh toán\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK011\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK-2026-07-01\tGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\tChủ gói\tĐang hoạt động\t01/07/2026\t14/10/2026\tParadise Gym Quận 1\n\n\tDK010\tGói Combo VIP Paradise 963\tChủ gói\tĐã hủy\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK009\tGói PT Cao Cấp 20 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n102050\nTrang 1/2 · 19 bản ghi12",
+        "title": "HV001 - Lê Hoàng Nam",
+        "tabs": [
+          {
+            "text": "Trang chủ",
+            "active": false
+          },
+          {
+            "text": "Lịch tập",
+            "active": false
+          },
+          {
+            "text": "Gói của tôi",
+            "active": true
+          },
+          {
+            "text": "Thanh toán",
+            "active": false
+          },
+          {
+            "text": "Tài khoản",
+            "active": false
+          }
+        ],
+        "errors": [],
+        "loading": false,
+        "grids": [
+          {
+            "text": " \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK017\tGói Combo VIP Paradise 129\tChủ gói\tChờ thanh toán\t21/09/2026\t20/12/2026\tParadise Gym Quận 1\n\n\tDK016\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK015\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK014\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK013\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK012\tGói PT Cao Cấp 20 buổi\tChủ gói\tChờ thanh toán\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK011\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK-2026-07-01\tGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\tChủ gói\tĐang hoạt động\t01/07/2026\t14/10/2026\tParadise Gym Quận 1\n\n\tDK010\tGói Combo VIP Paradise 963\tChủ gói\tĐã hủy\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK009\tGói PT Cao Cấp 20 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n102050\nTrang 1/2 · 19 bản ghi12",
+            "records": [
+              {
+                "id": "c5f46179-ae5e-4d1d-a3c8-32f579f6dd03",
+                "reg_code": "DK017",
+                "registration_code": "DK017",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "d31b6923-918a-4fe6-92d8-b261593778f2",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP Paradise 129",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-21",
+                "end_date": "2026-12-20",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "PENDING_PAYMENT",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-21T07:05:41.022Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 6000000,
+                "gym_price_snapshot": 1800000,
+                "pt_price_snapshot": 4200000,
+                "combo_price_snapshot": 6000000,
+                "is_expiring": false,
+                "display_status": "PENDING_PAYMENT",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "3ca3178d-184f-4743-94a4-7c891f735e28",
+                "reg_code": "DK016",
+                "registration_code": "DK016",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "87dcce7e-8d7a-4d56-9f33-7408295ba7da",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "PT 30 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 30,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 28,
+                "booked_pt_sessions": 1,
+                "used_pt_sessions": 1,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL_1_1",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T09:06:24.899Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 120,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 1500000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 1500000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "c0b43a21-4897-40e7-ba74-19a0fbd13417",
+                "reg_code": "DK015",
+                "registration_code": "DK015",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "87dcce7e-8d7a-4d56-9f33-7408295ba7da",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "PT 30 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 30,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 30,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL_1_1",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T09:01:05.338Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 120,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 1500000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 1500000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "ef45fe57-c018-4b8f-bb8e-75a3fed0adab",
+                "reg_code": "DK014",
+                "registration_code": "DK014",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "87dcce7e-8d7a-4d56-9f33-7408295ba7da",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "PT 30 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 30,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 28,
+                "booked_pt_sessions": 2,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL_1_1",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T08:55:53.253Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 120,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 1500000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 1500000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "774dbb44-63dd-4797-b299-311a8242f742",
+                "reg_code": "DK013",
+                "registration_code": "DK013",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "ebb07e8e-888e-42b6-94e0-4b909cf69db8",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP Paradise 963",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-20",
+                "end_date": "2026-12-19",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "PENDING_PAYMENT",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T06:42:13.830Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 6000000,
+                "gym_price_snapshot": 1800000,
+                "pt_price_snapshot": 4200000,
+                "combo_price_snapshot": 6000000,
+                "is_expiring": false,
+                "display_status": "PENDING_PAYMENT",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "b3c80525-3eb2-4987-a525-ed1ee2e04243",
+                "reg_code": "DK012",
+                "registration_code": "DK012",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "30000000-0000-0000-0000-000000000004",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói PT Cao Cấp 20 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 20,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 20,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "PENDING_PAYMENT",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T06:42:03.289Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 2000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 2000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "PENDING_PAYMENT",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "ba7be909-56a1-484f-bc1e-358f2408f8c4",
+                "reg_code": "DK011",
+                "registration_code": "DK011",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "ebb07e8e-888e-42b6-94e0-4b909cf69db8",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP Paradise 963",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-20",
+                "end_date": "2026-12-19",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "PENDING_PAYMENT",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T05:57:59.112Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 6000000,
+                "gym_price_snapshot": 1800000,
+                "pt_price_snapshot": 4200000,
+                "combo_price_snapshot": 6000000,
+                "is_expiring": false,
+                "display_status": "PENDING_PAYMENT",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "aaa0f898-4816-478a-b316-1cc027e33a96",
+                "reg_code": "DK-2026-07-01",
+                "registration_code": "DK-2026-07-01",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "30000000-0000-0000-0000-000000000004",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói PT Giảm Mỡ 12 buổi (Tháng 7/2026)",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-07-01",
+                "end_date": "2026-10-14",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 6,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 6,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-19T19:16:38.835Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 4800000,
+                "gym_price_snapshot": null,
+                "pt_price_snapshot": 4800000,
+                "combo_price_snapshot": null,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "ff4f8578-f49a-48f1-bd3e-2b2774581207",
+                "reg_code": "DK010",
+                "registration_code": "DK010",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "ebb07e8e-888e-42b6-94e0-4b909cf69db8",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP Paradise 963",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-20",
+                "end_date": "2026-12-19",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "CANCELLED",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-19T17:04:55.876Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 6000000,
+                "gym_price_snapshot": 1800000,
+                "pt_price_snapshot": 4200000,
+                "combo_price_snapshot": 6000000,
+                "is_expiring": false,
+                "display_status": "CANCELLED",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "fc3cc1a6-2b4b-40b9-bcc1-5241fe2986bc",
+                "reg_code": "DK009",
+                "registration_code": "DK009",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "30000000-0000-0000-0000-000000000004",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói PT Cao Cấp 20 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 20,
+                "start_date": "2026-09-19",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 19,
+                "booked_pt_sessions": 1,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-19T14:22:44.965Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 2000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 2000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              }
+            ]
+          }
+        ],
+        "inputs": [
+          {
+            "label": "Tìm kiếm",
+            "value": ""
+          },
+          {
+            "label": "Trạng thái",
+            "value": ""
+          },
+          {
+            "label": "Từ ngày",
+            "value": ""
+          },
+          {
+            "label": "Đến ngày",
+            "value": ""
+          }
+        ],
+        "authenticatedMemberId": null,
+        "profile": null
+      }
+    },
+    {
+      "number": 7,
+      "section": "State Verification",
+      "name": "package-search-input-auto-applies",
+      "expected": "QTV-W02-US04 Main Flow 2-8, popup navigation field table and Business Rules; Product Spec W02: search actual registration code, capture input (auto-apply; no submit button)",
+      "status": "PASS",
+      "image": "step-07-package-search-input-auto-applies.png",
+      "actual": {
+        "url": "/web/#members",
+        "popup": true,
+        "text": "HV001 - Lê Hoàng Nam\nLê Hoàng Nam\n\nHV001\n\nĐang hoạt động\n\n0987654321\n\nParadise Gym Quận 1\n\nTrang chủ\nLịch tập\nGói của tôi\nThanh toán\nTài khoản\nGói đã đăng ký\nLời mời nhóm\nGói đã đăng ký\nTìm kiếm\nTrạng thái\nTừ ngày\nĐến ngày\n \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK017\tGói Combo VIP Paradise 129\tChủ gói\tChờ thanh toán\t21/09/2026\t20/12/2026\tParadise Gym Quận 1\n102050\nTrang 1/1 · 1 bản ghi1",
+        "fullText": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n1 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV001\t\nLê Hoàng Nam\n\t0987654321\tnam.lehoang.9173@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 1 (1 mục)1\nParadise Gym\nToàn bộ chi nhánh\nHV001 - Lê Hoàng Nam\nLê Hoàng Nam\n\nHV001\n\nĐang hoạt động\n\n0987654321\n\nParadise Gym Quận 1\n\nTrang chủ\nLịch tập\nGói của tôi\nThanh toán\nTài khoản\nGói đã đăng ký\nLời mời nhóm\nGói đã đăng ký\nTìm kiếm\nTrạng thái\nTừ ngày\nĐến ngày\n \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK017\tGói Combo VIP Paradise 129\tChủ gói\tChờ thanh toán\t21/09/2026\t20/12/2026\tParadise Gym Quận 1\n102050\nTrang 1/1 · 1 bản ghi1",
+        "title": "HV001 - Lê Hoàng Nam",
+        "tabs": [
+          {
+            "text": "Trang chủ",
+            "active": false
+          },
+          {
+            "text": "Lịch tập",
+            "active": false
+          },
+          {
+            "text": "Gói của tôi",
+            "active": true
+          },
+          {
+            "text": "Thanh toán",
+            "active": false
+          },
+          {
+            "text": "Tài khoản",
+            "active": false
+          }
+        ],
+        "errors": [],
+        "loading": false,
+        "grids": [
+          {
+            "text": " \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK017\tGói Combo VIP Paradise 129\tChủ gói\tChờ thanh toán\t21/09/2026\t20/12/2026\tParadise Gym Quận 1\n102050\nTrang 1/1 · 1 bản ghi1",
+            "records": [
+              {
+                "id": "c5f46179-ae5e-4d1d-a3c8-32f579f6dd03",
+                "reg_code": "DK017",
+                "registration_code": "DK017",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "d31b6923-918a-4fe6-92d8-b261593778f2",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP Paradise 129",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-21",
+                "end_date": "2026-12-20",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "PENDING_PAYMENT",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-21T07:05:41.022Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 6000000,
+                "gym_price_snapshot": 1800000,
+                "pt_price_snapshot": 4200000,
+                "combo_price_snapshot": 6000000,
+                "is_expiring": false,
+                "display_status": "PENDING_PAYMENT",
+                "member_relationship": "OWNER"
+              }
+            ]
+          }
+        ],
+        "inputs": [
+          {
+            "label": "Tìm kiếm",
+            "value": "DK017"
+          },
+          {
+            "label": "Trạng thái",
+            "value": ""
+          },
+          {
+            "label": "Từ ngày",
+            "value": ""
+          },
+          {
+            "label": "Đến ngày",
+            "value": ""
+          }
+        ],
+        "authenticatedMemberId": null,
+        "profile": null
+      }
+    },
+    {
+      "number": 8,
+      "section": "Source Action Verification",
+      "name": "clear-package-search",
+      "expected": "Clear readonly search and restore package list",
+      "status": "PASS",
+      "image": "step-08-clear-package-search.png",
+      "actual": {
+        "url": "/web/#members",
+        "popup": true,
+        "text": "HV001 - Lê Hoàng Nam\nLê Hoàng Nam\n\nHV001\n\nĐang hoạt động\n\n0987654321\n\nParadise Gym Quận 1\n\nTrang chủ\nLịch tập\nGói của tôi\nThanh toán\nTài khoản\nGói đã đăng ký\nLời mời nhóm\nGói đã đăng ký\nTìm kiếm\nTrạng thái\nTừ ngày\nĐến ngày\n \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK017\tGói Combo VIP Paradise 129\tChủ gói\tChờ thanh toán\t21/09/2026\t20/12/2026\tParadise Gym Quận 1\n\n\tDK016\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK015\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK014\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK013\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK012\tGói PT Cao Cấp 20 buổi\tChủ gói\tChờ thanh toán\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK011\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK-2026-07-01\tGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\tChủ gói\tĐang hoạt động\t01/07/2026\t14/10/2026\tParadise Gym Quận 1\n\n\tDK010\tGói Combo VIP Paradise 963\tChủ gói\tĐã hủy\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK009\tGói PT Cao Cấp 20 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n102050\nTrang 1/2 · 19 bản ghi12",
+        "fullText": "ParadiseGym\nQUẢN LÝ PHÒNG TẬP\n0\n0900000001\nQuản trị viên\nKHÔNG GIAN LÀM VIỆC\nQTV\nVẬN HÀNH\nTổng quan\nHội viên & khách hàng\nGói tập\nĐăng ký & gia hạn\nHuấn luyện viên\nLịch tập & buổi PT\nLớp tập cộng đồng\nRa vào & check-in\nChăm sóc khách hàng\nKINH DOANH\nThu tiền & thanh toán\nBàn giao & tất toán doanh thu\nHoa hồng PT\nVoucher & khuyến mãi\nThông báo\nBáo cáo\nQUẢN TRỊ\nChi nhánh\nHệ thống & thiết bị\nTài khoản & phân quyền\nParadise Gym\nQuản trị vận hành\nHội viên & khách hàng\nHội viên & khách hàng\nThêm hội viên\nTìm hội viên\nTrạng thái hồ sơ\nChi nhánh tiếp nhận\n1 hội viên\nMã HV\tHọ và tên\tSố điện thoại\tEmail\tChi nhánh\tTrạng thái hồ sơ\tThao tác\t \nHV001\t\nLê Hoàng Nam\n\t0987654321\tnam.lehoang.9173@gmail.com\tParadise Gym Quận 1\tĐang hoạt động\t\n\t\n102050\nTrang 1 của 1 (1 mục)1\nParadise Gym\nToàn bộ chi nhánh\nHV001 - Lê Hoàng Nam\nLê Hoàng Nam\n\nHV001\n\nĐang hoạt động\n\n0987654321\n\nParadise Gym Quận 1\n\nTrang chủ\nLịch tập\nGói của tôi\nThanh toán\nTài khoản\nGói đã đăng ký\nLời mời nhóm\nGói đã đăng ký\nTìm kiếm\nTrạng thái\nTừ ngày\nĐến ngày\n \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK017\tGói Combo VIP Paradise 129\tChủ gói\tChờ thanh toán\t21/09/2026\t20/12/2026\tParadise Gym Quận 1\n\n\tDK016\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK015\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK014\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK013\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK012\tGói PT Cao Cấp 20 buổi\tChủ gói\tChờ thanh toán\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK011\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK-2026-07-01\tGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\tChủ gói\tĐang hoạt động\t01/07/2026\t14/10/2026\tParadise Gym Quận 1\n\n\tDK010\tGói Combo VIP Paradise 963\tChủ gói\tĐã hủy\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK009\tGói PT Cao Cấp 20 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n102050\nTrang 1/2 · 19 bản ghi12",
+        "title": "HV001 - Lê Hoàng Nam",
+        "tabs": [
+          {
+            "text": "Trang chủ",
+            "active": false
+          },
+          {
+            "text": "Lịch tập",
+            "active": false
+          },
+          {
+            "text": "Gói của tôi",
+            "active": true
+          },
+          {
+            "text": "Thanh toán",
+            "active": false
+          },
+          {
+            "text": "Tài khoản",
+            "active": false
+          }
+        ],
+        "errors": [],
+        "loading": false,
+        "grids": [
+          {
+            "text": " \tMã đăng ký\tGói tập\tVai trò\tTrạng thái\tBắt đầu\tKết thúc\tChi nhánh\n\tDK017\tGói Combo VIP Paradise 129\tChủ gói\tChờ thanh toán\t21/09/2026\t20/12/2026\tParadise Gym Quận 1\n\n\tDK016\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK015\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK014\tPT 30 buổi\tChủ gói\tĐang hoạt động\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK013\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK012\tGói PT Cao Cấp 20 buổi\tChủ gói\tChờ thanh toán\t20/09/2026\t-\tParadise Gym Quận 1\n\n\tDK011\tGói Combo VIP Paradise 963\tChủ gói\tChờ thanh toán\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK-2026-07-01\tGói PT Giảm Mỡ 12 buổi (Tháng 7/2026)\tChủ gói\tĐang hoạt động\t01/07/2026\t14/10/2026\tParadise Gym Quận 1\n\n\tDK010\tGói Combo VIP Paradise 963\tChủ gói\tĐã hủy\t20/09/2026\t19/12/2026\tParadise Gym Quận 1\n\n\tDK009\tGói PT Cao Cấp 20 buổi\tChủ gói\tĐang hoạt động\t19/09/2026\t-\tParadise Gym Quận 1\n102050\nTrang 1/2 · 19 bản ghi12",
+            "records": [
+              {
+                "id": "c5f46179-ae5e-4d1d-a3c8-32f579f6dd03",
+                "reg_code": "DK017",
+                "registration_code": "DK017",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "d31b6923-918a-4fe6-92d8-b261593778f2",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP Paradise 129",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-21",
+                "end_date": "2026-12-20",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "PENDING_PAYMENT",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-21T07:05:41.022Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 6000000,
+                "gym_price_snapshot": 1800000,
+                "pt_price_snapshot": 4200000,
+                "combo_price_snapshot": 6000000,
+                "is_expiring": false,
+                "display_status": "PENDING_PAYMENT",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "3ca3178d-184f-4743-94a4-7c891f735e28",
+                "reg_code": "DK016",
+                "registration_code": "DK016",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "87dcce7e-8d7a-4d56-9f33-7408295ba7da",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "PT 30 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 30,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 28,
+                "booked_pt_sessions": 1,
+                "used_pt_sessions": 1,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL_1_1",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T09:06:24.899Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 120,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 1500000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 1500000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "c0b43a21-4897-40e7-ba74-19a0fbd13417",
+                "reg_code": "DK015",
+                "registration_code": "DK015",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "87dcce7e-8d7a-4d56-9f33-7408295ba7da",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "PT 30 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 30,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 30,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL_1_1",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T09:01:05.338Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 120,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 1500000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 1500000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "ef45fe57-c018-4b8f-bb8e-75a3fed0adab",
+                "reg_code": "DK014",
+                "registration_code": "DK014",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "87dcce7e-8d7a-4d56-9f33-7408295ba7da",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "PT 30 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 30,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 28,
+                "booked_pt_sessions": 2,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL_1_1",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T08:55:53.253Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 120,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111",
+                  "22222222-2222-2222-2222-222222222222",
+                  "33333333-3333-3333-3333-333333333333"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "22222222-2222-2222-2222-222222222222",
+                    "branch_name": "Paradise Gym Bình Thạnh"
+                  },
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  },
+                  {
+                    "id": "33333333-3333-3333-3333-333333333333",
+                    "branch_name": "Paradise Gym Thảo Điền (Q2)"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 1500000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 1500000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "774dbb44-63dd-4797-b299-311a8242f742",
+                "reg_code": "DK013",
+                "registration_code": "DK013",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "ebb07e8e-888e-42b6-94e0-4b909cf69db8",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP Paradise 963",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-20",
+                "end_date": "2026-12-19",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "PENDING_PAYMENT",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T06:42:13.830Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 6000000,
+                "gym_price_snapshot": 1800000,
+                "pt_price_snapshot": 4200000,
+                "combo_price_snapshot": 6000000,
+                "is_expiring": false,
+                "display_status": "PENDING_PAYMENT",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "b3c80525-3eb2-4987-a525-ed1ee2e04243",
+                "reg_code": "DK012",
+                "registration_code": "DK012",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "30000000-0000-0000-0000-000000000004",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói PT Cao Cấp 20 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 20,
+                "start_date": "2026-09-20",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 20,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "PENDING_PAYMENT",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T06:42:03.289Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 2000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 2000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "PENDING_PAYMENT",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "ba7be909-56a1-484f-bc1e-358f2408f8c4",
+                "reg_code": "DK011",
+                "registration_code": "DK011",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "ebb07e8e-888e-42b6-94e0-4b909cf69db8",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP Paradise 963",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-20",
+                "end_date": "2026-12-19",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "PENDING_PAYMENT",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-20T05:57:59.112Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 6000000,
+                "gym_price_snapshot": 1800000,
+                "pt_price_snapshot": 4200000,
+                "combo_price_snapshot": 6000000,
+                "is_expiring": false,
+                "display_status": "PENDING_PAYMENT",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "aaa0f898-4816-478a-b316-1cc027e33a96",
+                "reg_code": "DK-2026-07-01",
+                "registration_code": "DK-2026-07-01",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "30000000-0000-0000-0000-000000000004",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói PT Giảm Mỡ 12 buổi (Tháng 7/2026)",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-07-01",
+                "end_date": "2026-10-14",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 6,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 6,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-19T19:16:38.835Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 4800000,
+                "gym_price_snapshot": null,
+                "pt_price_snapshot": 4800000,
+                "combo_price_snapshot": null,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "ff4f8578-f49a-48f1-bd3e-2b2774581207",
+                "reg_code": "DK010",
+                "registration_code": "DK010",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "ebb07e8e-888e-42b6-94e0-4b909cf69db8",
+                "assigned_pt_id": null,
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói Combo VIP Paradise 963",
+                "package_type_snapshot": "COMBO",
+                "duration_days_snapshot": 90,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 12,
+                "start_date": "2026-09-20",
+                "end_date": "2026-12-19",
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 12,
+                "booked_pt_sessions": 0,
+                "used_pt_sessions": 0,
+                "status": "CANCELLED",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-19T17:04:55.876Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": null,
+                "assigned_pt_code": null,
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": false,
+                "price_snapshot": 6000000,
+                "gym_price_snapshot": 1800000,
+                "pt_price_snapshot": 4200000,
+                "combo_price_snapshot": 6000000,
+                "is_expiring": false,
+                "display_status": "CANCELLED",
+                "member_relationship": "OWNER"
+              },
+              {
+                "id": "fc3cc1a6-2b4b-40b9-bcc1-5241fe2986bc",
+                "reg_code": "DK009",
+                "registration_code": "DK009",
+                "member_id": "40000000-0000-0000-0000-000000000001",
+                "package_id": "30000000-0000-0000-0000-000000000004",
+                "assigned_pt_id": "50000000-0000-0000-0000-000000000001",
+                "sold_branch_id": "11111111-1111-1111-1111-111111111111",
+                "package_name_snapshot": "Gói PT Cao Cấp 20 buổi",
+                "package_type_snapshot": "PT_SESSION",
+                "duration_days_snapshot": null,
+                "total_gym_sessions_snapshot": null,
+                "total_pt_sessions_snapshot": 20,
+                "start_date": "2026-09-19",
+                "end_date": null,
+                "remaining_gym_sessions": null,
+                "remaining_pt_sessions": 19,
+                "booked_pt_sessions": 1,
+                "used_pt_sessions": 0,
+                "status": "ACTIVE",
+                "is_frozen": false,
+                "package_mode": "INDIVIDUAL",
+                "group_leader_member_id": null,
+                "max_group_members_snapshot": null,
+                "created_at": "2026-09-19T14:22:44.965Z",
+                "is_group_member": false,
+                "member_name": "Lê Hoàng Nam",
+                "member_code": "HV001",
+                "branch_name": "Paradise Gym Quận 1",
+                "sold_branch_name": "Paradise Gym Quận 1",
+                "assigned_pt_name": "Nguyễn Văn Thể",
+                "assigned_pt_code": "PT001",
+                "session_duration_minutes": 60,
+                "allowed_branch_ids": [
+                  "11111111-1111-1111-1111-111111111111"
+                ],
+                "allowed_branches": [
+                  {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "branch_name": "Paradise Gym Quận 1"
+                  }
+                ],
+                "is_paid": true,
+                "price_snapshot": 2000,
+                "gym_price_snapshot": 0,
+                "pt_price_snapshot": 2000,
+                "combo_price_snapshot": 0,
+                "is_expiring": false,
+                "display_status": "ACTIVE",
+                "member_relationship": "OWNER"
+              }
+            ]
+          }
+        ],
+        "inputs": [
+          {
+            "label": "Tìm kiếm",
+            "value": ""
+          },
+          {
+            "label": "Trạng thái",
+            "value": ""
+          },
+          {
+            "label": "Từ ngày",
+            "value": ""
+          },
+          {
+            "label": "Đến ngày",
+            "value": ""
+          }
+        ],
+        "authenticatedMemberId": null,
+        "profile": null
+      }
+    }
+  ],
+  "issues": [],
+  "httpErrors": [],
+  "blockedWrites": [],
+  "aborted": [],
+  "requests": [
+    {
+      "role": "QTV",
+      "method": "OPTIONS",
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "OPTIONS",
+      "path": "/api/v1/branches",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "OPTIONS",
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "OPTIONS",
+      "path": "/api/v1/branches",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "GET",
+      "path": "/api/v1/branches",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "OPTIONS",
+      "path": "/api/v1/members",
+      "query": "?page=1&limit=20",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "GET",
+      "path": "/api/v1/members",
+      "query": "?page=1&limit=20",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "OPTIONS",
+      "path": "/api/v1/members/07fedd34-b752-4a3a-84e2-3f71a983ae70/overview-data",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "GET",
+      "path": "/api/v1/members/07fedd34-b752-4a3a-84e2-3f71a983ae70/overview-data",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "OPTIONS",
+      "path": "/api/v1/members",
+      "query": "?page=1&limit=20&q=0987654321",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "GET",
+      "path": "/api/v1/members",
+      "query": "?page=1&limit=20&q=0987654321",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "OPTIONS",
+      "path": "/api/v1/members/40000000-0000-0000-0000-000000000001/overview-data",
+      "query": "",
+      "branch": null
+    },
+    {
+      "role": "QTV",
+      "method": "GET",
+      "path": "/api/v1/members/40000000-0000-0000-0000-000000000001/overview-data",
+      "query": "",
+      "branch": null
+    }
+  ]
+}

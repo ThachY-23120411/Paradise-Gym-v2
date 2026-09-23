@@ -72,6 +72,7 @@ window.WebUI = (function () {
       const el = $('<article class="metric-card">').addClass(`metric-${item.tone || 'green'}`).appendTo(row);
       $('<div class="metric-label">').append($('<span>').text(item.label), $(`<i class="fa-solid fa-${item.icon || 'chart-simple'}" aria-hidden="true">`)).appendTo(el);
       $('<strong class="metric-value">').text(item.value ?? '-').appendTo(el);
+      if (item.amount) $('<div class="metric-amount-row">').html(item.amount).appendTo(el);
       $('<span class="metric-caption">').text(item.caption || '').appendTo(el);
       if (item.onClick) {
         el.addClass('metric-clickable').attr({ role: 'button', tabindex: '0' });

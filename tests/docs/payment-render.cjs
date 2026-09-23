@@ -4,8 +4,8 @@ const assert = require('node:assert/strict');
 const { chromium } = require('C:/Users/Admin/.agents/skills/playwright-skill/node_modules/playwright');
 const root = path.resolve(__dirname, '../..');
 const report = fs.readFileSync(path.join(root, 'docs/reports/tab3-mobile-pt/2026-09-21-payment-business-docs-walkthrough.md'), 'utf8');
-const files = [...report.matchAll(/^- \[(docs\/user-stories\/[^\]]+)\]/gm)].map(match => match[1]);
-assert.equal(files.length, 28, 'Expected the 28 payment-related stories');
+const files = process.argv.length > 2 ? process.argv.slice(2) : [...report.matchAll(/^- \[(docs\/user-stories\/[^\]]+)\]/gm)].map(match => match[1]);
+if (process.argv.length === 2) assert.equal(files.length, 28, 'Expected the 28 payment-related stories');
 (async () => {
   const browser = await chromium.launch({ headless: true });
   try {
@@ -16,6 +16,7 @@ assert.equal(files.length, 28, 'Expected the 28 payment-related stories');
     let count = 0;
     for (const file of files) {
       const source = fs.readFileSync(path.join(root, file), 'utf8');
+      assert(/```mermaid\s*\n/.test(source), `${file}: missing diagram`);
       for (const match of source.matchAll(/```mermaid\s*\n([\s\S]*?)```/g)) {
         const result = await page.evaluate(async ({ diagram, id }) => {
           const { svg } = await mermaid.render(id, diagram);
@@ -28,7 +29,7 @@ assert.equal(files.length, 28, 'Expected the 28 payment-related stories');
         console.log(`PASS ${file}: ${result.nodes} nodes rendered`);
       }
     }
-    assert.equal(count, 28);
+    if (process.argv.length === 2) assert.equal(count, files.length);
     console.log(`PASS ${count} Mermaid diagrams rendered with nonempty SVG geometry (not a full visual-layout audit).`);
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

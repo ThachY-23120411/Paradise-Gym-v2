@@ -86,6 +86,14 @@ Paradise Gym là hệ thống quản trị và vận hành chuỗi phòng gym đ
   - Ảnh khuôn mặt đạt chuẩn vừa được dùng làm ảnh đại diện (`avatar`), vừa được trích xuất vector nhận diện phục vụ Kiosk check-in tại cửa.
 - **Kiểm tra trùng lặp real-time:** Hệ thống kiểm tra trùng SĐT ngay khi nhập liệu; nếu trùng lập tức chặn và dẫn đến hồ sơ đang có.
 
+#### Tra cứu hồ sơ QTV W02 theo Mobile Hội viên (22/09/2026)
+
+Popup W02 của QTV tổ chức dữ liệu đúng hội viên theo 5 menu Mobile hiện hành: Trang chủ, Lịch tập, Gói của tôi, Thanh toán, Tài khoản. Đây là bản tra cứu chỉ đọc có branch scope, bao gồm gói sở hữu và tham gia nhóm được phép xem; không giả danh hội viên hoặc sao chép quyền tự phục vụ. Thông báo Mobile nằm ngoài 5 menu chính; không tự bổ sung một tab dữ liệu cá nhân khi chưa có quyền/nguồn đọc đúng hội viên.
+
+Tài khoản trong popup không cung cấp mật khẩu, phiên/thiết bị cá nhân, đăng xuất hoặc cài đặt riêng của tài khoản đang đăng nhập. Mọi dữ liệu lấy từ API đúng member/scope; không ép ALL, không suy thiếu dữ liệu thành 0 hoặc biến lỗi tải thành empty state. Gói không giới hạn/đóng băng phải giữ đúng ý nghĩa quyền lợi; avatar hồ sơ không tự chứng minh đăng ký sinh trắc hay consent.
+
+Refactor này chỉ thay popup QTV. LT giữ giao diện/luồng hiện hữu. Các nghiệp vụ thêm/sửa/đổi trạng thái hội viên, thu tiền, đăng ký gói, lịch tập và consent tiếp tục theo US quản trị và quyền hiện hữu; không bổ sung quyền thay mặt Mobile. Chi tiết tại [QTV-W02-US04](<user-stories/qtv/QTV-W02-Hội viên & khách hàng/QTV-W02-US04-Xem danh sách hội viên.md>) và [Epic W02](<epic/qtv/QTV-W02-Hội viên & khách hàng.md>).
+
 ### 4.2. Gói tập & 3 Loại Hình Tập Luyện
 Hệ thống hỗ trợ chuẩn hóa 3 loại hình tập luyện tại phòng gym:
 1. **Loại 1 — Tập tự do (Gói Gym tiêu chuẩn):**
@@ -215,3 +223,17 @@ Tài liệu Product Spec này làm kim chỉ nam nghiệp vụ cho toàn bộ c�
 - **User Stories Web Lễ tân:** [`docs/user-stories/le-tan/`](user-stories/le-tan/)
 - **User Stories Mobile Hội viên:** [`docs/user-stories/hoi-vien/`](user-stories/hoi-vien/)
 - **User Stories Mobile Huấn luyện viên:** [`docs/user-stories/pt/`](user-stories/pt/)
+
+## W18 - Bàn giao & tất toán doanh thu (21/09/2026)
+
+Phần bổ sung này mở rộng danh mục QTV W01-W17 bằng **W18**, không thay nghiệp vụ thu tiền W08 hoặc quyền của vai trò khác. W18 là bàn giao/tất toán doanh thu nội bộ vận hành, không phải khóa sổ kế toán Nhà nước, quyết toán/kê khai thuế hay lập hóa đơn thuế.
+
+- **Quyền:** chỉ QTV có quyền tài chính `view_financial`, trong branch scope được cấp. Xem trước/tạo đợt và thêm tài khoản yêu cầu chi nhánh cụ thể; ALL chỉ đọc lịch sử/danh mục trong phạm vi được cấp. LT/HV/PT không truy cập W18.
+- **Kỳ nguồn thu:** mặc định hôm nay, chọn ngày/tuần bất kỳ bằng Từ ngày/Đến ngày; bao gồm hai đầu theo ngày địa phương của chi nhánh, lọc `payments.confirmed_at`. Chỉ payment thành công với phiếu thu khớp tiền, chưa thuộc batch; không có intent/chờ thanh toán. Trên 10.000 khoản yêu cầu thu hẹp kỳ, không cắt bớt ngầm.
+- **Đối chiếu:** CASH gom Tiền mặt; BANK_TRANSFER gom theo registry tài khoản duy nhất bởi `bank_bin + account_no` trong chi nhánh. Registry lưu bền qua API chỉ dùng cho phân loại thủ công W18, không đổi VietQR global config hoặc tự ghi ngân hàng nhận vào payment cũ/mới. QTV kiểm chứng chứng từ rồi chọn tài khoản ngay trên dòng cho từng preview; allocation chỉ được lưu trong snapshot khi xác nhận batch. Không suy từ ENV hoặc tài khoản mặc định. Khoản chưa xác định, nhất là legacy còn chờ làm rõ, phải bị chặn trước xác nhận.
+- **Xác nhận:** toàn bộ tập preview, không theo trang/tìm kiếm grid; checkbox `Xác nhận đã bàn giao đầy đủ` phải được tích chủ động, `Ghi chú` tùy chọn tối đa 1000 ký tự. Server kiểm tra fingerprint `preview_token`, quyền/scope/tập/tổng/tài khoản lại. Token mới bị stale/xung đột phải từ chối và xem lại; replay cùng token đã thành công trả batch gốc, không tạo thêm/sửa batch.
+- **Bất biến:** một payment chỉ thuộc một batch; mã batch canonical `handover_code`. Lưu nguyên tử snapshot khách hàng, gói, hợp đồng, phiếu thu, phương thức, tài khoản nhận, số tiền cùng kỳ, múi giờ, tổng, người tạo và thời điểm xác nhận. Payment hiện hữu luôn bất biến trước/sau bàn giao, không thêm payment.status, không mở khóa trước bàn giao. Batch không sửa/xóa/mở lại; lịch sử đọc snapshot, không dựng lại từ cấu hình hiện tại.
+- **Kỳ chồng lấn:** kỳ chỉ xác định tập tại thời điểm xác nhận, không khóa ngày vĩnh viễn. Khoản ghi nhận muộn vẫn vào đợt sau nếu đủ điều kiện dù kỳ chồng đợt cũ; khoản đã bàn giao không lặp lại. Lọc lịch sử theo ngày xác nhận batch ở múi giờ lưu trên batch, không nhầm với ngày thu của payment.
+- **UI:** route `revenue-handovers`; tab Chưa bàn giao và Lịch sử bàn giao. Popup Tài khoản nhận tiền, dropdown phân loại inline, popup Xác nhận bàn giao doanh thu và Chi tiết bàn giao được đặc tả field-level tại US01-US03; không thêm layout dùng chung vào đặc tả.
+
+Traceability: [Epic QTV-W18](<epic/qtv/QTV-W18-Bàn giao & tất toán doanh thu.md>), [US01](<user-stories/qtv/QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US01-Xem và đối chiếu nguồn thu chưa bàn giao.md>), [US02](<user-stories/qtv/QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US02-Xác nhận bàn giao doanh thu.md>), [US03](<user-stories/qtv/QTV-W18-Bàn giao & tất toán doanh thu/QTV-W18-US03-Tra cứu lịch sử bàn giao.md>).

@@ -21,11 +21,13 @@ router.get('/customer-care/summary', route(async req => {
   `, [branchIds]);
 
   // 2. Gói sắp hết hạn trong vòng 4 ngày tới (<= 4 ngày)
-  const expiring = await listExpiring(pool,branchIds);
+  const expiring = await listExpiring(pool, branchIds);
+  const expiringRevenue = expiring.reduce((sum, r) => sum + (parseFloat(r.price_snapshot) || 0), 0);
 
   // 3. Đăng ký mới hôm nay
   const newRegsRes = await pool.query(`
-    SELECT COUNT(*) AS count
+    SELECT COUNT(*) AS count,
+           COALESCE(SUM(r.price_snapshot), 0) AS total_contract_value
     FROM registrations r
     WHERE ($1::uuid[] IS NULL OR r.sold_branch_id = ANY($1))
       AND DATE(r.created_at AT TIME ZONE 'Asia/Ho_Chi_Minh') = CURRENT_DATE
@@ -42,7 +44,8 @@ router.get('/customer-care/summary', route(async req => {
 
   // 5. Gói đã hết hạn trong 14 ngày qua (chờ nhắc gia hạn / tái ký)
   const pendingRenewalRes = await pool.query(`
-    SELECT COUNT(*) AS count
+    SELECT COUNT(*) AS count,
+           COALESCE(SUM(r.price_snapshot), 0) AS total_projected_revenue
     FROM registrations r
     WHERE ($1::uuid[] IS NULL OR r.sold_branch_id = ANY($1))
       AND (r.status = 'EXPIRED' OR r.end_date < CURRENT_DATE)
@@ -58,9 +61,12 @@ router.get('/customer-care/summary', route(async req => {
   return {
     birthdays_today: parseInt(birthdaysRes.rows[0].count, 10),
     expiring_soon_4days: expiring.length,
+    expiring_projected_revenue: expiringRevenue,
     new_registrations_today: parseInt(newRegsRes.rows[0].count, 10),
+    new_registrations_today_amount: parseFloat(newRegsRes.rows[0].total_contract_value),
     today_revenue: parseFloat(todayCashRes.rows[0].total_cash),
-    pending_renewals: parseInt(pendingRenewalRes.rows[0].count, 10)
+    pending_renewals: parseInt(pendingRenewalRes.rows[0].count, 10),
+    pending_renewals_projected_revenue: parseFloat(pendingRenewalRes.rows[0].total_projected_revenue)
   };
 }));
 
@@ -128,7 +134,7 @@ router.get('/customer-care/pending-renewals', route(async req => {
   const branchIds = scope(req);
 
   const list = (await pool.query(`
-    SELECT r.id, r.reg_code, r.package_name_snapshot, r.start_date, r.end_date, r.status,
+    SELECT r.id, r.reg_code, r.package_name_snapshot, r.price_snapshot, r.start_date, r.end_date, r.status,
            (CURRENT_DATE - r.end_date) AS days_expired,
            m.id AS member_id, m.member_code, m.full_name AS member_name, m.phone AS member_phone, m.avatar_url,
            b.branch_name,

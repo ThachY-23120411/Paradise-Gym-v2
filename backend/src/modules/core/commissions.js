@@ -386,7 +386,7 @@ router.post('/commissions/calculate', route(async req => {
     for (const pt of pts) {
       await row(db, 'pt_profiles', pt.id, true);
       const existing = (await db.query('SELECT * FROM pt_commissions WHERE pt_id=$1 AND month=$2 AND year=$3 FOR UPDATE', [pt.id, month, year])).rows[0];
-      if (existing?.status === 'PAID') {
+      if (existing?.status === 'PAID' || existing?.status === 'PENDING_CONFIRMATION') {
         results.push(publicCommission(existing));
         continue;
       }
@@ -449,35 +449,12 @@ router.post('/commissions/calculate', route(async req => {
 
 // GET /commissions/monthly & GET /commissions - Xem bảng kê hoa hồng tháng
 const listMonthlyCommissions = async req => {
-  role(req, 'QTV');
-  const month = parseInt(req.query.month, 10) || (new Date().getMonth() + 1);
-  const year = parseInt(req.query.year, 10) || new Date().getFullYear();
+  role(req, 'QTV', 'RECEPTIONIST');
+  const pt_id = req.query.pt_id || null;
+  const month = req.query.month ? parseInt(req.query.month, 10) : (pt_id ? null : (new Date().getMonth() + 1));
+  const year = req.query.year ? parseInt(req.query.year, 10) : (pt_id ? null : new Date().getFullYear());
   const branchIds = isStaff(req) ? scope(req) : null;
-
-  const list = (await pool.query(`
-    SELECT c.*, pt.full_name pt_name, pt.pt_code, pt.phone pt_phone,
-           pt.bank_name, pt.bank_account_no, pt.bank_account_name,
-           b.branch_name,
-           acc.full_name paid_by_name
-    FROM pt_commissions c
-    JOIN pt_profiles pt ON pt.id = c.pt_id
-    JOIN branches b ON b.id = pt.branch_id
-    LEFT JOIN accounts acc ON acc.id = c.paid_by_account_id
-    WHERE c.month = $1 AND c.year = $2
-      AND ($3::uuid[] IS NULL OR pt.branch_id = ANY($3))
-    ORDER BY pt.full_name ASC
-  `, [month, year, branchIds])).rows;
-
-  return list.map(publicCommission);
-};
-router.get('/commissions/monthly', route(listMonthlyCommissions));
-router.get('/commissions', route(listMonthlyCommissions));
-
-// GET /commissions/payout-history - Lịch sử chi trả hoa hồng PT
-router.get('/commissions/payout-history', route(async req => {
-  role(req, 'QTV');
-  const branchIds = isStaff(req) ? scope(req) : null;
-  const { pt_id, payout_method, from_date, to_date, branch_id, month, year, search } = req.query;
+  const branch_id = req.query.branch_id && req.query.branch_id !== 'ALL' ? req.query.branch_id : null;
 
   let query = `
     SELECT c.*, pt.full_name pt_name, pt.pt_code, pt.phone pt_phone,
@@ -488,7 +465,49 @@ router.get('/commissions/payout-history', route(async req => {
     JOIN pt_profiles pt ON pt.id = c.pt_id
     JOIN branches b ON b.id = pt.branch_id
     LEFT JOIN accounts acc ON acc.id = c.paid_by_account_id
-    WHERE c.status = 'PAID'
+    WHERE ($1::uuid[] IS NULL OR pt.branch_id = ANY($1))
+  `;
+  const params = [branchIds];
+  if (month) {
+    params.push(month);
+    query += ` AND c.month = $${params.length}`;
+  }
+  if (year) {
+    params.push(year);
+    query += ` AND c.year = $${params.length}`;
+  }
+  if (pt_id) {
+    params.push(pt_id);
+    query += ` AND c.pt_id = $${params.length}`;
+  }
+  if (branch_id) {
+    params.push(branch_id);
+    query += ` AND pt.branch_id = $${params.length}`;
+  }
+  query += ` ORDER BY c.year DESC, c.month DESC, pt.full_name ASC`;
+
+  const list = (await pool.query(query, params)).rows;
+  return list.map(publicCommission);
+};
+router.get('/commissions/monthly', route(listMonthlyCommissions));
+router.get('/commissions', route(listMonthlyCommissions));
+
+// GET /commissions/payout-history - Lịch sử chi trả hoa hồng PT
+router.get('/commissions/payout-history', route(async req => {
+  role(req, 'QTV', 'RECEPTIONIST');
+  const branchIds = isStaff(req) ? scope(req) : null;
+  const { pt_id, payout_method, from_date, to_date, branch_id, month, year, search, status } = req.query;
+
+  let query = `
+    SELECT c.*, pt.full_name pt_name, pt.pt_code, pt.phone pt_phone,
+           pt.bank_name, pt.bank_account_no, pt.bank_account_name,
+           b.branch_name,
+           acc.full_name paid_by_name
+    FROM pt_commissions c
+    JOIN pt_profiles pt ON pt.id = c.pt_id
+    JOIN branches b ON b.id = pt.branch_id
+    LEFT JOIN accounts acc ON acc.id = c.paid_by_account_id
+    WHERE c.status IN ('PAID', 'PENDING_CONFIRMATION')
   `;
   const params = [];
 
@@ -504,6 +523,10 @@ router.get('/commissions/payout-history', route(async req => {
     params.push(pt_id);
     query += ` AND c.pt_id = $${params.length}`;
   }
+  if (status && status !== 'ALL') {
+    params.push(status);
+    query += ` AND c.status = $${params.length}`;
+  }
   if (payout_method && payout_method !== 'ALL') {
     params.push(payout_method);
     query += ` AND c.payout_method = $${params.length}`;
@@ -518,11 +541,11 @@ router.get('/commissions/payout-history', route(async req => {
   }
   if (from_date) {
     params.push(from_date);
-    query += ` AND c.paid_at >= $${params.length}::date`;
+    query += ` AND COALESCE(c.paid_at, c.created_at) >= $${params.length}::date`;
   }
   if (to_date) {
     params.push(to_date);
-    query += ` AND c.paid_at < ($${params.length}::date + INTERVAL '1 day')`;
+    query += ` AND COALESCE(c.paid_at, c.created_at) < ($${params.length}::date + INTERVAL '1 day')`;
   }
   if (search && search.trim()) {
     params.push(`%${search.trim().toLowerCase()}%`);
@@ -541,7 +564,7 @@ router.get('/commissions/payout-history', route(async req => {
 
 // GET /commissions/:id/details - Xem chi tiết các buổi dạy của một bản kê hoa hồng
 router.get('/commissions/:id/details', route(async req => {
-  role(req, 'QTV', 'PT');
+  role(req, 'QTV', 'RECEPTIONIST', 'PT');
   const comm = (await pool.query(`
     SELECT c.*, pt.full_name pt_name, pt.pt_code, pt.phone pt_phone,
            pt.bank_name, pt.bank_account_no, pt.bank_account_name,
@@ -558,17 +581,19 @@ router.get('/commissions/:id/details', route(async req => {
   if (req.user.active_role === 'PT') {
     if (comm.pt_id !== req.user.pt_profile_id) fail(403, 'Bạn chỉ được xem hoa hồng của mình', 'FORBIDDEN');
   } else H.branch(req, trainer.branch_id);
-  if (comm.status === 'PAID') return { commission: publicCommission(comm), ...paidDetails(comm) };
+  if (comm.status === 'PAID' || (comm.status === 'PENDING_CONFIRMATION' && comm.details_snapshot)) {
+    return { commission: publicCommission(comm), ...paidDetails(comm) };
+  }
   if (comm.status !== 'PAID') comm.commission_percentage = await getPtCommissionRate(pool, comm.pt_id, trainer.branch_id, `${comm.year}-${String(comm.month).padStart(2, '0')}-01T00:00:00+07:00`);
   const sessions = await commissionSessions(pool, comm);
 
   return { commission: publicCommission(liveSummary(comm, sessions)), sessions, details_snapshot_available: false };
 }));
 
-// PUT /commissions/:id/status - Duyệt hoặc chuyển trạng thái đã chi trả
+// PUT /commissions/:id/status - Duyệt hoặc phát lệnh chi trả hoa hồng PT
 router.put('/commissions/:id/status', route(async req => {
-  role(req, 'QTV');
-  const nextStatus = choice(req.body.status, ['PENDING', 'APPROVED', 'PAID'], 'status');
+  role(req, 'QTV', 'RECEPTIONIST');
+  const nextStatus = choice(req.body.status, ['PENDING', 'APPROVED', 'PENDING_CONFIRMATION', 'PAID'], 'status');
   
   return transaction(async db => {
     const comm = await row(db, 'pt_commissions', req.params.id, true);
@@ -579,18 +604,20 @@ router.put('/commissions/:id/status', route(async req => {
       fail(409, 'Bảng kê đã chi trả không được thay đổi');
     }
 
-    if (nextStatus === 'PAID' && Number(comm.total_commission_amount) <= 0) {
+    const isPayoutAction = nextStatus === 'PENDING_CONFIRMATION' || nextStatus === 'PAID';
+
+    if (isPayoutAction && Number(comm.total_commission_amount) <= 0) {
       fail(400, 'Không thể thực hiện chi trả cho khoản hoa hồng bằng 0đ.');
     }
 
-    const payoutMethod = nextStatus === 'PAID' ? (req.body.payout_method || 'BANK_TRANSFER') : comm.payout_method;
-    const payoutRef = nextStatus === 'PAID' ? (req.body.payout_ref ? text(req.body.payout_ref, 'payout_ref', 100) : null) : comm.payout_ref;
-    const payoutNote = nextStatus === 'PAID' ? (req.body.payout_note ? text(req.body.payout_note, 'payout_note', 500) : null) : comm.payout_note;
-    const paidBy = nextStatus === 'PAID' ? req.user.account_id : (nextStatus === 'APPROVED' ? comm.paid_by_account_id : null);
-    const snapshot = nextStatus === 'PAID' ? await commissionSessions(db, comm) : null;
+    const payoutMethod = isPayoutAction ? (req.body.payout_method || 'BANK_TRANSFER') : comm.payout_method;
+    const payoutRef = isPayoutAction ? (req.body.payout_ref ? text(req.body.payout_ref, 'payout_ref', 100, false) : null) : comm.payout_ref;
+    const payoutNote = isPayoutAction ? (req.body.payout_note ? text(req.body.payout_note, 'payout_note', 500, false) : null) : comm.payout_note;
+    const paidBy = isPayoutAction ? req.user.account_id : (nextStatus === 'APPROVED' ? comm.paid_by_account_id : null);
+    const snapshot = isPayoutAction ? (comm.details_snapshot || await commissionSessions(db, comm)) : null;
 
     // Cập nhật thông tin ngân hàng nếu được gửi kèm
-    if (nextStatus === 'PAID' && req.body.bank_name && req.body.bank_account_no) {
+    if (isPayoutAction && req.body.bank_name && req.body.bank_account_no) {
       await db.query(`
         UPDATE pt_profiles
         SET bank_name = $1, bank_account_no = $2, bank_account_name = COALESCE($3, bank_account_name), updated_at = NOW()
@@ -601,7 +628,8 @@ router.put('/commissions/:id/status', route(async req => {
     const updated = (await db.query(`
       UPDATE pt_commissions
       SET status = $2::varchar,
-          paid_at = CASE WHEN $2::varchar = 'PAID' THEN NOW() WHEN $2::varchar = 'PENDING' THEN NULL ELSE paid_at END,
+          paid_at = CASE WHEN $2::varchar IN ('PAID', 'PENDING_CONFIRMATION') THEN COALESCE(paid_at, NOW()) WHEN $2::varchar = 'PENDING' THEN NULL ELSE paid_at END,
+          pt_confirmed_at = CASE WHEN $2::varchar = 'PAID' THEN COALESCE(pt_confirmed_at, NOW()) ELSE pt_confirmed_at END,
           payout_method = $3,
           payout_ref = $4,
           payout_note = $5,
@@ -611,11 +639,21 @@ router.put('/commissions/:id/status', route(async req => {
       RETURNING *
     `, [comm.id, nextStatus, payoutMethod, payoutRef, payoutNote, paidBy, snapshot === null ? null : JSON.stringify(snapshot)])).rows[0];
 
-    // Gửi thông báo đến tài khoản PT khi chi trả
-    if (nextStatus === 'PAID') {
-      const pt = (await db.query('SELECT account_id FROM pt_profiles WHERE id = $1', [comm.pt_id])).rows[0];
-      if (pt?.account_id) {
-        const moneyFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(comm.total_commission_amount);
+    // Gửi thông báo đến tài khoản PT khi phát lệnh chi trả hoặc chi trả trực tiếp
+    const pt = (await db.query('SELECT account_id FROM pt_profiles WHERE id = $1', [comm.pt_id])).rows[0];
+    if (pt?.account_id) {
+      const moneyFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(comm.total_commission_amount);
+      if (nextStatus === 'PENDING_CONFIRMATION') {
+        await db.query(`
+          INSERT INTO notifications (account_id, title, body, reference_type, reference_id, event_type, created_at)
+          VALUES ($1, $2, $3, 'pt_commissions', $4, 'COMMISSION_PAYOUT_INITIATED', NOW())
+        `, [
+          pt.account_id,
+          'Xác nhận đã chi trả hoa hồng',
+          `Lễ tân/Quản lý đã thực hiện lệnh chi trả hoa hồng tháng ${comm.month}/${comm.year} số tiền ${moneyFormatted}. Vui lòng kiểm tra và xác nhận đã nhận tiền trên app.`,
+          comm.id
+        ]);
+      } else if (nextStatus === 'PAID') {
         await db.query(`
           INSERT INTO notifications (account_id, title, body, reference_type, reference_id, event_type, created_at)
           VALUES ($1, $2, $3, 'pt_commissions', $4, 'COMMISSION_PAID', NOW())
@@ -633,6 +671,59 @@ router.put('/commissions/:id/status', route(async req => {
   });
 }));
 
+// POST /pt/my-commissions/:id/confirm-receipt - HLV xác nhận đã nhận tiền hoa hồng (Quy trình 2 chiều chống chối nhận tiền)
+router.post('/pt/my-commissions/:id/confirm-receipt', route(async req => {
+  role(req, 'PT');
+  const ptId = req.user.pt_profile_id;
+  if (!ptId) fail(400, 'Không tìm thấy hồ sơ PT');
+
+  return transaction(async db => {
+    const comm = await row(db, 'pt_commissions', req.params.id, true);
+    if (comm.pt_id !== ptId) {
+      fail(403, 'Bạn chỉ được xác nhận hoa hồng của chính mình', 'FORBIDDEN');
+    }
+
+    if (comm.status === 'PAID') {
+      return { success: true, commission: publicCommission(comm), message: 'Hoa hồng đã được xác nhận chi trả trước đó' };
+    }
+
+    if (comm.status !== 'PENDING_CONFIRMATION') {
+      fail(400, 'Khoản hoa hồng chưa ở trạng thái chờ xác nhận chi trả');
+    }
+
+    // Đảm bảo details_snapshot tồn tại trước khi chuyển sang PAID
+    const snapshot = comm.details_snapshot || await commissionSessions(db, comm);
+
+    const updated = (await db.query(`
+      UPDATE pt_commissions
+      SET status = 'PAID',
+          paid_at = COALESCE(paid_at, NOW()),
+          pt_confirmed_at = NOW(),
+          details_snapshot = $2::jsonb
+      WHERE id = $1
+      RETURNING *
+    `, [comm.id, JSON.stringify(snapshot)])).rows[0];
+
+    // Gửi thông báo đến Lễ tân/QTV đã thực hiện lệnh chi trả
+    if (comm.paid_by_account_id) {
+      const ptProfile = await row(db, 'pt_profiles', ptId);
+      const moneyFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(comm.total_commission_amount);
+      await db.query(`
+        INSERT INTO notifications (account_id, title, body, reference_type, reference_id, event_type, created_at)
+        VALUES ($1, $2, $3, 'pt_commissions', $4, 'COMMISSION_PT_CONFIRMED', NOW())
+      `, [
+        comm.paid_by_account_id,
+        'HLV đã xác nhận nhận tiền',
+        `HLV ${ptProfile.full_name} đã xác nhận đã nhận đủ số tiền hoa hồng ${moneyFormatted} tháng ${comm.month}/${comm.year}.`,
+        comm.id
+      ]);
+    }
+
+    await audit(db, req, 'pt_commissions', comm.id, 'COMMISSION_PT_CONFIRMED', comm, updated);
+    return { success: true, commission: publicCommission(updated), pt_confirmed_at: updated.pt_confirmed_at };
+  });
+}));
+
 // GET /pt/my-commissions - Mobile PT xem hoa hồng của chính mình (PT06)
 router.get('/pt/my-commissions', route(async req => {
   role(req, 'PT');
@@ -644,9 +735,11 @@ router.get('/pt/my-commissions', route(async req => {
   let comm = (await pool.query(`
     SELECT * FROM pt_commissions WHERE pt_id = $1 AND month = $2 AND year = $3
   `, [ptId, month, year])).rows[0];
-  if (comm?.status === 'PAID') return { summary: publicCommission(comm), ...paidDetails(comm) };
+  if (comm?.status === 'PAID' || (comm?.status === 'PENDING_CONFIRMATION' && comm.details_snapshot)) {
+    return { summary: publicCommission(comm), ...paidDetails(comm) };
+  }
 
-  if (!comm || comm.status !== 'PAID') {
+  if (!comm || (comm.status !== 'PAID' && comm.status !== 'PENDING_CONFIRMATION')) {
     const ptProfile = await row(pool, 'pt_profiles', ptId);
     const rate = await getPtCommissionRate(pool, ptId, ptProfile.branch_id, `${year}-${String(month).padStart(2, '0')}-01T00:00:00+07:00`);
     comm = { ...comm, pt_id: ptId, month, year, commission_percentage: rate, status: comm?.status || 'PENDING' };

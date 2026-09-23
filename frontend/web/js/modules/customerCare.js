@@ -62,6 +62,7 @@ window.CustomerCareModule = (function () {
         {
           label: 'Sắp hết hạn',
           value: summary.expiring_soon_4days || 0,
+          amount: `<span class="metric-amount-label">Dự thu:</span> <strong class="metric-amount-val">${W().money(summary.expiring_projected_revenue || 0)}</strong>`,
           caption: (summary.expiring_soon_4days || 0) > 0 ? 'Cần gọi điện nhắc nhở' : 'Không có gói cận hạn',
           icon: 'triangle-exclamation',
           tone: (summary.expiring_soon_4days || 0) > 0 ? 'danger' : 'amber',
@@ -70,6 +71,7 @@ window.CustomerCareModule = (function () {
         {
           label: 'Chờ nhắc gia hạn (14 ngày qua)',
           value: summary.pending_renewals || 0,
+          amount: `<span class="metric-amount-label">Dự thu:</span> <strong class="metric-amount-val">${W().money(summary.pending_renewals_projected_revenue || 0)}</strong>`,
           caption: 'Gói hết hạn chưa gia hạn lại',
           icon: 'hourglass-half',
           tone: 'amber',
@@ -78,6 +80,7 @@ window.CustomerCareModule = (function () {
         {
           label: 'Đăng ký mới hôm nay',
           value: summary.new_registrations_today || 0,
+          amount: `<span class="metric-amount-label">Tổng tiền:</span> <strong class="metric-amount-val">${W().money(summary.new_registrations_today_amount || 0)}</strong>`,
           caption: 'Hợp đồng phát sinh trong ngày',
           icon: 'file-signature',
           tone: 'blue',
@@ -195,6 +198,7 @@ window.CustomerCareModule = (function () {
         }
       },
       { dataField: 'package_name_snapshot', caption: 'Gói tập', minWidth: 200 },
+      { dataField: 'price_snapshot', caption: 'Dự thu gia hạn', width: 130, alignment: 'right', calculateCellValue: r => W().money(r.price_snapshot) },
       { dataField: 'end_date', caption: 'Hết hạn ngày', dataType: 'date', format: 'dd/MM/yyyy', width: 120, alignment: 'center', customizeText: cell => cell.value ? cell.valueText : '--' },
       {
         caption: 'Còn lại', width: 170, alignment: 'center',
@@ -247,6 +251,7 @@ window.CustomerCareModule = (function () {
         }
       },
       { dataField: 'package_name_snapshot', caption: 'Gói đã tập', minWidth: 160 },
+      { dataField: 'price_snapshot', caption: 'Dự thu tái ký', width: 130, alignment: 'right', calculateCellValue: r => W().money(r.price_snapshot) },
       { dataField: 'end_date', caption: 'Ngày hết hạn', dataType: 'date', format: 'dd/MM/yyyy', width: 120, alignment: 'center' },
       {
         dataField: 'days_expired', caption: 'Quá hạn', width: 120, alignment: 'center',

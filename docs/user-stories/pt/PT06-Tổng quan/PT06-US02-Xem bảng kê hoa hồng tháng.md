@@ -19,21 +19,29 @@ Người dùng đã phê duyệt snapshot bất biến cho chi tiết từng bu�
 3. PT chọn kỳ tính thù lao: `Tháng này` (mặc định) hoặc `Tháng trước` (hoặc bộ chọn tháng/năm).
 4. SYS tự động nạp và hiển thị khối tổng kết hoa hồng của PT trong tháng:
    - **Tổng hoa hồng ước tính**: Số tiền hoa hồng (VNĐ) làm nổi bật.
-   - **Trạng thái quyết toán**: Badge trạng thái (`Chờ chi trả` / `Đã chi trả` kèm ngày nhận tiền nếu có).
+   - **Trạng thái quyết toán**: Badge trạng thái (`Chờ chi trả` (`PENDING`), `Chờ bạn xác nhận` (`PENDING_CONFIRMATION`), hoặc `Đã chi trả` (`PAID`)).
    - **Tỷ lệ hoa hồng áp dụng**: Tỷ lệ % theo cấu hình (ví dụ: `25.0%`).
    - **Tổng số buổi đã dạy**: Đếm các buổi tập có trạng thái `COMPLETED` trong tháng.
    - **Doanh thu phần PT cơ sở**: Tổng giá trị phần gói PT tương ứng với các buổi đã dạy.
-5. Bên dưới là danh sách chi tiết từng buổi dạy trong tháng:
+   - **Khối thông báo phát lệnh chi trả**: Nếu trạng thái là `PENDING_CONFIRMATION`, hiển thị rõ số tiền, hình thức (`Tiền mặt tại quầy` hoặc `Chuyển khoản VietQR`), và nút bấm hành động **[Xác nhận đã nhận tiền]**.
+5. Khi PT kiểm tra tài khoản/tiền mặt thấy đã nhận đủ số tiền và bấm **[Xác nhận đã nhận tiền]**:
+   - SYS thực hiện giao dịch xác nhận 2 bên trên App (`POST /pt/my-commissions/:id/confirm-receipt`).
+   - Trạng thái lập tức chuyển sang `Đã chi trả` (`PAID`), hệ thống ghi nhận `pt_confirmed_at = NOW()` lưu vết pháp lý vĩnh viễn chống chối nhận tiền.
+   - Khối thông báo xác nhận ẩn đi, thay thế bằng dòng trạng thái xanh: `Đã xác nhận nhận tiền lúc: DD/MM/YYYY HH:mm`.
+6. Bên dưới là danh sách chi tiết từng buổi dạy trong tháng:
    - Ngày giờ buổi tập, Tên học viên, Tên gói tập (Gói cá nhân 1-1 hoặc Nhóm 1-Nhiều).
    - Giá trị buổi học và tiền hoa hồng trích cho buổi đó.
-6. PT có thể kéo để làm mới (Pull-to-refresh) dữ liệu sau khi vừa hoàn thành thêm một buổi dạy mới.
+7. PT có thể kéo để làm mới (Pull-to-refresh) dữ liệu bất kỳ lúc nào.
 
 ### Field-level specification — Màn hình Bảng kê hoa hồng tháng
 | Field / control | Loại UI Control | State | Required | Conditional / dynamic | Source / validation |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Bộ chọn kỳ thù lao | `Segmented Control / Chips` | `USER-INPUT (PREFILL)` | required | `TRIGGER` | Tùy chọn: `Tháng này`, `Tháng trước`, `Chọn tháng khác`. Khi chạm kích hoạt nạp lại số liệu |
 | Kỳ hoa hồng tùy chọn | Month picker | USER-INPUT (PREFILL) | conditional | CONDITIONAL: hiện và bắt buộc khi chọn Tháng khác; ẩn khi chọn Tháng này/Tháng trước | Tháng/năm hợp lệ; mặc định kỳ đang xem; gọi API theo tháng/năm đã chọn |
-| Thẻ tổng quan thù lao | `Card View (Highlight)` | `READONLY` | required | Không: giá trị theo kỳ | Hiển thị Tổng tiền hoa hồng, Trạng thái (`PENDING` (Chờ chi trả) / `PAID` (Đã chi trả)), Tỷ lệ % |
+| Thẻ tổng quan thù lao | `Card View (Highlight)` | `READONLY` | required | Không: giá trị theo kỳ | Hiển thị Tổng tiền hoa hồng, Trạng thái (`PENDING`, `PENDING_CONFIRMATION`, `PAID`), Tỷ lệ % |
+| Khối xác nhận chi trả | `Card Box (Info)` | `READONLY` | conditional | CONDITIONAL: hiện khi trạng thái = `PENDING_CONFIRMATION`; ẩn khi `PENDING` hoặc `PAID` | Hiển thị số tiền, hình thức nhận tiền và thông báo xác nhận từ Lễ tân/QTV |
+| Nút [Xác nhận đã nhận tiền] | `Button (Primary)` | `USER-INPUT` | conditional | CONDITIONAL: hiện khi trạng thái = `PENDING_CONFIRMATION`; ẩn khi `PENDING` hoặc `PAID` | PT bấm để xác nhận đã nhận đủ tiền hoa hồng, hoàn tất quy trình 2 chiều và lưu vết pháp lý |
+| Thời gian nhận tiền | `Timestamp Text` | `READONLY` | conditional | CONDITIONAL: hiện khi `PAID`; ẩn khi chưa hoàn tất chi trả | Hiển thị ngày giờ chi trả và ngày giờ PT xác nhận nhận tiền |
 | Tổng số buổi hoàn thành | `Badge / Stat Number` | `READONLY` | required | `Không` | Đếm các buổi `COMPLETED` của PT trong tháng |
 | Doanh thu phần PT cơ sở | `Readonly Text` | `READONLY` | required | `Không` | Tổng giá trị `pt_price` trích theo buổi |
 | Danh sách buổi dạy chi tiết | `List View` | `READONLY` | required | DYNAMIC: luôn hiển thị danh sách, bản ghi theo kỳ | Danh sách từng buổi tập kèm thông tin học viên, gói tập và tiền hoa hồng buổi |
@@ -93,8 +101,9 @@ flowchart TB
       I(("Initial"))
       A["Mở màn hình Hoa hồng và chọn tháng/năm"]
       V["Xem chi tiết hoa hồng"]
-      U{"Đổi kỳ hoặc làm mới?"}
+      U{"Thao tác tiếp theo?"}
       C["Chọn kỳ hoặc kéo làm mới"]
+      CONFIRM["Bấm [Xác nhận đã nhận tiền] trên thẻ thông báo"]
     end
     subgraph L1["Swimlane - SYS"]
       M(("Merge - Truy vấn kỳ"))
@@ -114,7 +123,10 @@ flowchart TB
       REC{"Tổng khớp chi tiết?"}
       ER["Báo lỗi đối soát, không tự tính bù"]
       FR((("Final - Cần đối soát")))
-      SHOW["Hiển thị tổng, chi tiết, tỷ lệ và ngày chi trả nếu có"]
+      SHOW["Hiển thị tổng, chi tiết, tỷ lệ và thông báo xác nhận nếu có"]
+      S_CONF["Gọi API POST confirm-receipt và cập nhật status sang PAID"]
+      S_NOTIF["Gửi thông báo COMMISSION_PT_CONFIRMED tới Lễ tân/QTV"]
+      F_PAID((("Final - Hoàn tất xác nhận nhận tiền 2 bên")))
       F((("Final - Đã xem")))
     end
     I --> A
@@ -140,7 +152,11 @@ flowchart TB
     REC -->|Có| SHOW
     SHOW --> V
     V --> U
-    U -->|Có| C
-    U -->|Không| F
+    U -->|Đổi kỳ hoặc làm mới| C
+    U -->|Xác nhận nhận tiền| CONFIRM
+    U -->|Rời màn hình| F
+    CONFIRM --> S_CONF
+    S_CONF --> S_NOTIF
+    S_NOTIF --> F_PAID
   end
 ```

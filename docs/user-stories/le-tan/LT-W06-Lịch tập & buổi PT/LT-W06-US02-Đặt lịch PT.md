@@ -57,7 +57,7 @@
 2. SYS mở lại modal Đặt lịch PT với toàn bộ thông tin hội viên, gói và mốc giờ hiện tại để Lễ tân hiệu chỉnh.
 
 ## Exception Flows
-- **Xung đột khung giờ:** Khung giờ chọn bị trùng hoặc đè lên một ca tập khác đã đặt trước của HLV. SYS cảnh báo: *"Khung giờ này HLV đã có lịch bận. Vui lòng chọn mốc giờ khác"*.
+- **Xung đột khung giờ:** Khung giờ chọn bị trùng hoặc đè lên một ca tập khác đã đặt trước của HLV. Khi kéo thả thẻ dự kiến trên Calendar đè lên ca đã có từ trước, hoặc click vào ô đã có lịch, SYS cảnh báo: *"Khung giờ này đã có lịch đặt từ trước. Thẻ lịch tự động quay về vị trí cũ!"*, hủy bỏ thao tác drop (`event.cancel = true`) và phục hồi thẻ về đúng vị trí cũ, tuyệt đối không cho phép đè hay chen chia đôi cột.
 - **Ngày nghỉ lễ:** Nếu ngày chọn là ngày lễ đóng cửa phòng gym (`holidays`), SYS chặn thao tác đặt lịch.
 - **Hội viên chưa có gói PT khả dụng:** Nếu hội viên được chọn không có gói PT nào còn hạn/còn buổi do HLV này phụ trách, SYS hiển thị thông báo đỏ và vô hiệu hóa các trường tiếp theo.
 

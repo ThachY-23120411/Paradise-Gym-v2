@@ -434,65 +434,1043 @@ window.PtSchedulerModule = (function () {
     } catch (error) { if (alive(state)) showError(state.status, error, () => showTrainerForm(state, pt)); }
   }
 
+  function ptDetails(parent, rows) {
+    const table = $('<dl>').css({ display: 'grid', gridTemplateColumns: 'minmax(140px, 1fr) minmax(0, 2fr)', gap: '10px 16px', margin: '12px 0' }).appendTo(parent);
+    rows.forEach(([label, value]) => {
+      $('<dt>').css({ color: 'var(--text-muted, #667085)', fontWeight: 600 }).text(label).appendTo(table);
+      $('<dd>').css({ margin: 0, overflowWrap: 'anywhere' }).text(value || '--').appendTo(table);
+    });
+  }
+  function ptDetailGrid(parent, rows, columns, empty) {
+    return $('<div>').appendTo(parent).dxDataGrid({
+      dataSource: rows,
+      columns,
+      width: '100%',
+      columnAutoWidth: false,
+      wordWrapEnabled: false,
+      showBorders: false,
+      showRowLines: true,
+      showColumnLines: false,
+      hoverStateEnabled: true,
+      rowAlternationEnabled: false,
+      noDataText: empty || 'Không có dữ liệu phù hợp',
+      loadPanel: { enabled: true, text: 'Đang tải dữ liệu...' },
+      scrolling: { mode: 'standard', useNative: true },
+      paging: { pageSize: 10 },
+      pager: {
+        visible: true,
+        showInfo: true,
+        showNavigationButtons: true,
+        showPageSizeSelector: true,
+        allowedPageSizes: [10, 20, 50],
+        infoText: 'Trang {0}/{1} · {2} bản ghi'
+      }
+    }).dxDataGrid('instance');
+  }
+
+  async function openCommunityClassMembersModal(classData) {
+    try {
+      const classId = classData.id;
+      const formatVnd = val => (Number(val) || 0).toLocaleString('vi-VN') + ' ₫';
+      const host = $('<div>').appendTo($('body'));
+      const popup = host.dxPopup({
+        title: 'Thông tin lớp học & Danh sách hội viên',
+        width: 620, maxWidth: 'calc(100vw - 32px)', height: 'auto', maxHeight: '88vh',
+        showCloseButton: true, dragEnabled: false, hideOnOutsideClick: true,
+        onHidden: () => { host.remove(); },
+        contentTemplate: element => {
+          const content = $('<div style="padding: 4px 6px;">').appendTo(element);
+          const totalComp = Number(classData.total_compensation || ((Number(classData.base_price) || 0) + (Number(classData.bonus_amount) || 0)));
+
+          $(`
+            <div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #ffffff; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
+              <div style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; margin-bottom: 2px;">
+                <i class="fa-solid fa-users" style="margin-right: 4px;"></i>LỚP TẬP CỘNG ĐỒNG
+              </div>
+              <div style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">
+                ${classData.title || 'Lớp cộng đồng'}
+              </div>
+              <div style="font-size: 12px; display: flex; flex-wrap: wrap; gap: 14px; opacity: 0.95;">
+                <span><i class="fa-solid fa-calendar" style="margin-right: 4px;"></i>${classData.class_date ? new Date(classData.class_date).toLocaleDateString('vi-VN') : '--'}</span>
+                <span><i class="fa-solid fa-clock" style="margin-right: 4px;"></i>${clock(classData.start_time)} - ${clock(classData.end_time)}</span>
+                <span><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i>${classData.branch_name || '--'}</span>
+              </div>
+              <div style="font-size: 12px; display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.2);">
+                <span><i class="fa-solid fa-user-group" style="margin-right: 4px;"></i>Sĩ số: <strong>${classData.enrolled_slots || 0}/${classData.max_slots || 30} HV</strong></span>
+                <span><i class="fa-solid fa-sack-dollar" style="margin-right: 4px;"></i>Thù lao: <strong>${formatVnd(totalComp)}</strong></span>
+              </div>
+            </div>
+          `).appendTo(content);
+
+          $('<div style="font-size: 13px; font-weight: 700; color: #185740; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">')
+            .html(`<span><i class="fa-solid fa-list-check" style="margin-right: 6px;"></i>Danh sách học viên tham gia</span><small style="color: #748078; font-weight: 400; font-size: 11px;">Sắp xếp theo thứ tự đăng ký</small>`)
+            .appendTo(content);
+
+          const gridContainer = $('<div>').appendTo(content);
+          const loader = $('<div style="text-align:center;padding:24px;color:#748078;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách học viên...</div>').appendTo(gridContainer);
+
+          (async () => {
+            try {
+              const res = await api().request(`/community-classes/${classId}/members`);
+              const members = rows(res);
+              loader.remove();
+              if (!members.length) {
+                $('<div style="text-align:center;padding:24px;color:#748078;background:#f8faf9;border-radius:6px;border:1px dashed #dfe6e2;">Chưa có học viên nào đăng ký lớp học này.</div>').appendTo(gridContainer);
+                return;
+              }
+              $('<div>').appendTo(gridContainer).dxDataGrid({
+                dataSource: members.map((m, idx) => ({ ...m, stt: idx + 1 })),
+                showBorders: true,
+                columnAutoWidth: false,
+                wordWrapEnabled: false,
+                paging: { pageSize: 10 },
+                columns: [
+                  { dataField: 'stt', caption: 'STT', width: 60, alignment: 'center' },
+                  { dataField: 'full_name', caption: 'Họ và tên', minWidth: 150 },
+                  { dataField: 'member_code', caption: 'Mã HV', width: 100, alignment: 'center' },
+                  { dataField: 'phone', caption: 'Số điện thoại', width: 120 },
+                  {
+                    dataField: 'enrolled_at', caption: 'Thời gian đăng ký', width: 140, alignment: 'center',
+                    dataType: 'datetime', format: 'dd/MM/yyyy HH:mm',
+                    customizeText: c => c.value ? c.valueText : '--'
+                  }
+                ]
+              });
+            } catch (err) {
+              loader.html(`<span style="color:#b5493a;">Không thể tải danh sách học viên: ${err.message || 'Lỗi kết nối'}</span>`);
+            }
+          })();
+        },
+        toolbarItems: [
+          {
+            widget: 'dxButton', toolbar: 'bottom', location: 'after',
+            options: { text: 'Đóng', stylingMode: 'outlined', onClick: () => popup.hide() }
+          }
+        ]
+      }).dxPopup('instance');
+      popup.show();
+    } catch (e) {
+      notify('Không thể mở thông tin lớp học: ' + e.message, 'error');
+    }
+  }
+
   async function showTrainerDetail(state, pt) {
     try {
-      const fullPt = read(await api().request(`/pt-bookings/trainers/${encodeURIComponent(pt.id)}`));
+      const formatVnd = val => (Number(val) || 0).toLocaleString('vi-VN') + ' ₫';
       const host = $('<div>').appendTo(state.root);
       const popup = host.dxPopup({
-        title: `Hồ sơ PT: ${fullPt.full_name} (${fullPt.pt_code || pt.code || ''})`,
-        width: 660, maxWidth: 'calc(100vw - 24px)', height: 'auto', maxHeight: '90vh',
-        showCloseButton: true, dragEnabled: true, hideOnOutsideClick: true,
+        title: `Hồ sơ Huấn luyện viên: ${pt.full_name || ''} (${pt.pt_code || pt.code || ''})`,
+        width: 1180, maxWidth: 'calc(100vw - 32px)', height: 'auto', maxHeight: '94vh',
+        showCloseButton: true, dragEnabled: false, hideOnOutsideClick: true,
+        onShown: e => {
+          const titlebar = $(e.component.content()).closest('.dx-overlay-content').find('.dx-popup-title');
+          titlebar.find('.dx-toolbar-before').css({ width: 'calc(100% - 48px)' });
+          titlebar.find('.dx-toolbar-label').css({ maxWidth: '100%', width: '100%' });
+        },
         onHidden: () => {
           state.popups = state.popups.filter(item => item !== popup);
           host.remove();
         },
         contentTemplate: element => {
-          const content = $('<div class="pt-trainer-detail-content" style="padding: 10px;">').appendTo(element);
-          const headerCard = $('<div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #e2ece5;">').appendTo(content);
-          const avatarHtml = fullPt.avatar_url && /^https?:\/\//.test(fullPt.avatar_url)
-            ? `<img src="${fullPt.avatar_url}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #237b58;">`
-            : `<div style="width:60px;height:60px;border-radius:50%;background:#eaf4ee;color:#237b58;font-size:20px;font-weight:700;display:grid;place-items:center;border:2px solid #237b58;">${(fullPt.full_name || '?').trim().split(/\s+/).slice(-2).map(x => x[0]).join('').toUpperCase()}</div>`;
-          $(avatarHtml).appendTo(headerCard);
-          const headerInfo = $('<div>').appendTo(headerCard);
-          $('<h4 style="margin:0 0 4px;font-size:16px;font-weight:700;color:#185740;">').text(fullPt.full_name).appendTo(headerInfo);
-          $('<div>').append($(badge(headerInfo, fullPt.status, PROFILE_STATUS)), $(` <span class="status-badge ${fullPt.face_enrolled ? 'badge-success' : 'badge-warning'}">${fullPt.face_enrolled ? 'Đã có ảnh chân dung' : 'Chưa có ảnh chân dung'}</span>`)).appendTo(headerInfo);
+          const content = $('<div class="pt-trainer-detail-content" style="padding: 0;">').appendTo(element);
+          const loadIndicator = $('<div style="text-align:center;padding:40px 0;color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: var(--primary); margin-bottom: 12px; display: block;"></i>Đang tải dữ liệu hồ sơ huấn luyện viên...</div>').appendTo(content);
 
-          const infoGroup = [
-            readonlyField('Họ và tên', fullPt.full_name),
-            readonlyField('Mã PT', fullPt.pt_code || pt.code),
-            readonlyField('Số điện thoại', fullPt.phone || 'Chưa cập nhật'),
-            readonlyField('Email', fullPt.email || 'Chưa cập nhật'),
-            readonlyField('Chi nhánh phục vụ', fullPt.branch_name || '--'),
-            { label: { text: 'Trạng thái' }, template: (_, el) => badge(el, fullPt.status, PROFILE_STATUS) },
-            readonlyField('Chuyên môn / Ghi chú', fullPt.specialties || fullPt.specialty || 'Chưa cập nhật')
-          ];
-          $('<div>').appendTo(content).dxForm({
-            readOnly: true, labelLocation: 'top', colCount: 2, colCountByScreen: { xs: 1 }, items: infoGroup
-          });
+          (async () => {
+            try {
+              const [fullPtRes, regsRes, bookingsRes, accessRes, commsRes, classesRes] = await Promise.allSettled([
+                api().request(`/pt-bookings/trainers/${encodeURIComponent(pt.id)}`),
+                api().request(`/registrations?pt_id=${encodeURIComponent(pt.id)}`, { headers: { 'x-branch-id': 'ALL' } }),
+                api().request(`/pt-bookings?pt_id=${encodeURIComponent(pt.id)}`, { headers: { 'x-branch-id': 'ALL' } }),
+                api().request(`/access-gate/logs?pt_id=${encodeURIComponent(pt.id)}`, { headers: { 'x-branch-id': 'ALL' } }),
+                api().request(`/commissions?pt_id=${encodeURIComponent(pt.id)}`, { headers: { 'x-branch-id': 'ALL' } }),
+                api().request(`/community-classes?instructor_id=${encodeURIComponent(pt.id)}`, { headers: { 'x-branch-id': 'ALL' } })
+              ]);
+
+              const fullPt = (fullPtRes.status === 'fulfilled' && fullPtRes.value) ? read(fullPtRes.value) : pt;
+              const assignedRegistrations = (regsRes.status === 'fulfilled' && regsRes.value) ? rows(regsRes.value) : [];
+              const allBookings = (bookingsRes.status === 'fulfilled' && bookingsRes.value) ? rows(bookingsRes.value) : [];
+              const accessLogs = (accessRes.status === 'fulfilled' && accessRes.value) ? rows(accessRes.value) : [];
+              const commissions = (commsRes.status === 'fulfilled' && commsRes.value) ? rows(commsRes.value) : [];
+              const communityClasses = (classesRes.status === 'fulfilled' && classesRes.value) ? rows(classesRes.value) : [];
+              const totalClassCompensation = communityClasses.reduce((sum, c) => sum + Number(c.total_compensation || (Number(c.base_price || 0) + Number(c.bonus_amount || 0))), 0);
+
+              popup.option('title', `${fullPt.pt_code || pt.code || 'HLV'} - ${fullPt.full_name}`);
+              loadIndicator.remove();
+
+              const completedSessions = allBookings.filter(b => b.status === 'COMPLETED');
+              const upcomingSessions = allBookings.filter(b => b.status !== 'COMPLETED' && b.status !== 'CANCELLED');
+              const completedCommunityClasses = communityClasses.filter(c => c.status === 'COMPLETED' || new Date(c.class_date + 'T' + (c.end_time || '23:59')) < new Date());
+              const upcomingCommunityClasses = communityClasses.filter(c => !completedCommunityClasses.includes(c) && c.status !== 'CANCELLED');
+
+              // 1. Phân loại danh sách học viên phụ trách duy nhất
+              const memberMap = new Map();
+              assignedRegistrations.forEach(r => {
+                const mId = r.member_id || r.id;
+                if (!memberMap.has(mId)) {
+                  memberMap.set(mId, {
+                    id: mId,
+                    name: r.member_name || r.full_name || '--',
+                    code: r.member_code || '--',
+                    phone: r.member_phone || r.phone || '--',
+                    branch_name: r.branch_name || fullPt.branch_name || '--',
+                    registrations: [],
+                    totalRemainingPt: 0,
+                    activeCount: 0,
+                    earliestStart: r.start_date
+                  });
+                }
+                const m = memberMap.get(mId);
+                m.registrations.push(r);
+                m.totalRemainingPt += (parseInt(r.remaining_pt_sessions, 10) || 0);
+                if (r.status === 'ACTIVE') m.activeCount++;
+                if (r.start_date && (!m.earliestStart || new Date(r.start_date) < new Date(m.earliestStart))) {
+                  m.earliestStart = r.start_date;
+                }
+              });
+              const uniqueMembers = Array.from(memberMap.values());
+
+              // 2. Tính toán các chỉ số thu nhập gộp (Khớp 100% Mobile PT)
+              const totalPaidComm = commissions.filter(c => c.status === 'PAID').reduce((sum, c) => sum + Number(c.total_commission_amount || 0), 0);
+              const pendingComm = commissions.filter(c => ['PENDING_CONFIRMATION', 'PENDING', 'APPROVED'].includes(c.status)).reduce((sum, c) => sum + Number(c.total_commission_amount || 0), 0);
+              const latestCommission = commissions.slice().sort((a, b) => (b.year - a.year) || (b.month - a.month))[0] || null;
+              const totalPTCommission = latestCommission ? Number(latestCommission.total_commission_amount || 0) : totalPaidComm;
+              const totalEstimatedIncome = totalPTCommission + totalClassCompensation;
+
+              // 3. Ca dạy hôm nay
+              const todayStr = new Date().toISOString().slice(0, 10);
+              const todayPtSessions = allBookings.filter(b => (b.booking_date || '').slice(0, 10) === todayStr && b.status !== 'CANCELLED');
+              const todayCommunityClasses = communityClasses.filter(c => (c.class_date || '').slice(0, 10) === todayStr && c.status !== 'CANCELLED');
+              const todayTotalSessions = todayPtSessions.length + todayCommunityClasses.length;
+
+              // 4. Tổng hợp danh sách ca dạy sắp tới (PT 1:1 + Lớp cộng đồng)
+              const allUpcoming = [
+                ...upcomingSessions.map(b => ({
+                  category: 'PT',
+                  categoryLabel: 'PT 1:1',
+                  date: b.booking_date,
+                  start_time: b.start_time,
+                  end_time: b.end_time,
+                  title: b.package_name_snapshot || 'Ca tập PT',
+                  target: b.member_name,
+                  target_sub: b.member_phone ? `SĐT: ${b.member_phone}` : '',
+                  sub: `Buổi thứ ${b.session_number || '--'}`,
+                  branch: b.branch_name || fullPt.branch_name,
+                  status: b.status,
+                  raw: b
+                })),
+                ...upcomingCommunityClasses.map(c => ({
+                  category: 'CLASS',
+                  categoryLabel: 'Lớp cộng đồng',
+                  date: c.class_date,
+                  start_time: c.start_time,
+                  end_time: c.end_time,
+                  title: c.title || 'Lớp cộng đồng',
+                  target: `Sĩ số: ${c.enrolled_slots || 0}/${c.max_slots || 30} HV`,
+                  target_sub: `Bộ môn: ${c.discipline_name || '--'}`,
+                  sub: `Thù lao: ${formatVnd(c.total_compensation || ((Number(c.base_price) || 0) + (Number(c.bonus_amount) || 0)))}`,
+                  branch: c.branch_name || fullPt.branch_name,
+                  status: c.status || 'SCHEDULED',
+                  raw: c
+                }))
+              ].sort((a, b) => new Date(`${a.date}T${a.start_time || '00:00'}`) - new Date(`${b.date}T${b.start_time || '00:00'}`));
+              const nextUpcoming = allUpcoming[0];
+
+              // 5. Tổng hợp lịch sử ca dạy hoàn thành
+              const allHistory = [
+                ...completedSessions.map(b => ({
+                  category: 'PT',
+                  categoryLabel: 'PT 1:1',
+                  date: b.booking_date,
+                  start_time: b.start_time,
+                  end_time: b.end_time,
+                  title: b.package_name_snapshot || 'Ca tập PT',
+                  target: b.member_name,
+                  session_number: b.session_number ? `Buổi ${b.session_number}` : '--',
+                  workout_notes: b.workout_notes || '--',
+                  fitness_assessment: b.fitness_assessment || '--',
+                  pt_confirmed_at: b.pt_confirmed_at,
+                  member_confirmed_at: b.member_confirmed_at,
+                  is_deducted: b.is_deducted,
+                  raw: b
+                })),
+                ...completedCommunityClasses.map(c => ({
+                  category: 'CLASS',
+                  categoryLabel: 'Lớp cộng đồng',
+                  date: c.class_date,
+                  start_time: c.start_time,
+                  end_time: c.end_time,
+                  title: c.title || 'Lớp cộng đồng',
+                  target: `Sĩ số: ${c.enrolled_slots || 0}/${c.max_slots || 30} HV`,
+                  session_number: `${c.discipline_name || 'Lớp CĐ'}`,
+                  workout_notes: `Thù lao: ${formatVnd(c.total_compensation || ((Number(c.base_price) || 0) + (Number(c.bonus_amount) || 0)))}`,
+                  fitness_assessment: `Chi nhánh: ${c.branch_name || '--'}`,
+                  pt_confirmed_at: c.created_at,
+                  member_confirmed_at: null,
+                  is_deducted: true,
+                  raw: c
+                }))
+              ].sort((a, b) => new Date(`${b.date}T${b.start_time || '00:00'}`) - new Date(`${a.date}T${a.start_time || '00:00'}`));
+
+              const layoutWrap = $('<div style="display: flex; min-height: 600px; max-height: calc(94vh - 85px); margin: -10px -16px; overflow: hidden;">').appendTo(content);
+
+              // ================= CỘT TRÁI: SIDEBAR HLV (260px) =================
+              const sidebar = $('<div class="profile-modal-sidebar">').appendTo(layoutWrap);
+
+              // Profile Hero Card
+              const profileCard = $('<div class="profile-sidebar-hero">').appendTo(sidebar);
+              const avatarWrap = $('<div style="position: relative; width: 68px; height: 68px; margin: 0 auto;">').appendTo(profileCard);
+              if (fullPt.avatar_url && /^https?:\/\//.test(fullPt.avatar_url)) {
+                $(`<img src="${fullPt.avatar_url}" alt="${fullPt.full_name}" style="width: 68px; height: 68px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--primary, #237b58); box-shadow: 0 2px 6px rgba(35,123,88,0.18);">`).appendTo(avatarWrap);
+              } else {
+                $(`<div style="width: 68px; height: 68px; border-radius: 50%; background: var(--primary-light, #eaf4ee); color: var(--primary-dark, #185740); font-size: 22px; font-weight: 700; display: grid; place-items: center; border: 2px solid var(--primary, #237b58); font-family: Manrope, sans-serif;">${(fullPt.full_name || '?').trim().split(/\\s+/).slice(-2).map(x => x[0]).join('').toUpperCase()}</div>`).appendTo(avatarWrap);
+              }
+
+              $('<h3>').text(fullPt.full_name).appendTo(profileCard);
+
+              const badgeRow = $('<div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; align-items: center;">').appendTo(profileCard);
+              $('<span style="background: var(--primary-light, #eaf4ee); color: var(--primary-dark, #185740); font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-family: Manrope, monospace;">').text(fullPt.pt_code || pt.code || 'HLV').appendTo(badgeRow);
+              badge(badgeRow, fullPt.status, PROFILE_STATUS);
+
+              const subInfo = $('<div style="font-size: 12px; color: var(--text-muted, #586b5e); display: flex; flex-direction: column; gap: 5px; width: 100%; border-top: 1px dashed var(--border-color, #dfe6e2); padding-top: 10px; margin-top: 4px; text-align: left;">').appendTo(profileCard);
+              $(`<div><i class="fa-solid fa-phone" style="width: 18px; color: var(--primary, #237b58);"></i> <strong>${fullPt.phone || '--'}</strong></div>`).appendTo(subInfo);
+              $(`<div><i class="fa-solid fa-location-dot" style="width: 18px; color: var(--primary, #237b58);"></i> ${fullPt.branch_name || 'Paradise Gym'}</div>`).appendTo(subInfo);
+              $(`<div><i class="fa-solid fa-clock" style="width: 18px; color: var(--primary, #237b58);"></i> Ca trực: ${(fullPt.work_start_time || '08:00').slice(0, 5)} - ${(fullPt.work_end_time || '18:00').slice(0, 5)}</div>`).appendTo(subInfo);
+
+              // 5 Menu Sidebar Dọc Khớp 100% Mobile PT
+              const navMenu = $('<div class="profile-sidebar-nav">').appendTo(sidebar);
+              $('<div class="profile-sidebar-heading">MENU HUẤN LUYỆN VIÊN</div>').appendTo(navMenu);
+
+              const menuItems = [
+                { id: 'overview', label: 'Tổng quan', icon: 'fa-solid fa-chart-pie', count: null },
+                { id: 'schedule', label: 'Lịch', icon: 'fa-solid fa-calendar-days', count: allUpcoming.length || (allBookings.length + communityClasses.length) },
+                { id: 'members', label: 'Gói phụ trách', icon: 'fa-solid fa-boxes-stacked', count: assignedRegistrations.length },
+                { id: 'commissions', label: 'Thu nhập', icon: 'fa-solid fa-sack-dollar', count: commissions.length || null },
+                { id: 'profile', label: 'Tài khoản', icon: 'fa-solid fa-circle-user', count: null }
+              ];
+
+              let activeTabId = 'overview';
+              const menuBtnMap = {};
+
+              menuItems.forEach(item => {
+                const btn = $('<div class="profile-sidebar-item trainer-sidebar-item">')
+                  .append($(`<i class="${item.icon}" style="width: 16px; font-size: 13px; text-align: center; color: #586b5e;"></i>`))
+                  .append($('<span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">').text(item.label));
+
+                if (item.count !== null && item.count !== undefined) {
+                  $('<span class="profile-sidebar-count">').text(item.count).appendTo(btn);
+                }
+
+                btn.on('click', () => switchTab(item.id));
+                btn.appendTo(navMenu);
+                menuBtnMap[item.id] = btn;
+              });
+
+              // Chân Sidebar: Nút tác vụ nhanh
+              const quickActions = $('<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; border-top: 1px solid var(--border-color, #dfe6e2); padding-top: 12px; margin-top: auto; flex-shrink: 0;">').appendTo(sidebar);
+              if (isAdmin()) {
+                $('<button class="dx-button dx-button-default dx-button-mode-outlined" style="font-size: 11px; padding: 5px; height: 32px; border-radius: 4px;">')
+                  .html('<i class="fa-solid fa-user-pen" style="margin-right: 4px;"></i>Sửa hồ sơ')
+                  .on('click', () => { popup.hide(); showTrainerForm(state, fullPt); })
+                  .appendTo(quickActions);
+                $('<button class="dx-button dx-button-normal dx-button-mode-outlined" style="font-size: 11px; padding: 5px; height: 32px; border-radius: 4px;">')
+                  .html('<i class="fa-solid fa-repeat" style="margin-right: 4px;"></i>Bàn giao')
+                  .on('click', () => { popup.hide(); openTrainerHandoverModal(state, fullPt); })
+                  .appendTo(quickActions);
+                $('<button class="dx-button dx-button-normal dx-button-mode-outlined" style="font-size: 11px; padding: 5px; height: 32px; border-radius: 4px; grid-column: span 2;">')
+                  .html('<i class="fa-solid fa-toggle-on" style="margin-right: 4px;"></i>Đổi trạng thái làm việc')
+                  .on('click', () => { popup.hide(); showTrainerStatus(state, fullPt); })
+                  .appendTo(quickActions);
+              }
+
+              // ================= CỘT PHẢI: VÙNG NỘI DUNG ĐỘNG (MAIN CONTENT) =================
+              const mainPanel = $('<div class="profile-modal-main">').appendTo(layoutWrap);
+
+              function switchTab(tabId) {
+                activeTabId = tabId;
+                Object.keys(menuBtnMap).forEach(k => {
+                  const el = menuBtnMap[k];
+                  if (k === tabId) {
+                    el.addClass('is-active');
+                  } else {
+                    el.removeClass('is-active');
+                  }
+                });
+                renderTabContent(tabId);
+              }
+
+              function renderTabContent(tabId) {
+                mainPanel.empty();
+
+                // =============================================================
+                // TAB 1: TỔNG QUAN (overview) - Hero thu nhập, 5 KPI, Ca tiếp theo & Check-in
+                // =============================================================
+                if (tabId === 'overview') {
+                  // Hero Card: Thù lao & hoa hồng tháng này
+                  const heroCard = $(`
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+                      <div>
+                        <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">TỔNG THU NHẬP ƯỚC TÍNH THÁNG NÀY</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #15803d; font-family: Manrope, sans-serif; margin-top: 2px;">
+                          ${formatVnd(totalEstimatedIncome)}
+                        </div>
+                        <div style="font-size: 12px; color: #166534; margin-top: 4px; display: flex; gap: 16px; flex-wrap: wrap;">
+                          <span><i class="fa-solid fa-dumbbell" style="margin-right: 4px;"></i>Hoa hồng gói PT/COMBO: <strong>${formatVnd(totalPTCommission)}</strong></span>
+                          <span><i class="fa-solid fa-users" style="margin-right: 4px;"></i>Thù lao lớp cộng đồng: <strong>${formatVnd(totalClassCompensation)}</strong></span>
+                        </div>
+                      </div>
+                      <button type="button" class="dx-button dx-button-default dx-button-mode-contained btn-view-income-detail" style="font-size: 12px; padding: 7px 16px; border-radius: 4px; cursor: pointer;">
+                        <i class="fa-solid fa-arrow-right" style="margin-right: 6px;"></i>Xem chi tiết thu nhập
+                      </button>
+                    </div>
+                  `).appendTo(mainPanel);
+                  heroCard.find('.btn-view-income-detail').on('click', () => switchTab('commissions'));
+
+                  // 5 Thẻ Metric KPI Chuẩn Mobile PT
+                  const mRow = $('<div class="metrics-row" style="margin-bottom: 20px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">').appendTo(mainPanel);
+                  const mCard = (tone, label, val, sub, icon) => $(`
+                    <article class="metric-card ${tone}">
+                      <div class="metric-label">
+                        <span>${label}</span>
+                        <i class="${icon}" aria-hidden="true"></i>
+                      </div>
+                      <strong class="metric-value">${val}</strong>
+                      <span class="metric-caption">${sub}</span>
+                    </article>
+                  `);
+                  mRow.append(mCard('metric-blue', 'Buổi PT đã dạy', `${completedSessions.length} buổi`, 'Đã xác nhận kép 2 chiều', 'fa-solid fa-calendar-check'));
+                  mRow.append(mCard('metric-purple', 'Lớp học cộng đồng', `${communityClasses.length} lớp`, `Thù lao: ${formatVnd(totalClassCompensation)}`, 'fa-solid fa-people-group'));
+                  mRow.append(mCard('metric-green', 'Học viên phụ trách', `${uniqueMembers.length} học viên`, 'Hợp đồng đang phụ trách', 'fa-solid fa-users'));
+                  mRow.append(mCard('metric-amber', 'Gói đang kích hoạt', `${assignedRegistrations.filter(r => r.status === 'ACTIVE').length} hợp đồng`, 'Học viên đang theo tập', 'fa-solid fa-boxes-stacked'));
+                  mRow.append(mCard('metric-coral', 'Lịch dạy hôm nay', `${todayTotalSessions} ca`, `${todayPtSessions.length} ca PT · ${todayCommunityClasses.length} lớp CĐ`, 'fa-solid fa-clock'));
+
+                  // Ca dạy tiếp theo
+                  const sessionBox = $('<div class="profile-card-box" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">').appendTo(mainPanel);
+                  const sessionLeft = $('<div style="display: flex; align-items: center; gap: 14px;">').appendTo(sessionBox);
+                  const isClass = nextUpcoming?.category === 'CLASS';
+                  sessionLeft.html(`
+                    <div style="width: 44px; height: 44px; border-radius: 8px; background: ${isClass ? '#f4f0fd' : 'var(--primary-light, #eaf4ee)'}; color: ${isClass ? '#7c3aed' : 'var(--primary, #237b58)'}; display: grid; place-items: center; font-size: 20px; flex-shrink: 0;">
+                      <i class="fa-solid ${isClass ? 'fa-people-group' : 'fa-dumbbell'}"></i>
+                    </div>
+                    <div>
+                      <div style="font-size: 10.5px; font-weight: 700; color: var(--text-muted, #748078); text-transform: uppercase; letter-spacing: 0.5px;">
+                        CA DẠY TIẾP THEO ${isClass ? '(LỚP CỘNG ĐỒNG)' : '(KÈM PT 1:1)'}
+                      </div>
+                      <div style="font-size: 14px; font-weight: 700; color: var(--primary-dark, #185740); margin-top: 2px;">
+                        ${nextUpcoming ? `${nextUpcoming.title} · ${new Date(nextUpcoming.date).toLocaleDateString('vi-VN')} (${clock(nextUpcoming.start_time)} - ${clock(nextUpcoming.end_time)})` : 'Không có ca dạy tiếp theo'}
+                      </div>
+                      <div style="font-size: 12px; color: #586b5e; margin-top: 2px;">
+                        ${nextUpcoming ? `${nextUpcoming.target} · ${nextUpcoming.sub} · ${nextUpcoming.branch}` : 'Huấn luyện viên hiện không có ca dạy sắp diễn ra'}
+                      </div>
+                    </div>
+                  `);
+                  $('<button class="dx-button dx-button-default dx-button-mode-outlined" style="font-size: 12px; padding: 6px 14px; border-radius: 4px;">')
+                    .text('Xem toàn bộ lịch dạy')
+                    .on('click', () => switchTab('schedule'))
+                    .appendTo(sessionBox);
+
+                  // Nhật ký quẹt thẻ vào/ra cổng
+                  $('<h4 class="profile-section-title"><i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 6px;"></i>Nhật Ký Quẹt Thẻ & Check-in Ca Trực Của Huấn Luyện Viên</h4>').appendTo(mainPanel);
+                  ptDetailGrid(mainPanel, accessLogs, [
+                    { caption: 'Thời gian', dataField: 'check_in_time', dataType: 'datetime', format: 'dd/MM/yyyy HH:mm', width: 140, alignment: 'center' },
+                    { caption: 'Chi nhánh', dataField: 'branch_name', minWidth: 140 },
+                    { caption: 'Chiều', dataField: 'direction', width: 95, alignment: 'center', cellTemplate: (el, c) => el.text(c.value === 'IN' ? 'Vào cổng' : 'Ra cổng') },
+                    { caption: 'Phương thức', dataField: 'access_method', width: 110, alignment: 'center', customizeText: c => c.value === 'FACE_ID' ? 'Face ID' : c.value === 'QR_CODE' ? 'Mã QR' : (c.value || '--') },
+                    { caption: 'Kết quả', dataField: 'status', width: 110, alignment: 'center', cellTemplate: (el, c) => {
+                      const ok = c.value === 'ALLOWED' || c.value === 'ACTIVE';
+                      $('<span>').addClass(`status-badge ${ok ? 'badge-success' : 'badge-danger'}`).text(ok ? 'Hợp lệ' : 'Từ chối').appendTo(el);
+                    } },
+                    { caption: 'Lý do từ chối', dataField: 'denial_reason', minWidth: 140, customizeText: c => c.value || '--' }
+                  ], 'Chưa có lịch sử ra vào cổng của HLV.');
+                }
+
+                // =============================================================
+                // TAB 2: LỊCH (schedule) - Gộp cả Ca dạy PT 1:1 và Lớp cộng đồng
+                // =============================================================
+                else if (tabId === 'schedule') {
+                  const subNav = $('<div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color, #dfe6e2); padding-bottom: 10px;">').appendTo(mainPanel);
+                  let schedMode = 'upcoming';
+                  const btnUpcoming = $('<button class="dx-button dx-button-default dx-button-mode-contained" style="font-size: 12px; padding: 6px 14px; border-radius: 4px;">').text(`Lịch dạy sắp tới (${allUpcoming.length})`).appendTo(subNav);
+                  const btnHistory = $('<button class="dx-button dx-button-normal dx-button-mode-outlined" style="font-size: 12px; padding: 6px 14px; border-radius: 4px;">').text(`Lịch sử ca dạy đã hoàn thành (${allHistory.length})`).appendTo(subNav);
+                  const schedContainer = $('<div>').appendTo(mainPanel);
+
+                  function renderScheduleSubView() {
+                    schedContainer.empty();
+                    if (schedMode === 'upcoming') {
+                      btnUpcoming.removeClass('dx-button-mode-outlined').addClass('dx-button-mode-contained');
+                      btnHistory.removeClass('dx-button-mode-contained').addClass('dx-button-mode-outlined');
+
+                      ptDetailGrid(schedContainer, allUpcoming, [
+                        {
+                          caption: 'Loại ca', width: 120, alignment: 'center',
+                          cellTemplate: (el, cell) => {
+                            const isCls = cell.data.category === 'CLASS';
+                            $('<span>')
+                              .addClass('status-badge')
+                              .css({
+                                background: isCls ? '#f4f0fd' : '#eaf4ee',
+                                color: isCls ? '#7c3aed' : '#237b58',
+                                border: `1px solid ${isCls ? '#ddd6fe' : '#bbf7d0'}`,
+                                fontWeight: 600
+                              })
+                              .text(isCls ? 'Lớp cộng đồng' : 'Kèm PT 1:1')
+                              .appendTo(el);
+                          }
+                        },
+                        { caption: 'Ngày dạy', dataField: 'date', dataType: 'date', format: 'dd/MM/yyyy', width: 105, alignment: 'center' },
+                        { caption: 'Khung giờ', calculateCellValue: b => `${clock(b.start_time)} - ${clock(b.end_time)}`, width: 115, alignment: 'center' },
+                        { caption: 'Nội dung / Gói tập', dataField: 'title', minWidth: 150 },
+                        {
+                          caption: 'Học viên / Sĩ số', minWidth: 160,
+                          cellTemplate: (el, cell) => {
+                            const r = cell.data;
+                            $('<div>')
+                              .append($('<strong>').text(r.target || '--'))
+                              .append($('<small style="display:block;color:#748078;font-size:11px;">').text(r.target_sub || ''))
+                              .appendTo(el);
+                          }
+                        },
+                        { caption: 'Chi nhánh', dataField: 'branch', minWidth: 130 },
+                        { caption: 'Trạng thái', dataField: 'status', width: 130, alignment: 'center', cellTemplate: (el, c) => badge(el, c.value, BOOKING_STATUS) },
+                        {
+                          caption: 'Thao tác', width: 130, alignment: 'center',
+                          cellTemplate: (el, cell) => {
+                            if (cell.data.category === 'CLASS') {
+                              $('<button class="dx-button dx-button-default dx-button-mode-outlined" style="font-size: 11px; padding: 3px 8px; border-radius: 4px;">')
+                                .html('<i class="fa-solid fa-list-ul" style="margin-right: 4px;"></i>Xem học viên')
+                                .on('click', () => openCommunityClassMembersModal(cell.data.raw))
+                                .appendTo(el);
+                            } else {
+                              el.text('--');
+                            }
+                          }
+                        }
+                      ], 'Không có ca dạy nào sắp diễn ra.');
+                    } else {
+                      btnHistory.removeClass('dx-button-mode-outlined').addClass('dx-button-mode-contained');
+                      btnUpcoming.removeClass('dx-button-mode-contained').addClass('dx-button-mode-outlined');
+
+                      ptDetailGrid(schedContainer, allHistory, [
+                        {
+                          caption: 'Loại ca', width: 115, alignment: 'center',
+                          cellTemplate: (el, cell) => {
+                            const isCls = cell.data.category === 'CLASS';
+                            $('<span>')
+                              .addClass('status-badge')
+                              .css({
+                                background: isCls ? '#f4f0fd' : '#eaf4ee',
+                                color: isCls ? '#7c3aed' : '#237b58',
+                                border: `1px solid ${isCls ? '#ddd6fe' : '#bbf7d0'}`,
+                                fontWeight: 600
+                              })
+                              .text(isCls ? 'Lớp cộng đồng' : 'Kèm PT 1:1')
+                              .appendTo(el);
+                          }
+                        },
+                        { caption: 'Ngày dạy', dataField: 'date', dataType: 'date', format: 'dd/MM/yyyy', width: 105, alignment: 'center' },
+                        { caption: 'Khung giờ', calculateCellValue: b => `${clock(b.start_time)} - ${clock(b.end_time)}`, width: 110, alignment: 'center' },
+                        { caption: 'Hội viên / Lớp', dataField: 'target', minWidth: 140 },
+                        { caption: 'Buổi số / Bộ môn', dataField: 'session_number', width: 110, alignment: 'center' },
+                        { caption: 'Nội dung / Ghi chú', dataField: 'workout_notes', minWidth: 150, customizeText: c => c.value || '--' },
+                        { caption: 'Đánh giá / Phòng', dataField: 'fitness_assessment', minWidth: 140, customizeText: c => c.value || '--' },
+                        {
+                          caption: 'Xác nhận PT', dataField: 'pt_confirmed_at', width: 130, alignment: 'center',
+                          dataType: 'datetime', format: 'dd/MM/yyyy HH:mm',
+                          customizeText: c => c.value ? c.valueText : '--'
+                        },
+                        {
+                          caption: 'Xác nhận HV', dataField: 'member_confirmed_at', width: 130, alignment: 'center',
+                          dataType: 'datetime', format: 'dd/MM/yyyy HH:mm',
+                          customizeText: c => c.value ? c.valueText : '--'
+                        },
+                        { caption: 'Trừ buổi', calculateCellValue: b => b.is_deducted ? 'Đã trừ' : 'Chưa', width: 85, alignment: 'center' }
+                      ], 'Chưa có lịch sử ca dạy hoàn thành.');
+                    }
+                  }
+
+                  btnUpcoming.on('click', () => { schedMode = 'upcoming'; renderScheduleSubView(); });
+                  btnHistory.on('click', () => { schedMode = 'history'; renderScheduleSubView(); });
+                  renderScheduleSubView();
+                }
+
+                // =============================================================
+                // TAB 3: GÓI PHỤ TRÁCH (members) - 3 Sub-tabs chuẩn hóa Mobile PT
+                // =============================================================
+                else if (tabId === 'members') {
+                  const subNav = $('<div style="display: flex; gap: 8px; margin-bottom: 14px; border-bottom: 1px solid var(--border-color, #dfe6e2); padding-bottom: 10px; flex-wrap: wrap;">').appendTo(mainPanel);
+                  let currentMembersTab = 'members';
+
+                  const btnTabMembers = $('<button class="dx-button dx-button-default dx-button-mode-contained" style="font-size: 12px; padding: 6px 14px; border-radius: 4px;">').text(`Học viên phụ trách (${uniqueMembers.length})`).appendTo(subNav);
+                  const btnTabPackages = $('<button class="dx-button dx-button-normal dx-button-mode-outlined" style="font-size: 12px; padding: 6px 14px; border-radius: 4px;">').text(`Gói đang phụ trách (${assignedRegistrations.length})`).appendTo(subNav);
+                  const btnTabCommunity = $('<button class="dx-button dx-button-normal dx-button-mode-outlined" style="font-size: 12px; padding: 6px 14px; border-radius: 4px;">').text(`Lớp tập CĐ phụ trách (${communityClasses.length})`).appendTo(subNav);
+
+                  // Thanh tìm kiếm realtime
+                  const searchWrap = $('<div style="margin-bottom: 16px; position: relative;">').appendTo(mainPanel);
+                  const searchInput = $('<input type="text" class="dx-texteditor-input" placeholder="Tìm kiếm nhanh..." style="width: 100%; height: 36px; padding: 6px 12px 6px 34px; border: 1px solid var(--border-color, #dfe6e2); border-radius: 6px; font-size: 12.5px; background: #ffffff;">').appendTo(searchWrap);
+                  $('<i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 11px; color: var(--text-muted, #748078); font-size: 13px;"></i>').appendTo(searchWrap);
+
+                  let searchQuery = '';
+                  searchInput.on('input', e => {
+                    searchQuery = e.target.value.trim().toLowerCase();
+                    renderMembersSubView();
+                  });
+
+                  const viewContainer = $('<div>').appendTo(mainPanel);
+
+                  function renderMembersSubView() {
+                    viewContainer.empty();
+                    searchInput.attr('placeholder', currentMembersTab === 'members' ? 'Tìm học viên phụ trách...' : (currentMembersTab === 'packages' ? 'Tìm gói tập, mã HĐ...' : 'Tìm lớp tập cộng đồng...'));
+
+                    btnTabMembers.toggleClass('dx-button-mode-contained', currentMembersTab === 'members').toggleClass('dx-button-mode-outlined', currentMembersTab !== 'members');
+                    btnTabPackages.toggleClass('dx-button-mode-contained', currentMembersTab === 'packages').toggleClass('dx-button-mode-outlined', currentMembersTab !== 'packages');
+                    btnTabCommunity.toggleClass('dx-button-mode-contained', currentMembersTab === 'community').toggleClass('dx-button-mode-outlined', currentMembersTab !== 'community');
+
+                    // SUB-TAB 1: Học viên phụ trách
+                    if (currentMembersTab === 'members') {
+                      let list = uniqueMembers;
+                      if (searchQuery) {
+                        list = list.filter(m => (m.name || '').toLowerCase().includes(searchQuery) || (m.code || '').toLowerCase().includes(searchQuery) || (m.phone || '').toLowerCase().includes(searchQuery));
+                      }
+
+                      const mRow = $('<div class="metrics-row" style="margin-bottom: 16px;">').appendTo(viewContainer);
+                      mRow.append($(`
+                        <article class="metric-card metric-green"><div class="metric-label"><span>Học viên phụ trách</span><i class="fa-solid fa-users"></i></div><strong class="metric-value">${uniqueMembers.length}</strong><span class="metric-caption">Phân công theo dõi</span></article>
+                        <article class="metric-card metric-blue"><div class="metric-label"><span>Buổi PT còn lại</span><i class="fa-solid fa-calendar-days"></i></div><strong class="metric-value">${uniqueMembers.reduce((s, m) => s + m.totalRemainingPt, 0)}</strong><span class="metric-caption">Tổng buổi khả dụng</span></article>
+                        <article class="metric-card metric-amber"><div class="metric-label"><span>Đang theo tập</span><i class="fa-solid fa-dumbbell"></i></div><strong class="metric-value">${uniqueMembers.filter(m => m.activeCount > 0).length}</strong><span class="metric-caption">Có gói đang hiệu lực</span></article>
+                      `));
+
+                      ptDetailGrid(viewContainer, list, [
+                        { caption: 'Mã HV', dataField: 'code', width: 100, alignment: 'center' },
+                        { caption: 'Họ và tên', dataField: 'name', minWidth: 160 },
+                        { caption: 'Số điện thoại', dataField: 'phone', width: 125 },
+                        { caption: 'Chi nhánh', dataField: 'branch_name', minWidth: 140 },
+                        { caption: 'Gói đăng ký', calculateCellValue: m => `${m.registrations.length} gói (${m.activeCount} hiệu lực)`, minWidth: 140, alignment: 'center' },
+                        { caption: 'Buổi PT còn lại', dataField: 'totalRemainingPt', width: 120, alignment: 'center', cellTemplate: (el, c) => $('<strong>').css({ color: '#237b58' }).text(`${c.value} buổi`).appendTo(el) },
+                        { caption: 'Tham gia từ', dataField: 'earliestStart', dataType: 'date', format: 'dd/MM/yyyy', width: 110, alignment: 'center' },
+                        {
+                          caption: 'Trạng thái', width: 120, alignment: 'center',
+                          cellTemplate: (el, c) => {
+                            const act = c.data.activeCount > 0;
+                            $('<span>').addClass(`status-badge ${act ? 'badge-success' : 'badge-info'}`).text(act ? 'Đang tập' : 'Chờ gói mới').appendTo(el);
+                          }
+                        }
+                      ], 'Huấn luyện viên chưa phụ trách học viên nào.');
+                    }
+
+                    // SUB-TAB 2: Gói đang phụ trách
+                    else if (currentMembersTab === 'packages') {
+                      let list = assignedRegistrations;
+                      if (searchQuery) {
+                        list = list.filter(r => (r.member_name || '').toLowerCase().includes(searchQuery) || (r.reg_code || r.registration_code || '').toLowerCase().includes(searchQuery) || (r.package_name_snapshot || '').toLowerCase().includes(searchQuery));
+                      }
+
+                      const mRow = $('<div class="metrics-row" style="margin-bottom: 16px;">').appendTo(viewContainer);
+                      const totalRemSessions = assignedRegistrations.reduce((s, r) => s + (parseInt(r.remaining_pt_sessions, 10) || 0), 0);
+                      const activeAssigned = assignedRegistrations.filter(r => r.status === 'ACTIVE').length;
+                      mRow.append($(`
+                        <article class="metric-card metric-green"><div class="metric-label"><span>Tổng hợp đồng PT</span><i class="fa-solid fa-boxes-stacked"></i></div><strong class="metric-value">${assignedRegistrations.length}</strong><span class="metric-caption">Hợp đồng giao phụ trách</span></article>
+                        <article class="metric-card metric-blue"><div class="metric-label"><span>Buổi PT còn lại cần dạy</span><i class="fa-solid fa-calendar-check"></i></div><strong class="metric-value">${totalRemSessions}</strong><span class="metric-caption">Khả dụng trên các gói</span></article>
+                        <article class="metric-card metric-amber"><div class="metric-label"><span>Hợp đồng đang kích hoạt</span><i class="fa-solid fa-check"></i></div><strong class="metric-value">${activeAssigned}</strong><span class="metric-caption">Trạng thái ACTIVE</span></article>
+                      `));
+
+                      ptDetailGrid(viewContainer, list, [
+                        { caption: 'Mã HĐ', calculateCellValue: r => r.reg_code || r.registration_code, width: 115, alignment: 'center' },
+                        { caption: 'Hội viên', dataField: 'member_name', minWidth: 150 },
+                        { caption: 'Số điện thoại', dataField: 'member_phone', width: 120 },
+                        { caption: 'Gói tập', dataField: 'package_name_snapshot', minWidth: 160 },
+                        { caption: 'Tổng buổi', dataField: 'total_pt_sessions_snapshot', width: 90, alignment: 'center' },
+                        { caption: 'Đã tập', dataField: 'used_pt_sessions', width: 80, alignment: 'center' },
+                        { caption: 'Còn lại', dataField: 'remaining_pt_sessions', width: 80, alignment: 'center', cellTemplate: (el, c) => $('<strong>').css({ color: '#237b58' }).text(c.value).appendTo(el) },
+                        { caption: 'Hạn dùng', dataField: 'end_date', dataType: 'date', format: 'dd/MM/yyyy', width: 110, alignment: 'center' },
+                        { caption: 'Trạng thái', dataField: 'status', width: 140, alignment: 'center', cellTemplate: (el, c) => badge(el, c.value, BOOKING_STATUS) }
+                      ], 'Không có gói tập nào phù hợp.');
+                    }
+
+                    // SUB-TAB 3: Lớp tập CĐ phụ trách
+                    else if (currentMembersTab === 'community') {
+                      let list = communityClasses;
+                      if (searchQuery) {
+                        list = list.filter(c => (c.title || '').toLowerCase().includes(searchQuery) || (c.discipline_name || '').toLowerCase().includes(searchQuery) || (c.branch_name || '').toLowerCase().includes(searchQuery));
+                      }
+
+                      const mRow = $('<div class="metrics-row" style="margin-bottom: 16px;">').appendTo(viewContainer);
+                      const totalEnrolled = communityClasses.reduce((s, c) => s + Number(c.enrolled_slots || 0), 0);
+                      mRow.append($(`
+                        <article class="metric-card metric-purple"><div class="metric-label"><span>Lớp CĐ phụ trách</span><i class="fa-solid fa-people-group"></i></div><strong class="metric-value">${communityClasses.length}</strong><span class="metric-caption">Ca phân công huấn luyện</span></article>
+                        <article class="metric-card metric-blue"><div class="metric-label"><span>Tổng lượt học viên</span><i class="fa-solid fa-users"></i></div><strong class="metric-value">${totalEnrolled}</strong><span class="metric-caption">HV đã đăng ký tập</span></article>
+                        <article class="metric-card metric-amber"><div class="metric-label"><span>Tổng thù lao ước tính</span><i class="fa-solid fa-sack-dollar"></i></div><strong class="metric-value" style="font-size:20px;">${formatVnd(totalClassCompensation)}</strong><span class="metric-caption">Cơ bản + Thưởng sĩ số</span></article>
+                      `));
+
+                      ptDetailGrid(viewContainer, list, [
+                        {
+                          dataField: 'class_date', caption: 'Ngày dạy', width: 105, alignment: 'center',
+                          dataType: 'date', format: 'dd/MM/yyyy', sortOrder: 'desc'
+                        },
+                        {
+                          caption: 'Khung giờ', width: 110, alignment: 'center',
+                          calculateCellValue: r => `${clock(r.start_time)} - ${clock(r.end_time)}`
+                        },
+                        {
+                          dataField: 'title', caption: 'Lớp học & Bộ môn', minWidth: 160,
+                          cellTemplate: (el, cell) => {
+                            const r = cell.data;
+                            $('<div>')
+                              .append($('<strong>').text(r.title || 'Lớp cộng đồng'))
+                              .append($('<small style="display:block;color:#748078;font-size:11px;">').text(r.discipline_name || 'Bộ môn nhóm'))
+                              .appendTo(el);
+                          }
+                        },
+                        { dataField: 'branch_name', caption: 'Chi nhánh', minWidth: 130 },
+                        {
+                          caption: 'Sĩ số', width: 115, alignment: 'center',
+                          cellTemplate: (el, cell) => {
+                            const r = cell.data;
+                            const enr = Number(r.enrolled_slots || 0);
+                            const max = Number(r.max_slots || 30);
+                            const pct = Math.round((enr / max) * 100);
+                            $(`<div><strong>${enr}/${max} HV</strong> <small style="color:#7c3aed;">(${pct}%)</small></div>`).appendTo(el);
+                          }
+                        },
+                        {
+                          caption: 'Thù lao (VND)', alignment: 'right', minWidth: 135,
+                          cellTemplate: (el, cell) => {
+                            const r = cell.data;
+                            const total = Number(r.total_compensation || ((Number(r.base_price) || 0) + (Number(r.bonus_amount) || 0)));
+                            const wrap = $('<div style="text-align:right;">').appendTo(el);
+                            $('<strong style="font-family:Manrope,sans-serif;color:#7c3aed;font-size:12.5px;display:block;">')
+                              .text(formatVnd(total))
+                              .appendTo(wrap);
+                            if (Number(r.bonus_amount) > 0) {
+                              $('<small style="color:#748078;font-size:10px;">')
+                                .text(`(Gốc: ${formatVnd(r.base_price)} + Thưởng: ${formatVnd(r.bonus_amount)})`)
+                                .appendTo(wrap);
+                            }
+                          }
+                        },
+                        {
+                          dataField: 'status', caption: 'Trạng thái', width: 115, alignment: 'center',
+                          cellTemplate: (el, cell) => {
+                            const st = cell.value;
+                            const badgeText = st === 'COMPLETED' ? 'Hoàn thành' : st === 'SCHEDULED' ? 'Đã lên lịch' : st === 'CANCELLED' ? 'Đã hủy' : (st || 'Đã lên lịch');
+                            const badgeTone = st === 'COMPLETED' ? 'badge-success' : st === 'CANCELLED' ? 'badge-danger' : 'badge-info';
+                            $('<span class="status-badge">').addClass(badgeTone).text(badgeText).appendTo(el);
+                          }
+                        },
+                        {
+                          caption: 'Thao tác', width: 135, alignment: 'center',
+                          cellTemplate: (el, cell) => {
+                            $('<button class="dx-button dx-button-default dx-button-mode-outlined" style="font-size: 11px; padding: 3px 8px; border-radius: 4px;">')
+                              .html('<i class="fa-solid fa-list-ul" style="margin-right: 4px;"></i>Xem học viên')
+                              .on('click', () => openCommunityClassMembersModal(cell.data))
+                              .appendTo(el);
+                          }
+                        }
+                      ], 'Không có lớp học cộng đồng nào.');
+                    }
+                  }
+
+                  btnTabMembers.on('click', () => { currentMembersTab = 'members'; renderMembersSubView(); });
+                  btnTabPackages.on('click', () => { currentMembersTab = 'packages'; renderMembersSubView(); });
+                  btnTabCommunity.on('click', () => { currentMembersTab = 'community'; renderMembersSubView(); });
+                  renderMembersSubView();
+                }
+
+                // =============================================================
+                // TAB 4: THU NHẬP (commissions) - 3 Sub-tabs chuẩn hóa Mobile PT
+                // =============================================================
+                else if (tabId === 'commissions') {
+                  const subNav = $('<div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color, #dfe6e2); padding-bottom: 10px; flex-wrap: wrap;">').appendTo(mainPanel);
+                  let currentIncomeTab = 'income_summary';
+
+                  const btnTabSummary = $('<button class="dx-button dx-button-default dx-button-mode-contained" style="font-size: 12px; padding: 6px 14px; border-radius: 4px;">').text('Thu nhập').appendTo(subNav);
+                  const btnTabPtCombo = $('<button class="dx-button dx-button-normal dx-button-mode-outlined" style="font-size: 12px; padding: 6px 14px; border-radius: 4px;">').text('Gói PT / Combo').appendTo(subNav);
+                  const btnTabCommunityComp = $('<button class="dx-button dx-button-normal dx-button-mode-outlined" style="font-size: 12px; padding: 6px 14px; border-radius: 4px;">').text('Thù lao lớp CĐ').appendTo(subNav);
+
+                  const incomeContainer = $('<div>').appendTo(mainPanel);
+
+                  function renderIncomeSubView() {
+                    incomeContainer.empty();
+                    btnTabSummary.toggleClass('dx-button-mode-contained', currentIncomeTab === 'income_summary').toggleClass('dx-button-mode-outlined', currentIncomeTab !== 'income_summary');
+                    btnTabPtCombo.toggleClass('dx-button-mode-contained', currentIncomeTab === 'pt_combo').toggleClass('dx-button-mode-outlined', currentIncomeTab !== 'pt_combo');
+                    btnTabCommunityComp.toggleClass('dx-button-mode-contained', currentIncomeTab === 'community_comp').toggleClass('dx-button-mode-outlined', currentIncomeTab !== 'community_comp');
+
+                    // SUB-TAB 1: Thu nhập (Tổng hợp & Khối xác nhận chi trả 2 chiều gộp)
+                    if (currentIncomeTab === 'income_summary') {
+                      // Banner Tổng thu nhập
+                      $(`
+                        <div style="background: linear-gradient(135deg, #185740 0%, #237b58 100%); color: #ffffff; border-radius: 8px; padding: 18px 22px; margin-bottom: 18px;">
+                          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85;">
+                            TỔNG THU NHẬP ƯỚC TÍNH (THÁNG ${latestCommission ? `${latestCommission.month}/${latestCommission.year}` : `${new Date().getMonth() + 1}/${new Date().getFullYear()}`})
+                          </div>
+                          <div style="font-size: 28px; font-weight: 700; font-family: Manrope, sans-serif; margin: 4px 0 8px;">
+                            ${formatVnd(totalEstimatedIncome)}
+                          </div>
+                          <div style="font-size: 12px; display: flex; gap: 20px; flex-wrap: wrap; opacity: 0.95;">
+                            <span>Hoa hồng gói PT/COMBO: <strong>${formatVnd(totalPTCommission)}</strong></span>
+                            <span>Thù lao lớp cộng đồng: <strong>${formatVnd(totalClassCompensation)}</strong></span>
+                            <span>Tổng ca dạy: <strong>${completedSessions.length + completedCommunityClasses.length} ca</strong></span>
+                          </div>
+                        </div>
+                      `).appendTo(incomeContainer);
+
+                      // Khối Xác Nhận Chi Trả 2 Chiều Gộp (Chống chối nhận tiền)
+                      const isPaid = latestCommission?.status === 'PAID';
+                      const confirmBox = $(`
+                        <div style="background: #ffffff; border: 1.5px solid ${isPaid ? '#bbf7d0' : '#fed7aa'}; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                          <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <div>
+                              <div style="font-size: 10.5px; font-weight: 700; color: ${isPaid ? '#15803d' : '#c2410c'}; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa-solid fa-handshake" style="margin-right: 5px;"></i>ĐỐI SOÁT & XÁC NHẬN CHI TRẢ GỘP 2 CHIỀU
+                              </div>
+                              <div style="font-size: 15px; font-weight: 700; color: #185740; margin-top: 3px;">
+                                Số tiền chi trả gộp: <span style="color: #15803d; font-family: Manrope, sans-serif;">${formatVnd(totalEstimatedIncome)}</span>
+                              </div>
+                              <div style="font-size: 12px; color: #586b5e; margin-top: 3px;">
+                                Hình thức: <strong>Tiền mặt tại quầy / Chuyển khoản ngân hàng</strong> · Kỳ thanh toán: Tháng ${latestCommission ? `${latestCommission.month}/${latestCommission.year}` : `${new Date().getMonth() + 1}/${new Date().getFullYear()}`}
+                              </div>
+                            </div>
+                            <div>
+                              <span class="status-badge ${isPaid ? 'badge-success' : 'badge-warning'}" style="font-size: 12px; padding: 5px 12px;">
+                                <i class="fa-solid ${isPaid ? 'fa-circle-check' : 'fa-clock'}" style="margin-right: 4px;"></i>
+                                ${isPaid ? 'Đã chi trả & Hoàn tất ký nhận 2 chiều' : 'Chờ xác nhận chi trả 2 chiều'}
+                              </span>
+                            </div>
+                          </div>
+                          ${latestCommission?.pt_confirmed_at ? `
+                            <div style="font-size: 11.5px; color: #15803d; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #bbf7d0;">
+                              <i class="fa-solid fa-check-double" style="margin-right: 4px;"></i>Huấn luyện viên đã xác nhận nhận tiền vào lúc: <strong>${new Date(latestCommission.pt_confirmed_at).toLocaleString('vi-VN')}</strong>
+                            </div>
+                          ` : ''}
+                        </div>
+                      `).appendTo(incomeContainer);
+
+                      // 2 Card đối soát chi tiết chuyển nhanh
+                      const detailRow = $('<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">').appendTo(incomeContainer);
+
+                      const cardPt = $(`
+                        <div class="profile-card-box" style="margin: 0; padding: 16px; border: 1px solid var(--border-color, #dfe6e2); border-radius: 8px; cursor: pointer; transition: all 0.15s ease;">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 13px; font-weight: 700; color: #185740;"><i class="fa-solid fa-dumbbell" style="margin-right: 6px; color: var(--primary);"></i>Hoa hồng gói PT / COMBO</span>
+                            <i class="fa-solid fa-chevron-right" style="color: #748078; font-size: 12px;"></i>
+                          </div>
+                          <div style="font-size: 20px; font-weight: 700; color: #15803d; font-family: Manrope, sans-serif;">
+                            ${formatVnd(totalPTCommission)}
+                          </div>
+                          <div style="font-size: 12px; color: #586b5e; margin-top: 4px;">
+                            Số ca dạy: <strong>${completedSessions.length} buổi</strong> · Tỷ lệ: <strong>25%</strong>
+                          </div>
+                        </div>
+                      `).appendTo(detailRow);
+                      cardPt.on('click', () => { currentIncomeTab = 'pt_combo'; renderIncomeSubView(); });
+
+                      const cardCommunity = $(`
+                        <div class="profile-card-box" style="margin: 0; padding: 16px; border: 1px solid var(--border-color, #dfe6e2); border-radius: 8px; cursor: pointer; transition: all 0.15s ease;">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 13px; font-weight: 700; color: #7c3aed;"><i class="fa-solid fa-people-group" style="margin-right: 6px;"></i>Thù lao lớp học cộng đồng</span>
+                            <i class="fa-solid fa-chevron-right" style="color: #748078; font-size: 12px;"></i>
+                          </div>
+                          <div style="font-size: 20px; font-weight: 700; color: #7c3aed; font-family: Manrope, sans-serif;">
+                            ${formatVnd(totalClassCompensation)}
+                          </div>
+                          <div style="font-size: 12px; color: #586b5e; margin-top: 4px;">
+                            Số ca dạy: <strong>${communityClasses.length} lớp</strong> · Đã hoàn thành: <strong>${completedCommunityClasses.length} lớp</strong>
+                          </div>
+                        </div>
+                      `).appendTo(detailRow);
+                      cardCommunity.on('click', () => { currentIncomeTab = 'community_comp'; renderIncomeSubView(); });
+                    }
+
+                    // SUB-TAB 2: Gói PT / Combo
+                    else if (currentIncomeTab === 'pt_combo') {
+                      const mRow = $('<div class="metrics-row" style="margin-bottom: 16px;">').appendTo(incomeContainer);
+                      mRow.append($(`
+                        <article class="metric-card metric-green"><div class="metric-label"><span>Hoa hồng gói PT/Combo</span><i class="fa-solid fa-sack-dollar"></i></div><strong class="metric-value">${formatVnd(totalPTCommission)}</strong><span class="metric-caption">Thực nhận kỳ này</span></article>
+                        <article class="metric-card metric-blue"><div class="metric-label"><span>Số buổi dạy hoàn thành</span><i class="fa-solid fa-calendar-check"></i></div><strong class="metric-value">${completedSessions.length}</strong><span class="metric-caption">Đã xác nhận kép</span></article>
+                        <article class="metric-card metric-amber"><div class="metric-label"><span>Tỷ lệ hoa hồng</span><i class="fa-solid fa-percent"></i></div><strong class="metric-value">${latestCommission?.commission_percentage || 25}%</strong><span class="metric-caption">Theo chính sách phân bổ</span></article>
+                      `));
+
+                      $('<h4 class="profile-section-title"><i class="fa-solid fa-list-check" style="margin-right: 6px;"></i>Bảng Kê Chi Trả Hoa Hồng Theo Kỳ (Đối Soát 2 Chiều)</h4>').appendTo(incomeContainer);
+
+                      ptDetailGrid(incomeContainer, commissions, [
+                        { caption: 'Kỳ hoa hồng', calculateCellValue: c => `Tháng ${c.month}/${c.year}`, width: 125, alignment: 'center' },
+                        { caption: 'Số buổi', dataField: 'total_pt_sessions_taught', width: 75, alignment: 'center' },
+                        { caption: 'Doanh thu cơ sở', dataField: 'pt_revenue_share', width: 120, alignment: 'right', customizeText: c => formatVnd(c.value) },
+                        { caption: 'Tỷ lệ %', dataField: 'commission_percentage', width: 70, alignment: 'center', customizeText: c => `${c.value}%` },
+                        { caption: 'Tiền hoa hồng', dataField: 'total_commission_amount', width: 125, alignment: 'right', cellTemplate: (el, c) => $('<strong>').css({ color: '#15803d', fontFamily: 'Manrope, sans-serif' }).text(formatVnd(c.value)).appendTo(el) },
+                        {
+                          caption: 'Ngày chi trả', width: 140, alignment: 'center',
+                          calculateCellValue: c => (c.paid_at || c.payout_date) ? new Date(c.paid_at || c.payout_date) : null,
+                          dataType: 'datetime', format: 'dd/MM/yyyy HH:mm',
+                          customizeText: c => c.value ? c.valueText : '--'
+                        },
+                        { caption: 'Mã GD chi trả', dataField: 'payout_ref', width: 110, alignment: 'center', customizeText: c => c.value || '--' },
+                        {
+                          caption: 'Trạng thái', dataField: 'status', width: 155, alignment: 'center', cellTemplate: (el, c) => {
+                            const map = { PAID: 'Đã thanh toán', PENDING_CONFIRMATION: 'Chờ PT xác nhận', PENDING: 'Chờ duyệt', APPROVED: 'Đã duyệt' };
+                            const tone = c.value === 'PAID' ? 'badge-success' : c.value === 'PENDING_CONFIRMATION' ? 'badge-warning' : 'badge-info';
+                            const $b = $('<span>').addClass(`status-badge ${tone}`).text(map[c.value] || c.value).appendTo(el);
+                            if (c.data?.pt_confirmed_at) {
+                              $b.attr('title', `PT đã xác nhận: ${new Date(c.data.pt_confirmed_at).toLocaleString('vi-VN')}`);
+                            }
+                          }
+                        }
+                      ], 'Chưa có bảng kê hoa hồng nào.');
+                    }
+
+                    // SUB-TAB 3: Thù lao lớp CĐ
+                    else if (currentIncomeTab === 'community_comp') {
+                      const mRow = $('<div class="metrics-row" style="margin-bottom: 16px;">').appendTo(incomeContainer);
+                      const baseComp = communityClasses.reduce((s, c) => s + Number(c.base_price || 0), 0);
+                      const bonusComp = communityClasses.reduce((s, c) => s + Number(c.bonus_amount || 0), 0);
+                      mRow.append($(`
+                        <article class="metric-card metric-purple"><div class="metric-label"><span>Tổng thù lao lớp CĐ</span><i class="fa-solid fa-sack-dollar"></i></div><strong class="metric-value">${formatVnd(totalClassCompensation)}</strong><span class="metric-caption">Cơ bản + Thưởng sĩ số</span></article>
+                        <article class="metric-card metric-green"><div class="metric-label"><span>Thù lao cơ bản</span><i class="fa-solid fa-wallet"></i></div><strong class="metric-value">${formatVnd(baseComp)}</strong><span class="metric-caption">Định mức theo ca</span></article>
+                        <article class="metric-card metric-amber"><div class="metric-label"><span>Thưởng sĩ số</span><i class="fa-solid fa-gift"></i></div><strong class="metric-value">${formatVnd(bonusComp)}</strong><span class="metric-caption">Thưởng lấp đầy lớp</span></article>
+                      `));
+
+                      $('<h4 class="profile-section-title"><i class="fa-solid fa-users" style="margin-right: 6px;"></i>Chi Tiết Thù Lao Từng Lớp Học Cộng Đồng</h4>').appendTo(incomeContainer);
+
+                      ptDetailGrid(incomeContainer, communityClasses, [
+                        {
+                          dataField: 'class_date', caption: 'Ngày dạy', width: 105, alignment: 'center',
+                          dataType: 'date', format: 'dd/MM/yyyy', sortOrder: 'desc'
+                        },
+                        {
+                          caption: 'Khung giờ', width: 110, alignment: 'center',
+                          calculateCellValue: r => `${clock(r.start_time)} - ${clock(r.end_time)}`
+                        },
+                        {
+                          dataField: 'title', caption: 'Lớp học & Bộ môn', minWidth: 160,
+                          cellTemplate: (el, cell) => {
+                            const r = cell.data;
+                            $('<div>')
+                              .append($('<strong>').text(r.title || 'Lớp cộng đồng'))
+                              .append($('<small style="display:block;color:#748078;font-size:11px;">').text(r.discipline_name || 'Bộ môn nhóm'))
+                              .appendTo(el);
+                          }
+                        },
+                        { dataField: 'branch_name', caption: 'Chi nhánh', minWidth: 130 },
+                        {
+                          caption: 'Sĩ số', width: 95, alignment: 'center',
+                          calculateCellValue: r => `${r.enrolled_slots || 0}/${r.max_slots || 30}`
+                        },
+                        {
+                          caption: 'Cơ bản', dataField: 'base_price', width: 110, alignment: 'right',
+                          customizeText: c => formatVnd(c.value)
+                        },
+                        {
+                          caption: 'Thưởng', dataField: 'bonus_amount', width: 110, alignment: 'right',
+                          customizeText: c => formatVnd(c.value)
+                        },
+                        {
+                          caption: 'Tổng thù lao', width: 125, alignment: 'right',
+                          cellTemplate: (el, cell) => {
+                            const r = cell.data;
+                            const total = Number(r.total_compensation || ((Number(r.base_price) || 0) + (Number(r.bonus_amount) || 0)));
+                            $('<strong>').css({ color: '#7c3aed', fontFamily: 'Manrope, sans-serif' }).text(formatVnd(total)).appendTo(el);
+                          }
+                        },
+                        {
+                          caption: 'Thao tác', width: 135, alignment: 'center',
+                          cellTemplate: (el, cell) => {
+                            $('<button class="dx-button dx-button-default dx-button-mode-outlined" style="font-size: 11px; padding: 3px 8px; border-radius: 4px;">')
+                              .html('<i class="fa-solid fa-list-ul" style="margin-right: 4px;"></i>Xem học viên')
+                              .on('click', () => openCommunityClassMembersModal(cell.data))
+                              .appendTo(el);
+                          }
+                        }
+                      ], 'Chưa có lớp học cộng đồng nào.');
+                    }
+                  }
+
+                  btnTabSummary.on('click', () => { currentIncomeTab = 'income_summary'; renderIncomeSubView(); });
+                  btnTabPtCombo.on('click', () => { currentIncomeTab = 'pt_combo'; renderIncomeSubView(); });
+                  btnTabCommunityComp.on('click', () => { currentIncomeTab = 'community_comp'; renderIncomeSubView(); });
+                  renderIncomeSubView();
+                }
+
+                // =============================================================
+                // TAB 5: TÀI KHOẢN (profile) - Hồ sơ, chuyên môn, ngân hàng & cài đặt
+                // =============================================================
+                else if (tabId === 'profile') {
+                  const infoSection = $('<div class="profile-card-box" style="margin-bottom: 20px;">').appendTo(mainPanel);
+                  $('<h4 class="profile-section-title"><i class="fa-solid fa-address-card" style="margin-right: 8px;"></i>Thông Tin Nhân Sự Huấn Luyện Viên</h4>').appendTo(infoSection);
+
+                  const gridDl = $('<dl class="profile-info-grid">').appendTo(infoSection);
+                  const addField = (lbl, val, customVal) => {
+                    const item = $('<div class="profile-info-item">').appendTo(gridDl);
+                    $('<dt>').text(lbl).appendTo(item);
+                    if (customVal) {
+                      $('<dd>').append(customVal).appendTo(item);
+                    } else {
+                      $('<dd>').text(val || '--').appendTo(item);
+                    }
+                  };
+
+                  addField('Mã huấn luyện viên', fullPt.pt_code || pt.code);
+                  addField('Họ và tên', fullPt.full_name);
+                  addField('Số điện thoại', fullPt.phone);
+                  addField('Email làm việc', fullPt.email || 'Chưa cập nhật');
+                  addField('Chi nhánh phục vụ', fullPt.branch_name || '--');
+                  addField('Khung giờ làm việc', `${(fullPt.work_start_time || '08:00').slice(0, 5)} - ${(fullPt.work_end_time || '18:00').slice(0, 5)}`);
+                  addField('Ngày làm việc trong tuần', fullPt.work_days === 'MON_TO_FRI' ? 'Thứ 2 - Thứ 6' : fullPt.work_days === 'ALL_WEEK' ? 'Thứ 2 - Chủ nhật' : (fullPt.work_days || 'Thứ 2 - Thứ 6'));
+                  const statusBadgeEl = $('<span>');
+                  badge(statusBadgeEl, fullPt.status, PROFILE_STATUS);
+                  addField('Trạng thái hoạt động', null, statusBadgeEl);
+                  addField('Nhận diện khuôn mặt Kiosk', null, $(`<span class="status-badge ${fullPt.face_enrolled ? 'badge-success' : 'badge-warning'}">${fullPt.face_enrolled ? 'Đã có khuôn mặt' : 'Chưa có khuôn mặt'}</span>`));
+
+                  // Khối Chuyên môn & Hồ sơ năng lực
+                  const specSection = $('<div class="profile-card-box" style="margin-bottom: 20px;">').appendTo(mainPanel);
+                  $('<h4 class="profile-section-title"><i class="fa-solid fa-award" style="margin-right: 6px;"></i>Chuyên Môn & Hồ Sơ Năng Lực</h4>').appendTo(specSection);
+                  $('<div style="font-size: 11px; color: var(--text-muted, #748078); font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Chuyên môn / Ghi chú năng lực:</div>').appendTo(specSection);
+                  $('<div style="font-size: 13px; color: var(--text-main, #26332e); background: #fbfcfb; border: 1px solid var(--border-color, #dfe6e2); border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;">').text(fullPt.specialties || fullPt.specialty || 'Chưa cập nhật chuyên môn');
+
+                  if (fullPt.bio) {
+                    $('<div style="font-size: 11px; color: var(--text-muted, #748078); font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Giới thiệu bản thân (Bio):</div>').appendTo(specSection);
+                    $('<div style="font-size: 13px; color: var(--text-main, #26332e); background: #fbfcfb; border: 1px solid var(--border-color, #dfe6e2); border-radius: 6px; padding: 10px 14px;">').text(fullPt.bio);
+                  }
+
+                  // Khối Tài khoản ngân hàng chi trả thu nhập
+                  const bankSection = $('<div class="profile-card-box" style="margin-bottom: 20px;">').appendTo(mainPanel);
+                  $('<h4 class="profile-section-title"><i class="fa-solid fa-building-columns" style="margin-right: 6px;"></i>Tài Khoản Ngân Hàng Nhận Thu Nhập</h4>').appendTo(bankSection);
+                  const bankGrid = $('<dl class="profile-info-grid">').appendTo(bankSection);
+                  const addBankItem = (lbl, val) => {
+                    const itm = $('<div class="profile-info-item">').appendTo(bankGrid);
+                    $('<dt>').text(lbl).appendTo(itm);
+                    $('<dd style="font-weight: 600; color: var(--primary-dark, #185740);">').text(val || 'Chưa cập nhật').appendTo(itm);
+                  };
+                  addBankItem('Ngân hàng thụ hưởng', fullPt.bank_name);
+                  addBankItem('Số tài khoản', fullPt.bank_account_no);
+                  addBankItem('Tên chủ tài khoản', fullPt.bank_account_name);
+
+                  // Khối Cài đặt & Tùy chọn HLV
+                  const optSection = $('<div class="profile-card-box">').appendTo(mainPanel);
+                  $('<h4 class="profile-section-title"><i class="fa-solid fa-sliders" style="margin-right: 6px;"></i>Cài Đặt & Tùy Chọn Ứng Dụng</h4>').appendTo(optSection);
+                  const optList = $('<div style="display: flex; flex-direction: column; gap: 10px;">').appendTo(optSection);
+                  const addOptionRow = (title, desc, isChecked) => {
+                    $(`
+                      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #fbfcfb; border: 1px solid #edf1ee; border-radius: 6px;">
+                        <div>
+                          <div style="font-size: 12.5px; font-weight: 600; color: #185740;">${title}</div>
+                          <div style="font-size: 11px; color: #748078;">${desc}</div>
+                        </div>
+                        <span class="status-badge ${isChecked ? 'badge-success' : 'badge-info'}">${isChecked ? 'Bật' : 'Tắt'}</span>
+                      </div>
+                    `).appendTo(optList);
+                  };
+                  addOptionRow('Nhận thông báo lịch mới', 'Thông báo khi có ca tập mới hoặc học viên đổi lịch', true);
+                  addOptionRow('Nhắc ghi kết quả buổi học', 'Nhắc nhở cập nhật bài tập và chỉ số sau ca dạy', true);
+                  addOptionRow('Hiển thị SĐT cho học viên', 'Cho phép học viên nhìn thấy số khi được phân công', Boolean(fullPt.show_phone !== false));
+                  addOptionRow('Xác thực 2 lớp (2FA khi đăng nhập)', 'Yêu cầu mã OTP SMS gửi về điện thoại mỗi khi đăng nhập', Boolean(fullPt.two_factor_enabled));
+                }
+              }
+
+              switchTab('overview');
+            } catch (err) {
+              loadIndicator.html(`<span style="color:#b5493a;">Lỗi khi tải hồ sơ: ${err.message || 'Không thể tải dữ liệu'}</span>`);
+            }
+          })();
         },
         toolbarItems: [
-          ...(isAdmin() ? [
-            {
-              widget: 'dxButton', toolbar: 'bottom', location: 'after',
-              options: {
-                text: 'Bàn giao học viên', icon: 'repeat', type: 'normal',
-                onClick: () => {
-                  popup.hide();
-                  openTrainerHandoverModal(state, fullPt);
-                }
-              }
-            },
-            {
-              widget: 'dxButton', toolbar: 'bottom', location: 'after',
-              options: {
-                text: 'Sửa hồ sơ PT', icon: 'edit', type: 'default', stylingMode: 'contained',
-                onClick: () => {
-                  popup.hide();
-                  showTrainerForm(state, fullPt);
-                }
-              }
-            }
-          ] : []),
           {
             widget: 'dxButton', toolbar: 'bottom', location: 'after',
             options: { text: 'Đóng', stylingMode: 'outlined', onClick: () => popup.hide() }
@@ -603,7 +1581,11 @@ window.PtSchedulerModule = (function () {
     }
     if (!alive(state)) return;
     const columns = [
-      { dataField: 'pt_code', caption: 'Mã PT', width: 100, calculateCellValue: pt => pt.pt_code || pt.code },
+      {
+        dataField: 'pt_code', caption: 'Mã PT', width: 100,
+        calculateCellValue: pt => pt.pt_code || pt.code,
+        cellTemplate: (el, info) => $('<a href="#">').text(info.value).on('click', e => { e.preventDefault(); showTrainerDetail(state, info.data); }).appendTo(el)
+      },
       {
         dataField: 'full_name', caption: 'Họ và tên', minWidth: 200, cellTemplate: (el, info) => {
           const row = $('<div>').css({ display: 'flex', gap: 10, alignItems: 'center' }).appendTo(el);
@@ -636,7 +1618,13 @@ window.PtSchedulerModule = (function () {
       dataSource: [], keyExpr: 'id', showBorders: false, showRowLines: true, columnAutoWidth: true, wordWrapEnabled: true,
       rowAlternationEnabled: true, hoverStateEnabled: true, noDataText: 'Không có huấn luyện viên phù hợp.',
       searchPanel: { visible: false, searchVisibleColumnsOnly: true }, scrolling: { mode: 'standard', useNative: true },
-      paging: { pageSize: 20 }, pager: { visible: true, showInfo: true, showPageSizeSelector: true, allowedPageSizes: [10, 20, 50] }, columns
+      paging: { pageSize: 20 }, pager: { visible: true, showInfo: true, showPageSizeSelector: true, allowedPageSizes: [10, 20, 50] },
+      onRowClick: event => {
+        if (event.rowType === 'data' && $(event.event.target).closest('.dx-button, a').length === 0) {
+          showTrainerDetail(state, event.data);
+        }
+      },
+      columns
     }).dxDataGrid('instance');
     await loadTrainers(state);
     if (alive(state) && context.action === 'create') await showTrainerForm(state);
@@ -659,7 +1647,7 @@ window.PtSchedulerModule = (function () {
 
   function scheduleDates(state) {
     const date = dayDate(state.date);
-    if (state.modeView === 'list' || state.calendarView === 'day') return [dayKey(date)];
+    if (state.modeView === 'list' || state.calendarView === 'day' || state.calendarView === 'Ngày') return [dayKey(date)];
     date.setDate(date.getDate() - (date.getDay() + 6) % 7);
     return Array.from({ length: 5 }, (_, index) => { const item = new Date(date); item.setDate(item.getDate() + index); return dayKey(item); });
   }
@@ -672,6 +1660,17 @@ window.PtSchedulerModule = (function () {
     state.date = context.date ? dayDate(context.date) : new Date();
     state.modeView = 'calendar'; state.calendarView = 'day'; state.trainer = null;
     state.bookings = []; state.availability = new Map();
+    button(state.actions, {
+      icon: 'add', text: 'Đặt lịch mới', type: 'default', stylingMode: 'contained',
+      hint: 'Đặt lịch tập PT mới',
+      onClick: () => {
+        if (!state.trainer) {
+          notify('Vui lòng chọn huấn luyện viên trước khi đặt lịch.', 'warning');
+          return;
+        }
+        showBookingForm(state, { booking_date: dayKey(state.date || new Date()), start_time: '09:00' });
+      }
+    });
     button(state.actions, { icon: 'refresh', hint: 'Tải lại lịch PT', onClick: () => state.trainer ? loadSchedule(state) : loadScheduleTrainers(state) });
     const filters = $('<div class="filter-bar">').appendTo(state.root);
     state.selector = $('<div id="ptSelector">').css('max-width', '100%').appendTo(filters).dxSelectBox({
@@ -742,15 +1741,18 @@ window.PtSchedulerModule = (function () {
     const pt = state.trainer;
     state.availability = new Map();
     state.bookings = [];
+    state.communityClasses = [];
     state.status.empty(); message(state.content, 'Đang tải lịch tập...');
     try {
       const responses = await Promise.all([
         request('/pt-bookings', { pt_id: pt.id, branch_id: pt.branch_id, date_from: dates[0], date_to: dates[dates.length - 1] }),
+        request('/community-classes', { instructor_id: pt.id, branch_id: pt.branch_id, date_from: dates[0], date_to: dates[dates.length - 1] }),
         ...(pt.status === 'ACTIVE' ? dates.map(date => request('/pt-bookings/available-slots', { pt_id: pt.id, date })) : [])
       ]);
       if (!alive(state) || sequence !== state.sequence) return;
       state.bookings = rows(responses[0]).filter(booking => booking.pt_id === pt.id && dates.includes(dayKey(booking.booking_date)));
-      state.availability = new Map(dates.map((date, index) => [date, read(responses[index + 1])]));
+      state.communityClasses = rows(responses[1]).filter(c => dates.includes(dayKey(c.class_date)));
+      state.availability = new Map(dates.map((date, index) => [date, read(responses[index + 2])]));
       state.content.empty().removeAttr('role').removeClass('pt-state');
       if (state.modeView === 'list') renderSlotList(state); else renderCalendar(state);
     } catch (error) { if (alive(state) && sequence === state.sequence) showError(state.content, error, () => loadSchedule(state)); }
@@ -874,13 +1876,21 @@ window.PtSchedulerModule = (function () {
     return (eh * 60 + em) - (sh * 60 + sm);
   }
   function checkCollision(state, dateStr, startStr, endStr, excludeId = null) {
-    return state.bookings.some(b =>
+    const bookingConflict = state.bookings.some(b =>
       b.id !== excludeId &&
       activeBooking(b) &&
       dayKey(b.booking_date) === dateStr &&
       clock(b.start_time) < endStr &&
       clock(b.end_time) > startStr
     );
+    const classConflict = (state.communityClasses || []).some(c =>
+      c.id !== excludeId &&
+      c.status !== 'CANCELLED' &&
+      dayKey(c.class_date) === dateStr &&
+      clock(c.start_time) < endStr &&
+      clock(c.end_time) > startStr
+    );
+    return bookingConflict || classConflict;
   }
   function getAllAppointments(state) {
     const list = state.bookings.filter(activeBooking).map(booking => ({
@@ -889,8 +1899,25 @@ window.PtSchedulerModule = (function () {
       text: `${booking.member_name || ''} - ${booking.package_name || booking.package_name_snapshot || ''}`,
       startDate: appointmentTime(booking.booking_date, booking.start_time),
       endDate: appointmentTime(booking.booking_date, booking.end_time),
-      is_draft: false
+      is_draft: false,
+      is_community_class: false
     }));
+
+    (state.communityClasses || []).forEach(c => {
+      if (c.status !== 'CANCELLED') {
+        list.push({
+          ...c,
+          id: 'comm-' + c.id,
+          class_id: c.id,
+          text: `[Lớp CĐ] ${c.title || c.discipline_name || 'Lớp cộng đồng'}`,
+          startDate: appointmentTime(c.class_date, c.start_time),
+          endDate: appointmentTime(c.class_date, c.end_time),
+          is_draft: false,
+          is_community_class: true
+        });
+      }
+    });
+
     if (state.draft) {
       list.push({
         ...state.draft,
@@ -910,85 +1937,6 @@ window.PtSchedulerModule = (function () {
   }
   function renderDraftFloatingBar(state) {
     state.content.find('.pt-floating-draft-bar').remove();
-    if (!state.draft) return;
-    const draft = state.draft;
-    const startStr = draft.startDate ? clockFromDate(draft.startDate) : (draft.start_time || '09:00');
-    const duration = Number(draft.duration_minutes) || 60;
-    const endStr = draft.endDate ? clockFromDate(draft.endDate) : calculateEndTime(startStr, duration);
-    draft.start_time = startStr;
-    draft.end_time = endStr;
-    const targetDate = draft.startDate ? dayDate(draft.startDate) : dayDate(draft.booking_date || new Date());
-    const targetDateStr = dayKey(targetDate);
-    const dateText = targetDate.toLocaleDateString('vi-VN');
-
-    const bar = $('<div class="pt-floating-draft-bar">').appendTo(state.content);
-    const info = $('<div class="info">').appendTo(bar);
-    $('<span class="pt-duration-tag">').text(`${duration} phút`).appendTo(info);
-    const textCol = $('<div style="display:flex;flex-direction:column;">').appendTo(info);
-    $('<strong style="color:#065f46;font-size:14px;">').text(`${startStr} - ${endStr}`).appendTo(textCol);
-    if (draft.member_name) {
-      $('<span style="font-size:12px;color:#0f172a;font-weight:600;">').text(`${draft.member_name} · ${draft.package_name || 'Gói PT'}`).appendTo(textCol);
-    }
-    $('<span style="font-size:11px;color:#64748b;">').text(`Ngày tập: ${dateText}`).appendTo(textCol);
-
-    $('<div class="hint">').html('<i class="fa-solid fa-arrows-up-down" style="color:#059669;"></i> <span>Kéo thả thẻ xanh trên lịch để đổi giờ</span>').appendTo(bar);
-
-    const actions = $('<div class="actions">').appendTo(bar);
-    if (draft.registration_id) {
-      button(actions, {
-        text: 'Xác nhận đặt lịch', icon: 'check', type: 'default', stylingMode: 'contained',
-        onClick: async () => {
-          if (appointmentTime(targetDateStr, draft.start_time).getTime() <= Date.now()) {
-            notify('Không thể đặt lịch ở thời điểm trong quá khứ.', 'warning');
-            return;
-          }
-          if (checkCollision(state, targetDateStr, draft.start_time, draft.end_time)) {
-            notify(`⚠️ Khung giờ ${draft.start_time} - ${draft.end_time} bị trùng với lịch khác của HLV!`, 'error');
-            return;
-          }
-          try {
-            await api().request('/pt-bookings', {
-              method: 'POST',
-              body: {
-                registration_id: draft.registration_id,
-                member_id: draft.member_id,
-                pt_id: state.trainer.id,
-                branch_id: state.trainer.branch_id,
-                booking_date: targetDateStr,
-                start_time: draft.start_time,
-                end_time: draft.end_time,
-                session_duration_minutes: duration,
-                workout_notes: String(draft.notes || '').trim() || null
-              }
-            });
-            notify('Đã đặt lịch PT thành công!');
-            state.draft = null;
-            bar.remove();
-            await loadSchedule(state);
-          } catch (err) {
-            notify(err.message || 'Không thể đặt lịch.', 'error');
-          }
-        }
-      });
-      button(actions, {
-        text: 'Đổi gói / thông tin', icon: 'edit', stylingMode: 'outlined',
-        onClick: () => showBookingForm(state, state.draft)
-      });
-    } else {
-      button(actions, {
-        text: 'Điền thông tin & Đặt lịch', icon: 'check', type: 'default', stylingMode: 'contained',
-        onClick: () => showBookingForm(state, state.draft)
-      });
-    }
-    button(actions, {
-      text: 'Hủy chọn', icon: 'close', stylingMode: 'outlined',
-      onClick: () => {
-        state.draft = null;
-        bar.remove();
-        refreshSchedulerAppointments(state);
-        notify('Đã hủy chọn lịch dự kiến.', 'info');
-      }
-    });
   }
 
   function appointmentContent(state, booking, parent, compact = false) {
@@ -1029,12 +1977,65 @@ window.PtSchedulerModule = (function () {
           refreshSchedulerAppointments(state);
           notify('Đã hủy lịch dự kiến.', 'info');
         });
+
+      draftBox.css('cursor', 'pointer').on('click', e => {
+        if ($(e.target).closest('button').length) return;
+        showBookingForm(state, booking);
+      });
+      return;
+    }
+
+    if (booking.is_community_class) {
+      const isDayView = state.calendarView === 'day' || state.calendarView === 'Ngày';
+      const compVal = Number(booking.total_compensation || (Number(booking.base_price || 0) + Number(booking.bonus_amount || 0)));
+      const enrolled = Number(booking.enrolled_slots || 0);
+      const max = Number(booking.max_slots || 40);
+
+      // BỎ BORDER-LEFT Ở ĐÂY VÌ THẺ CHA .dx-scheduler-appointment ĐÃ CÓ BORDER-LEFT 5px (CHỐNG LỖI 2 ĐƯỜNG SỌC)
+      const content = $('<div class="pt-appointment-card-body pt-community-card-body" style="background: transparent; border: none; padding: 6px 12px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; color: #fff; box-sizing: border-box;">')
+        .addClass(isDayView ? 'pt-view-day' : 'pt-view-week')
+        .appendTo(parent);
+
+      const topRow = $('<div style="display: flex; justify-content: space-between; align-items: center;">').appendTo(content);
+      $('<div style="font-weight: 700; color: #ddd6fe; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">')
+        .html('<i class="fa-solid fa-users" style="margin-right: 5px;"></i>LỚP CỘNG ĐỒNG')
+        .appendTo(topRow);
+
+      const topActions = $('<div style="display: flex; align-items: center; gap: 8px;">').appendTo(topRow);
+      $('<span style="background: rgba(255,255,255,0.22); color: #fff; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; font-family: Manrope, monospace;">')
+        .text(`${enrolled}/${max} HV`)
+        .appendTo(topActions);
+
+      // NÚT XEM DANH SÁCH HỘI VIÊN NỔI BẬT TRÊN THẺ LỊCH
+      const memberBtnText = isDayView ? '<i class="fa-solid fa-list-check"></i> Xem danh sách hội viên' : '<i class="fa-solid fa-list-check"></i> DS HV';
+      $('<button type="button" class="pt-btn-community-members" title="Xem danh sách hội viên đã đăng ký lớp học này">')
+        .html(memberBtnText)
+        .appendTo(topActions)
+        .on('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          openCommunityClassDetailModal(state, booking);
+        });
+
+      $('<div style="font-weight: 700; color: #ffffff; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 3px 0;">')
+        .text(booking.title || 'Lớp tập nhóm')
+        .attr('title', booking.title || '')
+        .appendTo(content);
+
+      const botRow = $('<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #c4b5fd;">').appendTo(content);
+      $('<span>').html(`<i class="fa-regular fa-clock" style="margin-right: 4px;"></i><strong>${clock(booking.start_time)} - ${clock(booking.end_time)}</strong>`).appendTo(botRow);
+      $('<strong style="color: #fbbf24; font-family: Manrope, sans-serif;">').text((compVal || 0).toLocaleString('vi-VN') + ' đ').appendTo(botRow);
+
+      content.css('cursor', 'pointer').on('click', e => {
+        e.stopPropagation();
+        openCommunityClassDetailModal(state, booking);
+      });
       return;
     }
 
     const isEnded = ended(booking);
     const durationMin = booking.session_duration_minutes || calculateDurationMinutes(booking.start_time, booking.end_time);
-    const isDayView = state.calendarView === 'day';
+    const isDayView = state.calendarView === 'day' || state.calendarView === 'Ngày';
     const content = $('<div class="pt-appointment-card-body">')
       .addClass(isDayView ? 'pt-view-day' : 'pt-view-week')
       .appendTo(parent);
@@ -1069,16 +2070,14 @@ window.PtSchedulerModule = (function () {
             confirmBookingCompletion(state, booking);
           });
 
-        if (!isEnded) {
-          $('<button type="button" class="pt-btn-card-cancel">')
-            .html('<i class="fa-solid fa-xmark"></i> Hủy lịch')
-            .attr('title', 'Hủy lịch PT này (QTV-W06-US04 / LT-W06-US04)')
-            .appendTo(topRight)
-            .on('click', e => {
-              e.preventDefault(); e.stopPropagation();
-              showCancellation(state, booking);
-            });
-        }
+        $('<button type="button" class="pt-btn-card-cancel">')
+          .html('<i class="fa-solid fa-xmark"></i> Hủy lịch')
+          .attr('title', 'Hủy lịch PT này (QTV-W06-US04 / LT-W06-US04)')
+          .appendTo(topRight)
+          .on('click', e => {
+            e.preventDefault(); e.stopPropagation();
+            showCancellation(state, booking);
+          });
       }
 
       // Hàng 2: Tên hội viên & Gói tập rõ ràng, nổi bật
@@ -1098,7 +2097,7 @@ window.PtSchedulerModule = (function () {
         .html(`<i class="fa-regular fa-clock" style="margin-right: 3px;"></i>${clock(booking.start_time)}-${clock(booking.end_time)}`)
         .appendTo(headerRow);
 
-      if (booking.status === 'BOOKED' && !isEnded) {
+      if (booking.status === 'BOOKED') {
         $('<button type="button" class="pt-btn-card-cancel-mini">')
           .html('<i class="fa-solid fa-xmark"></i>')
           .attr('title', 'Hủy lịch PT')
@@ -1148,23 +2147,23 @@ window.PtSchedulerModule = (function () {
     state.scheduler = $('<div id="ptScheduler">').appendTo($('<div class="card-panel" style="position:relative;min-height:780px;">').appendTo(state.content)).dxScheduler({
       dataSource: appointments,
       views: [
-        { type: 'day', name: 'Ngày', intervalCount: 1 },
-        { type: 'workWeek', name: 'Tuần (T2-T6)' },
-        { type: 'week', name: 'Toàn tuần' }
+        { type: 'day', name: 'Ngày', intervalCount: 1, cellDuration: 15 },
+        { type: 'workWeek', name: 'Tuần (T2-T6)', cellDuration: 15 },
+        { type: 'week', name: 'Toàn tuần', cellDuration: 15 }
       ],
       currentView: state.calendarView,
       currentDate: state.date,
       firstDayOfWeek: 1,
       startDayHour: 6,
       endDayHour: 22,
-      cellDuration: 30, // 30 phút mỗi ô lưới
+      cellDuration: 15, // 15 phút mỗi ô lưới
       showAllDayPanel: false,
       height: 750,
       editing: {
         allowAdding: false,
         allowDeleting: false,
         allowDragging: true, // KÉO THẢ THẺ LỊCH TẬP
-        allowResizing: false,
+        allowResizing: true, // KÉO VIỀN TRÊN / VIỀN DƯỚI ĐIỀU CHỈNH THỜI LƯỢNG
         allowUpdating: true
       },
       showCurrentTimeIndicator: true,
@@ -1174,6 +2173,8 @@ window.PtSchedulerModule = (function () {
         event.cancel = true;
         if (event.appointmentData.is_draft) {
           showBookingForm(state, event.appointmentData);
+        } else if (event.appointmentData.is_community_class) {
+          // Handled inside appointment card click template
         } else {
           showBookingDetail(state, event.appointmentData);
         }
@@ -1183,6 +2184,15 @@ window.PtSchedulerModule = (function () {
         const el = $(event.appointmentElement);
         if (item.is_draft) {
           el.addClass('pt-draft-appointment');
+        } else if (item.is_community_class) {
+          el.addClass('pt-appointment-community');
+          el.css({
+            'background': 'linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)',
+            'background-color': '#4c1d95',
+            'border-left': '5px solid #a78bfa',
+            'border-radius': '6px',
+            'box-shadow': '0 2px 8px rgba(76, 29, 149, 0.4)'
+          });
         } else if (item.status) {
           const statusKey = String(item.status).toLowerCase();
           el.addClass(`pt-appointment-${statusKey}`);
@@ -1234,13 +2244,40 @@ window.PtSchedulerModule = (function () {
         const item = event.oldData || event.appointmentData;
         if (!item?.is_draft) {
           event.cancel = true;
-          notify('Chỉ thẻ lịch tập dự kiến mới có thể nhấn giữ kéo đổi giờ.', 'warning');
+          notify('Chỉ thẻ lịch tập dự kiến mới có thể kéo đổi giờ và điều chỉnh thời lượng.', 'warning');
           return;
         }
 
-        const newStart = new Date(event.newData?.startDate || item.startDate);
-        const duration = Number(state.draft?.duration_minutes) || Number(item.duration_minutes) || 60;
-        const newEnd = new Date(newStart.getTime() + duration * 60000);
+        const oldStart = new Date(item.startDate);
+        const oldEnd = new Date(item.endDate);
+        let newStart = new Date(event.newData?.startDate || item.startDate);
+        let newEnd = new Date(event.newData?.endDate || item.endDate);
+
+        const oldDur = Math.max(15, Math.round((oldEnd.getTime() - oldStart.getTime()) / 60000));
+        let newDur = Math.round((newEnd.getTime() - newStart.getTime()) / 60000);
+
+        const isResizeTop = Math.abs(newEnd.getTime() - oldEnd.getTime()) < 60000 && Math.abs(newStart.getTime() - oldStart.getTime()) >= 60000;
+        const isResizeBottom = Math.abs(newStart.getTime() - oldStart.getTime()) < 60000 && Math.abs(newEnd.getTime() - oldEnd.getTime()) >= 60000;
+        const isMove = !isResizeTop && !isResizeBottom;
+
+        const maxDuration = Number(state.draft?.package_duration) || Number(item.package_duration) || Number(item.duration_minutes) || 180;
+        const minDuration = 15;
+
+        if (isResizeBottom || isResizeTop) {
+          if (newDur < minDuration) {
+            newDur = minDuration;
+            if (isResizeBottom) newEnd = new Date(newStart.getTime() + minDuration * 60000);
+            else newStart = new Date(newEnd.getTime() - minDuration * 60000);
+          } else if (newDur > maxDuration) {
+            newDur = maxDuration;
+            if (isResizeBottom) newEnd = new Date(newStart.getTime() + maxDuration * 60000);
+            else newStart = new Date(newEnd.getTime() - maxDuration * 60000);
+          }
+        } else if (isMove) {
+          // Khi di chuyển cả thẻ, bảo toàn thời lượng đã điều chỉnh
+          newEnd = new Date(newStart.getTime() + oldDur * 60000);
+          newDur = oldDur;
+        }
 
         if (event.newData) {
           event.newData.startDate = newStart;
@@ -1251,13 +2288,64 @@ window.PtSchedulerModule = (function () {
         const newStartStr = clockFromDate(newStart);
         const newEndStr = clockFromDate(newEnd);
 
+        // 1. Kiểm tra thời điểm trong quá khứ
+        if (newStart.getTime() <= Date.now()) {
+          event.cancel = true;
+          notify('Không thể dời lịch tập về thời điểm trong quá khứ.', 'warning');
+          setTimeout(() => {
+            refreshSchedulerAppointments(state);
+            renderDraftFloatingBar(state);
+          }, 0);
+          return;
+        }
+
+        // 2. Kiểm tra ngày làm việc HLV
+        const dayOfWeek = newStart.getDay();
+        if (state.trainer?.work_days === 'MON_TO_FRI' && (dayOfWeek === 0 || dayOfWeek === 6)) {
+          event.cancel = true;
+          notify('HLV chỉ làm việc từ Thứ 2 đến Thứ 6.', 'warning');
+          setTimeout(() => {
+            refreshSchedulerAppointments(state);
+            renderDraftFloatingBar(state);
+          }, 0);
+          return;
+        }
+
+        // 3. Khung giờ hoạt động 06:00 - 22:00
+        if (newStartStr < '06:00' || newEndStr > '22:00') {
+          event.cancel = true;
+          notify('Thời gian tập phải nằm trong khung giờ hoạt động (06:00 - 22:00).', 'warning');
+          setTimeout(() => {
+            refreshSchedulerAppointments(state);
+            renderDraftFloatingBar(state);
+          }, 0);
+          return;
+        }
+
+        // 4. KIỂM TRA VA CHẠM (COLLISION) - Trùng thẻ đã có từ trước -> HỦY BỎ và QUAY VỀ VỊ TRÍ CŨ
+        const hasCollision = checkCollision(state, newDateStr, newStartStr, newEndStr, item.id);
+        if (hasCollision) {
+          event.cancel = true;
+          notify(`⚠️ Khung giờ ${newStartStr} - ${newEndStr} đã có lịch đặt từ trước. Thẻ lịch tự động quay về vị trí cũ!`, 'warning');
+          setTimeout(() => {
+            refreshSchedulerAppointments(state);
+            renderDraftFloatingBar(state);
+          }, 0);
+          return;
+        }
+
+        if (event.newData) {
+          event.newData.startDate = newStart;
+          event.newData.endDate = newEnd;
+        }
+
         if (state.draft) {
           state.draft.startDate = newStart;
           state.draft.endDate = newEnd;
           state.draft.booking_date = newDateStr;
           state.draft.start_time = newStartStr;
           state.draft.end_time = newEndStr;
-          state.draft.duration_minutes = duration;
+          state.draft.duration_minutes = newDur;
         }
       },
       onAppointmentUpdated: event => {
@@ -1265,12 +2353,19 @@ window.PtSchedulerModule = (function () {
         if (!item || !item.is_draft) return;
 
         const newStart = new Date(item.startDate);
-        const duration = Number(state.draft?.duration_minutes) || Number(item.duration_minutes) || 60;
-        const newEnd = new Date(newStart.getTime() + duration * 60000);
+        const newEnd = new Date(item.endDate);
+        const duration = Math.max(15, Math.round((newEnd.getTime() - newStart.getTime()) / 60000));
 
         const newDateStr = dayKey(newStart);
         const newStartStr = clockFromDate(newStart);
         const newEndStr = clockFromDate(newEnd);
+
+        // Safeguard va chạm
+        const hasCollision = checkCollision(state, newDateStr, newStartStr, newEndStr, item.id);
+        if (hasCollision) {
+          refreshSchedulerAppointments(state);
+          return;
+        }
 
         if (state.draft) {
           state.draft.startDate = newStart;
@@ -1281,12 +2376,9 @@ window.PtSchedulerModule = (function () {
           state.draft.duration_minutes = duration;
         }
 
-        const hasCollision = checkCollision(state, newDateStr, newStartStr, newEndStr);
-        if (hasCollision) {
-          notify(`⚠️ Khung giờ ${newStartStr} - ${newEndStr} bị trùng với lịch khác của HLV!`, 'warning');
-        } else {
-          notify(`⏰ Đã điều chỉnh giờ bắt đầu: ${newStartStr} - ${newEndStr} (${duration} phút)`, 'success');
-        }
+        const maxDur = Number(state.draft?.package_duration) || duration;
+        const shortenNote = duration < maxDur ? ` (Rút ngắn từ gói ${maxDur}p · Vẫn tính 1 buổi)` : '';
+        notify(`⏰ Đã điều chỉnh lịch tập: ${newStartStr} - ${newEndStr} (${duration} phút${shortenNote})`, 'success');
 
         renderDraftFloatingBar(state);
 
@@ -1294,6 +2386,8 @@ window.PtSchedulerModule = (function () {
           state.activeBookingForm.updateData('date', dayDate(newDateStr));
           state.activeBookingForm.updateData('start_time', newStartStr);
           state.activeBookingForm.updateData('end_time', newEndStr);
+          state.activeBookingForm.updateData('duration_minutes', duration);
+          state.activeBookingForm.updateData('duration_display', `${duration} phút${shortenNote}`);
         }
 
         setTimeout(() => {
@@ -1322,21 +2416,36 @@ window.PtSchedulerModule = (function () {
           const clickedEnd = new Date(clickedStart.getTime() + duration * 60000);
           const endStr = clockFromDate(clickedEnd);
 
+          if (startStr < '06:00' || endStr > '22:00') {
+            notify('Thời gian tập phải nằm trong khung giờ hoạt động (06:00 - 22:00).', 'warning');
+            return;
+          }
+
+          const hasCollision = checkCollision(state, dateStr, startStr, endStr, state.draft.id);
+          if (hasCollision) {
+            notify(`⚠️ Khung giờ ${startStr} - ${endStr} đã có lịch đặt từ trước. Không thể di chuyển thẻ vào khung giờ này!`, 'warning');
+            return;
+          }
+
           state.draft.startDate = clickedStart;
           state.draft.endDate = clickedEnd;
           state.draft.booking_date = dateStr;
           state.draft.start_time = startStr;
           state.draft.end_time = endStr;
 
-          const hasCollision = checkCollision(state, dateStr, startStr, endStr);
-          if (hasCollision) {
-            notify(`⚠️ Khung giờ ${startStr} - ${endStr} bị trùng với lịch khác của HLV!`, 'warning');
-          } else {
-            notify(`⏰ Đã điều chỉnh giờ bắt đầu: ${startStr} - ${endStr} (${duration} phút)`, 'success');
-          }
+          const maxDur = Number(state.draft?.package_duration) || duration;
+          const shortenNote = duration < maxDur ? ` (Rút ngắn từ gói ${maxDur}p · Vẫn tính 1 buổi)` : '';
+          notify(`⏰ Đã điều chỉnh giờ bắt đầu: ${startStr} - ${endStr} (${duration} phút${shortenNote})`, 'success');
 
           refreshSchedulerAppointments(state);
           renderDraftFloatingBar(state);
+          return;
+        }
+
+        // Nếu chưa có thẻ dự kiến: kiểm tra xem ô click có bị trùng lịch từ trước không
+        const defaultEndStr = calculateEndTime(startStr, 60);
+        if (checkCollision(state, dateStr, startStr, defaultEndStr)) {
+          notify(`⚠️ Khung giờ này đã có lịch đặt từ trước của HLV. Vui lòng chọn khung giờ còn trống.`, 'warning');
           return;
         }
 
@@ -1347,30 +2456,20 @@ window.PtSchedulerModule = (function () {
         });
       },
       timeCellTemplate: (cell, index, element) => {
-        $(element).css({ verticalAlign: 'top', padding: 0, position: 'relative' });
+        $(element).css({ verticalAlign: 'middle', padding: 0, position: 'relative' });
         const h = String(cell.date.getHours()).padStart(2, '0');
         const m = String(cell.date.getMinutes()).padStart(2, '0');
-        const isFirst = (cell.date.getHours() === 6 && cell.date.getMinutes() === 0) || index === 0;
 
-        const labelDiv = $('<div class="pt-time-panel-label">')
-          .toggleClass('is-first-cell', isFirst)
-          .appendTo(element);
+        const labelDiv = $('<div class="pt-time-panel-label">').appendTo(element);
 
         if (m === '00') {
-          $('<span style="font-weight: 700; color: #1e293b; font-size: 12px; background: #ffffff; padding: 0 4px; border-radius: 3px;">')
+          $('<span style="font-weight: 700; color: #1e293b; font-size: 12px; padding: 0 4px; border-radius: 3px;">')
             .text(`${h}:00`)
             .appendTo(labelDiv);
         } else {
-          $('<span style="font-size: 11px; color: #64748b; background: #ffffff; padding: 0 4px; border-radius: 3px;">')
+          $('<span style="font-size: 10.5px; font-weight: 500; color: #64748b; padding: 0 4px; border-radius: 3px;">')
             .text(`${h}:${m}`)
             .appendTo(labelDiv);
-        }
-
-        if (cell.date.getHours() === 21 && cell.date.getMinutes() === 30) {
-          const endDiv = $('<div class="pt-time-panel-label is-last-cell">').appendTo(element);
-          $('<span style="font-weight: 700; color: #1e293b; font-size: 12px; background: #ffffff; padding: 0 4px; border-radius: 3px;">')
-            .text('22:00')
-            .appendTo(endDiv);
         }
       },
       dataCellTemplate: (cell, _, element) => {
@@ -1384,7 +2483,8 @@ window.PtSchedulerModule = (function () {
         }
         if (event.name === 'currentView') {
           const view = event.value;
-          if (state.calendarView !== view) { state.calendarView = view; loadSchedule(state); }
+          const normalized = (view === 'Ngày' || view === 'day') ? 'day' : view;
+          if (state.calendarView !== normalized) { state.calendarView = normalized; loadSchedule(state); }
         }
       }
     }).dxScheduler('instance');
@@ -1428,9 +2528,7 @@ window.PtSchedulerModule = (function () {
           const actions = $('<div>').css({ display: 'flex', gap: 6, flexWrap: 'wrap' }).appendTo(cell);
           button(actions, { icon: 'find', hint: 'Chi tiết buổi tập', onClick: () => showBookingDetail(state, booking) });
           if (booking.status === 'BOOKED') {
-            if (!ended(booking)) {
-              button(actions, { icon: 'close', text: 'Hủy lịch', type: 'danger', stylingMode: 'contained', onClick: () => showCancellation(state, booking) });
-            }
+            button(actions, { icon: 'close', text: 'Hủy lịch', type: 'danger', stylingMode: 'contained', onClick: () => showCancellation(state, booking) });
             button(actions, { icon: 'check', text: 'Xác nhận hoàn thành', type: 'default', stylingMode: 'contained', disabled: !ended(booking), onClick: () => confirmBookingCompletion(state, booking) });
           }
         } }
@@ -1473,7 +2571,7 @@ window.PtSchedulerModule = (function () {
       (!start || dayKey(start) <= date) && (!end || dayKey(end) >= date) &&
       (!allowed || !allowed.length || allowed.includes(pt.branch_id));
   }
-  function generateStartTimeSlots(stepMinutes = 15, startHour = 6, endHour = 21, endMinute = 30) {
+  function generateStartTimeSlots(stepMinutes = 15, startHour = 6, endHour = 21, endMinute = 45) {
     const slots = [];
     let currentTotal = startHour * 60;
     const maxTotal = endHour * 60 + endMinute;
@@ -1483,6 +2581,24 @@ window.PtSchedulerModule = (function () {
       const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
       slots.push({ id: timeStr, text: timeStr });
       currentTotal += stepMinutes;
+    }
+    return slots;
+  }
+  function generateEndTimeSlots(startStr, maxMinutes = 180) {
+    if (!startStr) return [];
+    const [sh, sm] = String(startStr).split(':').map(Number);
+    const startTotal = sh * 60 + sm;
+    const slots = [];
+    const step = 15;
+    const minMinutes = 15;
+    const effectiveMax = Math.max(Number(maxMinutes) || 60, minMinutes);
+    const maxTotal = Math.min(22 * 60, startTotal + effectiveMax);
+    for (let t = startTotal + minMinutes; t <= maxTotal; t += step) {
+      const h = Math.floor(t / 60);
+      const m = t % 60;
+      const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      const dur = t - startTotal;
+      slots.push({ id: timeStr, text: `${timeStr} (${dur} phút)`, duration: dur });
     }
     return slots;
   }
@@ -1517,6 +2633,7 @@ window.PtSchedulerModule = (function () {
     let initialDateStr = dayKey(state.date);
     let initialStart = '09:00';
     let initialDuration = null;
+    let initialPackageDuration = null;
     let initialDurationDisplay = '';
     let initialEnd = '';
     let initialMemberId = null;
@@ -1529,20 +2646,27 @@ window.PtSchedulerModule = (function () {
       initialDateStr = dayKey(draftOrDate.booking_date || state.date);
       initialStart = draftOrDate.start_time ? clock(draftOrDate.start_time) : '09:00';
       initialDuration = draftOrDate.duration_minutes ? Number(draftOrDate.duration_minutes) : null;
+      initialPackageDuration = draftOrDate.package_duration ? Number(draftOrDate.package_duration) : (initialDuration || null);
       initialMemberId = draftOrDate.member_id || null;
       initialRegId = draftOrDate.registration_id || null;
       initialMemberName = draftOrDate.member_name || '';
       initialPackageName = draftOrDate.package_name || '';
       initialNotes = draftOrDate.notes || '';
       if (initialDuration) {
-        initialDurationDisplay = `${initialDuration} phút (Theo cấu hình gói đã chọn)`;
-        initialEnd = calculateEndTime(initialStart, initialDuration);
+        initialEnd = draftOrDate.end_time || calculateEndTime(initialStart, initialDuration);
+        const pkgDur = initialPackageDuration || initialDuration;
+        if (initialDuration < pkgDur) {
+          initialDurationDisplay = `${initialDuration} phút (Rút ngắn từ gói ${pkgDur}p · Vẫn tính 1 buổi)`;
+        } else {
+          initialDurationDisplay = `${initialDuration} phút (Theo cấu hình gói đã chọn)`;
+        }
       }
     } else if (draftOrDate) {
       initialDateStr = dayKey(draftOrDate);
       if (maybeSlot) {
         initialStart = clock(maybeSlot.start_time || '09:00');
         initialDuration = maybeSlot.session_duration_minutes ? Number(maybeSlot.session_duration_minutes) : null;
+        initialPackageDuration = initialDuration;
         if (initialDuration) {
           initialDurationDisplay = `${initialDuration} phút (Theo cấu hình gói đã chọn)`;
           initialEnd = calculateEndTime(initialStart, initialDuration);
@@ -1557,14 +2681,21 @@ window.PtSchedulerModule = (function () {
     let calendarDragButton = null;
 
     const timeSlots = generateStartTimeSlots();
+    const initialEndSlots = initialStart ? generateEndTimeSlots(initialStart, initialPackageDuration || initialDuration || 180) : [];
 
     const loadRegistrations = async (memberId, form) => {
       const sequence = ++registrationLoad;
       registrations = [];
       form.updateData('registration_id', null);
       form.updateData('duration_minutes', null);
+      form.updateData('package_duration', null);
       form.updateData('duration_display', '');
       form.updateData('end_time', '');
+
+      const endEditor = form.getEditor('end_time');
+      if (endEditor) {
+        endEditor.option({ dataSource: [], disabled: true, placeholder: 'Chọn gói PT trước' });
+      }
 
       if (calendarDragButton) calendarDragButton.option('disabled', true);
 
@@ -1592,11 +2723,23 @@ window.PtSchedulerModule = (function () {
           form.updateData('registration_id', initialRegId);
           const reg = registrations.find(r => r.id === initialRegId);
           if (reg) {
-            const dur = Number(reg.session_duration_minutes) || 60;
-            form.updateData('duration_minutes', dur);
-            form.updateData('duration_display', `${dur} phút (Theo cấu hình gói đã chọn)`);
+            const pkgDur = Number(reg.session_duration_minutes) || 60;
+            const actualDur = initialDuration || pkgDur;
             const curStart = form.option('formData').start_time || initialStart;
-            const curEnd = calculateEndTime(curStart, dur);
+            const curEnd = initialEnd || calculateEndTime(curStart, actualDur);
+            const slots = generateEndTimeSlots(curStart, pkgDur);
+
+            form.updateData('package_duration', pkgDur);
+            form.updateData('duration_minutes', actualDur);
+            if (actualDur < pkgDur) {
+              form.updateData('duration_display', `${actualDur} phút (Rút ngắn từ gói ${pkgDur}p · Vẫn tính 1 buổi)`);
+            } else {
+              form.updateData('duration_display', `${actualDur} phút (Theo cấu hình gói đã chọn)`);
+            }
+
+            if (endEditor) {
+              endEditor.option({ dataSource: slots, disabled: false, placeholder: 'Chọn hoặc giữ giờ kết thúc được gợi ý' });
+            }
             form.updateData('end_time', curEnd);
             if (calendarDragButton) calendarDragButton.option('disabled', false);
           }
@@ -1616,6 +2759,7 @@ window.PtSchedulerModule = (function () {
         pt_id: pt.id,
         member_id: initialMemberId || state.context.member_id || null,
         registration_id: initialRegId,
+        package_duration: initialPackageDuration || initialDuration,
         duration_minutes: initialDuration,
         duration_display: initialDurationDisplay,
         date: dayDate(initialDateStr),
@@ -1644,10 +2788,11 @@ window.PtSchedulerModule = (function () {
                 return;
               }
               const reg = registrations.find(r => r.id === data.registration_id);
-              const dur = Number(reg?.session_duration_minutes) || Number(data.duration_minutes) || 60;
+              const pkgDur = Number(reg?.session_duration_minutes) || 60;
               const dateStr = dayKey(data.date || initialDateStr);
               const startStr = data.start_time ? clock(data.start_time) : (initialStart || '09:00');
-              const endStr = calculateEndTime(startStr, dur);
+              const endStr = data.end_time ? clock(data.end_time) : calculateEndTime(startStr, pkgDur);
+              const dur = Math.max(15, calculateDurationMinutes(startStr, endStr) || pkgDur);
 
               const memberEditor = modal.form.getEditor('member_id');
               const memberDisplay = memberEditor?.option('displayValue') || '';
@@ -1663,6 +2808,7 @@ window.PtSchedulerModule = (function () {
                 start_time: startStr,
                 end_time: endStr,
                 duration_minutes: dur,
+                package_duration: pkgDur,
                 startDate: appointmentTime(dateStr, startStr),
                 endDate: appointmentTime(dateStr, endStr),
                 member_id: data.member_id,
@@ -1681,7 +2827,7 @@ window.PtSchedulerModule = (function () {
                 renderDraftFloatingBar(state);
               }
 
-              notify(`Đã kích hoạt thẻ đặt lịch ${dur} phút cho gói "${reg?.package_name_snapshot || reg?.package_name}". Nhấn giữ thẻ xanh và kéo lên/xuống để chọn giờ!`, 'info');
+              notify(`Đã kích hoạt thẻ đặt lịch ${dur} phút cho gói "${reg?.package_name_snapshot || reg?.package_name}". Bạn có thể kéo thẻ hoặc rê chuột vào viền trên/dưới để chỉnh giờ!`, 'info');
             }
           }
         }
@@ -1700,10 +2846,6 @@ window.PtSchedulerModule = (function () {
           displayExpr: reg => reg ? `${reg.registration_code || reg.reg_code || ''} - ${reg.package_name_snapshot || reg.package_name || ''} (${reg.remaining_pt_sessions} buổi còn lại · ${reg.session_duration_minutes || 60}p)` : '',
           disabled: true, placeholder: 'Vui lòng chọn hội viên trước', searchEnabled: true, noDataText: 'Hội viên không có gói PT phù hợp'
         }),
-        field('duration_display', 'Thời lượng buổi tập', false, 'dxTextBox', {
-          readOnly: true,
-          placeholder: 'Vui lòng chọn hội viên & gói PT để xác định thời lượng'
-        }),
         field('date', 'Ngày tập *', true, 'dxDateBox', {
           type: 'date', displayFormat: 'dd/MM/yyyy', min: dayDate(new Date()), useMaskBehavior: true
         }),
@@ -1711,9 +2853,17 @@ window.PtSchedulerModule = (function () {
           dataSource: timeSlots, valueExpr: 'id', displayExpr: 'text',
           searchEnabled: true, placeholder: 'Chọn giờ bắt đầu'
         }),
-        field('end_time', 'Giờ kết thúc', false, 'dxTextBox', {
+        field('end_time', 'Giờ kết thúc *', true, 'dxSelectBox', {
+          dataSource: initialEndSlots,
+          valueExpr: 'id',
+          displayExpr: 'text',
+          searchEnabled: true,
+          disabled: !initialRegId,
+          placeholder: initialRegId ? 'Chọn hoặc giữ giờ kết thúc được gợi ý' : 'Chọn gói PT trước'
+        }),
+        field('duration_display', 'Thời lượng buổi tập', false, 'dxTextBox', {
           readOnly: true,
-          placeholder: '--:--'
+          placeholder: 'Vui lòng chọn hội viên & gói PT để xác định thời lượng'
         }),
         field('notes', 'Ghi chú cho buổi', false, 'dxTextArea', { height: 70, placeholder: 'Mục tiêu buổi tập, lưu ý thể lực...' })
       ],
@@ -1724,52 +2874,102 @@ window.PtSchedulerModule = (function () {
       },
       onChange: (event, form) => {
         const data = form.option('formData');
+        const endEditor = form.getEditor('end_time');
         if (event.dataField === 'member_id') {
           loadRegistrations(event.value, form);
         } else if (event.dataField === 'registration_id') {
           const reg = registrations.find(r => r.id === event.value);
           if (reg) {
-            const dur = Number(reg.session_duration_minutes) || 60;
+            const pkgDur = Number(reg.session_duration_minutes) || 60;
             const curStart = data.start_time || '09:00';
-            const curEnd = calculateEndTime(curStart, dur);
-            data.duration_minutes = dur;
+            const curEnd = calculateEndTime(curStart, pkgDur);
+            const slots = generateEndTimeSlots(curStart, pkgDur);
+
+            data.package_duration = pkgDur;
+            data.duration_minutes = pkgDur;
             data.end_time = curEnd;
 
-            form.updateData('duration_display', `${dur} phút (Theo cấu hình gói đã chọn)`);
+            form.updateData('package_duration', pkgDur);
+            form.updateData('duration_minutes', pkgDur);
+            form.updateData('duration_display', `${pkgDur} phút (Theo cấu hình gói đã chọn)`);
+            if (endEditor) {
+              endEditor.option({ dataSource: slots, disabled: false, placeholder: 'Chọn hoặc giữ giờ kết thúc được gợi ý' });
+            }
             form.updateData('end_time', curEnd);
             if (calendarDragButton) calendarDragButton.option('disabled', false);
 
             if (state.draft && state.draft.registration_id) {
-              state.draft.duration_minutes = dur;
+              state.draft.duration_minutes = pkgDur;
+              state.draft.package_duration = pkgDur;
               state.draft.end_time = curEnd;
               state.draft.registration_id = reg.id;
               state.draft.package_name = reg.package_name_snapshot || reg.package_name;
-              state.draft.endDate = new Date(state.draft.startDate.getTime() + dur * 60000);
+              state.draft.endDate = new Date(state.draft.startDate.getTime() + pkgDur * 60000);
               refreshSchedulerAppointments(state);
               renderDraftFloatingBar(state);
             }
           } else {
+            data.package_duration = null;
             data.duration_minutes = null;
             data.end_time = null;
+            form.updateData('package_duration', null);
+            form.updateData('duration_minutes', null);
             form.updateData('duration_display', '');
+            if (endEditor) {
+              endEditor.option({ dataSource: [], disabled: true, placeholder: 'Chọn gói PT trước' });
+            }
             form.updateData('end_time', '');
             if (calendarDragButton) calendarDragButton.option('disabled', true);
           }
         } else if (event.dataField === 'start_time') {
           const newStart = event.value;
-          const dur = Number(data.duration_minutes) || state.draft?.duration_minutes;
-          if (dur) {
-            const newEnd = calculateEndTime(newStart, dur);
-            data.end_time = newEnd;
-            form.updateData('end_time', newEnd);
+          const reg = registrations.find(r => r.id === data.registration_id);
+          const pkgDur = Number(reg?.session_duration_minutes) || Number(data.package_duration) || 60;
+          const currentActualDur = Number(data.duration_minutes) || pkgDur;
+          const slots = generateEndTimeSlots(newStart, pkgDur);
+
+          if (endEditor) {
+            endEditor.option('dataSource', slots);
           }
+
+          const newEnd = calculateEndTime(newStart, currentActualDur);
+          data.end_time = newEnd;
+          form.updateData('end_time', newEnd);
+
           if (state.draft && state.draft.registration_id) {
             state.draft.start_time = newStart;
-            if (dur) state.draft.end_time = calculateEndTime(newStart, dur);
+            state.draft.end_time = newEnd;
             state.draft.startDate = appointmentTime(state.draft.booking_date, newStart);
-            state.draft.endDate = appointmentTime(state.draft.booking_date, state.draft.end_time);
+            state.draft.endDate = appointmentTime(state.draft.booking_date, newEnd);
             refreshSchedulerAppointments(state);
             renderDraftFloatingBar(state);
+          }
+        } else if (event.dataField === 'end_time') {
+          const curStart = data.start_time || '09:00';
+          const newEnd = event.value;
+          if (curStart && newEnd) {
+            const actualDur = calculateDurationMinutes(curStart, newEnd);
+            const reg = registrations.find(r => r.id === data.registration_id);
+            const pkgDur = Number(reg?.session_duration_minutes) || Number(data.package_duration) || actualDur;
+
+            if (actualDur > 0) {
+              data.duration_minutes = actualDur;
+              let displayText = `${actualDur} phút`;
+              if (actualDur < pkgDur) {
+                displayText += ` (Rút ngắn từ gói ${pkgDur}p · Vẫn tính 1 buổi)`;
+              } else {
+                displayText += ` (Theo cấu hình gói đã chọn)`;
+              }
+              form.updateData('duration_display', displayText);
+
+              if (state.draft && state.draft.registration_id) {
+                state.draft.end_time = newEnd;
+                state.draft.duration_minutes = actualDur;
+                state.draft.endDate = appointmentTime(state.draft.booking_date, newEnd);
+                refreshSchedulerAppointments(state);
+                renderDraftFloatingBar(state);
+              }
+            }
           }
         } else if (event.dataField === 'date') {
           const newDateStr = dayKey(event.value);
@@ -1795,8 +2995,16 @@ window.PtSchedulerModule = (function () {
         const targetDate = dayKey(data.date);
         const start = clock(data.start_time);
         const reg = registrations.find(r => r.id === data.registration_id);
-        const duration = Number(reg?.session_duration_minutes) || Number(data.duration_minutes) || 60;
-        const end = calculateEndTime(start, duration);
+        const pkgDuration = Number(reg?.session_duration_minutes) || Number(data.package_duration) || 60;
+        const end = clock(data.end_time || calculateEndTime(start, pkgDuration));
+        const actualDuration = calculateDurationMinutes(start, end);
+
+        if (actualDuration <= 0) {
+          throw new Error('Giờ kết thúc phải sau giờ bắt đầu.');
+        }
+        if (actualDuration > pkgDuration) {
+          throw new Error(`Thời lượng buổi tập (${actualDuration} phút) không được vượt quá thời lượng của gói (${pkgDuration} phút).`);
+        }
 
         if (!registrations.some(r => r.id === data.registration_id && eligibleRegistration(r, data.member_id, pt, targetDate))) {
           throw new Error('Gói PT không còn hợp lệ hoặc đã hết số buổi. Vui lòng chọn lại.');
@@ -1820,7 +3028,7 @@ window.PtSchedulerModule = (function () {
             booking_date: targetDate,
             start_time: start,
             end_time: end,
-            session_duration_minutes: duration,
+            session_duration_minutes: actualDuration,
             workout_notes: String(data.notes || '').trim() || null
           }
         });
@@ -2076,6 +3284,123 @@ window.PtSchedulerModule = (function () {
     state.popups.push(popupInstance);
     popupInstance.show();
   }
+
+  async function openCommunityClassDetailModal(state, booking) {
+    const classId = booking.class_id || String(booking.id).replace(/^comm-/, '');
+    const compVal = Number(booking.total_compensation || (Number(booking.base_price || 0) + Number(booking.bonus_amount || 0)));
+    const enrolled = Number(booking.enrolled_slots || 0);
+    const max = Number(booking.max_slots || 40);
+
+    const host = $('<div>').appendTo(state.root || 'body');
+    let content;
+    const popup = host.dxPopup({
+      title: `Lớp học cộng đồng: ${booking.title || '--'}`,
+      width: 780,
+      maxWidth: 'calc(100vw - 24px)',
+      height: 'auto',
+      maxHeight: '90vh',
+      showCloseButton: true,
+      hideOnOutsideClick: true,
+      onHidden: () => {
+        state.popups = state.popups.filter(item => item !== popup);
+        host.remove();
+      },
+      contentTemplate: element => {
+        content = $('<div style="padding: 4px;">').appendTo(element);
+      },
+      toolbarItems: [
+        {
+          widget: 'dxButton',
+          toolbar: 'bottom',
+          location: 'after',
+          options: {
+            text: 'Đóng',
+            stylingMode: 'outlined',
+            type: 'normal',
+            onClick: () => popup.hide()
+          }
+        }
+      ]
+    }).dxPopup('instance');
+
+    state.popups.push(popup);
+    popup.show();
+
+    content.empty();
+
+    // 1. Overview Card
+    $(`
+      <div style="background: linear-gradient(135deg, #2e1065 0%, #4c1d95 100%); color: #ffffff; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 4px 14px rgba(76, 29, 149, 0.25);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+          <div>
+            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #ddd6fe; letter-spacing: 0.5px;">
+              <i class="fa-solid fa-users" style="margin-right: 5px;"></i>LỚP HỌC CỘNG ĐỒNG · ${booking.discipline_name || 'BỘ MÔN NHÓM'}
+            </span>
+            <h3 style="margin: 4px 0 0; font-size: 18px; font-weight: 700; color: #ffffff;">${booking.title || '--'}</h3>
+          </div>
+          <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: #ffffff; font-family: Manrope, monospace;">
+            ${enrolled}/${max} HỌC VIÊN
+          </span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; font-size: 12.5px; border-top: 1px solid rgba(255,255,255,0.18); padding-top: 10px; margin-top: 6px;">
+          <div><i class="fa-regular fa-clock" style="margin-right: 6px; color: #c4b5fd;"></i><strong>${clock(booking.start_time)} - ${clock(booking.end_time)}</strong></div>
+          <div><i class="fa-solid fa-user-ninja" style="margin-right: 6px; color: #c4b5fd;"></i>HLV: <strong>${booking.instructor_name || state.trainer?.full_name || '--'}</strong></div>
+          <div><i class="fa-solid fa-location-dot" style="margin-right: 6px; color: #c4b5fd;"></i><strong>${booking.branch_name || 'Chi nhánh'}</strong></div>
+          <div><i class="fa-solid fa-coins" style="margin-right: 6px; color: #fbbf24;"></i>Thù lao: <strong style="color: #fbbf24;">${compVal.toLocaleString('vi-VN')} đ</strong></div>
+        </div>
+      </div>
+    `).appendTo(content);
+
+    // 2. Section Header
+    $(`
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div style="font-weight: 700; font-size: 14px; color: #185740;">
+          <i class="fa-solid fa-users-line" style="margin-right: 6px;"></i>Danh sách hội viên đã đăng ký (${enrolled} người)
+        </div>
+      </div>
+    `).appendTo(content);
+
+    // 3. Grid Container
+    const gridDiv = $('<div>').appendTo(content);
+    const loadingDiv = $('<div style="text-align: center; padding: 25px; color: #748078;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i>Đang tải danh sách hội viên...</div>').appendTo(gridDiv);
+
+    try {
+      const res = await api().request(`/community-classes/${encodeURIComponent(classId)}/members`);
+      loadingDiv.remove();
+      const data = read(res);
+      const members = data?.members || [];
+      if (!members.length) {
+        $('<div style="text-align: center; padding: 30px; color: #748078; background: #f8fbf9; border-radius: 6px; border: 1px dashed #dfe6e2;"><i class="fa-solid fa-user-group" style="font-size: 28px; margin-bottom: 8px; display: block; opacity: 0.5;"></i>Chưa có học viên nào đăng ký lớp học này.</div>').appendTo(gridDiv);
+        return;
+      }
+
+      gridDiv.dxDataGrid({
+        dataSource: members,
+        columns: [
+          { caption: 'STT', width: 50, alignment: 'center', cellTemplate: (el, cell) => el.text(cell.rowIndex + 1) },
+          { dataField: 'member_code', caption: 'Mã HV', width: 110, alignment: 'center', cellTemplate: (el, cell) => {
+            $('<span class="dx-badge" style="background:#eaf4ee; color:#237b58; font-weight:700; padding:3px 8px; border-radius:4px; font-family:monospace;">').text(cell.value || '--').appendTo(el);
+          }},
+          { dataField: 'full_name', caption: 'Họ và tên', minWidth: 160, cellTemplate: (el, cell) => {
+            $('<strong style="color: #1e293b;">').text(cell.value || '--').appendTo(el);
+          }},
+          { dataField: 'phone', caption: 'Số điện thoại', width: 130, alignment: 'center', cellTemplate: (el, cell) => el.text(cell.value || '--') },
+          { dataField: 'registration_date', caption: 'Thời điểm đăng ký', dataType: 'datetime', format: 'dd/MM/yyyy HH:mm', width: 160, alignment: 'center' },
+          { dataField: 'status', caption: 'Trạng thái', width: 130, alignment: 'center', cellTemplate: (el, cell) => {
+            $('<span class="dx-badge" style="background: #ecfdf5; color: #047857; font-weight: 600; padding: 3px 8px; border-radius: 4px; border: 1px solid #a7f3d0;"><i class="fa-solid fa-check" style="margin-right: 4px;"></i>Đã đăng ký</span>').appendTo(el);
+          }}
+        ],
+        showBorders: true,
+        columnAutoWidth: true,
+        rowAlternationEnabled: true,
+        paging: { pageSize: 6 },
+        pager: { showPageSizeSelector: false, showInfo: true }
+      });
+    } catch (err) {
+      loadingDiv.html(`<div style="color: #ef4444; padding: 15px;"><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải danh sách học viên: ${err.message || err}</div>`);
+    }
+  }
+
   async function confirmBookingCompletion(state, booking, onDone) {
     return showConfirmActorModal(state, booking, onDone);
   }
@@ -2129,7 +3454,7 @@ window.PtSchedulerModule = (function () {
         if (latest.cancelled_at) details.push(readonlyField('Thời điểm hủy', new Date(latest.cancelled_at).toLocaleString('vi-VN')));
         if (latest.cancel_reason) details.push(readonlyField('Lý do hủy', latest.cancel_reason));
         $('<div>').appendTo(content).dxForm({ readOnly: true, labelLocation: 'top', colCount: 2, colCountByScreen: { xs: 1 }, items: details });
-        completeButton.option({ visible: pendingBooking(latest), disabled: !ended(latest) }); cancelButton.option('visible', latest.status === 'BOOKED' && !ended(latest));
+        completeButton.option({ visible: pendingBooking(latest), disabled: !ended(latest) }); cancelButton.option('visible', latest.status === 'BOOKED');
       } catch (error) { if (!closed) showError(content, error, reload); }
     }
     state.popups.push(popup); popup.show(); await reload();
@@ -2144,6 +3469,7 @@ window.PtSchedulerModule = (function () {
       return current.trainer ? loadSchedule(current) : loadScheduleTrainers(current);
     },
     openCreateTrainer: () => current?.mode === 'trainers' && showTrainerForm(current),
+    openBookingForm: slot => current && showBookingForm(current, slot || { booking_date: dayKey(new Date(Date.now() + 86400000)), start_time: '09:00' }),
     destroy: () => { if (current) { current.popups.forEach(popup => popup.hide()); current.sequence++; current = null; } },
     openTrainerSchedule: (ptId, context = {}) => window.ParadiseApp?.navigateTo('pt-schedule', { ...context, pt_id: ptId }),
     openBookingDetail: bookingId => window.ParadiseApp?.navigateTo('pt-schedule', { booking_id: bookingId })

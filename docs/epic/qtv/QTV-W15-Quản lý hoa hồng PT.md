@@ -18,16 +18,38 @@
 
 ## Thành phần giao diện (UI Components & Layout)
 
-### 1. Tab 1 — Bảng tính hoa hồng hàng tháng
-- Bộ chọn Tháng/Năm (`Tháng MM/YYYY`), bộ lọc chi nhánh, bộ lọc PT.
-- Bảng danh sách PT: Mã PT, Họ tên, Tổng số buổi dạy trong tháng, Doanh thu phần PT phụ trách, Tỷ lệ hoa hồng (%), Tổng tiền hoa hồng, Trạng thái (`PENDING`, `APPROVED`, `PAID`).
-- Nút `Duyệt bảng kê`, nút `Xuất báo cáo/In phiếu chi hoa hồng`.
+### 1. Tab 1 — Bảng kê thu nhập tháng
+- Bộ chọn Tháng/Năm (`Tháng MM/YYYY`), bộ lọc chi nhánh.
+- Bộ 4 thẻ KPI tổng quan: Tổng số buổi dạy, Tổng doanh số dạy PT, Tổng tiền hoa hồng tháng, Tiến độ chi trả (hỗ trợ dynamic theo HLV khi click chọn dòng).
+- Bảng danh sách HLV: Mã PT, Họ tên & SĐT, Chi nhánh, Dạy kèm PT (số buổi, doanh số quy đổi), Hoa hồng PT (tiền, tỷ lệ %), Lớp cộng đồng (số lớp, số học viên), Thù lao lớp CĐ, Tổng thu nhập tháng, Trạng thái (`Chờ chi trả`, `Chờ PT xác nhận`, `Đã chi trả`).
+- Nút thao tác: `[ Chi tiết ]`, `[ Chi trả ]` (mở Modal Xác Nhận Chi Trả Hoa Hồng 2 bên trên App kèm VietQRNapAS247).
 
-### 2. Tab 2 — Cấu hình tỷ lệ hoa hồng
+### 2. Tab 2 — Doanh thu gói PT/COMBO
+- Bộ lọc: Tháng (1-12), Năm (2025-2030), Dropdown chọn Huấn luyện viên (`Tất cả huấn luyện viên` hoặc từng HLV cụ thể).
+- Nút thao tác: `[ Tải lại ]`, `[ Xuất CSV ]` (hỗ trợ xuất file chi tiết các buổi dạy theo HLV trong kỳ).
+- Bộ 4 thẻ KPI động:
+  1. Tổng số buổi dạy: Tổng số ca dạy hoàn thành trong kỳ của HLV được chọn (hoặc tất cả HLV).
+  2. Doanh số dịch vụ PT: Tổng giá trị quy đổi từ các gói PT đã phục vụ.
+  3. Hoa hồng PT: Tổng tiền hoa hồng HLV nhận được từ các buổi dạy kèm.
+  4. Gói tập phục vụ: Số lượng gói tập & học viên khác nhau mà HLV đã huấn luyện trong kỳ.
+- Bảng dữ liệu (DataGrid) chi tiết buổi dạy:
+  - Cột: Ngày tập, Khung giờ, HLV, Chi nhánh, Học viên, Gói tập, Buổi số, Doanh số buổi quy đổi, Tỷ lệ hoa hồng (%), Hoa hồng buổi, Trạng thái (`Đã hoàn thành`).
+  - Dòng tổng kết (Summary footer): Tổng số buổi dạy, Tổng doanh số quy đổi, Tổng tiền hoa hồng.
+
+### 3. Tab 3 — Thù lao lớp cộng đồng
+- Bộ lọc Tháng/Năm, Chi nhánh, Huấn luyện viên.
+- Bộ 6 thẻ KPI: Tổng số buổi lớp CĐ, Tổng thù lao lớp CĐ, Tổng thù lao cơ bản, Tổng thưởng, Tổng lượt học viên, Thù lao bình quân / buổi.
+- DataGrid ca dạy cộng đồng: Ngày & Giờ, Lớp học & Bộ môn, Huấn luyện viên, Chi nhánh, Sĩ số, Thù lao cơ bản, Thưởng sĩ số, Tổng thù lao, nút `[ Học viên ]`.
+
+### 4. Tab 4 — Lịch sử chi trả
+- Bảng lịch sử các đợt phát lệnh chi trả thù lao/hoa hồng: Kỳ tháng, Huấn luyện viên, Số buổi, Doanh số, Tỷ lệ %, Tiền hoa hồng, Hình thức chi trả (VietQR / Tiền mặt), Mã giao dịch / Phiếu chi, Thời gian phát lệnh, PT xác nhận, Trạng thái.
+- Nút `[ Xuất lịch sử ]`.
+
+### 5. Tab 5 — Cấu hình tỷ lệ hoa hồng
 - Bảng danh sách cấu hình hoa hồng theo chi nhánh / PT đã deduplicate:
   - Cột: Mã PT, Tên PT / Phạm vi áp dụng, Chi nhánh, Tỷ lệ hoa hồng (%), Trạng thái (`Đang áp dụng` / `Đã gỡ (Dùng mặc định)`), Phiên bản (`v1`, `v2`,...), Hiệu lực từ, Ghi chú / Quyết định, Thao tác (`[ Sửa ]`, `[ Lịch sử ]`, `[ Bỏ riêng ]`, `[ Kích hoạt ]`).
 - Thanh công cụ: Nút `[+ Thêm cấu hình riêng cho PT]`.
-- Modal thiết lập cấu hình hoa hồng PT: Chi nhánh áp dụng, Phạm vi áp dụng (`Tất cả PT trong chi nhánh (Mặc định)` hoặc `PT cụ thể`), Huấn luyện viên PT (tự động chuyển sang chế độ cập nhật nếu đã tồn tại), Tỷ lệ hoa hồng (%), Hiệu lực (`Có hiệu lực ngay khi lưu` — READONLY), Ghi chú / Quyết định ban hành.
+- Modal thiết lập cấu hình hoa hồng PT: Chi nhánh áp dụng, Phạm vi áp dụng (`Tất cả PT trong chi nhánh (Mặc định)` hoặc `PT cụ thể`), Huấn luyện viên PT, Tỷ lệ hoa hồng (%), Hiệu lực, Ghi chú / Quyết định ban hành.
 - Modal lịch sử biến động tỷ lệ hoa hồng: DataGrid hiển thị toàn bộ snapshot phiên bản trong quá khứ trích xuất từ `pt_commission_config_history`.
 
 ---

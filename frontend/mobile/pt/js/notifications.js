@@ -156,6 +156,11 @@
               icon = 'fa-clock';
               iconBg = 'rgba(16, 185, 129, 0.15)';
               iconColor = '#237b58';
+            } else if (item.reference_type === 'pt_commissions' || ['COMMISSION_PAYOUT_INITIATED', 'COMMISSION_PAID'].includes(item.event_type)) {
+              targetScreen = 'PT06_COMMISSIONS';
+              icon = 'fa-money-bill-wave';
+              iconBg = 'rgba(14, 165, 233, 0.15)';
+              iconColor = '#0284c7';
             }
 
             dynamicItems.push({
@@ -485,6 +490,12 @@
       } else if (['PT01_SCHEDULE', 'PT01_RESULT_MODAL'].includes(item.targetScreen) && item.referenceId) {
         await window.ptApp.switchTab('schedule');
         await window.ParadisePTSchedule.openBookingFromNotification?.(item.referenceId, item.targetScreen === 'PT01_RESULT_MODAL');
+      } else if (item.targetScreen === 'PT06_COMMISSIONS') {
+        if (window.ParadisePTModal) window.ParadisePTModal.closeModal();
+        await window.ptApp.switchTab('commissions');
+        if (window.ParadisePTOverview?.refreshCommissions) {
+          await window.ParadisePTOverview.refreshCommissions();
+        }
       } else {
         const sentAt = item.timestamp ? new Date(item.timestamp).toLocaleString('vi-VN') : 'Chưa có thời gian';
         await DevExpress.ui.dialog.alert(

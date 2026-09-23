@@ -247,7 +247,7 @@
         <div class="pt-commission-page">
           <div class="pt-commission-heading">
             <h1 id="commissionPageTitle" class="pt-commission-title">
-              <i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent-gold);"></i> Hoa hồng
+              <i class="fa-solid fa-sack-dollar" style="color: var(--accent-gold);"></i> Thu nhập
             </h1>
             <div style="display: flex; gap: 8px; align-items: center;">
               <button type="button" class="btn-icon-circle" id="btnRefreshCommSheet" title="Làm mới" style="width: 32px; height: 32px; font-size: 13px;">
@@ -264,50 +264,203 @@
               <button type="button" class="pt-comm-chip" data-filter="custom">Tháng khác</button>
             </div>
             <div id="commCustomMonthWrap" style="display: none; margin-bottom: 8px;">
-              <label for="commMonthInput" class="form-label">Kỳ hoa hồng</label>
+              <label for="commMonthInput" class="form-label">Kỳ thu nhập</label>
               <input type="month" id="commMonthInput" class="form-control no-icon" style="font-size: 12px; padding: 6px 10px;">
             </div>
           </div>
 
-          <!-- Highlight Summary Card -->
-          <div class="pt-comm-summary-card" style="background: var(--bg-card); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-              <div>
-                <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0;">Tổng hoa hồng ước tính</span>
-                <div style="font-size: 24px; font-weight: 800; color: #996217; margin-top: 2px;" id="commTotalAmount">--</div>
+          <!-- Sub-tabs Navigation for Thu nhập -->
+          <div class="pt-income-subtabs-nav" style="display: flex; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 4px; gap: 4px; margin-bottom: 14px;">
+            <button type="button" class="pt-income-subtab-btn active" data-subtab="income_summary" style="flex: 1; border: none; background: var(--primary); color: #fff; font-weight: 700; font-size: 11.5px; padding: 8px 4px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s;">
+              <i class="fa-solid fa-sack-dollar"></i> Thu nhập
+            </button>
+            <button type="button" class="pt-income-subtab-btn" data-subtab="pt_combo" style="flex: 1; border: none; background: transparent; color: var(--text-muted); font-weight: 600; font-size: 11.5px; padding: 8px 4px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s;">
+              <i class="fa-solid fa-dumbbell"></i> Gói PT / Combo
+            </button>
+            <button type="button" class="pt-income-subtab-btn" data-subtab="community_comp" style="flex: 1; border: none; background: transparent; color: var(--text-muted); font-weight: 600; font-size: 11.5px; padding: 8px 4px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s;">
+              <i class="fa-solid fa-users"></i> Thù lao lớp CĐ
+            </button>
+          </div>
+
+          <!-- SUBTAB 1: THU NHẬP (TỔNG HỢP & XÁC NHẬN CHI TRẢ HAI CHIỀU) -->
+          <div id="subtab-income-summary" class="pt-income-subtab-content">
+            <!-- Highlight Summary Card for Total Income -->
+            <div class="pt-comm-summary-card" style="background: var(--bg-card); border: 1px solid rgba(35, 123, 88, 0.35); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div>
+                  <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0;">Tổng thu nhập ước tính tháng này</span>
+                  <div style="font-size: 25px; font-weight: 800; color: var(--primary); margin-top: 2px;" id="summaryTotalIncomeAmount">--</div>
+                </div>
+                <span id="summaryIncomeStatusBadge" class="badge" style="padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: var(--radius-full); background: rgba(245, 158, 11, 0.2); color: #996217;">Đang tải</span>
               </div>
-              <span id="commStatusBadge" class="badge" style="padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: var(--radius-full); background: rgba(245, 158, 11, 0.2); color: #996217;">Đang tải</span>
+
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                <div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Hoa hồng PT/Combo</div>
+                  <div style="font-size: 13px; font-weight: 700; color: #996217;" id="summaryPtCommAmount">--</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Thù lao lớp CĐ</div>
+                  <div style="font-size: 13px; font-weight: 700; color: #7c3aed;" id="summaryCommunityCompAmount">--</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Tổng ca dạy</div>
+                  <div style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="summaryTotalSessionsCount">--</div>
+                </div>
+              </div>
+
+              <div id="commPaidDateWrap" style="display: none; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 12px; color: #237b58;">
+                <i class="fa-solid fa-circle-check"></i> <span id="commPaidDateText">Đã nhận tiền lúc: <strong id="commPaidDate">--</strong></span>
+              </div>
+
+              <!-- Khối Xác nhận Chi trả Thu nhập 2 chiều trên App (Chống chối nhận tiền cho cả 2 khoản) -->
+              <div id="commConfirmationBox" style="display: none; margin-top: 12px; padding: 12px; background: #e0f2fe; border: 1px solid #7dd3fc; border-radius: var(--radius-sm);">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #0369a1; margin-bottom: 4px;">
+                  <i class="fa-solid fa-hand-holding-dollar"></i> Lễ tân/Quản lý đã thực hiện chi trả thu nhập
+                </div>
+                <div style="font-size: 12px; color: #0c4a6e; line-height: 1.4; margin-bottom: 10px;" id="commConfirmationDesc">
+                  Số tiền: <strong id="commConfirmationAmount">--</strong> • Hình thức: <strong id="commConfirmationMethod">--</strong>
+                  <br/><span style="color: #475569;">Bao gồm hoa hồng gói PT/Combo và thù lao lớp CĐ. Vui lòng kiểm tra và xác nhận đã nhận đủ tiền.</span>
+                </div>
+                <button type="button" class="btn btn-primary" id="btnPtConfirmCommission" style="width: 100%; height: 38px; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; background: #0284c7; border: none; color: #fff; border-radius: var(--radius-sm); cursor: pointer;">
+                  <i class="fa-solid fa-check-double"></i> Xác nhận đã nhận tiền
+                </button>
+              </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-color);">
-              <div>
-                <div style="font-size: 12px; color: var(--text-muted);">Tỷ lệ áp dụng</div>
-                <div style="font-size: 13px; font-weight: 700; color: #237b58;" id="commRate">--%</div>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--text-muted);">Số buổi dạy</div>
-                <div style="font-size: 13px; font-weight: 700; color: #286aa4;" id="commSessionsCount">--</div>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--text-muted);">Phần PT cơ sở</div>
-                <div style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="commBaseRevenue">--</div>
-              </div>
+            <!-- Bảng tóm tắt đối soát nguồn thu nhập -->
+            <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <strong style="font-size: 13px; color: var(--text-main);"><i class="fa-solid fa-scale-balanced"></i> Chi tiết các nguồn thu nhập</strong>
+              <span style="font-size: 12px; color: var(--text-muted);">2 nguồn thu nhập</span>
             </div>
-            <div id="commPaidDateWrap" style="display: none; margin-top: 8px; font-size: 12px; color: #237b58;">
-              <i class="fa-solid fa-circle-check"></i> Đã nhận tiền ngày: <strong id="commPaidDate">--</strong>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Nguồn 1: Gói PT / Combo -->
+              <div class="pt-income-source-card" data-target-subtab="pt_combo" role="button" tabindex="0"
+                   style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer; transition: all 0.2s;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); color: #996217; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                      <i class="fa-solid fa-dumbbell"></i>
+                    </div>
+                    <div>
+                      <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Hoa hồng Gói PT / Combo</div>
+                      <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;" id="summaryPtCommSub">8 ca tập đã hoàn thành · Tỷ lệ 25%</div>
+                    </div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 14px; font-weight: 800; color: #996217;" id="summaryPtCommVal">+768.750 đ</div>
+                    <span style="font-size: 11px; color: var(--primary); font-weight: 600;">Xem chi tiết <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Nguồn 2: Thù lao lớp CĐ -->
+              <div class="pt-income-source-card" data-target-subtab="community_comp" role="button" tabindex="0"
+                   style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer; transition: all 0.2s;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(124, 58, 237, 0.15); color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                      <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                      <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Thù lao Lớp học cộng đồng</div>
+                      <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;" id="summaryCommunityCompSub">11 ca dạy · 165 lượt HV</div>
+                    </div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 14px; font-weight: 800; color: #7c3aed;" id="summaryCommunityCompVal">+3.480.000 đ</div>
+                    <span style="font-size: 11px; color: var(--primary); font-weight: 600;">Xem chi tiết <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i></span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Section title -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <strong style="font-size: 13px; color: var(--text-main);"><i class="fa-solid fa-list-check"></i> Chi tiết buổi dạy trong kỳ</strong>
-            <span style="font-size: 12px; color: var(--text-muted);" id="commListSub">--</span>
+          <!-- SUBTAB 2: GÓI PT / COMBO (HOA HỒNG) -->
+          <div id="subtab-pt-combo" class="pt-income-subtab-content" style="display: none;">
+            <!-- Highlight Summary Card -->
+            <div class="pt-comm-summary-card" style="background: var(--bg-card); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div>
+                  <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0;">Tổng hoa hồng gói PT / Combo</span>
+                  <div style="font-size: 24px; font-weight: 800; color: #996217; margin-top: 2px;" id="commTotalAmount">--</div>
+                </div>
+                <span id="commStatusBadge" class="badge" style="padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: var(--radius-full); background: rgba(245, 158, 11, 0.2); color: #996217;">Đang tải</span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                <div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Tỷ lệ áp dụng</div>
+                  <div style="font-size: 13px; font-weight: 700; color: #237b58;" id="commRate">--%</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Số buổi dạy</div>
+                  <div style="font-size: 13px; font-weight: 700; color: #286aa4;" id="commSessionsCount">--</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Phần PT cơ sở</div>
+                  <div style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="commBaseRevenue">--</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section title -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong style="font-size: 13px; color: var(--text-main);"><i class="fa-solid fa-list-check"></i> Chi tiết buổi dạy PT / Combo</strong>
+              <span style="font-size: 12px; color: var(--text-muted);" id="commListSub">--</span>
+            </div>
+
+            <!-- Sessions List / Empty State -->
+            <p id="commReconciliationError" role="alert" style="display: none; color: var(--danger, #c43d40); font-size: 12px;"></p>
+            <div id="commSessionsList" style="display: flex; flex-direction: column; gap: 8px; min-height: 120px;">
+              <!-- Rendered dynamically -->
+            </div>
           </div>
 
-          <!-- Sessions List / Empty State -->
-          <p id="commReconciliationError" role="alert" style="display: none; color: var(--danger, #c43d40); font-size: 12px;"></p>
-          <div id="commSessionsList" style="display: flex; flex-direction: column; gap: 8px; min-height: 120px;">
-            <!-- Rendered dynamically -->
+          <!-- SUBTAB 3: THÙ LAO LỚP CỘNG ĐỒNG -->
+          <div id="subtab-community-comp" class="pt-income-subtab-content" style="display: none;">
+            <!-- Highlight Summary Card for Community Class Compensation -->
+            <div class="pt-comm-summary-card" style="background: var(--bg-card); border: 1px solid rgba(124, 58, 237, 0.35); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div>
+                  <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0;">Tổng thù lao lớp CĐ ước tính</span>
+                  <div style="font-size: 24px; font-weight: 800; color: #7c3aed; margin-top: 2px;" id="commCommunityTotalComp">--</div>
+                </div>
+                <span id="commCommunityStatusBadge" class="badge" style="padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: var(--radius-full); background: rgba(124, 58, 237, 0.15); color: #7c3aed;">Đang phụ trách</span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                <div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Thù lao cơ bản</div>
+                  <div style="font-size: 13px; font-weight: 700; color: #237b58;" id="commCommunityBasePrice">--</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Thưởng sĩ số</div>
+                  <div style="font-size: 13px; font-weight: 700; color: #ea580c;" id="commCommunityBonusAmount">--</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Số ca dạy CĐ</div>
+                  <div style="font-size: 13px; font-weight: 700; color: #7c3aed;" id="commCommunityClassesCount">--</div>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 12px; color: var(--text-muted);">
+                <div>Tổng lượt học viên: <strong style="color: var(--text-main);" id="commCommunitySlots">--</strong></div>
+                <div>Bình quân / ca: <strong style="color: #7c3aed;" id="commCommunityAvgComp">--</strong></div>
+              </div>
+            </div>
+
+            <!-- Section title -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong style="font-size: 13px; color: var(--text-main);"><i class="fa-solid fa-receipt"></i> Chi tiết thù lao từng lớp cộng đồng</strong>
+              <span style="font-size: 12px; color: var(--text-muted);" id="commCommunityListSub">--</span>
+            </div>
+
+            <!-- Community Compensation List -->
+            <div id="commCommunityCompList" style="display: flex; flex-direction: column; gap: 8px; min-height: 120px;">
+              <!-- Rendered dynamically -->
+            </div>
           </div>
         </div>
         </section>
@@ -335,8 +488,8 @@
         </div>
 
         <div class="nav-item" data-tab="commissions">
-          <i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>
-          <span>Hoa hồng</span>
+          <i class="fa-solid fa-sack-dollar" aria-hidden="true"></i>
+          <span>Thu nhập</span>
           <div class="nav-indicator"></div>
         </div>
 

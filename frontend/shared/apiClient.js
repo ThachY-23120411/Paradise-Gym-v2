@@ -342,7 +342,8 @@
       getMyCommissions: (params = {}) => {
         const qs = new URLSearchParams(params).toString();
         return this.request(`/pt/my-commissions${qs ? '?' + qs : ''}`);
-      }
+      },
+      confirmCommissionReceipt: (id) => this.request(`/pt/my-commissions/${id}/confirm-receipt`, { method: 'POST' })
     };
 
     // ==========================================
