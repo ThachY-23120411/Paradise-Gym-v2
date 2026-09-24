@@ -958,8 +958,90 @@
     });
   }
 
+  function openPaymentSuccessModal(data) {
+    A.dialog("Thanh toán thành công", (root, close) => {
+      root.style.textAlign = "center";
+      root.style.padding = "10px 0";
+
+      root.innerHTML = `
+        <div style="margin-bottom:16px;">
+          <div style="width:76px;height:76px;background:#eaf4ee;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px auto;box-shadow:0 4px 14px rgba(35,123,88,0.2);">
+            <i class="fa-solid fa-circle-check" style="font-size:46px;color:#237b58;"></i>
+          </div>
+          <h2 style="margin:0 0 6px 0;font-size:20px;font-weight:700;color:#185740;text-transform:uppercase;letter-spacing:0.5px;">Thanh toán thành công!</h2>
+          <p class="muted" style="margin:0;font-size:13px;color:#5a6e65;">Giao dịch đã được ghi nhận và gói tập của bạn đã kích hoạt thành công.</p>
+        </div>
+
+        <div style="background:#f8faf9;border:1px solid #dfe6e2;border-radius:10px;padding:12px 16px;text-align:left;margin-bottom:18px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #dfe6e2;">
+            <span class="muted" style="font-size:13px;">Gói tập:</span>
+            <strong style="font-size:14px;color:#1c2d27;text-align:right;">${A.value(data.package_name)}</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #dfe6e2;">
+            <span class="muted" style="font-size:13px;">Số tiền:</span>
+            <strong style="font-size:18px;color:#237b58;">${A.money(data.amount)}</strong>
+          </div>
+          ${data.receipt_code ? `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #dfe6e2;">
+            <span class="muted" style="font-size:13px;">Mã phiếu thu:</span>
+            <span class="badge success" style="font-weight:700;">${data.receipt_code}</span>
+          </div>` : ''}
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #dfe6e2;">
+            <span class="muted" style="font-size:13px;">Hình thức:</span>
+            <span style="font-size:13px;font-weight:500;">Chuyển khoản VietQR (Tự động)</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="muted" style="font-size:13px;">Thời gian:</span>
+            <span style="font-size:12px;color:#5a6e65;">${A.time(data.confirmed_at || new Date())}</span>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${data.payment_id ? `
+          <button type="button" id="btnSuccessViewReceipt" class="btn outline block" style="padding:10px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Xem phiếu thu
+          </button>` : ''}
+          <button type="button" id="btnSuccessGoPackages" class="btn primary block" style="padding:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i class="fa-solid fa-ticket"></i> Đến Gói của tôi
+          </button>
+        </div>
+      `;
+
+      const viewReceiptBtn = root.querySelector("#btnSuccessViewReceipt");
+      if (viewReceiptBtn) {
+        viewReceiptBtn.onclick = () => {
+          close();
+          receipt(data.payment_id);
+        };
+      }
+
+      const goBtn = root.querySelector("#btnSuccessGoPackages");
+      if (goBtn) {
+        goBtn.onclick = () => {
+          close();
+          A.navigate("packages", "mine");
+        };
+      }
+    });
+  }
+
   function openPayment(reg, initialDiscountCode) {
     A.dialog("Thanh toán VietQR", async (root, close) => {
+      let pollingTimer = null;
+      let isSettled = false;
+
+      const stopPolling = () => {
+        if (pollingTimer) {
+          clearInterval(pollingTimer);
+          pollingTimer = null;
+        }
+      };
+
+      const safeClose = () => {
+        stopPolling();
+        close();
+      };
+
       A.loading(root);
 
       async function loadInvoice(discountCode, clearDiscount = false) {
@@ -984,7 +1066,7 @@
       } catch (err) {
         if (root.isConnected) {
           A.error(root, err, () => {
-            close();
+            safeClose();
             openPayment(reg, initialDiscountCode);
           });
         }
@@ -1159,7 +1241,34 @@
           }
         }
 
-        // Verification check
+        // Background polling for payment status (every 2s)
+        stopPolling();
+        const checkStatus = async () => {
+          if (!root.isConnected || isSettled) {
+            stopPolling();
+            return;
+          }
+          try {
+            const res = await A.request(`/payments/${pmt.id}/check-bank-status`);
+            if (res && (res.is_paid || res.confirmed || res.status === "COMPLETED")) {
+              const settledPaymentId = res.payment_id || res.id || pmt.id;
+              isSettled = true;
+              stopPolling();
+              safeClose();
+              A.toast("Thanh toán thành công! Gói tập đã được kích hoạt.");
+              openPaymentSuccessModal({
+                payment_id: settledPaymentId,
+                package_name: res.package_name || regSnap.package_name_snapshot,
+                amount: res.amount || pmt.amount,
+                receipt_code: res.receipt_code,
+                confirmed_at: res.confirmed_at
+              });
+            }
+          } catch (_) {}
+        };
+        pollingTimer = setInterval(checkStatus, 2000);
+
+        // Verification check (manual backup button)
         const checkAction = root.querySelector("#paymentCheckAction");
         const statusEl = root.querySelector("#paymentStatus");
         const check = A.button("Tôi đã chuyển khoản", "rotate-right", "primary block");
@@ -1168,37 +1277,10 @@
         check.onclick = () =>
           A.mutate(check, async () => {
             try {
-              // Tự động mô phỏng thanh toán VietQR thành công để phục vụ test tiện lợi
-              let p;
               try {
-                const sim = await A.request(`/payments/${pmt.id}/simulate-transfer`, { method: "POST" });
-                p = sim?.payment;
-              } catch (simErr) {
-                console.warn("simulate-transfer error:", simErr);
-              }
-              if (!p) {
-                p = await A.request(`/payments/${pmt.id}`);
-              }
-
-              if (p && p.status === "COMPLETED") {
-                statusEl.className = "notice success";
-                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>Thanh toán thành công!</strong> Gói tập đã được kích hoạt.';
-                check.disabled = true;
-                check.style.display = "none";
-                const go = A.button("Đến Gói của tôi", "ticket", "primary block");
-                go.onclick = () => {
-                  close();
-                  A.navigate("packages", "mine");
-                };
-                checkAction.append(go);
-                A.toast("Thanh toán thành công! Gói tập đã được kích hoạt.");
-              } else {
-                statusEl.className = "notice warning";
-                statusEl.textContent =
-                  p.status === "EXPIRED"
-                    ? "Giao dịch đã hết hạn. Vui lòng kiểm tra với lễ tân."
-                    : "Giao dịch vẫn đang chờ hệ thống xác nhận. Vui lòng kiểm tra lại sau.";
-              }
+                await A.request(`/payments/${pmt.id}/simulate-transfer`, { method: "POST" });
+              } catch (_) {}
+              await checkStatus();
             } catch (error) {
               A.error(statusEl, error);
             }

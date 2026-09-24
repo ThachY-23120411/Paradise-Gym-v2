@@ -39,6 +39,7 @@ app.get('/health', async (req, res) => {
 // API Routes mounting
 const API_PREFIX = '/api/v1';
 app.use(`${API_PREFIX}/auth`, authRoutes);
+app.use(`${API_PREFIX}/payments/sepay`, require('./modules/core/sepay').router);
 app.use(API_PREFIX, authenticate);
 app.use(API_PREFIX, require('./modules/core/avatar').router);
 app.use(API_PREFIX, require('./modules/core/mobile').router);

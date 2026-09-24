@@ -1,4 +1,4 @@
-<!-- READ_BY: anti-1 -->
+<!-- READ_BY: anti-1, anti-3 -->
 # Backend ready: Main / Einstein / Rawls
 
 Frozen contract is frozen-contract.md in this directory. Response keys unchanged from that file. Includes safe profile + branch_timezone on profile/bookings/community, nullable actual discipline_name, split invitations, is_group_member, source participant bookings, financial redaction.

@@ -1213,12 +1213,17 @@ window.SalesModule = (function () {
     try {
       const result = dataOf(await api().request(`/payments/${idPath(payment.id)}/check-bank-status`, { method: 'POST' }));
       const updated = result.payment || result;
-      if (updated.id !== payment.id || Number(updated.amount) !== Number(payment.amount)) {
+      const resId = updated.id || updated.payment_id;
+      if (resId && resId !== payment.id) {
         throw new Error('Phản hồi đối soát không khớp giao dịch đang kiểm tra.');
       }
-      if (confirmed(updated)) { notify('Đã ghi nhận thanh toán 100%'); refreshCurrent(); if (afterConfirmed) await afterConfirmed(updated); }
+      if (confirmed(updated) || updated.is_paid || updated.status === 'COMPLETED') {
+        notify('Đã ghi nhận thanh toán 100%');
+        refreshCurrent();
+        if (afterConfirmed) await afterConfirmed(updated.id ? updated : { ...payment, ...updated, status: 'COMPLETED' });
+      }
       else if (updated.status === 'EXPIRED') { notify('Giao dịch đã hết hạn thanh toán', 'warning'); refreshCurrent(); }
-      else notify('Chưa ghi nhận tiền vào tài khoản ngân hàng. Vui lòng thử lại hoặc đối chiếu bill chuyển khoản.', 'warning');
+      else notify('Chưa ghi nhận tiền vào tài khoản ngân hàng. Vui lòng đợi SePay đồng bộ hoặc kiểm tra lại.', 'warning');
     } catch (err) { notify(err.message || 'Không kiểm tra được trạng thái thanh toán', 'error'); }
     finally { control?.option('disabled', false); }
   }
@@ -1293,16 +1298,16 @@ window.SalesModule = (function () {
         const model = {
           member_id: initialMemberId,
           registration_id: initialRegId,
-          payment_method: 'CASH',
+          payment_method: 'BANK_TRANSFER',
           discount_code: '',
           note: ''
         };
+        const chosen = () => registrations.find(r => r.id === model.registration_id);
         const invoices = new Map();
         let invoice = null, revision = 0, form, submit, pollBusy = false;
         const $form = $('<div>').appendTo(dialog.body);
         const $qr = $('<div>').hide().css({ paddingTop: 16, textAlign: 'center' }).appendTo(dialog.body);
-        const chosen = () => registrations.find(r => r.id === model.registration_id);
-        const complete = async p => { if (dialog.closed) return; closeDialog(dialog); refreshCurrent(); await openReceipt(p); };
+        const complete = async p => { if (dialog.closed) return; closeDialog(dialog); notify('Thanh toán VietQR thành công! Đã kích hoạt gói tập.', 'success'); refreshCurrent(); openPaymentSuccessModalAdmin(p); };
 
         const todayStr = dateKey(new Date());
         const activeDiscounts = (discountRows || []).filter(d => {
@@ -1386,12 +1391,13 @@ window.SalesModule = (function () {
             const qr = result.vietqr || result.qr_data;
             const source = qr?.qrImageUrl || qr?.qr_image_url;
             if (!source || !/^https:\/\//i.test(source)) throw new Error('Chưa có mã VietQR hợp lệ từ ngân hàng.');
-            $('<img>').attr({ src: source, alt: 'Mã VietQR thanh toán', width: 220, height: 220 }).css({ maxWidth: '100%', objectFit: 'contain' }).on('error', () => errorBlock($error, new Error('Không tải được ảnh VietQR. Vui lòng thử lại.'), update)).appendTo($qr);
-            info($qr, 'Ngân hàng', qr.bankName || qr.bank_name || qr.bankBin);
+            $('<img>').attr({ src: source, alt: 'Mã VietQR thanh toán', width: 220, height: 220 }).css({ maxWidth: '100%', objectFit: 'contain', margin: '0 auto', display: 'block', borderRadius: '8px', border: '1px solid #dfe6e2' }).on('error', () => errorBlock($error, new Error('Không tải được ảnh VietQR. Vui lòng thử lại.'), update)).appendTo($qr);
+            const bankDisplay = (qr.bankBin === '970415' || qr.bank_bin === '970415') ? 'VietinBank (970415)' : (qr.bankName || qr.bank_name || qr.bankBin);
+            info($qr, 'Ngân hàng', bankDisplay);
             info($qr, 'Số tài khoản', qr.accountNo || qr.account_no);
             info($qr, 'Chủ tài khoản', qr.accountName || qr.account_name);
-            info($qr, 'Số tiền', money(invoice.amount));
-            info($qr, 'Nội dung chuyển khoản', qr.transferContent || qr.transfer_content || qr.paymentCode);
+            info($qr, 'Số tiền', money(invoice.amount)).css({ fontWeight: 700, color: '#237b58' });
+            info($qr, 'Nội dung chuyển khoản', qr.transferContent || qr.transfer_content || qr.paymentCode).css({ fontWeight: 600, color: '#185740' });
             if (invoice.expires_at) info($qr, 'Hạn thanh toán', timestamp(invoice.expires_at));
             badge($qr, invoice.status, true);
             if (invoice.status === 'PENDING') button($qr, 'Đối chiếu thủ công', 'check', () => openManualConfirmation(invoice, complete, model.note));
@@ -1566,17 +1572,78 @@ window.SalesModule = (function () {
           pollBusy = true;
           const expected = invoice.id;
           try {
-            const response = dataOf(await api().request(`/payments/${idPath(expected)}`));
+            const response = dataOf(await api().request(`/payments/${idPath(expected)}/check-bank-status`, { method: 'POST' }).catch(() => api().request(`/payments/${idPath(expected)}`)));
             const latest = response.payment || response;
-            if (latest.id !== expected) throw new Error('Trạng thái trả về không khớp giao dịch đang chờ.');
-            if (!dialog.closed && invoice?.id === expected && confirmed(latest)) await complete(latest);
-            else if (!dialog.closed && invoice?.id === expected && latest?.status === 'EXPIRED') { invoice = latest; submit.option('disabled', true); errorBlock($qr, new Error('Giao dịch đã hết hạn. Đóng và mở lại thanh toán để tạo mã mới.')); clearInterval(dialog.timer); }
+            const isCompleted = confirmed(latest) || response.is_paid || response.status === 'COMPLETED';
+            if (!dialog.closed && isCompleted) {
+              const settledId = response.payment_id || latest?.payment_id || latest?.id || invoice.id;
+              const paymentObj = { ...invoice, ...latest, ...response, id: settledId, payment_id: settledId, status: 'COMPLETED' };
+              await complete(paymentObj);
+            } else if (!dialog.closed && (latest?.status === 'EXPIRED' || response.status === 'EXPIRED')) {
+              invoice = latest;
+              submit.option('disabled', true);
+              errorBlock($qr, new Error('Giao dịch đã hết hạn. Đóng và mở lại thanh toán để tạo mã mới.'));
+              clearInterval(dialog.timer);
+            }
           } catch (err) { if (!dialog.closed) errorBlock($error, err); }
           finally { pollBusy = false; }
-        }, 10000);
+        }, 2000);
       } catch (err) { if (!dialog.closed) errorBlock(dialog.body, err, init); }
     };
     await init();
+  }
+
+  function openPaymentSuccessModalAdmin(payment) {
+    const dialog = popup('Thanh toán thành công', 480);
+    const $b = dialog.body;
+    $b.css({ textAlign: 'center', padding: '16px 8px' });
+    $b.html(`
+      <div style="margin-bottom:16px;">
+        <div style="width:72px;height:72px;background:#eaf4ee;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px auto;box-shadow:0 4px 14px rgba(35,123,88,0.2);">
+          <i class="dx-icon-check" style="font-size:42px;color:#237b58;"></i>
+        </div>
+        <h2 style="margin:0 0 6px 0;font-size:20px;font-weight:700;color:#185740;text-transform:uppercase;letter-spacing:0.5px;">Thanh toán thành công!</h2>
+        <p class="text-muted" style="margin:0;font-size:13px;color:#5a6e65;">Giao dịch đã được ghi nhận và gói tập đã kích hoạt thành công.</p>
+      </div>
+
+      <div style="background:#f8faf9;border:1px solid #dfe6e2;border-radius:10px;padding:12px 16px;text-align:left;margin-bottom:18px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #dfe6e2;">
+          <span class="text-muted" style="font-size:13px;">Gói tập:</span>
+          <strong style="font-size:14px;color:#1c2d27;text-align:right;">${escapeHtml(payment.package_name || payment.package_name_snapshot || '--')}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #dfe6e2;">
+          <span class="text-muted" style="font-size:13px;">Số tiền:</span>
+          <strong style="font-size:18px;color:#237b58;">${money(payment.amount)}</strong>
+        </div>
+        ${(payment.receipt_code || payment.receipt?.receipt_code) ? `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #dfe6e2;">
+          <span class="text-muted" style="font-size:13px;">Mã phiếu thu:</span>
+          <span class="status-badge badge-success" style="font-weight:700;">${escapeHtml(payment.receipt_code || payment.receipt?.receipt_code)}</span>
+        </div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #dfe6e2;">
+          <span class="text-muted" style="font-size:13px;">Hình thức:</span>
+          <span style="font-size:13px;font-weight:500;">${method(payment)} (Tự động)</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="text-muted" style="font-size:13px;">Thời gian:</span>
+          <span style="font-size:12px;color:#5a6e65;">${timestamp(payment.confirmed_at || new Date())}</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;">
+        <div id="btnAdminSuccessReceipt"></div>
+        <div id="btnAdminSuccessClose"></div>
+      </div>
+    `);
+
+    button($b.find('#btnAdminSuccessReceipt'), 'In phiếu thu', 'print', () => {
+      closeDialog(dialog);
+      openReceipt(payment);
+    }, false);
+
+    button($b.find('#btnAdminSuccessClose'), 'Hoàn tất', 'check', () => {
+      closeDialog(dialog);
+    }, true);
   }
 
   async function openReceipt(payment) {

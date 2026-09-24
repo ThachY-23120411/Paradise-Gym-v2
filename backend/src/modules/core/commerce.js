@@ -1,4 +1,5 @@
 const express=require('express');
+const env=require('../../config/env');
 const {transaction}=require('../../db/postgres');
 const {generateVietQR}=require('../../utils/vietqr');
 const {emit}=require('./notifications');
@@ -691,7 +692,7 @@ async function invoice(req,db) {
   if(r.status!=='PENDING_PAYMENT')fail(409,'Registration is not awaiting payment');
   if(req.body.branch_id&&req.body.branch_id!==r.sold_branch_id)fail(400,'Payment branch must match registration');
 
-  const existing=(await db.query("SELECT * FROM payments WHERE registration_id=$1 AND status='PENDING' ORDER BY created_at DESC",[r.id])).rows.find(p=>paymentStatus(p)==='PENDING');
+  const existing = (await db.query("SELECT * FROM payment_intents WHERE registration_id=$1 AND state='PENDING' ORDER BY created_at DESC LIMIT 1", [r.id])).rows[0];
 
   let payableAmount = Number(r.price_snapshot);
   let discountId = null;
@@ -748,7 +749,7 @@ async function invoice(req,db) {
     if (p.discount_id) {
       dCode = (await db.query('SELECT code FROM discounts WHERE id = $1', [p.discount_id])).rows[0]?.code || null;
     }
-    const qr=method==='BANK_TRANSFER'?generateVietQR({amount:p.amount,description:`${r.reg_code} ${member.member_code} PARADISE`}):null;
+    const qr=method==='BANK_TRANSFER'?generateVietQR({amount:p.amount,description:`${env.TRANSFER_PREFIX || 'PG'} ${r.reg_code} ${member.member_code}`}):null;
     return {payment:{...p,discount_code:dCode},registration:r,qr_data:qr,vietqr:qr};
   };
 
@@ -757,23 +758,23 @@ async function invoice(req,db) {
     if (req.body.clear_discount === true && existing.discount_id) {
       await db.query('UPDATE discounts SET used_count = GREATEST(0, used_count - 1) WHERE id = $1', [existing.discount_id]);
       const resetPayment = (await db.query(`
-        UPDATE payments SET amount = $2, discount_id = NULL, discount_amount = 0, updated_at = NOW()
+        UPDATE payment_intents SET amount = $2, discount_id = NULL, discount_amount = 0, updated_at = NOW()
         WHERE id = $1 RETURNING *
       `, [existing.id, Number(r.price_snapshot)])).rows[0];
       return await response(resetPayment);
     }
     if (discountId && existing.discount_id !== discountId) {
       const updatedPayment = (await db.query(`
-        UPDATE payments SET amount = $2, discount_id = $3, discount_amount = $4, updated_at = NOW()
+        UPDATE payment_intents SET amount = $2, discount_id = $3, discount_amount = $4, updated_at = NOW()
         WHERE id = $1 RETURNING *
       `, [existing.id, payableAmount, discountId, discountAmount])).rows[0];
       return await response(updatedPayment);
     }
     return await response(existing);
   }
-  const p=(await db.query(`INSERT INTO payments(registration_id,member_id,branch_id,payment_code,payment_method,amount,discount_id,discount_amount,collected_by,note,expires_at)
-    VALUES($1,$2,$3,$4,$5::varchar,$6,$7,$8,$9,$10,CASE WHEN $5::varchar='BANK_TRANSFER' THEN NOW()+interval '15 minutes' ELSE NULL END) RETURNING *`,[r.id,r.member_id,r.sold_branch_id,await code(db,'payments','payment_code','PAY'),method,payableAmount,discountId,discountAmount,req.user.account_id,text(req.body.note,'note',255,false)])).rows[0];
-  await audit(db,req,'payments',p.id,'PAYMENT_INVOICE',null,p,p.branch_id);
+  const p=(await db.query(`INSERT INTO payment_intents(registration_id,member_id,branch_id,payment_code,payment_method,amount,discount_id,discount_amount,collected_by,note,expires_at)
+    VALUES($1,$2,$3,$4,$5::varchar,$6,$7,$8,$9,$10,CASE WHEN $5::varchar='BANK_TRANSFER' THEN NOW()+interval '15 minutes' ELSE NULL END) RETURNING *`,[r.id,r.member_id,r.sold_branch_id,await code(db,'payment_intents','payment_code','PAY'),method,payableAmount,discountId,discountAmount,req.user.account_id,text(req.body.note,'note',255,false)])).rows[0];
+  await audit(db,req,'payment_intents',p.id,'PAYMENT_INVOICE',null,p,p.branch_id);
   return await response(p);
 }
 async function confirm(req,db,paymentId) {
@@ -965,19 +966,69 @@ router.post('/payments/:id/simulate-transfer',route(req=>transaction(async db=>{
   });
   return {payment:saved,registration:reg,receipt};
 })));
-router.post('/payments/:id/check-bank-status',route(async req=>{const p=await row(pool,'payments',req.params.id);await paymentAccess(req,p);fail(503,'Bank verification provider is not configured','BANK_UNAVAILABLE');}));
-router.post('/payments/check-bank-status',route(async req=>{
-  let id=req.body.payment_id||req.body.id;
-  if(!id&&req.body.payment_code)id=(await pool.query('SELECT id FROM payments WHERE payment_code=$1',[req.body.payment_code])).rows[0]?.id;
-  if(!id)fail(400,'payment_id required');const p=await row(pool,'payments',id);await paymentAccess(req,p);
-  return {payment_id:p.id,status:paymentStatus(p),confirmed:p.status==='COMPLETED',is_paid:p.status==='COMPLETED',provider_status:'NOT_CONFIGURED',message:'Stored payment status only; bank verification is not configured.'};
-}));
+const checkBankStatus = async req => {
+  let id = req.params?.id || req.body?.payment_id || req.body?.id;
+  if (!id && req.body?.payment_code) {
+    id = (await pool.query('SELECT id FROM payments WHERE payment_code=$1', [req.body.payment_code])).rows[0]?.id
+      || (await pool.query('SELECT id FROM payment_intents WHERE payment_code=$1', [req.body.payment_code])).rows[0]?.id;
+  }
+  if (!id) fail(400, 'payment_id required');
+  let p = (await pool.query('SELECT * FROM payments WHERE id = $1', [id])).rows[0];
+  let isIntent = false;
+  if (!p) {
+    p = (await pool.query('SELECT * FROM payment_intents WHERE id = $1', [id])).rows[0];
+    if (p) isIntent = true;
+  }
+  if (!p) fail(404, 'Giao dịch không tồn tại', 'NOT_FOUND');
+  await paymentAccess(req, p);
+
+  // If intent was settled, fetch the settled payment
+  if (isIntent && p.payment_id) {
+    const settled = (await pool.query('SELECT * FROM payments WHERE id = $1', [p.payment_id])).rows[0];
+    if (settled) {
+      p = settled;
+      isIntent = false;
+    }
+  }
+  const isPaid = !isIntent && Boolean(p.confirmed_at);
+  const r = (await pool.query('SELECT * FROM registrations WHERE id=$1', [p.registration_id])).rows[0];
+  const rc = isPaid ? (await pool.query('SELECT * FROM receipts WHERE payment_id=$1', [p.id])).rows[0] : null;
+  return {
+    id: p.id,
+    payment_id: p.id,
+    payment_code: p.payment_code,
+    status: isPaid ? 'COMPLETED' : (isIntent && p.state ? p.state : paymentStatus(p)),
+    confirmed: isPaid,
+    is_paid: isPaid,
+    receipt_code: rc?.receipt_code || null,
+    amount: Number(p.amount),
+    package_name: r?.package_name_snapshot || null,
+    confirmed_at: p.confirmed_at || null,
+    provider_status: isPaid ? 'SETTLED' : 'WAITING',
+    message: isPaid ? 'Giao dịch đã thanh toán thành công' : 'Đang chờ xác nhận từ ngân hàng'
+  };
+};
+router.get('/payments/:id/check-bank-status', route(checkBankStatus));
+router.post('/payments/:id/check-bank-status', route(checkBankStatus));
+router.post('/payments/check-bank-status', route(checkBankStatus));
 router.get('/payments/:id/receipt',route(async req=>{
   const p=await row(pool,'payments',req.params.id);await paymentAccess(req,p);
   const receipt=(await pool.query(`SELECT rc.*,p.payment_code,p.payment_method,p.transaction_ref,r.reg_code,r.package_name_snapshot,b.branch_name,b.address,b.phone branch_phone,COALESCE(a.full_name,a.login_phone) issued_by_name FROM receipts rc JOIN payments p ON p.id=rc.payment_id JOIN registrations r ON r.id=p.registration_id JOIN branches b ON b.id=p.branch_id JOIN accounts a ON a.id=rc.issued_by WHERE rc.payment_id=$1`,[p.id])).rows[0];
   if(!receipt)fail(404,'Receipt not available');return receipt;
 }));
-router.get('/payments/:id',route(async req=>{const p=await row(pool,'payments',req.params.id);await paymentAccess(req,p);return {...p,status:paymentStatus(p)};}));
+router.get('/payments/:id',route(async req=>{
+  let p = (await pool.query('SELECT * FROM payments WHERE id=$1', [req.params.id])).rows[0];
+  if (!p) {
+    p = (await pool.query('SELECT * FROM payment_intents WHERE id=$1', [req.params.id])).rows[0];
+  }
+  if (!p) fail(404, 'Payment not found', 'NOT_FOUND');
+  await paymentAccess(req, p);
+  if (p.payment_id) {
+    const settled = (await pool.query('SELECT * FROM payments WHERE id=$1', [p.payment_id])).rows[0];
+    if (settled) return { ...settled, status: 'COMPLETED' };
+  }
+  return { ...p, status: p.confirmed_at ? 'COMPLETED' : (p.state || paymentStatus(p)) };
+}));
 
 // ==========================================
 // PACKAGE TRANSFER REQUESTS (Chuyển nhượng gói tập)
